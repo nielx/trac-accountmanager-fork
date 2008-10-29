@@ -14,7 +14,6 @@ import inspect
 from trac.core import *
 from trac.config import Option
 from trac.perm import PermissionSystem
-from trac.util import sorted
 from trac.util.datefmt import format_datetime
 from trac.web.chrome import ITemplateProvider
 from trac.admin import IAdminPanelProvider
