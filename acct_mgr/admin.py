@@ -17,6 +17,7 @@ from trac.perm import PermissionSystem
 from trac.util.datefmt import format_datetime
 from trac.web.chrome import ITemplateProvider
 from trac.admin import IAdminPanelProvider
+from trac.util.compat import sorted
 
 from acct_mgr.api import AccountManager
 from acct_mgr.web_ui import _create_user
