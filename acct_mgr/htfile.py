@@ -36,6 +36,7 @@ class AbstractPasswordFileStore(Component):
     def get_users(self):
         filename = self.filename
         if not os.path.exists(filename):
+            self.log.debug('acct_mgr: get_users() -- Can\'t locate "%s"' % str(filename))
             return []
         return self._get_users(filename)
 
@@ -52,6 +53,7 @@ class AbstractPasswordFileStore(Component):
     def check_password(self, user, password):
         filename = self.filename
         if not os.path.exists(filename):
+            self.log.debug('acct_mgr: check_password() -- Can\'t locate "%s"' % str(filename))
             return False
         user = user.encode('utf-8')
         password = password.encode('utf-8')
