@@ -16,7 +16,7 @@ from trac.core import *
 from trac.admin import IAdminPanelProvider
 from trac.config import Option, ListOption
 from trac.web.chrome import ITemplateProvider
-from trac.notification import NotifyEmail
+from trac.notification import NotifyEmail, NotificationSystem
 from trac.util.text import CRLF
 from trac.util.translation import _
 
@@ -156,13 +156,13 @@ class AccountChangeNotification(NotifyEmail):
         msg.set_charset(self._charset)
         self.add_headers(msg, headers);
         self.add_headers(msg, mime_headers);
-        self.env.log.info("Sending SMTP notification to %s:%d to %s"
-                           % (self.smtp_server, self.smtp_port, recipients))
+        self.env.log.info("Sending SMTP notification to %s"%recipients)
         msgtext = msg.as_string()
         # Ensure the message complies with RFC2822: use CRLF line endings
         recrlf = re.compile("\r?\n")
         msgtext = CRLF.join(recrlf.split(msgtext))
-        self.server.sendmail(msg['From'], recipients, msgtext)
+        NotificationSystem(self.env).send_email(msg['From'], recipients,
+                msgtext)
 
 
 class SingleUserNotification(NotifyEmail):
