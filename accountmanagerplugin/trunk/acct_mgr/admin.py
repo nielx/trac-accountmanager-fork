@@ -249,7 +249,8 @@ class AccountManagerAdminPage(Component):
             for username, last_visit in cursor:
                 account = accounts.get(username)
                 if account and last_visit:
-                    account['last_visit'] = format_datetime(last_visit)
+                    account['last_visit'] = format_datetime(last_visit, 
+                                                            tzinfo=req.tz)
 
             data['accounts'] = sorted(accounts.itervalues(),
                                       key=lambda acct: acct['username'])
