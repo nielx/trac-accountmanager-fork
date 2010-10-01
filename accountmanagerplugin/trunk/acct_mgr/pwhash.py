@@ -65,7 +65,7 @@ except ImportError:
 
 def salt():
     s = ''
-    v = long(hexlify(urandom(4)), 16)
+    v = long(hexlify(urandom(6)), 16)
     itoa64 = './0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
     for i in range(8):
         s += itoa64[v & 0x3f]; v >>= 6
