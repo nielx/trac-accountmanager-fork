@@ -105,7 +105,7 @@ class AccountManager(Component):
     stores = ExtensionPoint(IPasswordStore)
     change_listeners = ExtensionPoint(IAccountChangeListener)
     force_passwd_change = BoolOption('account-manager', 'force_passwd_change',
-                                     True, doc="Forge the user to change "
+                                     True, doc="Force the user to change "
                                      "password when it's reset.")
     persistent_sessions = BoolOption('account-manager', 'persistent_sessions',
                                      False, doc="Allow the user to be "
