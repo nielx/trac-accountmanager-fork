@@ -34,3 +34,11 @@ except ImportError:
         return ''.join([chr(randrange(256)) for _ in xrange(n)])
 
 
+# taken from a comment of Horst Hansen
+# at http://code.activestate.com/recipes/65441
+def containsAny(str, set):
+    for c in set:
+        if c in str:
+            return True
+    return False
+

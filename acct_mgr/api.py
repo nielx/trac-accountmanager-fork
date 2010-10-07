@@ -10,7 +10,9 @@
 # Author: Matthew Good <trac@matt-good.net>
 
 from trac.core import *
-from trac.config import Option, BoolOption, ExtensionOption, OrderedExtensionsOption
+from trac.config import Option, BoolOption, ExtensionOption, \
+                        OrderedExtensionsOption
+
 
 class IPasswordStore(Interface):
     """An interface for Components that provide a storage method for users and
@@ -99,21 +101,25 @@ class AccountManager(Component):
 
     implements(IAccountChangeListener)
 
-    _password_store = OrderedExtensionsOption('account-manager', 'password_store',
-                                              IPasswordStore, include_missing=False)
+    _password_store = OrderedExtensionsOption(
+        'account-manager', 'password_store', IPasswordStore,
+        include_missing=False)
     _password_format = Option('account-manager', 'password_format')
     stores = ExtensionPoint(IPasswordStore)
     change_listeners = ExtensionPoint(IAccountChangeListener)
-    force_passwd_change = BoolOption('account-manager', 'force_passwd_change',
-                                     True, doc="Force the user to change "
-                                     "password when it's reset.")
-    persistent_sessions = BoolOption('account-manager', 'persistent_sessions',
-                                     False, doc="Allow the user to be "
-                                     "remembered across sessions without "
-                                     "needing to re-authenticate. This is, "
-                                     "user checks a \"Remember Me\" checkbox "
-                                     "and, next time he visits the site, he'll "
-                                     "be remembered")
+    force_passwd_change = BoolOption(
+        'account-manager', 'force_passwd_change', True,
+        doc="Force the user to change password when it's reset.")
+    persistent_sessions = BoolOption(
+        'account-manager', 'persistent_sessions', False,
+        doc="""Allow the user to be remembered across sessions without
+            needing to re-authenticate. This is, user checks a
+            \"Remember Me\" checkbox and, next time he visits the site,
+            he'll be remembered.""")
+    username_char_blacklist = Option(
+        'account-manager', 'username_char_blacklist', ':[]',
+        doc="""Always exclude some special characters from usernames.
+            This is enforced upon new user registration.""")
 
     # Public API
 
