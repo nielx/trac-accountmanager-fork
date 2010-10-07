@@ -514,7 +514,7 @@ class LoginModule(auth.LoginModule):
     # overrides
     def _do_login(self, req):
         if not req.remote_user:
-            req.redirect(self.env.abs_href())
+            self._redirect_back(req)
         res = auth.LoginModule._do_login(self, req)
         if req.args.get('rememberme', '0') == '1':
             # Set the session to expire in 30 days (and not when to browser is
@@ -547,17 +547,6 @@ class LoginModule(auth.LoginModule):
         if AccountManager(self.env).check_password(user, password):
             return user
         return None
-
-    def _redirect_back(self, req):
-        """Redirect the user back to the URL she came from."""
-        referer = self._referer(req)
-        if referer and not referer.startswith(req.base_url):
-            # don't redirect to external sites
-            referer = None
-        req.redirect(referer or self.env.abs_href())
-
-    def _referer(self, req):
-        return req.args.get('referer') or req.get_header('Referer')
 
     def enabled(self):
         # Users should disable the built-in authentication to use this one
