@@ -28,35 +28,80 @@ from genshi.core import Markup
 from genshi.builder import tag
 
 from api import AccountManager
-from acct_mgr.util import urandom
+from acct_mgr.util import containsAny, urandom
 
 def _create_user(req, env, check_permissions=True):
     mgr = AccountManager(env)
 
-    user = req.args.get('user')
+    user = req.args.get('user').strip()
     name = req.args.get('name')
-    email = req.args.get('email')
+    email = req.args.get('email').strip()
     acctmgr = {'username' : user,
                'name' : name,
                'email' : email,
               }
     error = TracError('')
     error.acctmgr = acctmgr
+
     if not user:
         error.message = 'Username cannot be empty.'
         raise error
 
-    if mgr.has_user(user):
-        error.message = 'Another account with that name already exists.'
+    # Prohibit some user names that are important for Trac and therefor
+    # reserved, even if they're not in the permission store for some reason.
+    if user in ['authenticated', 'anonymous']:
+        error.message = 'Username %s is not allowed.' % user
         raise error
 
+    # NOTE: A user may exist in the password store but not in the permission
+    #   store. I.e. this happens, when the user (from the password store)
+    #   never logged in into Trac. So we have to perform this test here
+    #   and cannot just check for the user being in the permission store.
+    #   And obfuscate whether an existing user or group name
+    #   was responsible for rejection of this user name.
+    if mgr.has_user(user):
+        error.message = \
+            'Another account or group with that name already exists.'
+        raise error
+
+    # Check whether there is also a user or a group with that name.
     if check_permissions:
-        # disallow registration of accounts which have existing permissions
-        permission_system = perm.PermissionSystem(env)
-        if permission_system.get_user_permissions(user) != \
-           permission_system.get_user_permissions('authenticated'):
-            error.message = 'Another account with that name already exists.'
-            raise error
+        # NOTE: We can't use "get_user_permissions(user)" here as this always
+        #   returns a list - even if the user doesn't exist.
+        #   In this case the permissions of "anonymous" are returned.
+        #
+        #   Also note that we can't simply compare the result of
+        #   "get_user_permissions(user)" to some known set of permission,
+        #   i.e. "get_user_permissions('authenticated') as this is always
+        #   false when "user" is the name of an existing permission group.
+        #
+        #   And again obfuscate whether an existing user or group name
+        #   was responsible for rejection of this user name.
+        for (perm_user, perm_action) in \
+                perm.PermissionSystem(env).get_all_permissions():
+            if perm_user == user:
+                error.message = \
+                    'Another account or group with that name already exists.'
+                raise error
+
+    # Always exclude some special characters, i.e. 
+    #   ':' can't be used in HtPasswdStore
+    #   '[' and ']' can't be used in SvnServePasswordStore
+    blacklist = mgr.username_char_blacklist
+    if containsAny(user, blacklist):
+        pretty_blacklist = ''
+        for c in blacklist:
+            if pretty_blacklist == '':
+                pretty_blacklist = tag(' \'', tag.b(c), '\'')
+            else:
+                pretty_blacklist = tag(pretty_blacklist,
+                                       ', \'', tag.b(c), '\'')
+        error.message = tag(
+            'The username must not contain any of these characters:',
+            pretty_blacklist)
+        raise error
+
+    # Validation of username passed.
 
     password = req.args.get('password')
     if not password:
