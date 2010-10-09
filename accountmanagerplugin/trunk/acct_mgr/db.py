@@ -12,8 +12,9 @@
 from trac.core import *
 from trac.config import ExtensionOption
 
-from api import IPasswordStore
-from pwhash import IPasswordHashMethod
+from acct_mgr.api import IPasswordStore
+from acct_mgr.pwhash import IPasswordHashMethod
+
 
 class SessionStore(Component):
     implements(IPasswordStore)

@@ -121,6 +121,26 @@ class HtPasswdTestCase(_BaseTestCase):
         self.assertTrue(self.store.delete_user(user))
         self.assertEqual([], list(self.store.get_users()))
 
+    def test_create_hash(self):
+        self.env.config.set('account-manager', 'htpasswd_hash_type', 'bad')
+        self.assertTrue(self.store.userline('user',
+                                            'password').startswith('user:'))
+        self.assertFalse(self.store.userline('user', 'password'
+                                            ).startswith('user:$apr1$'))
+        self.assertFalse(self.store.userline('user', 'password'
+                                            ).startswith('user:{SHA}'))
+        self.store.set_password('user', 'password')
+        self.assertTrue(self.store.check_password('user', 'password'))
+        self.env.config.set('account-manager', 'htpasswd_hash_type', 'md5')
+        self.assertTrue(self.store.userline('user', 'password'
+                                           ).startswith('user:$apr1$'))
+        self.store.set_password('user', 'password')
+        self.assertTrue(self.store.check_password('user', 'password'))
+        self.env.config.set('account-manager', 'htpasswd_hash_type', 'sha')
+        self.assertTrue(self.store.userline('user', 'password'
+                                           ).startswith('user:{SHA}'))
+        self.store.set_password('user', 'password')
+        self.assertTrue(self.store.check_password('user', 'password'))
 
 def suite():
     suite = unittest.TestSuite()

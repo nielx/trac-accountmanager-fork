@@ -23,17 +23,6 @@ class EnvRelativePathOption(Option):
             return path
         return os.path.normpath(os.path.join(instance.env.path, path))
 
-
-# os.urandom was added in Python 2.4
-# try to fall back on pseudo-random values if it's not available
-try:
-    from os import urandom
-except ImportError:
-    from random import randrange
-    def urandom(n):
-        return ''.join([chr(randrange(256)) for _ in xrange(n)])
-
-
 # taken from a comment of Horst Hansen
 # at http://code.activestate.com/recipes/65441
 def containsAny(str, set):
