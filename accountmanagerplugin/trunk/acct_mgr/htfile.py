@@ -11,7 +11,9 @@
 
 import errno
 import os.path
-import fileinput
+# DEVEL: Use `with` statement for better file access code,
+#   taking care of Python 2.5, but not needed for Python >= 2.6
+#from __future__ import with_statement
 
 from trac.core import *
 from trac.config import Option
@@ -22,10 +24,11 @@ from util import EnvRelativePathOption
 
 
 class AbstractPasswordFileStore(Component):
-    """Base class for managing password files such as Apache's htpasswd and
-    htdigest formats.
+    """Base class for managing password files.
 
-    See the concrete sub-classes for usage information.
+    Derived classes support different formats such as
+    Apache's htpasswd and htdigest format.
+    See these concrete sub-classes for usage information.
     """
 
     filename = EnvRelativePathOption('account-manager', 'password_file')
@@ -34,9 +37,10 @@ class AbstractPasswordFileStore(Component):
         return user in self.get_users()
 
     def get_users(self):
-        filename = self.filename
+        filename = str(self.filename)
         if not os.path.exists(filename):
-            self.log.debug('acct_mgr: get_users() -- Can\'t locate "%s"' % str(filename))
+            self.log.debug('acct_mgr: get_users() -- '
+                           'Can\'t locate "%s"' % filename)
             return []
         return self._get_users(filename)
 
@@ -51,59 +55,113 @@ class AbstractPasswordFileStore(Component):
         return self._update_file(self.prefix(user), None)
 
     def check_password(self, user, password):
-        filename = self.filename
+        filename = str(self.filename)
         if not os.path.exists(filename):
-            self.log.debug('acct_mgr: check_password() -- Can\'t locate "%s"' % str(filename))
+            self.log.debug('acct_mgr: check_password() -- '
+                           'Can\'t locate "%s"' % filename)
             return False
         user = user.encode('utf-8')
         password = password.encode('utf-8')
         prefix = self.prefix(user)
-        fd = file(filename)
         try:
-            for line in fd:
+            f = open(filename, 'Ur')
+            for line in f:
                 if line.startswith(prefix):
                     return self._check_userline(user, password,
-                                                line[len(prefix):].rstrip('\n'))
+                            line[len(prefix):].rstrip('\n'))
         finally:
-            fd.close()
+            f.close()
         return None
 
     def _update_file(self, prefix, userline):
-        """If `userline` is empty the line starting with `prefix` is 
-        removed from the user file.  Otherwise the line starting with `prefix`
-        is updated to `userline`.  If no line starts with `prefix` the
-        `userline` is appended to the file.
+        """Add or remove user and change password.
+
+        If `userline` is empty, the line starting with `prefix` is removed
+        from the user file. Otherwise the line starting with `prefix`
+        is updated to `userline`.  If no line starts with `prefix`,
+        the `userline` is appended to the file.
 
         Returns `True` if a line matching `prefix` was updated,
         `False` otherwise.
         """
-        filename = self.filename
+        filename = str(self.filename)
         matched = False
+        new_lines = []
         try:
-            for line in fileinput.input(str(filename), inplace=True):
-                if line.startswith(prefix):
-                    if not matched and userline:
-                        print userline
-                    matched = True
-                elif line.endswith('\n'):
-                    print line,
-                else: # make sure the last line has a newline
-                    print line
+            # Open existing file read-only to read old content.
+            # DEVEL: Use `with` statement available in Python >= 2.5
+            #   as soon as we don't need to support 2.4 anymore.
+            eol = '\n'
+            f = open(filename, 'Ur')
+            lines = f.readlines()
+            newlines = f.newlines
+            if newlines is not None:
+                if isinstance(newlines, str):
+                    newlines = [f.newlines]
+                elif isinstance(newlines, tuple):
+                    newlines = list(f.newlines)
+                if '\n' not in newlines:
+                    if '\r\n' in newlines:
+                        # Windows newline style
+                        eol = '\r\n'
+                    elif '\r' in newlines:
+                        # MacOS newline style
+                        eol = '\r'
+
+            # DEVEL: Beware, in shared use there is a race-condition,
+            #   since file changes by other programs that occure from now on
+            #   are currently not detected and will get overwritten.
+            #   This could be fixed by file locking, but a cross-platform
+            #   implementation is certainly non-trivial.
+            if len(lines) > 0:
+                for line in lines:
+                    if line.startswith(prefix):
+                        if not matched and userline:
+                            new_lines.append(userline + eol)
+                        matched = True
+                    elif line.endswith('\n'):
+                        if eol == '\n':
+                            new_lines.append(line)
+                        else:
+                            # restore eol
+                            new_lines.append(line.rstrip('\n') + eol)
+                    # make sure the last line has a newline
+                    else:
+                        new_lines.append(line + eol)
         except EnvironmentError, e:
             if e.errno == errno.ENOENT:
-                pass # ignore when file doesn't exist and create it below
+                # Ignore, when file doesn't exist and create it below.
+                pass
             elif e.errno == errno.EACCES:
+                raise TracError('The password file could not be read.  '
+                                'Trac requires read and write access to both '
+                                'the password file and its parent directory.')
+            else:
+                raise
+
+        # Finally add the new line here, if it wasn't used before
+        # to update or delete a line, creating content for a new file as well.
+        if not matched and userline:
+            new_lines.append(userline + eol)
+
+        # Try to (re-)open file write-only now and save new content.
+        try:
+            f = open(filename, 'w')
+            f.writelines(new_lines)
+        except EnvironmentError, e:
+            if e.errno == errno.EACCES:
                 raise TracError('The password file could not be updated.  '
                                 'Trac requires read and write access to both '
                                 'the password file and its parent directory.')
             else:
                 raise
-        if not matched and userline:
-            f = open(filename, 'a')
-            try:
-                print >>f, userline
-            finally:
+        finally:
+            if isinstance(f, file):
+                # Close open file now, even after exception raised.
                 f.close()
+                if not f.closed:
+                    self.log.debug('acct_mgr: _update_file() -- '
+                                   'Closing file "%s" failed' % filename)
         return matched
 
 
@@ -134,7 +192,7 @@ class HtPasswdStore(AbstractPasswordFileStore):
         return suffix == htpasswd(password, suffix)
 
     def _get_users(self, filename):
-        f = open(filename)
+        f = open(filename, 'Ur')
         for line in f:
             user = line.split(':', 1)[0]
             if user:
@@ -153,7 +211,6 @@ class HtDigestStore(AbstractPasswordFileStore):
     htdigest_realm = TracDigestRealm
     }}}
     """
-
 
     implements(IPasswordStore)
 
