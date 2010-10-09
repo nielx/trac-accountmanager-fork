@@ -55,7 +55,7 @@ class SvnServePasswordStore(Component):
     def has_user(self, user):
         return user in self._config['users']
  
-    def set_password(self, user, password):
+    def set_password(self, user, password, old_password = None):
         cfg = self._config
         cfg.set('users', user, password)
         cfg.save()

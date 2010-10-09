@@ -44,7 +44,7 @@ class AbstractPasswordFileStore(Component):
             return []
         return self._get_users(filename)
 
-    def set_password(self, user, password):
+    def set_password(self, user, password, old_password = None):
         user = user.encode('utf-8')
         password = password.encode('utf-8')
         return not self._update_file(self.prefix(user),

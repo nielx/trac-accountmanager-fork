@@ -39,7 +39,7 @@ class IPasswordStore(Interface):
         """Returns whether the user account exists.
         """
 
-    def set_password(self, user, password):
+    def set_password(self, user, password, old_password = None):
         """Sets the password for the user.  This should create the user account
         if it doesn't already exist.
         Returns True if a new account was created, False if an existing account
@@ -138,7 +138,7 @@ class AccountManager(Component):
             continue
         return exists
 
-    def set_password(self, user, password):
+    def set_password(self, user, password, old_password = None):
         store = self.find_user_store(user)
         if store and not hasattr(store, 'set_password'):
             raise TracError('The authentication backend for the user, %s, '
@@ -146,7 +146,7 @@ class AccountManager(Component):
         elif not store:
             store = self.get_supporting_store('set_password')
         if store:
-            if store.set_password(user, password):
+            if store.set_password(user, password, old_password):
                 self._notify('created', user, password)
             else:
                 self._notify('password_changed', user, password)
