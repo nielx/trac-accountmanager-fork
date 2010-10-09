@@ -397,9 +397,9 @@ class RegistrationModule(Component):
                 data['acctmgr'] = e.acctmgr
             else:
                 chrome.add_notice(req, Markup(tag(
-                    """Registration has been finished successfully.
-                    You may login as user %(user)s now.""",
-                    user=tag.b(req.args.get('user')))))
+                    "Registration has been finished successfully."
+                    " You may login as user ", tag.b(req.args.get('user')),
+                    " now.")))
                 req.redirect(req.href.login())
         data['reset_password_enabled'] = \
             (self.env.is_component_enabled(AccountModule)
