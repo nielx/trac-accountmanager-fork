@@ -19,7 +19,7 @@ from trac.core import *
 from trac.config import Option
 
 from api import IPasswordStore
-from pwhash import htpasswd, htdigest
+from pwhash import htpasswd, mkhtpasswd, htdigest
 from util import EnvRelativePathOption
 
 
@@ -174,10 +174,17 @@ class HtPasswdStore(AbstractPasswordFileStore):
     [account-manager]
     password_store = HtPasswdStore
     password_file = /path/to/trac.htpasswd
+    htpasswd_hash_type = crypt|md5|sha <- None or one of these options
     }}}
+
+    Default behaviour is to detect presence of 'crypt' and use it or
+    fallback to generation of passwords with md5 hash otherwise.
     """
 
     implements(IPasswordStore)
+
+    hash_type = Option('account-manager', 'htpasswd_hash_type', 'crypt',
+        doc = "Default hash type of new/updated passwords")
 
     def config_key(self):
         return 'htpasswd'
@@ -186,7 +193,7 @@ class HtPasswdStore(AbstractPasswordFileStore):
         return user + ':'
 
     def userline(self, user, password):
-        return self.prefix(user) + htpasswd(password)
+        return self.prefix(user) + mkhtpasswd(password, self.hash_type)
 
     def _check_userline(self, user, password, suffix):
         return suffix == htpasswd(password, suffix)

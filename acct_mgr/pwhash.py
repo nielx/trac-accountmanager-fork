@@ -10,13 +10,15 @@
 # Author: Matthew Good <trac@matt-good.net>
 
 from binascii import hexlify
-from hashlib_compat import md5, sha1
+from os import urandom
 
 from trac.core import *
-from trac.config import Option
+from trac.config import ChoiceOption, Option
 
-from md5crypt import md5crypt
-from acct_mgr.util import urandom
+from acct_mgr.api import AccountManager
+from acct_mgr.hashlib_compat import md5, sha1
+from acct_mgr.md5crypt import md5crypt
+
 
 class IPasswordHashMethod(Interface):
     def generate_hash(user, password):
@@ -29,9 +31,12 @@ class IPasswordHashMethod(Interface):
 class HtPasswdHashMethod(Component):
     implements(IPasswordHashMethod)
 
+    hash_type = Option('account-manager', 'htpasswd_hash_type', 'crypt',
+        doc = "Default hash type of new/updated passwords")
+
     def generate_hash(self, user, password):
         password = password.encode('utf-8')
-        return htpasswd(password)
+        return mkhtpasswd(password, self.hash_type)
 
     def check_hash(self, user, password, hash):
         password = password.encode('utf-8')
@@ -71,22 +76,37 @@ def salt():
         s += itoa64[v & 0x3f]; v >>= 6
     return s
 
-def htpasswd(password, salt_=None):
-# TODO need unit test of generating new hash
-    if salt_ is None:
-        salt_ = salt()
-        if crypt is None:
-            salt_ = '$apr1$' + salt_
-    if salt_.startswith('$apr1$'):
-        return md5crypt(password, salt_[6:].split('$')[0], '$apr1$')
-    elif salt_.startswith('{SHA}'):
+def hash_prefix(hash_type):
+    """Map hash type to salt prefix."""
+    if hash_type == 'md5':
+        return '$apr1$'
+    elif hash_type == 'sha':
+        return '{SHA}'
+    else:
+        # use 'crypt' hash by default anyway
+        return ''
+
+def htpasswd(password, hash):
+    if hash.startswith('$apr1$'):
+        return md5crypt(password, hash[6:].split('$')[0], '$apr1$')
+    elif hash.startswith('{SHA}'):
         return '{SHA}' + sha1(password).digest().encode('base64')[:-1]
     elif crypt is None:
         # crypt passwords are only supported on Unix-like systems
         raise NotImplementedError('The "crypt" module is unavailable '
                                   'on this platform.')
     else:
-        return crypt(password, salt_)
+        return crypt(password, hash)
+
+def mkhtpasswd(password, hash_type=''):
+    hash_prefix_ = hash_prefix(hash_type)
+    salt_ = salt()
+    if hash_prefix_ == '':
+        if crypt is None:
+            salt_ = '$apr1$' + salt_
+    else:
+        salt_ = hash_prefix_ + salt_
+    return htpasswd(password, salt_)
 
 def htdigest(user, realm, password):
     p = ':'.join([user, realm, password])

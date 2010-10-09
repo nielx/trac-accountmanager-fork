@@ -9,8 +9,9 @@
 #
 # Author: Matthew Good <trac@matt-good.net>
 
+from os import urandom
+
 import base64
-import os
 import random
 import string
 import time
@@ -27,8 +28,8 @@ from trac.web.chrome import INavigationContributor, ITemplateProvider
 from genshi.core import Markup
 from genshi.builder import tag
 
-from api import AccountManager
-from acct_mgr.util import containsAny, urandom
+from acct_mgr.api import AccountManager
+from acct_mgr.util import containsAny
 
 def _create_user(req, env, check_permissions=True):
     mgr = AccountManager(env)
