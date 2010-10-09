@@ -306,7 +306,7 @@ class AccountModule(Component):
         if password != req.args.get('password_confirm'):
             return {'save_error': 'The passwords must match.'}
 
-        mgr.set_password(user, password)
+        mgr.set_password(user, password, old_password)
         return {'message': 'Password successfully updated.'}
 
     def _do_delete(self, req):

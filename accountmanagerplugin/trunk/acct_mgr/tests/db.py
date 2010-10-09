@@ -60,6 +60,8 @@ class _BaseTestCase(unittest.TestCase):
         self.assertFalse(self.store.check_password('foo', 'pass2'))
         self.store.set_password('foo', 'pass2')
         self.assertTrue(self.store.check_password('foo', 'pass2'))
+        self.store.set_password('foo', 'pass3', 'pass2')
+        self.assertTrue(self.store.check_password('foo', 'pass3'))
 
     def test_delete_user(self):
         self.store.set_password('foo', 'password')

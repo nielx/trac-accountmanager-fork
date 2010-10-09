@@ -42,7 +42,7 @@ class SessionStore(Component):
             return True
         return False
 
-    def set_password(self, user, password):
+    def set_password(self, user, password, old_password = None):
         """Sets the password for the user.  This should create the user account
         if it doesn't already exist.
         Returns True if a new account was created, False if an existing account

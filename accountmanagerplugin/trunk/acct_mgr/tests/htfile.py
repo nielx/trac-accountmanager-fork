@@ -78,6 +78,14 @@ class HtDigestTestCase(_BaseTestCase):
         self.assertTrue(self.store.delete_user(user))
         self.assertEqual([], list(self.store.get_users()))
 
+    def test_update_password(self):
+        self.store.set_password('foo', 'pass1')
+        self.assertFalse(self.store.check_password('foo', 'pass2'))
+        self.store.set_password('foo', 'pass2')
+        self.assertTrue(self.store.check_password('foo', 'pass2'))
+        self.store.set_password('foo', 'pass3', 'pass2')
+        self.assertTrue(self.store.check_password('foo', 'pass3'))
+
 
 class HtPasswdTestCase(_BaseTestCase):
     def setUp(self):
@@ -120,6 +128,14 @@ class HtPasswdTestCase(_BaseTestCase):
         self.assertTrue(self.store.check_password(user, password))
         self.assertTrue(self.store.delete_user(user))
         self.assertEqual([], list(self.store.get_users()))
+
+    def test_update_password(self):
+        self.store.set_password('foo', 'pass1')
+        self.assertFalse(self.store.check_password('foo', 'pass2'))
+        self.store.set_password('foo', 'pass2')
+        self.assertTrue(self.store.check_password('foo', 'pass2'))
+        self.store.set_password('foo', 'pass3', 'pass2')
+        self.assertTrue(self.store.check_password('foo', 'pass3'))
 
     def test_create_hash(self):
         self.env.config.set('account-manager', 'htpasswd_hash_type', 'bad')
