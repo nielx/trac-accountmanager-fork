@@ -43,6 +43,17 @@
                      class="textwidget" size="20" />
             </label>
           </div>
+          <div py:if="verify_account_enabled">
+            <label>Email:
+              <input type="text" name="email" class="textwidget" size="20"  value="${acctmgr.email}"/>
+            </label>
+            <p>The email address is required for Trac to send you the
+              verification code.
+            </p>
+            <p py:if="reset_password_enabled">Entering your email address will
+              also enable you to reset your password if you ever forget it.
+            </p>
+          </div>
         </fieldset>
         <fieldset>
           <legend>Optional</legend>
@@ -51,12 +62,13 @@
               <input type="text" name="name" class="textwidget" size="20"  value="${acctmgr.name}"/>
             </label>
           </div>
-          <div>
+          <div py:if="not verify_account_enabled">
             <label>Email:
               <input type="text" name="email" class="textwidget" size="20"  value="${acctmgr.email}"/>
             </label>
-            <p py:if="reset_password_enabled">Entering your email address will
-            enable you to reset your password if you ever forget it.</p>
+            <p py:if="reset_password_enabled">Entering your email address
+              will enable you to reset your password if you ever forget it.
+            </p>
           </div>
         </fieldset>
         <input type="submit" value="Create account" />
