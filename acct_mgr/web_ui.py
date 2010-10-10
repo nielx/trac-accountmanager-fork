@@ -13,6 +13,7 @@ from os import urandom
 
 import base64
 import random
+import re
 import string
 import time
 
@@ -112,6 +113,24 @@ def _create_user(req, env, check_permissions=True):
     if password != req.args.get('password_confirm'):
         error.message = 'The passwords must match.'
         raise error
+
+    # Validation of password passed.
+
+    if if_enabled(EmailVerificationModule):
+        if not email:
+            error.message = 'You must specify a valid email address.'
+            raise error
+        elif not re.match('^[A-Z0-9._%+-]+@(?:[A-Z0-9-]+\.)+[A-Z]{2,6}$',
+                          email, re.IGNORECASE):
+            error.message = 'The email address specified appears to be' \
+                            ' invalid. Please specify a valid email address.'
+            raise error
+        elif mgr.has_email(email):
+            error.message = 'The email address specified is already in use.' \
+                            ' Please specify a different address.'
+            raise error
+
+    # Validation of email address passed.
 
     mgr.set_password(user, password)
 
@@ -388,7 +407,9 @@ class RegistrationModule(Component):
                               'name' : None,
                               'email' : None,
                             },
-                }
+               }
+        data['verify_account_enabled'] = self.env.is_component_enabled(
+                                               EmailVerificationModule)
         if req.method == 'POST' and action == 'create':
             try:
                 _create_user(req, self.env)

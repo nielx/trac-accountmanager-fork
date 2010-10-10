@@ -39,6 +39,10 @@ class IPasswordStore(Interface):
         """Returns whether the user account exists.
         """
 
+    def has_email(self, address):
+        """Returns whether a user account with that email address exists.
+        """
+
     def set_password(self, user, password, old_password = None):
         """Sets the password for the user.  This should create the user account
         if it doesn't already exist.
@@ -136,6 +140,24 @@ class AccountManager(Component):
                 exists = True
                 break
             continue
+        return exists
+
+    def has_email(self, email):
+        """Returns whether a user account with that email address exists.
+
+        Check db directly - email addresses are not backend-specific.
+        """
+        exists = False
+        db = self.env.get_db_cnx()
+        cursor = db.cursor()
+        cursor.execute("""
+            SELECT value
+              FROM session_attribute
+             WHERE authenticated=1 AND name='email' AND value=%s
+            """, (email,))
+        for row in cursor:
+            exists = True
+            break
         return exists
 
     def set_password(self, user, password, old_password = None):
