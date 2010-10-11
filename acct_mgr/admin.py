@@ -13,7 +13,7 @@ import inspect
 
 from trac.core import *
 from trac.config import Option
-from trac.perm import PermissionSystem
+from trac.perm import IPermissionRequestor, PermissionSystem
 from trac.util.datefmt import format_datetime
 from trac.web.chrome import ITemplateProvider
 from trac.admin import IAdminPanelProvider
@@ -99,15 +99,22 @@ class StoreOrder(dict):
 
 class AccountManagerAdminPage(Component):
 
-    implements(IAdminPanelProvider, ITemplateProvider)
+    implements(IPermissionRequestor, IAdminPanelProvider, ITemplateProvider)
 
     def __init__(self):
         self.account_manager = AccountManager(self.env)
 
+    # IPermissionRequestor
+    def get_permission_actions(self):
+        action = ['ACCTMGR_CONFIG_ADMIN', 'ACCTMGR_USER_ADMIN']
+        actions = [('ACCTMGR_ADMIN', action), action[0], action[1],]
+        return actions
+
     # IAdminPageProvider
     def get_admin_panels(self, req):
-        if req.perm.has_permission('TRAC_ADMIN'):
+        if req.perm.has_permission('ACCTMGR_CONFIG_ADMIN'):
             yield ('accounts', 'Accounts', 'config', 'Configuration')
+        if req.perm.has_permission('ACCTMGR_USER_ADMIN'):
             yield ('accounts', 'Accounts', 'users', 'Users')
 
     def render_admin_panel(self, req, cat, page, path_info):
