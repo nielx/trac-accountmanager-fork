@@ -30,6 +30,8 @@ class HttpAuthStore(Component):
                          HTTPDigestAuthHandler(mgr)).open(self.auth_url)
         except IOError:
             return None
+        except ValueError:
+            return None
         else:
             return True
 
