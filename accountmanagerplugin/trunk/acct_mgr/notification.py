@@ -240,7 +240,7 @@ class AccountChangeNotificationAdminPanel(Component):
 
     # IAdminPageProvider
     def get_admin_panels(self, req):
-        if req.perm.has_permission('TRAC_ADMIN'):
+        if req.perm.has_permission('ACCTMGR_CONFIG_ADMIN'):
             yield ('accounts', 'Accounts', 'notification', 'Notification')
 
     def render_admin_panel(self, req, cat, page, path_info):
