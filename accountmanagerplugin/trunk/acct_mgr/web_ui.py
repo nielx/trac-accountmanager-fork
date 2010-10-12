@@ -246,7 +246,9 @@ class AccountModule(Component):
         if not req.authname or req.authname == 'anonymous':
             req.redirect(req.href.wiki())
         action = req.args.get('action')
-        delete_enabled = AccountManager(self.env).supports('delete_user')
+        mgr = AccountManager(self.env)
+        delete_enabled = mgr.supports('delete_user') and \
+                             mgr.allow_delete_account
         data = {'delete_enabled': delete_enabled}
         force_change_password = req.session.get('force_change_passwd', False)
         if req.method == 'POST':
@@ -255,7 +257,7 @@ class AccountModule(Component):
                 if force_change_password:
                     del(req.session['force_change_passwd'])
                     req.session.save()
-                    chrome.add_notice(req, Markup(tag(
+                    chrome.add_notice(req, Markup(tag.span(
                         "Thank you for taking the time to update your password."
                     )))
                     force_change_password = False
@@ -264,7 +266,7 @@ class AccountModule(Component):
             else:
                 data.update({'error': 'Invalid action'})
         if force_change_password:
-            chrome.add_warning(req, Markup(tag(
+            chrome.add_warning(req, Markup(tag.span(
                 "You are required to change password because of a recent "
                 "password change request. ",
                 tag.b("Please change your password now."))))
@@ -417,7 +419,7 @@ class RegistrationModule(Component):
                 data['registration_error'] = e.message
                 data['acctmgr'] = e.acctmgr
             else:
-                chrome.add_notice(req, Markup(tag(
+                chrome.add_notice(req, Markup(tag.span(
                     "Registration has been finished successfully."
                     " You may login as user ", tag.b(req.args.get('user')),
                     " now.")))

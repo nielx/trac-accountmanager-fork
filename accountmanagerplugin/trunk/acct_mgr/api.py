@@ -111,6 +111,9 @@ class AccountManager(Component):
     _password_format = Option('account-manager', 'password_format')
     stores = ExtensionPoint(IPasswordStore)
     change_listeners = ExtensionPoint(IAccountChangeListener)
+    allow_delete_account = BoolOption(
+        'account-manager', 'allow_delete_account', True,
+        doc="Allow users to delete their own account.")
     force_passwd_change = BoolOption(
         'account-manager', 'force_passwd_change', True,
         doc="Force the user to change password when it's reset.")
