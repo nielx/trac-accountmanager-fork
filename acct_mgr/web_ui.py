@@ -35,7 +35,7 @@ from acct_mgr.util import containsAny
 def _create_user(req, env, check_permissions=True):
     mgr = AccountManager(env)
 
-    user = req.args.get('user').strip()
+    user = mgr.handle_username_casing(req.args.get('user').strip())
     name = req.args.get('name')
     email = req.args.get('email').strip()
     acctmgr = {'username' : user,
@@ -375,11 +375,11 @@ class RegistrationModule(Component):
                 self.log.warn('RegistrationModule is disabled because the '
                               'password store does not support writing.')
             if ignore_case:
-                self.log.warn('RegistrationModule is disabled because '
-                              'ignore_auth_case is enabled in trac.ini.  '
-                              'This setting needs disabled to support '
-                              'registration.')
-        return writable and not ignore_case
+                self.log.debug('RegistrationModule will allow lowercase '
+                               'usernames only and convert them forcefully '
+                               'as required, while \'ignore_auth_case\' is '
+                               'enabled in [trac] section of your trac.ini.')
+        return writable
 
     #INavigationContributor methods
 
