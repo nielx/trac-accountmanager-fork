@@ -10,7 +10,7 @@
 # Author: Matthew Good <trac@matt-good.net>
 
 from trac.core import *
-from trac.config import Option, BoolOption, ExtensionOption, \
+from trac.config import Configuration, Option, BoolOption, ExtensionOption, \
                         OrderedExtensionsOption
 
 
@@ -135,6 +135,7 @@ class AccountManager(Component):
 
     def has_user(self, user):
         exists = False
+        user = self.handle_username_casing(user)
         for store in self._password_store:
             if store.has_user(user):
                 exists = True
@@ -161,6 +162,7 @@ class AccountManager(Component):
         return exists
 
     def set_password(self, user, password, old_password = None):
+        user = self.handle_username_casing(user)
         store = self.find_user_store(user)
         if store and not hasattr(store, 'set_password'):
             raise TracError('The authentication backend for the user, %s, '
@@ -179,6 +181,7 @@ class AccountManager(Component):
 
     def check_password(self, user, password):
         valid = False
+        user = self.handle_username_casing(user)
         for store in self._password_store:
             valid = store.check_password(user, password)
             if valid  or (valid == False):
@@ -187,6 +190,7 @@ class AccountManager(Component):
         return valid
 
     def delete_user(self, user):
+        user = self.handle_username_casing(user)
         db = self.env.get_db_cnx()
         cursor = db.cursor()
         # Delete session attributes 
@@ -260,7 +264,7 @@ class AccountManager(Component):
         If the user isn't found in any IPasswordStore in the chain, None is
         returned
         """
-        ignore_auth_case = self.env.config.get('trac', 'ignore_auth_case')
+        ignore_auth_case = self.config.getbool('trac', 'ignore_auth_case')
         user_stores = []
         for store in self._password_store:
             userlist = store.get_users()
@@ -268,12 +272,21 @@ class AccountManager(Component):
                 userlist = [u.lower() for u in userlist]
             user_stores.append((store, userlist))
             continue
-        user = ignore_auth_case and user.lower() or user
+        user = self.handle_username_casing(user)
         for store in user_stores:
             if user in store[1]:
                 return store[0]
             continue
         return None
+
+    def handle_username_casing(self, user):
+        """Enforce lowercase usernames if required.
+
+        Comply with Trac's own behavior, when case-insensitive
+        user authentication is set to True.
+        """
+        ignore_auth_case = self.config.getbool('trac', 'ignore_auth_case')
+        return ignore_auth_case and user.lower() or user
 
     def _notify(self, func, *args):
         func = 'user_' + func
