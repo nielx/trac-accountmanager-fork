@@ -137,11 +137,11 @@ class AccountManagerAdminPage(Component):
                         self.config.set(option.section, option.name, newvalue)
                         self.config.save()
             self.config.set('account-manager', 'force_passwd_change',
-                            req.args.get('force_passwd_change', false))
+                            req.args.get('force_passwd_change', False))
             self.config.set('account-manager', 'persistent_sessions',
-                            req.args.get('persistent_sessions', false))
+                            req.args.get('persistent_sessions', False))
             self.config.set('account-manager', 'verify_email',
-                            req.args.get('verify_email', false))
+                            req.args.get('verify_email', False))
             self.config.save()
         sections = []
         for store in self.account_manager.stores:
