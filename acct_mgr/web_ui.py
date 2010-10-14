@@ -19,7 +19,7 @@ import time
 
 from trac import perm, util
 from trac.core import *
-from trac.config import IntOption, BoolOption
+from trac.config import Configuration, IntOption, BoolOption
 from trac.prefs import IPreferencePanelProvider
 from trac.web import auth
 from trac.web.api import IAuthenticator
@@ -116,7 +116,7 @@ def _create_user(req, env, check_permissions=True):
 
     # Validation of password passed.
 
-    if if_enabled(EmailVerificationModule):
+    if if_enabled(EmailVerificationModule) and mgr.verify_email:
         if not email:
             error.message = 'You must specify a valid email address.'
             raise error
@@ -602,10 +602,12 @@ class EmailVerificationModule(Component):
         if not req.session.authenticated:
             # Anonymous users should register and perms should be tweaked so
             # that anonymous users can't edit wiki pages and change or create
-            # tickets. As such, this email verifying code won't be used on them
+            # tickets. So this email verifying code won't be used on them.
             return handler
 #        req.perm = perm.PermissionCache(self.env, req.auth_nme)
-        if handler is not self and 'email_verification_token' in req.session and not req.perm.has_permission('TRAC_ADMIN'):
+        if AccountManager(self.env).verify_email and handler is not self and \
+                'email_verification_token' in req.session and \
+                not req.perm.has_permission('ACCTMGR_ADMIN'):
             chrome.add_warning(req, Markup(tag.span(
                     'Your permissions have been limited until you ',
                     tag.a(href=req.href.verify_email())(
@@ -617,15 +619,17 @@ class EmailVerificationModule(Component):
         if not req.session.authenticated:
             # Anonymous users should register and perms should be tweaked so
             # that anonymous users can't edit wiki pages and change or create
-            # tickets. As such, this email verifying code won't be used on them
+            # tickets. So, this email verifying code won't be used on them.
             return template, data, content_type
 
         email = req.session.get('email')
-        # Only send verification if the user actually entered en email address.
-        if email and email != req.session.get('email_verification_sent_to'):
+        # Only send verification if the user entered an email address.
+        mgr = AccountManager(self.env)
+        if mgr.verify_email and email and \
+                email != req.session.get('email_verification_sent_to') and \
+                not req.perm.has_permission('ACCTMGR_ADMIN'):
             req.session['email_verification_token'] = self._gen_token()
             req.session['email_verification_sent_to'] = email
-            mgr = AccountManager(self.env)
             mgr._notify(
                 'email_verification_requested', 
                 req.authname, 
@@ -649,8 +653,7 @@ class EmailVerificationModule(Component):
         elif req.method != 'POST':
             pass
         elif 'resend' in req.args:
-            mgr = AccountManager(self.env)
-            mgr._notify(
+            AccountManager(self.env)._notify(
                 'email_verification_requested', 
                 req.authname, 
                 req.session['email_verification_token']

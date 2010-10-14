@@ -123,6 +123,9 @@ class AccountManager(Component):
             needing to re-authenticate. This is, user checks a
             \"Remember Me\" checkbox and, next time he visits the site,
             he'll be remembered.""")
+    verify_email = BoolOption(
+        'account-manager', 'verify_email', True,
+        doc="Verify the email address of Trac users.")
     username_char_blacklist = Option(
         'account-manager', 'username_char_blacklist', ':[]',
         doc="""Always exclude some special characters from usernames.
