@@ -34,30 +34,33 @@
           </label>
         </div>
       </fieldset>
-      <fieldset>
-        <legend>Password Reset</legend>
-        <label for="force_passwd_change">
-          Force users to change passwords after a password reset?
-        </label>
-        <input type="radio" name="force_passwd_change" value="true"
-          checked="${force_passwd_change and 'checked' or None}">Yes</input>
-        <input type="radio" name="force_passwd_change" value="false"
-          checked="${not force_passwd_change and 'checked' or None}">No</input>
-      </fieldset>
 
       <fieldset>
         <legend>Persistent Sessions</legend>
-        <label for="persistent_sessions">
+        <input type="checkbox" name="persistent_sessions" value="true"
+          checked="${persistent_sessions and 'checked' or None}">
           Allow the user to be remembered across sessions without needing to
-          re-authenticate?<br/>
-          This is, user checks a "Remember Me" <tt>checkbox</tt> and, next time
-          he visits the site,<br/>
-          he'll be remembered and automatically authenticated.
-        </label>
-        <input type="radio" name="persistent_sessions" value="true"
-          checked="${persistent_sessions and 'checked' or None}">Yes</input>
-        <input type="radio" name="persistent_sessions" value="false"
-          checked="${not persistent_sessions and 'checked' or None}">No</input>
+          re-authenticate.
+          <p class="help">This is, user checks a "Remember Me"
+            <tt>checkbox</tt> and, next time he visits the site,
+            he'll be remembered and automatically authenticated.
+          </p>
+        </input>
+      </fieldset>
+
+      <fieldset>
+        <legend>Password Reset</legend>
+        <input type="checkbox" name="force_passwd_change" value="true"
+          checked="${force_passwd_change and 'checked' or None}">
+          Force users to change passwords after a password reset.
+        </input>
+      </fieldset>
+
+      <fieldset>
+        <legend>Verify email</legend>
+        <input type="checkbox" name="verify_email" value="true"
+          checked="${verify_email and 'checked' or None}">
+          Force users to verify their email addresses.</input>
       </fieldset>
 
       <div class="buttons">
