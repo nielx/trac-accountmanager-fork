@@ -648,6 +648,10 @@ class EmailVerificationModule(Component):
         return req.path_info == '/verify_email'
 
     def process_request(self, req):
+        if not req.session.authenticated:
+            chrome.add_warning(req, Markup(tag.span(tag(
+                'Please log in to finish email verification procedure.'))))
+            req.redirect(req.href.login())
         if 'email_verification_token' not in req.session:
             chrome.add_notice(req, 'Your email is already verified')
         elif req.method != 'POST':
