@@ -669,6 +669,7 @@ class EmailVerificationModule(Component):
             if req.args['token'] == req.session['email_verification_token']:
                 del req.session['email_verification_token']
                 chrome.add_notice(req, 'Thank you for verifying your email address')
+                req.redirect(req.href.prefs())
             else:
                 chrome.add_warning(req, 'Invalid verification token')
         data = {}
