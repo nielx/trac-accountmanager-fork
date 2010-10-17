@@ -18,12 +18,11 @@ from trac.config import Option, ListOption
 from trac.web.chrome import ITemplateProvider
 from trac.notification import NotifyEmail, NotificationSystem
 from trac.util.text import CRLF
-from trac.util.translation import _
 
 
 from pkg_resources import resource_filename
 
-from api import IAccountChangeListener
+from acct_mgr.api import IAccountChangeListener, _
 
 class AccountChangeListener(Component):
     implements(IAccountChangeListener)
@@ -53,8 +52,8 @@ class AccountChangeListener(Component):
     def user_password_reset(self, username, email, password):
         notifier = PasswordResetNotification(self.env)
         if email != notifier.email_map.get(username):
-            raise Exception('The email and username do not '
-                            'match a known account.')
+            raise Exception(
+                _("The email and username do not match a known account."))
         notifier.notify(username, password)
 
     def user_email_verification_requested(self, username, token):
@@ -147,7 +146,7 @@ class AccountChangeNotification(NotifyEmail):
                 dummy = body.encode('ascii')
             except UnicodeDecodeError:
                 raise TracError(_("Ticket contains non-ASCII chars. " \
-                                  "Please change encoding setting"))
+                                  "Please change encoding setting."))
         msg = MIMEText(body, 'plain')
         # Message class computes the wrong type from MIMEText constructor,
         # which does not take a Charset object as initializer. Reset the
@@ -241,7 +240,7 @@ class AccountChangeNotificationAdminPanel(Component):
     # IAdminPageProvider
     def get_admin_panels(self, req):
         if req.perm.has_permission('ACCTMGR_CONFIG_ADMIN'):
-            yield ('accounts', 'Accounts', 'notification', 'Notification')
+            yield ('accounts', _("Accounts"), 'notification', _("Notification"))
 
     def render_admin_panel(self, req, cat, page, path_info):
         if page == 'notification':
