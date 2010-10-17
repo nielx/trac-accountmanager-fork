@@ -121,16 +121,18 @@ def _create_user(req, env, check_permissions=True):
 
     if if_enabled(EmailVerificationModule) and mgr.verify_email:
         if not email:
-            error.message = 'You must specify a valid email address.'
+            error.message = _("You must specify a valid email address.")
             raise error
         elif not re.match('^[A-Z0-9._%+-]+@(?:[A-Z0-9-]+\.)+[A-Z]{2,6}$',
                           email, re.IGNORECASE):
-            error.message = 'The email address specified appears to be' \
-                            ' invalid. Please specify a valid email address.'
+            error.message = _("""The email address specified appears to be
+                              invalid. Please specify a valid email address.
+                              """)
             raise error
         elif mgr.has_email(email):
-            error.message = 'The email address specified is already in use.' \
-                            ' Please specify a different address.'
+            error.message = _("""The email address specified is already in
+                              use. Please specify a different one.
+                              """)
             raise error
 
     # Validation of email address passed.
