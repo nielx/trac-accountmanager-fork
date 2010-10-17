@@ -205,8 +205,11 @@ class AccountManagerAdminPage(Component):
                                                    does not support
                                                    creating users.""")
             elif req.args.get('remove'):
-                if delete_enabled:
-                    sel = req.args.get('sel')
+                sel = req.args.get('sel')
+                if sel is None:
+                    # so nothing to be done
+                    pass
+                elif delete_enabled:
                     sel = isinstance(sel, list) and sel or [sel]
                     for account in sel:
                         self.account_manager.delete_user(account)
