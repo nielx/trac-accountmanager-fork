@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: TracAccountManager 0.2.1\n"
 "Report-Msgid-Bugs-To: hoff.st@shaas.net\n"
-"POT-Creation-Date: 2010-10-17 22:12+0200\n"
+"POT-Creation-Date: 2010-10-17 23:11+0200\n"
 "PO-Revision-Date: 2010-09-25 00:04+0200\n"
 "Last-Translator: Steffen Hoffmann <hoff.st@web.de>\n"
 "Language-Team: German de_DE <trac-dev@googlegroups.com>\n"
@@ -23,7 +23,7 @@ msgstr ""
 msgid "Invalid key type (%s) for StoreOrder"
 msgstr "Ungültiger Schlüsseltyp (%s) für Kennwortspeicherreihenfolge"
 
-#: acct_mgr/admin.py:115 acct_mgr/admin.py:117 acct_mgr/notification.py:243
+#: acct_mgr/admin.py:115 acct_mgr/admin.py:117 acct_mgr/notification.py:167
 #: acct_mgr/templates/admin_users.html:14
 msgid "Accounts"
 msgstr "Nutzerkonten"
@@ -43,43 +43,37 @@ msgid ""
 "                                                   creating users."
 msgstr "Der Kennwortspeicher erlaubt es nicht, neue Nutzer zu erstellen."
 
-#: acct_mgr/admin.py:214
+#: acct_mgr/admin.py:217
 msgid ""
 "The password store does\n"
 "                                               not support deleting users."
 msgstr "Der Kennwortspeicher erlaubt es nicht, Nutzer zu löschen."
 
-#: acct_mgr/admin.py:225 acct_mgr/web_ui.py:51
+#: acct_mgr/admin.py:228 acct_mgr/web_ui.py:51
 msgid "Username cannot be empty."
 msgstr "Nutzername darf nicht leer sein."
 
-#: acct_mgr/admin.py:230 acct_mgr/web_ui.py:113 acct_mgr/web_ui.py:331
-#: acct_mgr/web_ui.py:345
+#: acct_mgr/admin.py:233 acct_mgr/web_ui.py:113 acct_mgr/web_ui.py:333
+#: acct_mgr/web_ui.py:347
 msgid "Password cannot be empty."
 msgstr "Kennwort darf nicht leer sein."
 
-#: acct_mgr/admin.py:234 acct_mgr/web_ui.py:117 acct_mgr/web_ui.py:334
+#: acct_mgr/admin.py:237 acct_mgr/web_ui.py:117 acct_mgr/web_ui.py:336
 msgid "The passwords must match."
 msgstr "Die Kennwörter müssen übereinstimmen."
 
-#: acct_mgr/admin.py:242
+#: acct_mgr/admin.py:245
 msgid ""
 "The password store\n"
 "                                                      does not support\n"
 "                                                      changing passwords."
 msgstr "Der Kennwortspeicher erlaubt es nicht, Kennwörter zu ändern."
 
-#: acct_mgr/notification.py:56
+#: acct_mgr/notification.py:55
 msgid "The email and username do not match a known account."
 msgstr "E-Mail und Nutzername gehören zu keinem bekannten Benutzerkonto."
 
-#: acct_mgr/notification.py:148
-msgid "Ticket contains non-ASCII chars. Please change encoding setting."
-msgstr ""
-"Das Ticket enthält Nicht-ASCII-Zeichen. Bitte ändern Sie die "
-"Kodierungseinstellung."
-
-#: acct_mgr/notification.py:243
+#: acct_mgr/notification.py:167
 msgid "Notification"
 msgstr "Benachrichtigung"
 
@@ -103,26 +97,50 @@ msgstr "Es existiert bereits ein Benutzerkonto oder eine Gruppe namens %s."
 msgid "The username must not contain any of these characters:"
 msgstr "Der Nutzername darf keines der folgenden Zeichen enthalten:"
 
-#: acct_mgr/web_ui.py:204 acct_mgr/templates/admin_users.html:82
+#: acct_mgr/web_ui.py:124
+#, fuzzy
+msgid "You must specify a valid email address."
+msgstr "Sie müssen eine gültige E-Mail-Adresse angeben."
+
+#: acct_mgr/web_ui.py:128
+msgid ""
+"The email address specified appears to be\n"
+"                              invalid. Please specify a valid email "
+"address.\n"
+"                              "
+msgstr ""
+"Die angegebene E-Mail-Adresse scheint ungültig zu sein. Bitte geben Sie "
+"eine gültige E-Mail-Adresse an."
+
+#: acct_mgr/web_ui.py:133
+msgid ""
+"The email address specified is already in\n"
+"                              use. Please specify a different one.\n"
+"                              "
+msgstr ""
+"Die angegebene E-Mail-Adresse wird bereits verwendet. Bitte geben Sie "
+"eine andere an."
+
+#: acct_mgr/web_ui.py:206 acct_mgr/templates/admin_users.html:82
 #: acct_mgr/templates/prefs_account.html:44
 msgid "Account"
 msgstr "Nutzerkonto"
 
-#: acct_mgr/web_ui.py:240 acct_mgr/templates/login.html:49
+#: acct_mgr/web_ui.py:242 acct_mgr/templates/login.html:49
 msgid "Forgot your password?"
 msgstr "Kennwort vergessen?"
 
-#: acct_mgr/web_ui.py:256
+#: acct_mgr/web_ui.py:258
 msgid "Are you sure you want to delete your account?"
 msgstr "Sind Sie sicher, dass Sie Ihr Nutzerkonto löschen möchten?"
 
-#: acct_mgr/web_ui.py:266
+#: acct_mgr/web_ui.py:268
 msgid "Thank you for taking the time to update your password."
 msgstr ""
 "Danke, dass Sie sich die Zeit genommen haben, Ihr Kennwort zu "
 "aktualisieren."
 
-#: acct_mgr/web_ui.py:275
+#: acct_mgr/web_ui.py:277
 msgid ""
 "You are required to change password because of a recent password change "
 "request. "
@@ -130,39 +148,39 @@ msgstr ""
 "Sie müssen Ihr Kennwort wegen einer kürzlich angeforderten "
 "Kennwortänderung ändern. "
 
-#: acct_mgr/web_ui.py:278
+#: acct_mgr/web_ui.py:280
 msgid "Please change your password now."
 msgstr "Bitte ändern Sie jetzt Ihr Kennwort."
 
-#: acct_mgr/web_ui.py:289
+#: acct_mgr/web_ui.py:291
 msgid "Username is required"
 msgstr "Nutzername ist erforderlich"
 
-#: acct_mgr/web_ui.py:291
+#: acct_mgr/web_ui.py:293
 msgid "Email is required"
 msgstr "E-Mail-Adresse ist erforderlich"
 
-#: acct_mgr/web_ui.py:325
+#: acct_mgr/web_ui.py:327
 msgid "Old Password cannot be empty."
 msgstr "Das alte Kennwort darf nicht leer sein."
 
-#: acct_mgr/web_ui.py:327
+#: acct_mgr/web_ui.py:329
 msgid "Old Password is incorrect."
 msgstr "Das alte Kennwort ist ungültig."
 
-#: acct_mgr/web_ui.py:337
+#: acct_mgr/web_ui.py:339
 msgid "Password successfully updated."
 msgstr "Das Kennwort wurde erfolgreich aktualisiert."
 
-#: acct_mgr/web_ui.py:347
+#: acct_mgr/web_ui.py:349
 msgid "Password is incorrect."
 msgstr "Das Kennwort is ungültig."
 
-#: acct_mgr/web_ui.py:401 acct_mgr/templates/register.html:14
+#: acct_mgr/web_ui.py:403 acct_mgr/templates/register.html:14
 msgid "Register"
 msgstr "Registrieren"
 
-#: acct_mgr/web_ui.py:431
+#: acct_mgr/web_ui.py:433
 #, python-format
 msgid ""
 "Registration has been finished successfully.\n"
@@ -171,40 +189,40 @@ msgstr ""
 "Die Registrierung ist erfolgreich abgeschlossen worden. Sie können sich "
 "nun als Nutzer %(user)s anmelden."
 
-#: acct_mgr/web_ui.py:484
+#: acct_mgr/web_ui.py:486
 msgid "Invalid username or password"
 msgstr "Nutzername oder Kennwort ungültig"
 
 #. TRANSLATOR: Your permissions have been limited until you ...
-#: acct_mgr/web_ui.py:618
+#: acct_mgr/web_ui.py:620
 msgid "verify your email address"
 msgstr "Ihre E-Mail-Adresse bestätigen"
 
 #. TRANSLATOR: ... verify your email address
-#: acct_mgr/web_ui.py:621
+#: acct_mgr/web_ui.py:623
 #, python-format
 msgid "Your permissions have been limited until you %(link)s."
 msgstr "Ihre Berechtigungen sind eingeschränkt worden, bis Sie %(link)s."
 
 #. TRANSLATOR: ... verify your new email address
-#: acct_mgr/web_ui.py:649
+#: acct_mgr/web_ui.py:651
 #, python-format
 msgid "An email has been sent to %(email)s with a token to "
 msgstr ""
 "Eine E-Mail-Nachricht mit einem Bestätigungscode wurde an %(email)s "
 "gesendet, um "
 
-#: acct_mgr/web_ui.py:650
+#: acct_mgr/web_ui.py:652
 msgid "verify your new email address"
 msgstr "Ihre neue E-Mail-Adresse zu bestätigen"
 
-#: acct_mgr/web_ui.py:661
+#: acct_mgr/web_ui.py:663
 msgid "Please log in to finish email verification procedure."
 msgstr ""
 "Bitte melden Sie sich an, um den Bestätigungsvorgang für Ihre E-Mail-"
 "Adresse abzuschliessen."
 
-#: acct_mgr/web_ui.py:665
+#: acct_mgr/web_ui.py:667
 msgid "Your email is already verified."
 msgstr "Ihre E-Mail-Adresse ist bereits bestätigt."
 
@@ -213,11 +231,11 @@ msgstr "Ihre E-Mail-Adresse ist bereits bestätigt."
 msgid "A notification email has been resent to <%s>."
 msgstr "Eine E-Mail-Benachrichtigung ist an <%s> gesendet worden."
 
-#: acct_mgr/web_ui.py:680
+#: acct_mgr/web_ui.py:681
 msgid "Thank you for verifying your email address."
 msgstr "Vielen Dank, dass Sie Ihre E-Mail-Adresse bestätigt haben."
 
-#: acct_mgr/web_ui.py:683
+#: acct_mgr/web_ui.py:684
 msgid "Invalid verification token"
 msgstr "Ungültiger Bestätigungscode"
 
@@ -538,7 +556,7 @@ msgstr "Bestätigungscode:"
 msgid "Verify"
 msgstr "Bestätigen"
 
-#: acct_mgr/templates/verify_email.html:40
+#: acct_mgr/templates/verify_email.html:41
 msgid "Resend Email"
 msgstr "E-Mail-Nachricht erneut versenden"
 
