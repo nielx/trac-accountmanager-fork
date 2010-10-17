@@ -8,6 +8,21 @@
 
 from setuptools import setup
 
+extra = {}
+
+from trac.util.dist  import  get_l10n_cmdclass
+cmdclass = get_l10n_cmdclass()
+if cmdclass:
+    extra['cmdclass'] = cmdclass
+    extractors = [
+        ('**.py',                'python', None),
+        ('**/templates/**.html', 'genshi', None),
+    ]
+    extra['message_extractors'] = {
+        'acct_mgr': extractors,
+    }
+
+
 setup(
     name = 'TracAccountManager',
     version = '0.2.1',
@@ -20,7 +35,8 @@ setup(
 
     zip_safe=True,
     packages=['acct_mgr'],
-    package_data={'acct_mgr': ['templates/*.html',
+    package_data={'acct_mgr': ['locale/*/LC_MESSAGES/*.mo',
+                               'templates/*.html',
                                'templates/*.txt']},
 
     install_requires = [
@@ -42,4 +58,5 @@ setup(
     },
 
     test_suite = 'acct_mgr.tests.suite',
+    **extra
 )

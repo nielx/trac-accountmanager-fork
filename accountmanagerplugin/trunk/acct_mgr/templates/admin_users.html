@@ -3,8 +3,13 @@
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:xi="http://www.w3.org/2001/XInclude"
-      xmlns:py="http://genshi.edgewall.org/">
+      xmlns:py="http://genshi.edgewall.org/" 
+      xmlns:i18n="http://genshi.edgewall.org/i18n"
+      i18n:domain="acct_mgr">
   <xi:include href="admin.html" />
+  <?python
+    from acct_mgr.api import _
+  ?>
   <head>
     <title>Accounts</title>
   </head>
@@ -25,7 +30,7 @@
           <label>Password: <input type="password" name="password" class="textwidget" /></label>
         </div>
         <div class="field">
-          <label>Confirm password: <input type="password" name="password_confirm" class="textwidget" /></label>
+          <label>Confirm Password: <input type="password" name="password_confirm" class="textwidget" /></label>
         </div>
         <div class="field">
           <label>Name: <input type="text" name="name" class="textwidget" value="${acctmgr.name}" /></label>
@@ -35,7 +40,7 @@
         </div>
         <p class="help">Add a new user account.</p>
         <div class="buttons">
-          <input type="submit" name="add" value=" Add " />
+          <input type="submit" name="add" value="${_(' Add ')}" />
         </div>
       </fieldset>
     </form>
@@ -53,11 +58,11 @@
           <label>Password: <input type="password" name="change_password" class="textwidget" /></label>
         </div>
         <div class="field">
-          <label>Confirm password: <input type="password" name="change_password_confirm" class="textwidget" /></label>
+          <label>Confirm Password: <input type="password" name="change_password_confirm" class="textwidget" /></label>
         </div>
         <p class="help">Change a user's password.</p>
         <div class="buttons">
-          <input type="submit" name="change" value=" Change " />
+          <input type="submit" name="change" value="${_(' Change ')}" />
         </div>
       </fieldset>
     </form>
@@ -65,7 +70,7 @@
     <py:choose>
     <div class="system-message"
          py:when="not listing_enabled">
-      <p>This password store does not support listing users</p>
+      <p>This password store does not support listing users.</p>
     </div>
     <form method="post" py:otherwise="" py:strip="not delete_enabled">
       <div class="system-message"
@@ -90,7 +95,7 @@
         </tbody>
       </table>
       <div class="buttons" py:if="delete_enabled">
-        <input type="submit" name="remove" value="Remove selected accounts" />
+        <input type="submit" name="remove" value="${_('Remove selected accounts')}" />
       </div>
     </form>
     </py:choose>

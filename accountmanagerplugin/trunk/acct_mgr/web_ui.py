@@ -25,12 +25,14 @@ from trac.web import auth
 from trac.web.api import IAuthenticator
 from trac.web.main import IRequestHandler, IRequestFilter
 from trac.web import chrome
-from trac.web.chrome import INavigationContributor, ITemplateProvider
+from trac.web.chrome import INavigationContributor, ITemplateProvider, \
+                            add_script
 from genshi.core import Markup
 from genshi.builder import tag
 
-from acct_mgr.api import AccountManager
+from acct_mgr.api import AccountManager, _, tag_
 from acct_mgr.util import containsAny
+#import rpdb2; rpdb2.start_embedded_debugger('test')
 
 def _create_user(req, env, check_permissions=True):
     mgr = AccountManager(env)
@@ -46,13 +48,13 @@ def _create_user(req, env, check_permissions=True):
     error.acctmgr = acctmgr
 
     if not user:
-        error.message = 'Username cannot be empty.'
+        error.message = _("Username cannot be empty.")
         raise error
 
     # Prohibit some user names that are important for Trac and therefor
     # reserved, even if they're not in the permission store for some reason.
     if user in ['authenticated', 'anonymous']:
-        error.message = 'Username %s is not allowed.' % user
+        error.message = _("Username %s is not allowed.") % user
         raise error
 
     # NOTE: A user may exist in the password store but not in the permission
@@ -62,8 +64,8 @@ def _create_user(req, env, check_permissions=True):
     #   And obfuscate whether an existing user or group name
     #   was responsible for rejection of this user name.
     if mgr.has_user(user):
-        error.message = \
-            'Another account or group with that name already exists.'
+        error.message = _(
+            "Another account or group named %s already exists.") % user
         raise error
 
     # Check whether there is also a user or a group with that name.
@@ -82,8 +84,9 @@ def _create_user(req, env, check_permissions=True):
         for (perm_user, perm_action) in \
                 perm.PermissionSystem(env).get_all_permissions():
             if perm_user == user:
-                error.message = \
-                    'Another account or group with that name already exists.'
+                error.message = _(
+                    "Another account or group named %s already exists.") \
+                    % user
                 raise error
 
     # Always exclude some special characters, i.e. 
@@ -98,8 +101,8 @@ def _create_user(req, env, check_permissions=True):
             else:
                 pretty_blacklist = tag(pretty_blacklist,
                                        ', \'', tag.b(c), '\'')
-        error.message = tag(
-            'The username must not contain any of these characters:',
+        error.message = tag(_(
+            "The username must not contain any of these characters:"),
             pretty_blacklist)
         raise error
 
@@ -107,11 +110,11 @@ def _create_user(req, env, check_permissions=True):
 
     password = req.args.get('password')
     if not password:
-        error.message = 'Password cannot be empty.'
+        error.message = _("Password cannot be empty.")
         raise error
 
     if password != req.args.get('password_confirm'):
-        error.message = 'The passwords must match.'
+        error.message = _("The passwords must match.")
         raise error
 
     # Validation of password passed.
@@ -198,7 +201,7 @@ class AccountModule(Component):
         if req.authname and req.authname != 'anonymous':
             user_store = AccountManager(self.env).find_user_store(req.authname)
             if user_store in writable:
-                yield 'account', 'Account'
+                yield 'account', _("Account")
 
     def render_preference_panel(self, req, panel):
         data = {'account': self._do_account(req)}
@@ -234,7 +237,7 @@ class AccountModule(Component):
             return
         if req.authname == 'anonymous':
             yield 'metanav', 'reset_password', tag.a(
-                "Forgot your password?", href=req.href.reset_password())
+                _("Forgot your password?"), href=req.href.reset_password())
 
     def reset_password_enabled(self):
         return (self.env.is_component_enabled(AccountModule)
@@ -249,7 +252,10 @@ class AccountModule(Component):
         mgr = AccountManager(self.env)
         delete_enabled = mgr.supports('delete_user') and \
                              mgr.allow_delete_account
-        data = {'delete_enabled': delete_enabled}
+        data = {'delete_enabled': delete_enabled,
+                'delete_msg_confirm': _(
+                    "Are you sure you want to delete your account?"),
+               }
         force_change_password = req.session.get('force_change_passwd', False)
         if req.method == 'POST':
             if action == 'save':
@@ -257,19 +263,19 @@ class AccountModule(Component):
                 if force_change_password:
                     del(req.session['force_change_passwd'])
                     req.session.save()
-                    chrome.add_notice(req, Markup(tag.span(
+                    chrome.add_notice(req, Markup(tag.span(tag_(
                         "Thank you for taking the time to update your password."
-                    )))
+                    ))))
                     force_change_password = False
             elif action == 'delete' and delete_enabled:
                 data.update(self._do_delete(req))
             else:
                 data.update({'error': 'Invalid action'})
         if force_change_password:
-            chrome.add_warning(req, Markup(tag.span(
+            chrome.add_warning(req, Markup(tag.span(_(
                 "You are required to change password because of a recent "
-                "password change request. ",
-                tag.b("Please change your password now."))))
+                "password change request. "),
+                tag.b(_("Please change your password now.")))))
         return data
 
     def _do_reset_password(self, req):
@@ -280,9 +286,9 @@ class AccountModule(Component):
         username = req.args.get('username')
         email = req.args.get('email')
         if not username:
-            return {'error': 'Username is required'}
+            return {'error': _("Username is required")}
         if not email:
-            return {'error': 'Email is required'}
+            return {'error': _("Email is required")}
 
         new_password = self._random_password()
         mgr = AccountManager(self.env)
@@ -316,19 +322,19 @@ class AccountModule(Component):
 
         old_password = req.args.get('old_password')
         if not old_password:
-            return {'save_error': 'Old Password cannot be empty.'}
+            return {'save_error': _("Old Password cannot be empty.")}
         if not mgr.check_password(user, old_password):
-            return {'save_error': 'Old Password is incorrect.'}
+            return {'save_error': _("Old Password is incorrect.")}
 
         password = req.args.get('password')
         if not password:
-            return {'save_error': 'Password cannot be empty.'}
+            return {'save_error': _("Password cannot be empty.")}
 
         if password != req.args.get('password_confirm'):
-            return {'save_error': 'The passwords must match.'}
+            return {'save_error': _("The passwords must match.")}
 
         mgr.set_password(user, password, old_password)
-        return {'message': 'Password successfully updated.'}
+        return {'message': _("Password successfully updated.")}
 
     def _do_delete(self, req):
         user = req.authname
@@ -336,9 +342,9 @@ class AccountModule(Component):
 
         password = req.args.get('password')
         if not password:
-            return {'delete_error': 'Password cannot be empty.'}
+            return {'delete_error': _("Password cannot be empty.")}
         if not mgr.check_password(user, password):
-            return {'delete_error': 'Password is incorrect.'}
+            return {'delete_error': _("Password is incorrect.")}
 
         mgr.delete_user(user)
         req.redirect(req.href.logout())
@@ -392,7 +398,7 @@ class RegistrationModule(Component):
         if not self._enable_check():
             return
         if req.authname == 'anonymous':
-            yield 'metanav', 'register', tag.a("Register",
+            yield 'metanav', 'register', tag.a(_("Register"),
                                                href=req.href.register())
 
 
@@ -419,10 +425,10 @@ class RegistrationModule(Component):
                 data['registration_error'] = e.message
                 data['acctmgr'] = e.acctmgr
             else:
-                chrome.add_notice(req, Markup(tag.span(
-                    "Registration has been finished successfully."
-                    " You may login as user ", tag.b(req.args.get('user')),
-                    " now.")))
+                chrome.add_notice(req, Markup(tag.span(tag_(
+                     """Registration has been finished successfully.
+                     You may login as user %(user)s now.""",
+                     user=tag.b(req.args.get('user'))))))
                 req.redirect(req.href.login())
         data['reset_password_enabled'] = \
             (self.env.is_component_enabled(AccountModule)
@@ -475,7 +481,7 @@ class LoginModule(auth.LoginModule):
                 'persistent_sessions': AccountManager(self.env).persistent_sessions
             }
             if req.method == 'POST':
-                data['login_error'] = 'Invalid username or password'
+                data['login_error'] = _("Invalid username or password")
             return 'login.html', data, None
         return auth.LoginModule.process_request(self, req)
 
@@ -608,10 +614,13 @@ class EmailVerificationModule(Component):
         if AccountManager(self.env).verify_email and handler is not self and \
                 'email_verification_token' in req.session and \
                 not req.perm.has_permission('ACCTMGR_ADMIN'):
-            chrome.add_warning(req, Markup(tag.span(
-                    'Your permissions have been limited until you ',
-                    tag.a(href=req.href.verify_email())(
-                          'verify your email address'))))
+            # TRANSLATOR: Your permissions have been limited until you ...
+            link = tag.a(_("verify your email address"),
+                         href=req.href.verify_email())
+            # TRANSLATOR: ... verify your email address
+            chrome.add_warning(req, Markup(tag.span(tag_(
+                "Your permissions have been limited until you %(link)s.",
+                link=link))))
             req.perm = perm.PermissionCache(self.env, 'anonymous')
         return handler
 
@@ -635,11 +644,11 @@ class EmailVerificationModule(Component):
                 req.authname, 
                 req.session['email_verification_token']
             )
+            # TRANSLATOR: ... verify your new email address
             chrome.add_notice(req, Markup(tag.span(
-                    'An email has been sent to ', email,
-                    ' with a token to ',
-                    tag.a(href=req.href.verify_email())(
-                        'verify your new email address'))))
+                _("An email has been sent to %(email)s with a token to ",
+                email=email), tag.a(_("verify your new email address"),
+                                    href=req.href.verify_email() ), ".")))
         return template, data, content_type
 
     # IRequestHandler methods
@@ -649,11 +658,11 @@ class EmailVerificationModule(Component):
 
     def process_request(self, req):
         if not req.session.authenticated:
-            chrome.add_warning(req, Markup(tag.span(tag(
-                'Please log in to finish email verification procedure.'))))
+            chrome.add_warning(req, Markup(tag.span(tag_(
+                "Please log in to finish email verification procedure."))))
             req.redirect(req.href.login())
         if 'email_verification_token' not in req.session:
-            chrome.add_notice(req, 'Your email is already verified')
+            chrome.add_notice(req, _("Your email is already verified."))
         elif req.method != 'POST':
             pass
         elif 'resend' in req.args:
@@ -663,15 +672,15 @@ class EmailVerificationModule(Component):
                 req.session['email_verification_token']
             )
             chrome.add_notice(req,
-                    'A notification email has been resent to %s.',
+                    _("A notification email has been resent to <%s>."),
                     req.session.get('email'))
         elif 'verify' in req.args:
             if req.args['token'] == req.session['email_verification_token']:
                 del req.session['email_verification_token']
-                chrome.add_notice(req, 'Thank you for verifying your email address')
+                chrome.add_notice(req, _("Thank you for verifying your email address."))
                 req.redirect(req.href.prefs())
             else:
-                chrome.add_warning(req, 'Invalid verification token')
+                chrome.add_warning(req, _("Invalid verification token"))
         data = {}
         if 'token' in req.args:
             data['token'] = req.args['token']

@@ -9,9 +9,20 @@
 #
 # Author: Matthew Good <trac@matt-good.net>
 
+from pkg_resources import resource_filename
+
 from trac.core import *
 from trac.config import Configuration, Option, BoolOption, ExtensionOption, \
                         OrderedExtensionsOption
+
+
+try:
+    from  trac.util.translation  import  domain_functions
+    add_domain, _, tag_ = \
+        domain_functions('acct_mgr', ('add_domain', '_', 'tag_'))
+except:
+    # FIXME: 0.11 compatibility
+    pass
 
 
 class IPasswordStore(Interface):
@@ -130,6 +141,11 @@ class AccountManager(Component):
         'account-manager', 'username_char_blacklist', ':[]',
         doc="""Always exclude some special characters from usernames.
             This is enforced upon new user registration.""")
+
+    def __init__(self):
+    # bind the 'acct_mgr' catalog to the specified locale directory
+        locale_dir = resource_filename(__name__, 'locale')
+        add_domain(self.env.path, locale_dir)
 
     # Public API
 

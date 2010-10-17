@@ -3,8 +3,13 @@
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:xi="http://www.w3.org/2001/XInclude"
-      xmlns:py="http://genshi.edgewall.org/">
+      xmlns:py="http://genshi.edgewall.org/" 
+      xmlns:i18n="http://genshi.edgewall.org/i18n"
+      i18n:domain="acct_mgr">
   <xi:include href="admin.html" />
+  <?python
+    from acct_mgr.api import _
+  ?>
   <head>
     <title>Accounts: Notification Configuration</title>
   </head>
@@ -18,8 +23,8 @@
         account creation, password reset and account deletion.</p>
 
       <h3>Notification Actions</h3>
-        <p class="help">This is a list of actions which you can enable or
-          disable by <em>checking</em> the <em>checkboxes</em>.</p>
+        <p class="help" i18n:msg="">This is a list of actions which you can
+          enable or disable by <em>checking</em> the <em>checkboxes</em>.</p>
         <input type="checkbox" name="notify_actions" value="new"
           checked="${'new' in notify_actions or None}">
           Get notified of new account creation</input><br/>
@@ -38,7 +43,7 @@
                 name="notify_addresses">${ ' '.join(notify_addresses)}</textarea>
     </fieldset>
       <div class="buttons">
-        <input type="submit" name="save" value="Save" />
+        <input type="submit" name="save" value="${_('Save')}" />
       </div>
     </form>
   </body>

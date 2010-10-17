@@ -15,7 +15,7 @@ from os import urandom
 from trac.core import *
 from trac.config import ChoiceOption, Option
 
-from acct_mgr.api import AccountManager
+from acct_mgr.api import AccountManager, _
 from acct_mgr.hashlib_compat import md5, sha1
 from acct_mgr.md5crypt import md5crypt
 
@@ -93,8 +93,8 @@ def htpasswd(password, hash):
         return '{SHA}' + sha1(password).digest().encode('base64')[:-1]
     elif crypt is None:
         # crypt passwords are only supported on Unix-like systems
-        raise NotImplementedError('The "crypt" module is unavailable '
-                                  'on this platform.')
+        raise NotImplementedError(_("""The \"crypt\" module is unavailable
+                                    on this platform."""))
     else:
         return crypt(password, hash)
 

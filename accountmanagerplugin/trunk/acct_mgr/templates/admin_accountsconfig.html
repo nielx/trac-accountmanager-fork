@@ -3,8 +3,13 @@
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:xi="http://www.w3.org/2001/XInclude"
-      xmlns:py="http://genshi.edgewall.org/">
+      xmlns:py="http://genshi.edgewall.org/" 
+      xmlns:i18n="http://genshi.edgewall.org/i18n"
+      i18n:domain="acct_mgr">
   <xi:include href="admin.html" />
+  <?python
+    from acct_mgr.api import _
+  ?>
   <head>
     <title>Accounts: Configuration</title>
   </head>
@@ -38,7 +43,7 @@
       <fieldset>
         <legend>Persistent Sessions</legend>
         <input type="checkbox" name="persistent_sessions" value="true"
-          checked="${persistent_sessions and 'checked' or None}">
+          checked="${persistent_sessions and 'checked' or None}" i18n:msg="">
           Allow the user to be remembered across sessions without needing to
           re-authenticate.
           <p class="help">This is, user checks a "Remember Me"
@@ -64,7 +69,7 @@
       </fieldset>
 
       <div class="buttons">
-        <input type="submit" name="save" value="Save" />
+        <input type="submit" name="save" value="${_('Save')}" />
       </div>
     </form>
   </body>

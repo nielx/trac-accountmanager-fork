@@ -3,8 +3,13 @@
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:py="http://genshi.edgewall.org/"
-      xmlns:xi="http://www.w3.org/2001/XInclude">
+      xmlns:xi="http://www.w3.org/2001/XInclude" 
+      xmlns:i18n="http://genshi.edgewall.org/i18n"
+      i18n:domain="acct_mgr">
   <xi:include href="layout.html" />
+  <?python
+    from acct_mgr.api import _
+  ?>
   <head>
     <title>Login</title>
     <script type="text/javascript">
@@ -38,7 +43,7 @@
           <input type="checkbox" id="rememberme" name="rememberme" value="1" />
           <label for="rememberme">Remember me</label>
         </div>
-        <input type="submit" value="Login" />
+        <input type="submit" value="${_('Login')}" />
 
         <p py:if="reset_password_enabled">
           <a href="${href.reset_password()}">Forgot your password?</a>

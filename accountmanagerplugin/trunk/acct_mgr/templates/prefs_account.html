@@ -3,8 +3,13 @@
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:py="http://genshi.edgewall.org/"
-      xmlns:xi="http://www.w3.org/2001/XInclude">
+      xmlns:xi="http://www.w3.org/2001/XInclude" 
+      xmlns:i18n="http://genshi.edgewall.org/i18n"
+      i18n:domain="acct_mgr">
   <xi:include href="prefs.html" />
+  <?python
+    from acct_mgr.api import _
+  ?>
 
   <!--! FIXME [1] prevents this from matching its own output.
         Should that really be necessary? -->
@@ -20,7 +25,7 @@
     </div>
 
     <form method="post" action="" id="acctmgr_delete_account"
-          onsubmit="return confirm('Are you sure you want to delete your account?');">
+          onsubmit="return confirm('${account.delete_msg_confirm}');">
       <div class="field">
         <label>Password:
           <input type="password" name="password" class="textwidget"
@@ -29,7 +34,7 @@
       </div>
       <div class="buttons">
         <input type="hidden" name="action" value="delete" />
-        <input type="submit" value="Delete account" />
+        <input type="submit" value="${_('Delete account')}" />
       </div>
     </form>
     </py:if>

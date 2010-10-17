@@ -18,7 +18,7 @@ from trac.util.datefmt import format_datetime
 from trac.web.chrome import ITemplateProvider
 from trac.admin import IAdminPanelProvider
 
-from acct_mgr.api import AccountManager
+from acct_mgr.api import AccountManager, _, tag_ 
 from acct_mgr.web_ui import _create_user
 
 def _getoptions(cls):
@@ -67,8 +67,8 @@ class StoreOrder(dict):
             self.d.setdefault(key, [])
             self.d[key].append(value)
         else:
-            raise KeyError('Invalid key type (%s) for StoreOrder'
-                           % str(type(key)))
+            raise KeyError(_("Invalid key type (%s) for StoreOrder")
+                             % str(type(key)))
         pass
 
     def get_enabled_stores(self):
@@ -112,9 +112,9 @@ class AccountManagerAdminPage(Component):
     # IAdminPageProvider
     def get_admin_panels(self, req):
         if req.perm.has_permission('ACCTMGR_CONFIG_ADMIN'):
-            yield ('accounts', 'Accounts', 'config', 'Configuration')
+            yield ('accounts', _("Accounts"), 'config', _("Configuration"))
         if req.perm.has_permission('ACCTMGR_USER_ADMIN'):
-            yield ('accounts', 'Accounts', 'users', 'Users')
+            yield ('accounts', _("Accounts"), 'users', _("Users"))
 
     def render_admin_panel(self, req, cat, page, path_info):
         if page == 'config':
@@ -201,8 +201,9 @@ class AccountManagerAdminPage(Component):
                         data['registration_error'] = e.message
                         data['acctmgr'] = e.acctmgr
                 else:
-                    data['registration_error'] = 'The password store does ' \
-                                                 'not support creating users'
+                    data['registration_error'] = _("""The password store
+                                                   does not support
+                                                   creating users.""")
             elif req.args.get('remove'):
                 if delete_enabled:
                     sel = req.args.get('sel')
@@ -210,8 +211,8 @@ class AccountManagerAdminPage(Component):
                     for account in sel:
                         self.account_manager.delete_user(account)
                 else:
-                    data['deletion_error'] = 'The password store does not ' \
-                                             'support deleting users'
+                    data['deletion_error'] = _("""The password store does
+                                               not support deleting users.""")
             elif req.args.get('change'):
                 if password_change_enabled:
                     try:
@@ -221,16 +222,16 @@ class AccountManagerAdminPage(Component):
                         error = TracError('')
                         error.acctmgr = acctmgr
                         if not user:
-                            error.message = 'Username cannot be empty.'
+                            error.message = _("Username cannot be empty.")
                             raise error
 
                         password = req.args.get('change_password')
                         if not password:
-                            error.message = 'Password cannot be empty.'
+                            error.message = _("Password cannot be empty.")
                             raise error
 
                         if password != req.args.get('change_password_confirm'):
-                            error.message = 'The passwords must match.'
+                            error.message = _("The passwords must match.")
                             raise error
 
                         self.account_manager.set_password(user, password)
@@ -238,8 +239,9 @@ class AccountManagerAdminPage(Component):
                         data['password_change_error'] = e.message
                         data['acctmgr'] = getattr(e, 'acctmgr', '')
                 else:
-                    data['password_change_error'] = 'The password store does not ' \
-                                                    'support changing passwords'
+                    data['password_change_error'] = _("""The password store
+                                                      does not support
+                                                      changing passwords.""")
             
 
         if listing_enabled:
