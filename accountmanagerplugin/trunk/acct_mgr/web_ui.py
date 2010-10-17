@@ -663,9 +663,7 @@ class EmailVerificationModule(Component):
             req.redirect(req.href.login())
         if 'email_verification_token' not in req.session:
             chrome.add_notice(req, _("Your email is already verified."))
-        elif req.method != 'POST':
-            pass
-        elif 'resend' in req.args:
+        elif req.method == 'POST' and 'resend' in req.args:
             AccountManager(self.env)._notify(
                 'email_verification_requested', 
                 req.authname, 
@@ -675,6 +673,7 @@ class EmailVerificationModule(Component):
                     _("A notification email has been resent to <%s>."),
                     req.session.get('email'))
         elif 'verify' in req.args:
+            # allow via POST or GET (the latter for email links)
             if req.args['token'] == req.session['email_verification_token']:
                 del req.session['email_verification_token']
                 chrome.add_notice(req, _("Thank you for verifying your email address."))
@@ -684,6 +683,8 @@ class EmailVerificationModule(Component):
         data = {}
         if 'token' in req.args:
             data['token'] = req.args['token']
+        if 'email_verification_token' not in req.session:
+            data['button_state'] = { 'disabled': 'disabled' }
         return 'verify_email.html', data, None
 
     def _gen_token(self):

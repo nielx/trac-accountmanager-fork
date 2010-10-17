@@ -224,7 +224,7 @@ class EmailVerificationNotification(SingleUserNotification):
                 'token': token,
             },
             'verify': {
-                'link': self.env.abs_href.verify_email(token=token),
+                'link': self.env.abs_href.verify_email(token=token,verify=1),
             }
         })
 
