@@ -36,8 +36,10 @@
           <input type="text" id="token" name="token" class="textwidget"
                  size="10" value="${value_of('token')}" />
         </div>
-        <input type="submit" name="verify" value="${_('Verify')}" />
-        <input type="submit" name="resend" value="${_('Resend Email')}" />
+        <input type="submit" name="verify" py:attrs="button_state"
+          value="${_('Verify')}" />
+        <input type="submit" name="resend" py:attrs="button_state"
+          value="${_('Resend Email')}" />
       </form>
 
     </div>
