@@ -15,13 +15,16 @@ from trac.core import *
 from trac.config import Configuration, Option, BoolOption, ExtensionOption, \
                         OrderedExtensionsOption
 
-
+# Import i18n methods.  Fallback modules maintain compatibility to Trac 0.11
+# by keeping Babel optional here.
 try:
     from  trac.util.translation  import  domain_functions
     add_domain, _, tag_ = \
         domain_functions('acct_mgr', ('add_domain', '_', 'tag_'))
 except:
-    # FIXME: 0.11 compatibility
+    from  trac.util.translation  import  gettext
+    _, tag_  = gettext, tag
+    def add_domain(a,b,c=None):
     pass
 
 
