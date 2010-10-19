@@ -21,11 +21,12 @@ try:
     from  trac.util.translation  import  domain_functions
     add_domain, _, tag_ = \
         domain_functions('acct_mgr', ('add_domain', '_', 'tag_'))
-except:
+except ImportError:
+    from  genshi.builder         import  tag as tag_
     from  trac.util.translation  import  gettext
-    _, tag_  = gettext, tag
+    _  = gettext
     def add_domain(a,b,c=None):
-    pass
+        pass
 
 
 class IPasswordStore(Interface):
