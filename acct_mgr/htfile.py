@@ -69,7 +69,13 @@ class AbstractPasswordFileStore(Component):
                 if line.startswith(prefix):
                     return self._check_userline(user, password,
                             line[len(prefix):].rstrip('\n'))
-        finally:
+        # DEVEL: Better use new 'finally' statement here, but
+        #   still need to care for Python 2.4 (RHEL5.x) for now
+        except:
+            self.log.debug('acct_mgr: check_password() -- '
+                           'Can\'t read "%s"' % filename)
+            pass
+        if isinstance(f, file):
             f.close()
         return None
 
@@ -155,13 +161,14 @@ class AbstractPasswordFileStore(Component):
                                 'the password file and its parent directory.')
             else:
                 raise
-        finally:
-            if isinstance(f, file):
-                # Close open file now, even after exception raised.
-                f.close()
-                if not f.closed:
-                    self.log.debug('acct_mgr: _update_file() -- '
-                                   'Closing file "%s" failed' % filename)
+        # DEVEL: Better use new 'finally' statement here, but
+        #   still need to care for Python 2.4 (RHEL5.x) for now
+        if isinstance(f, file):
+            # Close open file now, even after exception raised.
+            f.close()
+            if not f.closed:
+                self.log.debug('acct_mgr: _update_file() -- '
+                               'Closing file "%s" failed' % filename)
         return matched
 
 
