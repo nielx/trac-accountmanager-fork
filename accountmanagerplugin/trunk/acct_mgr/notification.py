@@ -114,8 +114,11 @@ class SingleUserNotification(NotifyEmail):
         self.config.set('notification', 'use_public_cc', 'true')
         try:
             NotifyEmail.notify(self, username, subject)
-        finally:
-            self.config.set('notification', 'use_public_cc', old_public_cc)
+        # DEVEL: Better use new 'finally' statement here, but
+        #   still need to care for Python 2.4 (RHEL5.x) for now
+        except:
+            pass
+        self.config.set('notification', 'use_public_cc', old_public_cc)
 
 
 class PasswordResetNotification(SingleUserNotification):
