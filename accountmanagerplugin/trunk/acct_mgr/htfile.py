@@ -64,7 +64,7 @@ class AbstractPasswordFileStore(Component):
         password = password.encode('utf-8')
         prefix = self.prefix(user)
         try:
-            f = open(filename, 'Ur')
+            f = open(filename, 'rU')
             for line in f:
                 if line.startswith(prefix):
                     return self._check_userline(user, password,
@@ -98,7 +98,7 @@ class AbstractPasswordFileStore(Component):
             # DEVEL: Use `with` statement available in Python >= 2.5
             #   as soon as we don't need to support 2.4 anymore.
             eol = '\n'
-            f = open(filename, 'Ur')
+            f = open(filename, 'rU')
             lines = f.readlines()
             newlines = f.newlines
             if newlines is not None:
@@ -206,7 +206,7 @@ class HtPasswdStore(AbstractPasswordFileStore):
         return suffix == htpasswd(password, suffix)
 
     def _get_users(self, filename):
-        f = open(filename, 'Ur')
+        f = open(filename, 'rU')
         for line in f:
             user = line.split(':', 1)[0]
             if user:
