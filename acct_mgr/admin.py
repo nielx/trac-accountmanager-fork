@@ -199,7 +199,7 @@ class AccountManagerAdminPage(Component):
                         _create_user(req, self.env, check_permissions=False)
                     except TracError, e:
                         data['registration_error'] = e.message
-                        data['acctmgr'] = e.acctmgr
+                        data['acctmgr'] = getattr(e, 'acctmgr', '')
                 else:
                     data['registration_error'] = _("""The password store
                                                    does not support

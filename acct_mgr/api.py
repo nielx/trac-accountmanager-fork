@@ -191,8 +191,9 @@ class AccountManager(Component):
         user = self.handle_username_casing(user)
         store = self.find_user_store(user)
         if store and not hasattr(store, 'set_password'):
-            raise TracError('The authentication backend for the user, %s, '
-                            'does not support setting the password' % user)
+            raise TracError(_(
+                """The authentication backend for user %s does not support
+                setting the password.""" % user))
         elif not store:
             store = self.get_supporting_store('set_password')
         if store:
@@ -201,9 +202,10 @@ class AccountManager(Component):
             else:
                 self._notify('password_changed', user, password)
         else:
-            raise TracError('None of the IPasswordStore components listed in '
-                            'the trac.ini support setting the password or '
-                            'creating users')
+            raise TracError(_(
+                """None of the IPasswordStore components listed in the
+                trac.ini supports setting the password
+                or creating users."""))
 
     def check_password(self, user, password):
         valid = False
@@ -262,9 +264,9 @@ class AccountManager(Component):
     password_store = property(password_store)
 
     def get_supporting_store(self, operation):
-        """Returns the IPasswordStore that implements the specified operaion
+        """Returns the IPasswordStore that implements the specified operation.
 
-        None is returned if no supporting store can be found
+        None is returned if no supporting store can be found.
         """
         supports = False
         for store in self.password_store:
@@ -288,7 +290,7 @@ class AccountManager(Component):
         """Locates which store contains the user specified.
 
         If the user isn't found in any IPasswordStore in the chain, None is
-        returned
+        returned.
         """
         ignore_auth_case = self.config.getbool('trac', 'ignore_auth_case')
         user_stores = []

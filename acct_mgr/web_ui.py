@@ -425,7 +425,7 @@ class RegistrationModule(Component):
                 _create_user(req, self.env)
             except TracError, e:
                 data['registration_error'] = e.message
-                data['acctmgr'] = e.acctmgr
+                data['acctmgr'] = getattr(e, 'acctmgr', '')
             else:
                 chrome.add_notice(req, Markup(tag.span(tag_(
                      """Registration has been finished successfully.
