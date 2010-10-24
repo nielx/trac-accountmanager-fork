@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: TracAccountManager 0.3\n"
 "Report-Msgid-Bugs-To: hoff.st@shaas.net\n"
-"POT-Creation-Date: 2010-10-24 15:03+0200\n"
+"POT-Creation-Date: 2010-10-25 00:09+0200\n"
 "PO-Revision-Date: 2010-09-25 00:04+0200\n"
 "Last-Translator: Steffen Hoffmann <hoff.st@web.de>\n"
 "Language-Team: German de_DE <trac-dev@googlegroups.com>\n"
@@ -41,13 +41,13 @@ msgid ""
 "The password store\n"
 "                                                   does not support\n"
 "                                                   creating users."
-msgstr "Der Kennwortspeicher erlaubt es nicht, neue Nutzer zu erstellen."
+msgstr "Der Kennwortspeicher erlaubt das Erstellen neuer Nutzer nicht."
 
 #: acct_mgr/admin.py:217
 msgid ""
 "The password store does\n"
 "                                               not support deleting users."
-msgstr "Der Kennwortspeicher erlaubt es nicht, Nutzer zu löschen."
+msgstr "Der Kennwortspeicher erlaubt das Löschen von Nutzern nicht."
 
 #: acct_mgr/admin.py:228 acct_mgr/web_ui.py:51
 msgid "Username cannot be empty."
@@ -67,7 +67,43 @@ msgid ""
 "The password store\n"
 "                                                      does not support\n"
 "                                                      changing passwords."
-msgstr "Der Kennwortspeicher erlaubt es nicht, Kennwörter zu ändern."
+msgstr "Der Kennwortspeicher erlaubt das Ändern von Kennwörtern nicht."
+
+#: acct_mgr/api.py:194
+#, python-format
+msgid ""
+"The authentication backend for user %s does not support\n"
+"                setting the password."
+msgstr "Der Authentifikationsdienst erlaubt das Festlegen des Kennworts nicht."
+
+#: acct_mgr/api.py:205
+msgid ""
+"None of the IPasswordStore components listed in the\n"
+"                trac.ini supports setting the password\n"
+"                or creating users."
+msgstr ""
+"Keine der in trac.ini aufgeführten IPasswordStore-Komponenten erlaubt das"
+" Festlegen des Kennworts oder das Erstellen neuer Nutzer."
+
+#: acct_mgr/htfile.py:142
+msgid ""
+"The password file could not be read. Trac requires\n"
+"                    read and write access to both the password file\n"
+"                    and its parent directory."
+msgstr ""
+"Die Kennwortdatei konnte nicht gelesen werden. Trac benötigt Lese- und "
+"Schreibzugriff sowohl auf die Kennworddatei als auch auf deren "
+"übergeordnetes Verzeichnis."
+
+#: acct_mgr/htfile.py:160
+msgid ""
+"The password file could not be updated. Trac requires\n"
+"                    read and write access to both the password file\n"
+"                    and its parent directory."
+msgstr ""
+"Die Kennwortdatei konnte nicht aktualisiert werden. Trac benötigt Lese- "
+"und Schreibzugriff sowohl auf die Kennworddatei als auch auf deren "
+"übergeordnetes Verzeichnis."
 
 #: acct_mgr/notification.py:55
 msgid "The email and username do not match a known account."
@@ -392,7 +428,7 @@ msgstr " Ändern "
 
 #: acct_mgr/templates/admin_users.html:73
 msgid "This password store does not support listing users."
-msgstr "Der Kennwortspeicher erlaubt es nicht, Nutzer aufzulisten."
+msgstr "Der Kennwortspeicher erlaubt das Auflisten von Nutzern nicht."
 
 #: acct_mgr/templates/admin_users.html:82
 msgid "Name"
@@ -456,9 +492,11 @@ msgstr "Erforderlich"
 
 #: acct_mgr/templates/register.html:55
 msgid ""
-"The email address is required for Trac to send you the\n"
+"The email address is required for Trac to send you a\n"
 "              verification code."
 msgstr ""
+"Ihre E-Mail-Adresse wird benötigt, damit Trac Ihnen einen "
+"Bestätigungscode zusenden kann."
 
 #: acct_mgr/templates/register.html:58
 msgid ""

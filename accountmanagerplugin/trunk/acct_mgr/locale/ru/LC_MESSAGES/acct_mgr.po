@@ -6,9 +6,9 @@
 # Dmitri Bogomolov <4glitch@gmail.com>, 2010.
 msgid ""
 msgstr ""
-"Project-Id-Version: TracAccountManager 0.2.1\n"
+"Project-Id-Version: TracAccountManager 0.3\n"
 "Report-Msgid-Bugs-To: hoff.st@shaas.net\n"
-"POT-Creation-Date: 2010-02-12 00:05+0200\n"
+"POT-Creation-Date: 2010-10-25 00:09+0200\n"
 "PO-Revision-Date: 2010-10-24 20:24+0300\n"
 "Last-Translator: Dmitri Bogomolov <4glitch@gmail.com>\n"
 "Language-Team: ru <LL@li.org>\n"
@@ -17,14 +17,14 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 0.9.5\n"
+"Generated-By: Babel 1.0dev-r482\n"
 
 #: acct_mgr/admin.py:70
 #, python-format
 msgid "Invalid key type (%s) for StoreOrder"
 msgstr "Недопустимый тип ключа (%s) для StoreOrder"
 
-#: acct_mgr/admin.py:115 acct_mgr/admin.py:117 acct_mgr/notification.py:167
+#: acct_mgr/admin.py:115 acct_mgr/admin.py:117 acct_mgr/notification.py:170
 #: acct_mgr/templates/admin_users.html:14
 msgid "Accounts"
 msgstr "Учетные записи"
@@ -70,11 +70,39 @@ msgid ""
 "                                                      changing passwords."
 msgstr "Хранилище паролей не поддерживает изменение паролей"
 
+#: acct_mgr/api.py:194
+#, python-format
+msgid ""
+"The authentication backend for user %s does not support\n"
+"                setting the password."
+msgstr ""
+
+#: acct_mgr/api.py:205
+msgid ""
+"None of the IPasswordStore components listed in the\n"
+"                trac.ini supports setting the password\n"
+"                or creating users."
+msgstr ""
+
+#: acct_mgr/htfile.py:142
+msgid ""
+"The password file could not be read. Trac requires\n"
+"                    read and write access to both the password file\n"
+"                    and its parent directory."
+msgstr ""
+
+#: acct_mgr/htfile.py:160
+msgid ""
+"The password file could not be updated. Trac requires\n"
+"                    read and write access to both the password file\n"
+"                    and its parent directory."
+msgstr ""
+
 #: acct_mgr/notification.py:55
 msgid "The email and username do not match a known account."
 msgstr "Имя пользователя и адрес не соответствуют существующей учетной записи."
 
-#: acct_mgr/notification.py:167
+#: acct_mgr/notification.py:170
 msgid "Notification"
 msgstr "Уведомление"
 
@@ -448,7 +476,7 @@ msgstr "Обязательно"
 
 #: acct_mgr/templates/register.html:55
 msgid ""
-"The email address is required for Trac to send you the\n"
+"The email address is required for Trac to send you a\n"
 "              verification code."
 msgstr "Trac необходим электронный адрес, для отправки кода подтверждения."
 
@@ -549,5 +577,4 @@ msgstr "Проверить"
 #: acct_mgr/templates/verify_email.html:41
 msgid "Resend Email"
 msgstr "Послать снова"
-
 

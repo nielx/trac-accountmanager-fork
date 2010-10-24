@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: TracAccountManager 0.3\n"
 "Report-Msgid-Bugs-To: hoff.st@shaas.net\n"
-"POT-Creation-Date: 2010-10-24 15:03+0200\n"
+"POT-Creation-Date: 2010-10-25 00:09+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -70,6 +70,34 @@ msgid ""
 "support\n"
 "                                                      changing "
 "passwords."
+msgstr ""
+
+#: acct_mgr/api.py:194
+#, python-format
+msgid ""
+"The authentication backend for user %s does not support\n"
+"                setting the password."
+msgstr ""
+
+#: acct_mgr/api.py:205
+msgid ""
+"None of the IPasswordStore components listed in the\n"
+"                trac.ini supports setting the password\n"
+"                or creating users."
+msgstr ""
+
+#: acct_mgr/htfile.py:142
+msgid ""
+"The password file could not be read. Trac requires\n"
+"                    read and write access to both the password file\n"
+"                    and its parent directory."
+msgstr ""
+
+#: acct_mgr/htfile.py:160
+msgid ""
+"The password file could not be updated. Trac requires\n"
+"                    read and write access to both the password file\n"
+"                    and its parent directory."
 msgstr ""
 
 #: acct_mgr/notification.py:55
@@ -441,7 +469,7 @@ msgstr ""
 
 #: acct_mgr/templates/register.html:55
 msgid ""
-"The email address is required for Trac to send you the\n"
+"The email address is required for Trac to send you a\n"
 "              verification code."
 msgstr ""
 

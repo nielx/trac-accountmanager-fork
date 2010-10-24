@@ -18,9 +18,9 @@ import os.path
 from trac.core import *
 from trac.config import Option
 
-from api import IPasswordStore
-from pwhash import htpasswd, mkhtpasswd, htdigest
-from util import EnvRelativePathOption
+from acct_mgr.api import IPasswordStore, _
+from acct_mgr.pwhash import htpasswd, mkhtpasswd, htdigest
+from acct_mgr.util import EnvRelativePathOption
 
 
 class AbstractPasswordFileStore(Component):
@@ -139,9 +139,10 @@ class AbstractPasswordFileStore(Component):
                 # Ignore, when file doesn't exist and create it below.
                 pass
             elif e.errno == errno.EACCES:
-                raise TracError('The password file could not be read.  '
-                                'Trac requires read and write access to both '
-                                'the password file and its parent directory.')
+                raise TracError(_(
+                    """The password file could not be read. Trac requires
+                    read and write access to both the password file
+                    and its parent directory."""))
             else:
                 raise
 
@@ -155,10 +156,11 @@ class AbstractPasswordFileStore(Component):
             f = open(filename, 'w')
             f.writelines(new_lines)
         except EnvironmentError, e:
-            if e.errno == errno.EACCES:
-                raise TracError('The password file could not be updated.  '
-                                'Trac requires read and write access to both '
-                                'the password file and its parent directory.')
+            if e.errno == errno.EACCES or e.errno == errno.EROFS:
+                raise TracError(_(
+                    """The password file could not be updated. Trac requires
+                    read and write access to both the password file
+                    and its parent directory."""))
             else:
                 raise
         # DEVEL: Better use new 'finally' statement here, but
