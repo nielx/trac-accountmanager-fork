@@ -7,9 +7,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: TracAccountManager 0.2.1\n"
+"Project-Id-Version: TracAccountManager 0.3\n"
 "Report-Msgid-Bugs-To: hoff.st@shaas.net\n"
-"POT-Creation-Date: 2010-10-17 23:11+0200\n"
+"POT-Creation-Date: 2010-10-24 15:03+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -23,7 +23,7 @@ msgstr ""
 msgid "Invalid key type (%s) for StoreOrder"
 msgstr ""
 
-#: acct_mgr/admin.py:115 acct_mgr/admin.py:117 acct_mgr/notification.py:167
+#: acct_mgr/admin.py:115 acct_mgr/admin.py:117 acct_mgr/notification.py:170
 #: acct_mgr/templates/admin_users.html:14
 msgid "Accounts"
 msgstr ""
@@ -76,7 +76,7 @@ msgstr ""
 msgid "The email and username do not match a known account."
 msgstr ""
 
-#: acct_mgr/notification.py:167
+#: acct_mgr/notification.py:170
 msgid "Notification"
 msgstr ""
 
