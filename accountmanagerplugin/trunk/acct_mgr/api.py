@@ -19,12 +19,13 @@ from trac.config import Configuration, Option, BoolOption, ExtensionOption, \
 # by keeping Babel optional here.
 try:
     from  trac.util.translation  import  domain_functions
-    add_domain, _, tag_ = \
-        domain_functions('acct_mgr', ('add_domain', '_', 'tag_'))
+    add_domain, _, ngettext, tag_ = \
+        domain_functions('acct_mgr', ('add_domain', '_', 'ngettext', 'tag_'))
 except ImportError:
     from  genshi.builder         import  tag as tag_
     from  trac.util.translation  import  gettext
-    _  = gettext
+    _ = gettext
+    ngettext = _
     def add_domain(a,b,c=None):
         pass
 
@@ -47,7 +48,7 @@ class IPasswordStore(Interface):
         """
 
     def get_users(self):
-        """Returns an iterable of the known usernames
+        """Returns an iterable of the known usernames.
         """
 
     def has_user(self, user):
@@ -115,7 +116,7 @@ class AccountManager(Component):
     setting.
 
     The "account-manager.password_store" may be an ordered list of password
-    stores.  if it is a list, then each password store is queried in turn.
+    stores.  If it is a list, then each password store is queried in turn.
     """
 
     implements(IAccountChangeListener)
@@ -147,7 +148,7 @@ class AccountManager(Component):
             This is enforced upon new user registration.""")
 
     def __init__(self):
-    # bind the 'acct_mgr' catalog to the specified locale directory
+        # bind the 'acct_mgr' catalog to the specified locale directory
         locale_dir = resource_filename(__name__, 'locale')
         add_domain(self.env.path, locale_dir)
 
@@ -261,6 +262,7 @@ class AccountManager(Component):
                     return [store]
             # if the "password_format" is not set re-raise the AttributeError
             raise
+
     password_store = property(password_store)
 
     def get_supporting_store(self, operation):
@@ -337,5 +339,4 @@ class AccountManager(Component):
         
     def user_email_verification_requested(self, user, token):
         self.log.info('Email verification requested user: %s' % user)
-
 
