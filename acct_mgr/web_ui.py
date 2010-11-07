@@ -477,8 +477,9 @@ class LoginModule(auth.LoginModule):
 
     def process_request(self, req):
         if req.path_info.startswith('/login') and req.authname == 'anonymous':
+            referrer = self._referer(req) or req.abs_href()
             data = {
-                'referer': self._referer(req),
+                'referer': referrer,
                 'reset_password_enabled': AccountModule(self.env).reset_password_enabled,
                 'persistent_sessions': AccountManager(self.env).persistent_sessions
             }
