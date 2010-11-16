@@ -42,30 +42,33 @@
 
       <fieldset>
         <legend>Persistent Sessions</legend>
-        <input type="checkbox" name="persistent_sessions" value="true"
-          checked="${persistent_sessions and 'checked' or None}" i18n:msg="">
+        <label>
+          <input type="checkbox" name="persistent_sessions" value="true"
+            checked="${persistent_sessions and 'checked' or None}" />
           Allow the user to be remembered across sessions without needing to
           re-authenticate.
-          <p class="help">This is, user checks a "Remember Me"
-            <tt>checkbox</tt> and, next time he visits the site,
-            he'll be remembered and automatically authenticated.
-          </p>
-        </input>
+        </label>
+        <p class="help" i18n:msg="">This is, user checks a "Remember Me"
+          <tt>checkbox</tt> and, next time he visits the site,
+          he'll be remembered and automatically authenticated.
+        </p>
       </fieldset>
 
       <fieldset>
         <legend>Password Reset</legend>
-        <input type="checkbox" name="force_passwd_change" value="true"
-          checked="${force_passwd_change and 'checked' or None}">
+        <label>
+          <input type="checkbox" name="force_passwd_change" value="true"
+            checked="${force_passwd_change and 'checked' or None}" />
           Force users to change passwords after a password reset.
-        </input>
+        </label>
       </fieldset>
 
       <fieldset>
         <legend>Verify email</legend>
-        <input type="checkbox" name="verify_email" value="true"
-          checked="${verify_email and 'checked' or None}">
-          Force users to verify their email addresses.</input>
+        <label>
+          <input type="checkbox" name="verify_email" value="true"
+            checked="${verify_email and 'checked' or None}" />
+          Force users to verify their email addresses.</label>
       </fieldset>
 
       <div class="buttons">

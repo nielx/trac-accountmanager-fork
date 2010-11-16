@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: TracAccountManager 0.3\n"
 "Report-Msgid-Bugs-To: hoff.st@shaas.net\n"
-"POT-Creation-Date: 2010-10-25 00:09+0200\n"
+"POT-Creation-Date: 2010-11-16 14:30+0100\n"
 "PO-Revision-Date: 2010-09-25 00:04+0200\n"
 "Last-Translator: Steffen Hoffmann <hoff.st@web.de>\n"
 "Language-Team: German de_DE <trac-dev@googlegroups.com>\n"
@@ -69,14 +69,16 @@ msgid ""
 "                                                      changing passwords."
 msgstr "Der Kennwortspeicher erlaubt das Ändern von Kennwörtern nicht."
 
-#: acct_mgr/api.py:194
+#: acct_mgr/api.py:195
 #, python-format
 msgid ""
 "The authentication backend for user %s does not support\n"
 "                setting the password."
-msgstr "Der Authentifikationsdienst erlaubt das Festlegen des Kennworts nicht."
+msgstr ""
+"Der Authentifikationsdienst für den Nutzer %s erlaubt das Festlegen des "
+"Kennworts nicht."
 
-#: acct_mgr/api.py:205
+#: acct_mgr/api.py:206
 msgid ""
 "None of the IPasswordStore components listed in the\n"
 "                trac.ini supports setting the password\n"
@@ -224,53 +226,53 @@ msgstr ""
 "Die Registrierung ist erfolgreich abgeschlossen worden. Sie können sich "
 "nun als Nutzer %(user)s anmelden."
 
-#: acct_mgr/web_ui.py:486
+#: acct_mgr/web_ui.py:487
 msgid "Invalid username or password"
 msgstr "Nutzername oder Kennwort ungültig"
 
 #. TRANSLATOR: Your permissions have been limited until you ...
-#: acct_mgr/web_ui.py:620
+#: acct_mgr/web_ui.py:621
 msgid "verify your email address"
 msgstr "Ihre E-Mail-Adresse bestätigen"
 
 #. TRANSLATOR: ... verify your email address
-#: acct_mgr/web_ui.py:623
+#: acct_mgr/web_ui.py:624
 #, python-format
 msgid "Your permissions have been limited until you %(link)s."
 msgstr "Ihre Berechtigungen sind eingeschränkt worden, bis Sie %(link)s."
 
 #. TRANSLATOR: ... verify your new email address
-#: acct_mgr/web_ui.py:651
+#: acct_mgr/web_ui.py:652
 #, python-format
 msgid "An email has been sent to %(email)s with a token to "
 msgstr ""
 "Eine E-Mail-Nachricht mit einem Bestätigungscode wurde an %(email)s "
 "gesendet, um "
 
-#: acct_mgr/web_ui.py:652
+#: acct_mgr/web_ui.py:653
 msgid "verify your new email address"
 msgstr "Ihre neue E-Mail-Adresse zu bestätigen"
 
-#: acct_mgr/web_ui.py:663
+#: acct_mgr/web_ui.py:664
 msgid "Please log in to finish email verification procedure."
 msgstr ""
 "Bitte melden Sie sich an, um den Bestätigungsvorgang für Ihre E-Mail-"
 "Adresse abzuschliessen."
 
-#: acct_mgr/web_ui.py:667
+#: acct_mgr/web_ui.py:668
 msgid "Your email is already verified."
 msgstr "Ihre E-Mail-Adresse ist bereits bestätigt."
 
-#: acct_mgr/web_ui.py:675
+#: acct_mgr/web_ui.py:676
 #, python-format
 msgid "A notification email has been resent to <%s>."
 msgstr "Eine E-Mail-Benachrichtigung ist an <%s> gesendet worden."
 
-#: acct_mgr/web_ui.py:681
+#: acct_mgr/web_ui.py:682
 msgid "Thank you for verifying your email address."
 msgstr "Vielen Dank, dass Sie Ihre E-Mail-Adresse bestätigt haben."
 
-#: acct_mgr/web_ui.py:684
+#: acct_mgr/web_ui.py:685
 msgid "Invalid verification token"
 msgstr "Ungültiger Bestätigungscode"
 
@@ -283,37 +285,39 @@ msgstr "Nutzerkonten: Einstellungen"
 msgid "Persistent Sessions"
 msgstr "Dauerhafte Anmeldungen"
 
-#: acct_mgr/templates/admin_accountsconfig.html:45
+#: acct_mgr/templates/admin_accountsconfig.html:47
 msgid ""
 "Allow the user to be remembered across sessions without needing to\n"
-"          re-authenticate.\n"
-"          [1:This is, user checks a \"Remember Me\"\n"
-"            [2:checkbox] and, next time he visits the site,\n"
-"            he'll be remembered and automatically authenticated.\n"
-"          ]"
-msgstr ""
-"Erlaube das Wiedererkennen des Nutzers ohne Neuanmeldung.[1:D. h., der "
-"Nutzer aktiviert ein [2:Ankreuzfeld] \"Angemeldet bleiben\" und wird beim"
-" nächsten Besuch wiedererkannt und automatisch angemeldet.]"
+"          re-authenticate."
+msgstr "Erlaube das Wiedererkennen des Nutzers ohne Neuanmeldung."
 
-#: acct_mgr/templates/admin_accountsconfig.html:57
+#: acct_mgr/templates/admin_accountsconfig.html:51
+msgid ""
+"This is, user checks a \"Remember Me\"\n"
+"          [1:checkbox] and, next time he visits the site,\n"
+"          he'll be remembered and automatically authenticated."
+msgstr ""
+"D. h., der Nutzer aktiviert ein [1:Ankreuzfeld] \"Angemeldet bleiben\""
+" und wird beim nächsten Besuch wiedererkannt und automatisch angemeldet."
+
+#: acct_mgr/templates/admin_accountsconfig.html:58
 msgid "Password Reset"
 msgstr "Kennwort zurücksetzen"
 
-#: acct_mgr/templates/admin_accountsconfig.html:59
+#: acct_mgr/templates/admin_accountsconfig.html:61
 msgid "Force users to change passwords after a password reset."
 msgstr "Zwinge Nutzer nach Zurücksetzen des Kennworts zur Kennwortänderung."
 
-#: acct_mgr/templates/admin_accountsconfig.html:65
+#: acct_mgr/templates/admin_accountsconfig.html:67
 msgid "Verify email"
 msgstr "E-Mail-Adresse bestätigen"
 
-#: acct_mgr/templates/admin_accountsconfig.html:67
+#: acct_mgr/templates/admin_accountsconfig.html:70
 msgid "Force users to verify their email addresses."
 msgstr "Zwinge Nutzer, ihre E-Mail-Adresse zu bestätigen."
 
-#: acct_mgr/templates/admin_accountsconfig.html:72
-#: acct_mgr/templates/admin_accountsnotification.html:46
+#: acct_mgr/templates/admin_accountsconfig.html:75
+#: acct_mgr/templates/admin_accountsnotification.html:49
 msgid "Save"
 msgstr "Speichern"
 
@@ -346,23 +350,23 @@ msgstr ""
 "Dies ist eine Aktionsliste, die Sie durch [1:Wählen] der "
 "[2:Ankreuzfelder] aktivieren oder deaktivieren können."
 
-#: acct_mgr/templates/admin_accountsnotification.html:29
+#: acct_mgr/templates/admin_accountsnotification.html:30
 msgid "Get notified of new account creation"
 msgstr "Erstellung eines neuen Benutzerkontos melden"
 
-#: acct_mgr/templates/admin_accountsnotification.html:32
+#: acct_mgr/templates/admin_accountsnotification.html:34
 msgid "Get notified of password reset"
 msgstr "Kennwortrücksetzen melden"
 
-#: acct_mgr/templates/admin_accountsnotification.html:35
+#: acct_mgr/templates/admin_accountsnotification.html:38
 msgid "Get notified of account deletion"
 msgstr "Benutzerkontenlöschung melden"
 
-#: acct_mgr/templates/admin_accountsnotification.html:38
+#: acct_mgr/templates/admin_accountsnotification.html:41
 msgid "Notification Recipient Addresses"
 msgstr "Empfängeradressen für Benachrichtigungen"
 
-#: acct_mgr/templates/admin_accountsnotification.html:39
+#: acct_mgr/templates/admin_accountsnotification.html:42
 msgid ""
 "Space-separated list of email addresses and/or\n"
 "        usernames that get notified of the above actions:"
