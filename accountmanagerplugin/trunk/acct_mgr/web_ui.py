@@ -647,11 +647,15 @@ class EmailVerificationModule(Component):
                 req.authname, 
                 req.session['email_verification_token']
             )
+            # TRANSLATOR: An email has been sent to %(email)s
+            # with a token to ... (the link label for following message)
+            link = tag.a(_("verify your new email address"),
+                         href=req.href.verify_email())
             # TRANSLATOR: ... verify your new email address
-            chrome.add_notice(req, Markup(tag.span(
-                _("An email has been sent to %(email)s with a token to ",
-                email=email), tag.a(_("verify your new email address"),
-                                    href=req.href.verify_email() ), ".")))
+            chrome.add_notice(req, Markup(tag.span(tag_(
+                """An email has been sent to %(email)s with a token to
+                %(link)s.""",
+                email=email, link=link))))
         return template, data, content_type
 
     # IRequestHandler methods

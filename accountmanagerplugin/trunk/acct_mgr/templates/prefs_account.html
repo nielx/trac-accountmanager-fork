@@ -7,9 +7,6 @@
       xmlns:i18n="http://genshi.edgewall.org/i18n"
       i18n:domain="acct_mgr">
   <xi:include href="prefs.html" />
-  <?python
-    from acct_mgr.api import _
-  ?>
 
   <!--! FIXME [1] prevents this from matching its own output.
         Should that really be necessary? -->
@@ -34,7 +31,8 @@
       </div>
       <div class="buttons">
         <input type="hidden" name="action" value="delete" />
-        <input type="submit" value="${_('Delete account')}" />
+        <input type="submit"
+          value="${dgettext('acct_mgr', 'Delete account')}" />
       </div>
     </form>
     </py:if>

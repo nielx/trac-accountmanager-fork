@@ -7,9 +7,6 @@
       xmlns:i18n="http://genshi.edgewall.org/i18n"
       i18n:domain="acct_mgr">
   <xi:include href="layout.html" />
-  <?python
-    from acct_mgr.api import _
-  ?>
   <head>
     <title>Register</title>
     <script type="text/javascript">
@@ -34,12 +31,14 @@
           <div>
             <input type="hidden" name="action" value="create" />
             <label>Username:
-              <input type="text" name="user" class="textwidget" size="20" value="${acctmgr.username}" />
+              <input type="text" name="user" class="textwidget"
+                     size="20" value="${acctmgr.username}" />
             </label>
           </div>
           <div>
             <label>Password:
-              <input type="password" name="password" class="textwidget" size="20" />
+              <input type="password" name="password"
+                     class="textwidget" size="20" />
             </label>
           </div>
           <div>
@@ -50,33 +49,38 @@
           </div>
           <div py:if="verify_account_enabled">
             <label>Email:
-              <input type="text" name="email" class="textwidget" size="20"  value="${acctmgr.email}"/>
+              <input type="text" name="email" class="textwidget" size="20"
+                value="${acctmgr.email}" />
             </label>
             <p>The email address is required for Trac to send you a
-              verification code.
+              verification token.
             </p>
             <p py:if="reset_password_enabled">Entering your email address will
               also enable you to reset your password if you ever forget it.
             </p>
           </div>
         </fieldset>
+
         <fieldset>
           <legend>Optional</legend>
           <div>
             <label>Name:
-              <input type="text" name="name" class="textwidget" size="20"  value="${acctmgr.name}"/>
+              <input type="text" name="name" class="textwidget" size="20"
+                value="${acctmgr.name}"/>
             </label>
           </div>
           <div py:if="not verify_account_enabled">
             <label>Email:
-              <input type="text" name="email" class="textwidget" size="20"  value="${acctmgr.email}"/>
+              <input type="text" name="email" class="textwidget" size="20"
+                value="${acctmgr.email}"/>
             </label>
             <p py:if="reset_password_enabled">Entering your email address
               will enable you to reset your password if you ever forget it.
             </p>
           </div>
         </fieldset>
-        <input type="submit" value="${_('Create account')}" />
+        <input type="submit"
+               value="${dgettext('acct_mgr', 'Create account')}" />
       </form>
     </div>
   </body>
