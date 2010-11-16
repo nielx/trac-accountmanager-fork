@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: TracAccountManager 0.3\n"
 "Report-Msgid-Bugs-To: hoff.st@shaas.net\n"
-"POT-Creation-Date: 2010-10-25 00:09+0200\n"
+"POT-Creation-Date: 2010-11-16 14:30+0100\n"
 "PO-Revision-Date: 2010-10-24 20:24+0300\n"
 "Last-Translator: Dmitri Bogomolov <4glitch@gmail.com>\n"
 "Language-Team: ru <LL@li.org>\n"
@@ -70,14 +70,14 @@ msgid ""
 "                                                      changing passwords."
 msgstr "Хранилище паролей не поддерживает изменение паролей"
 
-#: acct_mgr/api.py:194
+#: acct_mgr/api.py:195
 #, python-format
 msgid ""
 "The authentication backend for user %s does not support\n"
 "                setting the password."
 msgstr ""
 
-#: acct_mgr/api.py:205
+#: acct_mgr/api.py:206
 msgid ""
 "None of the IPasswordStore components listed in the\n"
 "                trac.ini supports setting the password\n"
@@ -211,49 +211,49 @@ msgid ""
 "                     You may login as user %(user)s now."
 msgstr "Регистрация успешно завершена. Вы можете войти как пользователь %(user)s."
 
-#: acct_mgr/web_ui.py:486
+#: acct_mgr/web_ui.py:487
 msgid "Invalid username or password"
 msgstr "Неправильное имя или пароль"
 
 #. TRANSLATOR: Your permissions have been limited until you ...
-#: acct_mgr/web_ui.py:620
+#: acct_mgr/web_ui.py:621
 msgid "verify your email address"
 msgstr "подтвердите свой электронный адрес"
 
 #. TRANSLATOR: ... verify your email address
-#: acct_mgr/web_ui.py:623
+#: acct_mgr/web_ui.py:624
 #, python-format
 msgid "Your permissions have been limited until you %(link)s."
 msgstr "Ваши разрешения ограничены до тех пор, пока вы не %(link)s"
 
 #. TRANSLATOR: ... verify your new email address
-#: acct_mgr/web_ui.py:651
+#: acct_mgr/web_ui.py:652
 #, python-format
 msgid "An email has been sent to %(email)s with a token to "
 msgstr "На адрес %(email)s выслано письмо со словом для "
 
-#: acct_mgr/web_ui.py:652
+#: acct_mgr/web_ui.py:653
 msgid "verify your new email address"
 msgstr "проверки вашего нового электронного адреса"
 
-#: acct_mgr/web_ui.py:663
+#: acct_mgr/web_ui.py:664
 msgid "Please log in to finish email verification procedure."
 msgstr "Для завершения проверки электронного адреса пожалуйста выполните вход."
 
-#: acct_mgr/web_ui.py:667
+#: acct_mgr/web_ui.py:668
 msgid "Your email is already verified."
 msgstr "Ваш адрес уже проверен"
 
-#: acct_mgr/web_ui.py:675
+#: acct_mgr/web_ui.py:676
 #, python-format
 msgid "A notification email has been resent to <%s>."
 msgstr "Уведомление повторно отправлено  <%s>."
 
-#: acct_mgr/web_ui.py:681
+#: acct_mgr/web_ui.py:682
 msgid "Thank you for verifying your email address."
 msgstr "Спасибо за подтверждение электронного адреса"
 
-#: acct_mgr/web_ui.py:684
+#: acct_mgr/web_ui.py:685
 msgid "Invalid verification token"
 msgstr "Неправильное проверочное слово"
 
@@ -266,38 +266,41 @@ msgstr "Учетные записи: настройки"
 msgid "Persistent Sessions"
 msgstr "Хранимые сеансы"
 
-#: acct_mgr/templates/admin_accountsconfig.html:45
+#: acct_mgr/templates/admin_accountsconfig.html:47
 msgid ""
 "Allow the user to be remembered across sessions without needing to\n"
-"          re-authenticate.\n"
-"          [1:This is, user checks a \"Remember Me\"\n"
-"            [2:checkbox] and, next time he visits the site,\n"
-"            he'll be remembered and automatically authenticated.\n"
-"          ]"
+"          re-authenticate."
 msgstr ""
 "Разрешить запоминать пользователей между посещениями и осуществлять вход "
-"без повторной аутентификации? [1:Пользователь ставит [2:флажок] "
-"\"Запомнить меня\", и в следующий раз, когда он открывает сайт, его сеанс"
-" будет возобновлен автоматически.]"
+"без повторной аутентификации?"
 
-#: acct_mgr/templates/admin_accountsconfig.html:57
+#: acct_mgr/templates/admin_accountsconfig.html:51
+msgid ""
+"This is, user checks a \"Remember Me\"\n"
+"          [1:checkbox] and, next time he visits the site,\n"
+"          he'll be remembered and automatically authenticated."
+msgstr ""
+"Пользователь ставит [1:флажок] \"Запомнить меня\", и в следующий раз, "
+"когда он открывает сайт, его сеанс будет возобновлен автоматически."
+
+#: acct_mgr/templates/admin_accountsconfig.html:58
 msgid "Password Reset"
 msgstr "Сброс пароля"
 
-#: acct_mgr/templates/admin_accountsconfig.html:59
+#: acct_mgr/templates/admin_accountsconfig.html:61
 msgid "Force users to change passwords after a password reset."
 msgstr "Заставить пользователей менять пароль после его сброса."
 
-#: acct_mgr/templates/admin_accountsconfig.html:65
+#: acct_mgr/templates/admin_accountsconfig.html:67
 msgid "Verify email"
 msgstr "Подтверждения адреса"
 
-#: acct_mgr/templates/admin_accountsconfig.html:67
+#: acct_mgr/templates/admin_accountsconfig.html:70
 msgid "Force users to verify their email addresses."
 msgstr "Заставить пользователей подтверждать свой электронный адрес."
 
-#: acct_mgr/templates/admin_accountsconfig.html:72
-#: acct_mgr/templates/admin_accountsnotification.html:46
+#: acct_mgr/templates/admin_accountsconfig.html:75
+#: acct_mgr/templates/admin_accountsnotification.html:49
 msgid "Save"
 msgstr "Сохранить"
 
@@ -330,23 +333,23 @@ msgstr ""
 "Здесь перечень действий, которые вы можете включить или выключить, "
 "[1:установкой] [2:флажков]."
 
-#: acct_mgr/templates/admin_accountsnotification.html:29
+#: acct_mgr/templates/admin_accountsnotification.html:30
 msgid "Get notified of new account creation"
 msgstr "Уведомлять о создании новых пользователей"
 
-#: acct_mgr/templates/admin_accountsnotification.html:32
+#: acct_mgr/templates/admin_accountsnotification.html:34
 msgid "Get notified of password reset"
 msgstr "Уведомлять о сбросе паролей"
 
-#: acct_mgr/templates/admin_accountsnotification.html:35
+#: acct_mgr/templates/admin_accountsnotification.html:38
 msgid "Get notified of account deletion"
 msgstr "Уведомлять об удалении учетных записей"
 
-#: acct_mgr/templates/admin_accountsnotification.html:38
+#: acct_mgr/templates/admin_accountsnotification.html:41
 msgid "Notification Recipient Addresses"
 msgstr "Адреса получателей уведомлений"
 
-#: acct_mgr/templates/admin_accountsnotification.html:39
+#: acct_mgr/templates/admin_accountsnotification.html:42
 msgid ""
 "Space-separated list of email addresses and/or\n"
 "        usernames that get notified of the above actions:"
