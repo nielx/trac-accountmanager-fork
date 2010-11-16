@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: TracAccountManager 0.3\n"
 "Report-Msgid-Bugs-To: hoff.st@shaas.net\n"
-"POT-Creation-Date: 2010-11-16 14:30+0100\n"
+"POT-Creation-Date: 2010-11-17 00:22+0100\n"
 "PO-Revision-Date: 2010-10-24 20:24+0300\n"
 "Last-Translator: Dmitri Bogomolov <4glitch@gmail.com>\n"
 "Language-Team: ru <LL@li.org>\n"
@@ -25,7 +25,7 @@ msgid "Invalid key type (%s) for StoreOrder"
 msgstr "Недопустимый тип ключа (%s) для StoreOrder"
 
 #: acct_mgr/admin.py:115 acct_mgr/admin.py:117 acct_mgr/notification.py:170
-#: acct_mgr/templates/admin_users.html:14
+#: acct_mgr/templates/admin_users.html:11
 msgid "Accounts"
 msgstr "Учетные записи"
 
@@ -149,8 +149,8 @@ msgstr ""
 "Указанный электронный адрес уже используется. Пожалуйста, укажите другой "
 "адрес."
 
-#: acct_mgr/web_ui.py:206 acct_mgr/templates/admin_users.html:82
-#: acct_mgr/templates/prefs_account.html:44
+#: acct_mgr/web_ui.py:206 acct_mgr/templates/admin_users.html:79
+#: acct_mgr/templates/prefs_account.html:42
 msgid "Account"
 msgstr "Учетная запись"
 
@@ -200,7 +200,7 @@ msgstr "Пароль удачно изменен."
 msgid "Password is incorrect."
 msgstr "Неправильный пароль."
 
-#: acct_mgr/web_ui.py:403 acct_mgr/templates/register.html:14
+#: acct_mgr/web_ui.py:403 acct_mgr/templates/register.html:11
 msgid "Register"
 msgstr "Регистрация"
 
@@ -224,49 +224,53 @@ msgstr "подтвердите свой электронный адрес"
 #: acct_mgr/web_ui.py:624
 #, python-format
 msgid "Your permissions have been limited until you %(link)s."
-msgstr "Ваши разрешения ограничены до тех пор, пока вы не %(link)s"
+msgstr "Ваши разрешения ограничены до тех пор, пока вы не %(link)s."
 
-#. TRANSLATOR: ... verify your new email address
+#. TRANSLATOR: An email has been sent to %(email)s
+#. with a token to ... (the link label for following message)
 #: acct_mgr/web_ui.py:652
-#, python-format
-msgid "An email has been sent to %(email)s with a token to "
-msgstr "На адрес %(email)s выслано письмо со словом для "
-
-#: acct_mgr/web_ui.py:653
 msgid "verify your new email address"
 msgstr "проверки вашего нового электронного адреса"
 
-#: acct_mgr/web_ui.py:664
+#. TRANSLATOR: ... verify your new email address
+#: acct_mgr/web_ui.py:655
+#, python-format
+msgid ""
+"An email has been sent to %(email)s with a token to\n"
+"                %(link)s."
+msgstr "На адрес %(email)s выслано письмо со словом для %(link)s."
+
+#: acct_mgr/web_ui.py:668
 msgid "Please log in to finish email verification procedure."
 msgstr "Для завершения проверки электронного адреса пожалуйста выполните вход."
 
-#: acct_mgr/web_ui.py:668
+#: acct_mgr/web_ui.py:672
 msgid "Your email is already verified."
 msgstr "Ваш адрес уже проверен"
 
-#: acct_mgr/web_ui.py:676
+#: acct_mgr/web_ui.py:680
 #, python-format
 msgid "A notification email has been resent to <%s>."
 msgstr "Уведомление повторно отправлено  <%s>."
 
-#: acct_mgr/web_ui.py:682
+#: acct_mgr/web_ui.py:686
 msgid "Thank you for verifying your email address."
 msgstr "Спасибо за подтверждение электронного адреса"
 
-#: acct_mgr/web_ui.py:685
+#: acct_mgr/web_ui.py:689
 msgid "Invalid verification token"
 msgstr "Неправильное проверочное слово"
 
-#: acct_mgr/templates/admin_accountsconfig.html:14
-#: acct_mgr/templates/admin_accountsconfig.html:18
+#: acct_mgr/templates/admin_accountsconfig.html:11
+#: acct_mgr/templates/admin_accountsconfig.html:15
 msgid "Accounts: Configuration"
 msgstr "Учетные записи: настройки"
 
-#: acct_mgr/templates/admin_accountsconfig.html:44
+#: acct_mgr/templates/admin_accountsconfig.html:40
 msgid "Persistent Sessions"
 msgstr "Хранимые сеансы"
 
-#: acct_mgr/templates/admin_accountsconfig.html:47
+#: acct_mgr/templates/admin_accountsconfig.html:43
 msgid ""
 "Allow the user to be remembered across sessions without needing to\n"
 "          re-authenticate."
@@ -274,7 +278,7 @@ msgstr ""
 "Разрешить запоминать пользователей между посещениями и осуществлять вход "
 "без повторной аутентификации?"
 
-#: acct_mgr/templates/admin_accountsconfig.html:51
+#: acct_mgr/templates/admin_accountsconfig.html:47
 msgid ""
 "This is, user checks a \"Remember Me\"\n"
 "          [1:checkbox] and, next time he visits the site,\n"
@@ -283,49 +287,49 @@ msgstr ""
 "Пользователь ставит [1:флажок] \"Запомнить меня\", и в следующий раз, "
 "когда он открывает сайт, его сеанс будет возобновлен автоматически."
 
-#: acct_mgr/templates/admin_accountsconfig.html:58
+#: acct_mgr/templates/admin_accountsconfig.html:54
 msgid "Password Reset"
 msgstr "Сброс пароля"
 
-#: acct_mgr/templates/admin_accountsconfig.html:61
+#: acct_mgr/templates/admin_accountsconfig.html:57
 msgid "Force users to change passwords after a password reset."
 msgstr "Заставить пользователей менять пароль после его сброса."
 
-#: acct_mgr/templates/admin_accountsconfig.html:67
+#: acct_mgr/templates/admin_accountsconfig.html:63
 msgid "Verify email"
 msgstr "Подтверждения адреса"
 
-#: acct_mgr/templates/admin_accountsconfig.html:70
+#: acct_mgr/templates/admin_accountsconfig.html:66
 msgid "Force users to verify their email addresses."
 msgstr "Заставить пользователей подтверждать свой электронный адрес."
 
-#: acct_mgr/templates/admin_accountsconfig.html:75
-#: acct_mgr/templates/admin_accountsnotification.html:49
+#: acct_mgr/templates/admin_accountsconfig.html:71
+#: acct_mgr/templates/admin_accountsnotification.html:48
 msgid "Save"
 msgstr "Сохранить"
 
-#: acct_mgr/templates/admin_accountsnotification.html:14
-#: acct_mgr/templates/admin_accountsnotification.html:18
+#: acct_mgr/templates/admin_accountsnotification.html:11
+#: acct_mgr/templates/admin_accountsnotification.html:15
 msgid "Accounts: Notification Configuration"
 msgstr "Учетные записи: настройки уведомлений"
 
-#: acct_mgr/templates/admin_accountsnotification.html:21
+#: acct_mgr/templates/admin_accountsnotification.html:19
 msgid "Account Notification"
 msgstr "Уведомления"
 
-#: acct_mgr/templates/admin_accountsnotification.html:22
+#: acct_mgr/templates/admin_accountsnotification.html:20
 msgid ""
 "Set the following options in order to be notified of\n"
-"        account creation, password reset and account deletion."
+"          account creation, password reset and account deletion."
 msgstr ""
 "Выберите из следующих пунктов, чтобы получать уведомления о создании "
 "пользователей, сбросе пароля и удалении пользователей."
 
-#: acct_mgr/templates/admin_accountsnotification.html:25
+#: acct_mgr/templates/admin_accountsnotification.html:23
 msgid "Notification Actions"
 msgstr "Варианты уведомлений"
 
-#: acct_mgr/templates/admin_accountsnotification.html:26
+#: acct_mgr/templates/admin_accountsnotification.html:24
 msgid ""
 "This is a list of actions which you can\n"
 "          enable or disable by [1:checking] the [2:checkboxes]."
@@ -333,114 +337,114 @@ msgstr ""
 "Здесь перечень действий, которые вы можете включить или выключить, "
 "[1:установкой] [2:флажков]."
 
-#: acct_mgr/templates/admin_accountsnotification.html:30
+#: acct_mgr/templates/admin_accountsnotification.html:28
 msgid "Get notified of new account creation"
 msgstr "Уведомлять о создании новых пользователей"
 
-#: acct_mgr/templates/admin_accountsnotification.html:34
+#: acct_mgr/templates/admin_accountsnotification.html:32
 msgid "Get notified of password reset"
 msgstr "Уведомлять о сбросе паролей"
 
-#: acct_mgr/templates/admin_accountsnotification.html:38
+#: acct_mgr/templates/admin_accountsnotification.html:36
 msgid "Get notified of account deletion"
 msgstr "Уведомлять об удалении учетных записей"
 
-#: acct_mgr/templates/admin_accountsnotification.html:41
+#: acct_mgr/templates/admin_accountsnotification.html:39
 msgid "Notification Recipient Addresses"
 msgstr "Адреса получателей уведомлений"
 
-#: acct_mgr/templates/admin_accountsnotification.html:42
+#: acct_mgr/templates/admin_accountsnotification.html:40
 msgid ""
 "Space-separated list of email addresses and/or\n"
-"        usernames that get notified of the above actions:"
+"          usernames that get notified of the above actions:"
 msgstr ""
 "Список электронных адресов и/или имен пользователей, которые уведомляются"
 " об этих действиях (через пробел):"
 
-#: acct_mgr/templates/admin_users.html:18
+#: acct_mgr/templates/admin_users.html:15
 msgid "Manage User Accounts"
 msgstr "Управление пользователями"
 
-#: acct_mgr/templates/admin_users.html:25
+#: acct_mgr/templates/admin_users.html:22
 msgid "Add Account:"
 msgstr "Добавить пользователя:"
 
-#: acct_mgr/templates/admin_users.html:27
-#: acct_mgr/templates/admin_users.html:55 acct_mgr/templates/login.html:35
-#: acct_mgr/templates/register.html:36
+#: acct_mgr/templates/admin_users.html:24
+#: acct_mgr/templates/admin_users.html:52 acct_mgr/templates/login.html:32
+#: acct_mgr/templates/register.html:33
 #: acct_mgr/templates/reset_password.html:50
 msgid "Username:"
 msgstr "Имя пользователя:"
 
-#: acct_mgr/templates/admin_users.html:30
-#: acct_mgr/templates/admin_users.html:58 acct_mgr/templates/login.html:39
-#: acct_mgr/templates/prefs_account.html:30 acct_mgr/templates/register.html:41
+#: acct_mgr/templates/admin_users.html:27
+#: acct_mgr/templates/admin_users.html:55 acct_mgr/templates/login.html:37
+#: acct_mgr/templates/prefs_account.html:27 acct_mgr/templates/register.html:39
 msgid "Password:"
 msgstr "Пароль:"
 
-#: acct_mgr/templates/admin_users.html:33
-#: acct_mgr/templates/admin_users.html:61
-#: acct_mgr/templates/prefs_account.html:73 acct_mgr/templates/register.html:46
+#: acct_mgr/templates/admin_users.html:30
+#: acct_mgr/templates/admin_users.html:58
+#: acct_mgr/templates/prefs_account.html:71 acct_mgr/templates/register.html:45
 msgid "Confirm Password:"
 msgstr "Подтверждение пароля:"
 
-#: acct_mgr/templates/admin_users.html:36 acct_mgr/templates/register.html:66
+#: acct_mgr/templates/admin_users.html:33 acct_mgr/templates/register.html:67
 msgid "Name:"
 msgstr "Имя:"
 
-#: acct_mgr/templates/admin_users.html:39 acct_mgr/templates/register.html:52
-#: acct_mgr/templates/register.html:71
+#: acct_mgr/templates/admin_users.html:36 acct_mgr/templates/register.html:51
+#: acct_mgr/templates/register.html:73
 msgid "Email:"
 msgstr "Электронный адрес:"
 
-#: acct_mgr/templates/admin_users.html:41
+#: acct_mgr/templates/admin_users.html:38
 msgid "Add a new user account."
 msgstr "Добавить нового пользователя."
 
-#: acct_mgr/templates/admin_users.html:43
+#: acct_mgr/templates/admin_users.html:40
 msgid " Add "
 msgstr " Добавить "
 
-#: acct_mgr/templates/admin_users.html:53
+#: acct_mgr/templates/admin_users.html:50
 msgid "Change Password:"
 msgstr "Изменить пароль:"
 
-#: acct_mgr/templates/admin_users.html:63
+#: acct_mgr/templates/admin_users.html:60
 msgid "Change a user's password."
 msgstr "Изменить пароль пользователя."
 
-#: acct_mgr/templates/admin_users.html:65
+#: acct_mgr/templates/admin_users.html:62
 msgid " Change "
 msgstr " Изменить "
 
-#: acct_mgr/templates/admin_users.html:73
+#: acct_mgr/templates/admin_users.html:70
 msgid "This password store does not support listing users."
 msgstr "Это хранилище паролей не поддерживает перечисление пользователей"
 
-#: acct_mgr/templates/admin_users.html:82
+#: acct_mgr/templates/admin_users.html:79
 msgid "Name"
 msgstr "Имя"
 
-#: acct_mgr/templates/admin_users.html:82
+#: acct_mgr/templates/admin_users.html:79
 msgid "Email"
 msgstr "Электронный адрес"
 
-#: acct_mgr/templates/admin_users.html:82
+#: acct_mgr/templates/admin_users.html:79
 msgid "Last Login"
 msgstr "Последний вход"
 
-#: acct_mgr/templates/admin_users.html:98
+#: acct_mgr/templates/admin_users.html:95
 msgid "Remove selected accounts"
 msgstr "Удалить выбранных"
 
-#: acct_mgr/templates/login.html:14 acct_mgr/templates/login.html:25
+#: acct_mgr/templates/login.html:11 acct_mgr/templates/login.html:22
 #: acct_mgr/templates/login.html:46
 msgid "Login"
 msgstr "Вход"
 
-#: acct_mgr/templates/login.html:28 acct_mgr/templates/prefs_account.html:23
-#: acct_mgr/templates/prefs_account.html:49
-#: acct_mgr/templates/prefs_account.html:56 acct_mgr/templates/register.html:27
+#: acct_mgr/templates/login.html:25 acct_mgr/templates/prefs_account.html:20
+#: acct_mgr/templates/prefs_account.html:47
+#: acct_mgr/templates/prefs_account.html:54 acct_mgr/templates/register.html:24
 #: acct_mgr/templates/reset_password.html:42
 msgid "Error"
 msgstr "Ошибка"
@@ -449,38 +453,38 @@ msgstr "Ошибка"
 msgid "Remember me"
 msgstr "Запомнить меня"
 
-#: acct_mgr/templates/prefs_account.html:20
+#: acct_mgr/templates/prefs_account.html:17
 msgid "Delete Account"
 msgstr "Удалить учетную запись"
 
-#: acct_mgr/templates/prefs_account.html:37
+#: acct_mgr/templates/prefs_account.html:34
 msgid "Delete account"
 msgstr "Удалить учетную запись"
 
-#: acct_mgr/templates/prefs_account.html:53
+#: acct_mgr/templates/prefs_account.html:51
 msgid "Change Password"
 msgstr "Изменить пароль"
 
-#: acct_mgr/templates/prefs_account.html:61
+#: acct_mgr/templates/prefs_account.html:59
 msgid "Old Password:"
 msgstr "Старый пароль:"
 
-#: acct_mgr/templates/prefs_account.html:67
+#: acct_mgr/templates/prefs_account.html:65
 msgid "New Password:"
 msgstr "Новый пароль:"
 
-#: acct_mgr/templates/register.html:24
+#: acct_mgr/templates/register.html:21
 msgid "Register an account"
 msgstr "Зарегистрировать учетную запись"
 
-#: acct_mgr/templates/register.html:33
+#: acct_mgr/templates/register.html:30
 msgid "Required"
 msgstr "Обязательно"
 
 #: acct_mgr/templates/register.html:55
 msgid ""
 "The email address is required for Trac to send you a\n"
-"              verification code."
+"              verification token."
 msgstr "Trac необходим электронный адрес, для отправки кода подтверждения."
 
 #: acct_mgr/templates/register.html:58
@@ -492,11 +496,11 @@ msgstr ""
 "Ввод электронного адреса также позволит осуществить сброс пароля, если вы"
 " когда-нибудь его забудете."
 
-#: acct_mgr/templates/register.html:64
+#: acct_mgr/templates/register.html:65
 msgid "Optional"
 msgstr "На выбор"
 
-#: acct_mgr/templates/register.html:74
+#: acct_mgr/templates/register.html:77
 msgid ""
 "Entering your email address\n"
 "              will enable you to reset your password if you ever forget "
@@ -505,36 +509,39 @@ msgstr ""
 "Ввод электронного адреса позволит осуществить сброс пароля, если вы "
 "когда-нибудь его забудете."
 
-#: acct_mgr/templates/register.html:79
+#: acct_mgr/templates/register.html:82
 msgid "Create account"
 msgstr "Создать учетную запись"
 
-#: acct_mgr/templates/reset_password.html:14
-#: acct_mgr/templates/reset_password.html:24
+#: acct_mgr/templates/reset_password.html:11
+#: acct_mgr/templates/reset_password.html:21
 msgid "Reset Password"
 msgstr "Сбросить пароль"
 
-#: acct_mgr/templates/reset_password.html:28
+#: acct_mgr/templates/reset_password.html:25
 msgid "Already logged in"
 msgstr "Вы уже вошли"
 
-#: acct_mgr/templates/reset_password.html:29
+#: acct_mgr/templates/reset_password.html:26
 msgid ""
-"You're already logged in.  If you need to change\n"
-"        your password please use the\n"
-"        [1:Account Preferences] page."
+"You're already logged in. If you need to change\n"
+"          your password please use the\n"
+"          [1:Account Preferences] page."
 msgstr ""
 "Вы уже вошли. Если вам нужно сменить пароль, используйте страницу "
 "[1:Предпочтения]."
 
-#: acct_mgr/templates/reset_password.html:34
-msgid "A new password has been emailed to you at"
-msgstr "Новый пароль отправлен на ваш адрес"
-
-#: acct_mgr/templates/reset_password.html:38
+#: acct_mgr/templates/reset_password.html:32
+#, python-format
 msgid ""
-"If you've forgot your password enter your username and\n"
-"      email address below and you'll be emailed a new password."
+"A new password\n"
+"        has been emailed to you at %(email)s ."
+msgstr "Новый пароль отправлен на ваш адрес %(email)s ."
+
+#: acct_mgr/templates/reset_password.html:37
+msgid ""
+"If you've forgotten your password, enter your username and\n"
+"        email address below and you'll be emailed a new password."
 msgstr ""
 "Если вы забыли пароль, введите ваше имя пользователя и почтовый адрес "
 "ниже, и вам будет выслан новый пароль."
@@ -547,37 +554,37 @@ msgstr "Электронный адрес:"
 msgid "Reset password"
 msgstr "Сброс пароля"
 
-#: acct_mgr/templates/verify_email.html:14
-#: acct_mgr/templates/verify_email.html:25
+#: acct_mgr/templates/verify_email.html:11
+#: acct_mgr/templates/verify_email.html:22
 msgid "Verify Email"
 msgstr "Подтверждения адреса"
 
-#: acct_mgr/templates/verify_email.html:27
+#: acct_mgr/templates/verify_email.html:24
 #, python-format
 msgid ""
 "An email was sent to\n"
-"      %(email)s with a token to verify your new address.\n"
-"      Please check your email and enter the token in the form below."
+"        %(email)s with a token to verify your new address.\n"
+"        Please check your email and enter the token in the form below."
 msgstr ""
 "На адрес %(email)s отправлено письмо с кодовым словом, для проверки его "
 "правильности. Пожалуйста, проверьте электронную почту и введите "
 "полученное слово в следующее поле."
 
-#: acct_mgr/templates/verify_email.html:30
+#: acct_mgr/templates/verify_email.html:27
 msgid ""
 "You can [1:change your\n"
-"      email address] if it is incorrect."
+"        email address], if it is incorrect."
 msgstr "Вы можете [1:Изменить свой адрес], если он неправильный."
 
-#: acct_mgr/templates/verify_email.html:35
+#: acct_mgr/templates/verify_email.html:32
 msgid "Verification Token:"
 msgstr "Проверочное слово:"
 
-#: acct_mgr/templates/verify_email.html:39
+#: acct_mgr/templates/verify_email.html:36
 msgid "Verify"
 msgstr "Проверить"
 
-#: acct_mgr/templates/verify_email.html:41
+#: acct_mgr/templates/verify_email.html:38
 msgid "Resend Email"
 msgstr "Послать снова"
 
