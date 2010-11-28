@@ -11,6 +11,8 @@
 
 import inspect
 
+from pkg_resources import resource_filename
+
 from trac.core import *
 from trac.config import Option
 from trac.perm import IPermissionRequestor, PermissionSystem
@@ -20,6 +22,7 @@ from trac.admin import IAdminPanelProvider
 
 from acct_mgr.api import AccountManager, _, tag_ 
 from acct_mgr.web_ui import _create_user
+
 
 def _getoptions(cls):
     if isinstance(cls, Component):
@@ -32,6 +35,7 @@ def _setorder(req, stores):
     for store in stores.get_all_stores():
         stores[store] = int(req.args.get(store.__class__.__name__, 0))
         continue
+
 
 class StoreOrder(dict):
     """Keeps the order of the Password Stores"""
@@ -278,7 +282,6 @@ class AccountManagerAdminPage(Component):
 
     def get_templates_dirs(self):
         """Return the absolute path of the directory containing the provided
-        ClearSilver templates.
+        Genshi templates.
         """
-        from pkg_resources import resource_filename
         return [resource_filename(__name__, 'templates')]
