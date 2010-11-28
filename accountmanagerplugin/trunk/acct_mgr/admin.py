@@ -176,10 +176,11 @@ class AccountManagerAdminPage(Component):
 
     def _do_users(self, req):
         perm = PermissionSystem(self.env)
-        listing_enabled = self.account_manager.supports('get_users')
-        create_enabled = self.account_manager.supports('set_password')
-        password_change_enabled = self.account_manager.supports('set_password')
-        delete_enabled = self.account_manager.supports('delete_user')
+        mgr = self.account_manager
+        listing_enabled = mgr.supports('get_users')
+        create_enabled = mgr.supports('set_password')
+        password_change_enabled = mgr.supports('set_password')
+        delete_enabled = mgr.supports('delete_user')
 
         data = {
             'listing_enabled': listing_enabled,
@@ -212,7 +213,7 @@ class AccountManagerAdminPage(Component):
                 elif delete_enabled:
                     sel = isinstance(sel, list) and sel or [sel]
                     for account in sel:
-                        self.account_manager.delete_user(account)
+                        mgr.delete_user(account)
                 else:
                     data['deletion_error'] = _("""The password store does
                                                not support deleting users.""")
@@ -237,7 +238,7 @@ class AccountManagerAdminPage(Component):
                             error.message = _("The passwords must match.")
                             raise error
 
-                        self.account_manager.set_password(user, password)
+                        mgr.set_password(user, password)
                     except TracError, e:
                         data['password_change_error'] = e.message
                         data['acctmgr'] = getattr(e, 'acctmgr', '')
@@ -245,11 +246,10 @@ class AccountManagerAdminPage(Component):
                     data['password_change_error'] = _("""The password store
                                                       does not support
                                                       changing passwords.""")
-            
 
         if listing_enabled:
             accounts = {}
-            for username in self.account_manager.get_users():
+            for username in mgr.get_users():
                 accounts[username] = {'username': username}
 
             for username, name, email in self.env.get_known_users():
@@ -258,19 +258,14 @@ class AccountManagerAdminPage(Component):
                     account['name'] = name
                     account['email'] = email
 
-            db = self.env.get_db_cnx()
-            cursor = db.cursor()
-            cursor.execute("SELECT sid,last_visit FROM session WHERE "
-                           "authenticated=1")
+            cursor = mgr.last_seen()
             for username, last_visit in cursor:
                 account = accounts.get(username)
                 if account and last_visit:
                     account['last_visit'] = format_datetime(last_visit, 
                                                             tzinfo=req.tz)
-
             data['accounts'] = sorted(accounts.itervalues(),
                                       key=lambda acct: acct['username'])
-
         return 'admin_users.html', data
 
     # ITemplateProvider

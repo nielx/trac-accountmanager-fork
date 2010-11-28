@@ -9,11 +9,11 @@
 #
 # Author: Matthew Good <trac@matt-good.net>
 
-from pkg_resources import resource_filename
+from pkg_resources  import resource_filename
 
-from trac.core import *
-from trac.config import Configuration, Option, BoolOption, ExtensionOption, \
-                        OrderedExtensionsOption
+from trac.config    import  BoolOption, Configuration, ExtensionOption, \
+                    Option, OrderedExtensionsOption
+from trac.core      import *
 
 # Import i18n methods.  Fallback modules maintain compatibility to Trac 0.11
 # by keeping Babel optional here.
@@ -187,6 +187,19 @@ class AccountManager(Component):
             exists = True
             break
         return exists
+
+    def last_seen(self, user = None):
+        db = self.env.get_db_cnx()
+        cursor = db.cursor()
+        sql = """
+            SELECT sid,last_visit
+              FROM session
+             WHERE authenticated=1
+            """
+        if user:
+            sql = "%s AND sid='%s'" % (sql, user)
+        cursor.execute(sql)
+        return cursor or None
 
     def set_password(self, user, password, old_password = None):
         user = self.handle_username_casing(user)
