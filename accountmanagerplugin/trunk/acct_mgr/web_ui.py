@@ -9,14 +9,14 @@
 #
 # Author: Matthew Good <trac@matt-good.net>
 
-from os import urandom
-
 import base64
 import random
 import re
 import string
 import time
 
+from datetime import timedelta
+from os import urandom
 from pkg_resources import resource_filename
 
 from trac import perm, util
@@ -32,7 +32,8 @@ from trac.web.chrome import INavigationContributor, ITemplateProvider, \
 from genshi.core import Markup
 from genshi.builder import tag
 
-from acct_mgr.api import AccountManager, _, tag_
+from acct_mgr.api import AccountManager, _, ngettext, tag_
+from acct_mgr.guard import AccountGuard
 from acct_mgr.util import containsAny
 #import rpdb2; rpdb2.start_embedded_debugger('test')
 
@@ -470,14 +471,48 @@ class LoginModule(auth.LoginModule):
 
     def authenticate(self, req):
         if req.method == 'POST' and req.path_info.startswith('/login'):
-            req.environ['REMOTE_USER'] = self._remote_user(req)
+            user = self._remote_user(req)
+            mgr = AccountManager(self.env)
+            guard = AccountGuard(self.env)
+            if guard.login_attempt_max_count > 0:
+                if user is None:
+                    if req.args.get('user_locked') is None:
+                        # get user for failed authentication attempt
+                        f_user = req.args.get('user')
+                        req.args['user_locked'] = False
+                        if mgr.user_known(f_user) is True:
+                            if guard.user_locked(f_user) is False:
+                                # log current failed login attempt
+                                guard.failed_count(f_user, req.remote_addr)
+                                if guard.user_locked(f_user) is True:
+                                    # step up lock time prolongation
+                                    # only when just triggering the lock
+                                    guard.lock_count(f_user, 'up')
+                                    req.args['user_locked'] = True
+                            else:
+                                # enforce lock
+                                req.args['user_locked'] = True
+                else:
+                    if guard.user_locked(user) is not False:
+                        req.args['user_locked'] = True
+                        # void successful login as long as user is locked
+                        user = None
+                    else:
+                        req.args['user_locked'] = False
+                        if req.args.get('failed_logins') is None:
+                            # reset failed login attempts counter
+                            req.args['failed_logins'] = guard.failed_count(
+                                                         user, reset = True)
+            req.environ['REMOTE_USER'] = user
         return auth.LoginModule.authenticate(self, req)
+
     authenticate = if_enabled(authenticate)
 
     match_request = if_enabled(auth.LoginModule.match_request)
 
     def process_request(self, req):
         if req.path_info.startswith('/login') and req.authname == 'anonymous':
+            guard = AccountGuard(self.env)
             referrer = self._referer(req)
             # steer clear of requests going nowhere or loop to self
             if referrer is None or \
@@ -485,12 +520,36 @@ class LoginModule(auth.LoginModule):
                 referrer = req.abs_href()
             data = {
                 'referer': referrer,
-                'reset_password_enabled': AccountModule(self.env).reset_password_enabled,
-                'persistent_sessions': AccountManager(self.env).persistent_sessions
+                'reset_password_enabled': AccountModule(self.env
+                                          ).reset_password_enabled,
+                'persistent_sessions': AccountManager(self.env
+                                       ).persistent_sessions
             }
             if req.method == 'POST':
-                data['login_error'] = _("Invalid username or password")
+                self.log.debug('user_locked: ' + \
+                               str(req.args.get('user_locked', False)))
+                if not req.args.get('user_locked') is True:
+                    # TRANSLATOR: Intentionally obfuscated login error
+                    data['login_error'] = _("Invalid username or password")
+                else:
+                    f_user = req.args.get('user')
+                    release_time = guard.pretty_release_time(req, f_user)
+                    if not release_time is None:
+                        data['login_error'] = _(
+                            """Account locked, please try again after
+                            %(release_time)s
+                            """, release_time=release_time)
+                    else:
+                        data['login_error'] = _("Account locked")
             return 'login.html', data, None
+        else:
+            n_plural=req.args.get('failed_logins')
+            if n_plural > 0:
+                chrome.add_warning(req, Markup(tag.span(tag(ngettext(
+                    "Login after %(attempts)s failed attempt",
+                    "Login after %(attempts)s failed attempts",
+                    n_plural, attempts=n_plural
+                )))))
         return auth.LoginModule.process_request(self, req)
 
     # overrides
