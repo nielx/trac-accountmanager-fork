@@ -17,6 +17,8 @@ import re
 import string
 import time
 
+from pkg_resources import resource_filename
+
 from trac import perm, util
 from trac.core import *
 from trac.config import Configuration, IntOption, BoolOption
@@ -33,6 +35,7 @@ from genshi.builder import tag
 from acct_mgr.api import AccountManager, _, tag_
 from acct_mgr.util import containsAny
 #import rpdb2; rpdb2.start_embedded_debugger('test')
+
 
 def _create_user(req, env, check_permissions=True):
     mgr = AccountManager(env)
@@ -361,9 +364,8 @@ class AccountModule(Component):
 
     def get_templates_dirs(self):
         """Return the absolute path of the directory containing the provided
-        ClearSilver templates.
+        Genshi templates.
         """
-        from pkg_resources import resource_filename
         return [resource_filename(__name__, 'templates')]
 
 
@@ -449,9 +451,8 @@ class RegistrationModule(Component):
 
     def get_templates_dirs(self):
         """Return the absolute path of the directory containing the provided
-        ClearSilver templates.
+        Genshi templates.
         """
-        from pkg_resources import resource_filename
         return [resource_filename(__name__, 'templates')]
 
 
@@ -600,9 +601,8 @@ class LoginModule(auth.LoginModule):
 
     def get_templates_dirs(self):
         """Return the absolute path of the directory containing the provided
-        ClearSilver templates.
+        Genshi templates.
         """
-        from pkg_resources import resource_filename
         return [resource_filename(__name__, 'templates')]
 
 
