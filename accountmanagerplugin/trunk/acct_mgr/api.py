@@ -188,6 +188,55 @@ class AccountManager(Component):
             break
         return exists
 
+    def email_verified(self, user, email):
+        """Returns whether the account and email has been verified.
+
+        Use with care, as it returns the private token string,
+        if verification is pending.
+        """
+        if (self.user_known(user) is False or
+               email is None) or email == '':
+            # nothing to check here
+            return None
+        db = self.env.get_db_cnx()
+        cursor = db.cursor()
+        cursor.execute("""
+            SELECT value
+              FROM session_attribute
+             WHERE sid=%s AND name='email_verification_sent_to'
+            """, (user,))
+        for row in cursor:
+            self.log.debug('AcctMgr:api:email_verify for user \"' + \
+                user + '\", email \"' + str(email) + '\": ' + str(row[0]))
+            if row[0] != email:
+                # verification has been sent to different email address
+                return None
+        cursor.execute("""
+            SELECT value
+              FROM session_attribute
+             WHERE sid=%s AND name='email_verification_token'
+            """, (user,))
+        for row in cursor:
+            # verification token still unverified
+            self.log.debug('AcctMgr:api:email_verify for user \"' + \
+                user + '\", email \"' + str(email) + '\": ' + str(row[0]))
+            return row[0]
+        return True
+
+    def user_known(self, user):
+        """Returns whether the user has ever been authenticated before.
+        """
+        db = self.env.get_db_cnx()
+        cursor = db.cursor()
+        cursor.execute("""
+            SELECT *
+              FROM session
+             WHERE authenticated=1 AND sid=%s
+            """, (user,))
+        for row in cursor:
+            return True
+        return False
+
     def last_seen(self, user = None):
         db = self.env.get_db_cnx()
         cursor = db.cursor()
