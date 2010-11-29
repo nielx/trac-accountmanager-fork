@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: TracAccountManager 0.3\n"
 "Report-Msgid-Bugs-To: agonzalez@qwi.es\n"
-"POT-Creation-Date: 2010-11-28 21:10+0100\n"
+"POT-Creation-Date: 2010-11-29 00:46+0100\n"
 "PO-Revision-Date: 2010-11-03 13:32+0100\n"
 "Last-Translator: Adolfo González Blázquez <agonzalez@qwi.es>\n"
 "Language-Team: Spanish es_ES <trac-dev@googlegroups.com>\n"
@@ -18,56 +18,71 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 1.0dev-r482\n"
 
-#: acct_mgr/admin.py:74
+#: acct_mgr/admin.py:77
 #, python-format
 msgid "Invalid key type (%s) for StoreOrder"
 msgstr "Tipo de clave (%s) inválida para StoreOrder"
 
-#: acct_mgr/admin.py:119 acct_mgr/admin.py:121 acct_mgr/notification.py:170
-#: acct_mgr/templates/admin_users.html:11
+#: acct_mgr/admin.py:123 acct_mgr/admin.py:125 acct_mgr/admin.py:311
+#: acct_mgr/notification.py:170 acct_mgr/templates/admin_users.html:11
 msgid "Accounts"
 msgstr "Cuentas"
 
-#: acct_mgr/admin.py:119
+#: acct_mgr/admin.py:123
 msgid "Configuration"
 msgstr "Configuración"
 
-#: acct_mgr/admin.py:121
+#: acct_mgr/admin.py:125
 msgid "Users"
 msgstr "Usuarios"
 
-#: acct_mgr/admin.py:209
+#: acct_mgr/admin.py:214
 msgid ""
 "The password store\n"
 "                                                   does not support\n"
 "                                                   creating users."
 msgstr "Este almacén de contraseñas no permite crear usuarios."
 
-#: acct_mgr/admin.py:222
+#: acct_mgr/admin.py:227
 msgid ""
 "The password store does\n"
 "                                               not support deleting users."
 msgstr "Este almacén de contraseñas no permite eliminar usuarios."
 
-#: acct_mgr/admin.py:233 acct_mgr/web_ui.py:55
+#: acct_mgr/admin.py:238 acct_mgr/web_ui.py:55
 msgid "Username cannot be empty."
 msgstr "El nombre de usuario no puede estar vacío."
 
-#: acct_mgr/admin.py:238 acct_mgr/web_ui.py:117 acct_mgr/web_ui.py:337
+#: acct_mgr/admin.py:243 acct_mgr/web_ui.py:117 acct_mgr/web_ui.py:337
 #: acct_mgr/web_ui.py:351
 msgid "Password cannot be empty."
 msgstr "La contraseña no puede estar vacía."
 
-#: acct_mgr/admin.py:242 acct_mgr/web_ui.py:121 acct_mgr/web_ui.py:340
+#: acct_mgr/admin.py:247 acct_mgr/web_ui.py:121 acct_mgr/web_ui.py:340
 msgid "The passwords must match."
 msgstr "Las contraseñas deben ser iguales."
 
-#: acct_mgr/admin.py:250
+#: acct_mgr/admin.py:255
 msgid ""
 "The password store\n"
 "                                                      does not support\n"
 "                                                      changing passwords."
 msgstr "Este almacén de contraseñas no permite cambiar contraseñas."
+
+#: acct_mgr/admin.py:270
+#, python-format
+msgid "Locked until %(t_release)s"
+msgstr ""
+
+#: acct_mgr/admin.py:311
+#, fuzzy
+msgid "Account details"
+msgstr "Cuentas"
+
+#: acct_mgr/admin.py:336
+#, python-format
+msgid "Failed login attempts for user %(user)s deleted"
+msgstr ""
 
 #: acct_mgr/api.py:257
 #, python-format
@@ -300,6 +315,142 @@ msgstr "Gracias por verificar su dirección de correo electrónico."
 msgid "Invalid verification token"
 msgstr "Clave de verificación inválida"
 
+#: acct_mgr/templates/account_details.html:11
+#, fuzzy
+msgid "Account Details"
+msgstr "Cuentas"
+
+#: acct_mgr/templates/account_details.html:17
+#, fuzzy
+msgid "Review User Account Details"
+msgstr "Añadir nueva cuenta de usuario."
+
+#: acct_mgr/templates/account_details.html:19
+#: acct_mgr/templates/account_details.html:20
+msgid "for"
+msgstr ""
+
+#: acct_mgr/templates/account_details.html:27
+#, fuzzy
+msgid "Account Status"
+msgstr "Cuentas"
+
+#: acct_mgr/templates/account_details.html:31
+#, python-format
+msgid ""
+"Credentials for this user are stored in AuthStore number\n"
+"              [1:%(order_num)s] (%(store)s)."
+msgstr ""
+
+#: acct_mgr/templates/account_details.html:35
+msgid "Username matching is set to [1:not case-sensitive]."
+msgstr ""
+
+#: acct_mgr/templates/account_details.html:37
+msgid "Username matching is set to [1:case-sensitive]."
+msgstr ""
+
+#: acct_mgr/templates/account_details.html:42
+msgid ""
+"No store provides credentials for this user,\n"
+"              so the user currently can't be authenticated and\n"
+"              access to this [1:account is effectively blocked],\n"
+"              while account details may still be available."
+msgstr ""
+
+#: acct_mgr/templates/account_details.html:54
+#, python-format
+msgid ""
+"[1:]\n"
+"                This account has been locked until %(time)s[2:]\n"
+"                and even valid login attempts are rejected meanwhile."
+msgstr ""
+
+#: acct_mgr/templates/account_details.html:59
+msgid "This account has been locked permanently."
+msgstr ""
+
+#: acct_mgr/templates/account_details.html:63
+#, fuzzy
+msgid "Release account lock"
+msgstr "Eliminar cuenta"
+
+#: acct_mgr/templates/account_details.html:63
+msgid "Unlock"
+msgstr ""
+
+#: acct_mgr/templates/account_details.html:75
+#, python-format
+msgid ""
+"Lock condition has been met\n"
+"                    %(count)s time by now."
+msgid_plural ""
+"Lock condition has been met\n"
+"                    %(count)s times by now."
+msgstr[0] ""
+msgstr[1] ""
+
+#: acct_mgr/templates/account_details.html:81
+#, python-format
+msgid ""
+"Therefore after another failed login attempt authentication\n"
+"                  for this account would be retarded by %(time)s."
+msgstr ""
+
+#: acct_mgr/templates/account_details.html:88
+msgid "Lock condition has not been met yet."
+msgstr ""
+
+#: acct_mgr/templates/account_details.html:94
+msgid "No constraints are set for this account."
+msgstr ""
+
+#: acct_mgr/templates/account_details.html:102
+msgid "Access History"
+msgstr ""
+
+#: acct_mgr/templates/account_details.html:105
+#, python-format
+msgid "Last login: %(time)s"
+msgstr ""
+
+#: acct_mgr/templates/account_details.html:107
+msgid "The user has not logged in before."
+msgstr ""
+
+#: acct_mgr/templates/account_details.html:111
+#, python-format
+msgid "Total failed attempts: %(count)s"
+msgstr ""
+
+#: acct_mgr/templates/account_details.html:112
+msgid "Table: Last failed login attempts log view"
+msgstr ""
+
+#: acct_mgr/templates/account_details.html:117
+msgid "IP address"
+msgstr ""
+
+#: acct_mgr/templates/account_details.html:118
+msgid "Log time"
+msgstr ""
+
+#: acct_mgr/templates/account_details.html:129
+msgid "Delete login failure log"
+msgstr ""
+
+#: acct_mgr/templates/account_details.html:129
+msgid "Delete Log"
+msgstr ""
+
+#: acct_mgr/templates/account_details.html:136
+msgid "There is currently no failed login attempt logged."
+msgstr ""
+
+#: acct_mgr/templates/account_details.html:142
+msgid "Update"
+msgstr ""
+
 #: acct_mgr/templates/admin_accountsconfig.html:11
 #: acct_mgr/templates/admin_accountsconfig.html:15
 msgid "Accounts: Configuration"
@@ -474,7 +625,11 @@ msgstr "Correo electrónico"
 msgid "Last Login"
 msgstr "Última conexión"
 
-#: acct_mgr/templates/admin_users.html:114
+#: acct_mgr/templates/admin_users.html:112
+msgid "Permanently locked"
+msgstr ""
+
+#: acct_mgr/templates/admin_users.html:125
 msgid "Remove selected accounts"
 msgstr "Eliminar cuentas de usuario seleccionadas"
 

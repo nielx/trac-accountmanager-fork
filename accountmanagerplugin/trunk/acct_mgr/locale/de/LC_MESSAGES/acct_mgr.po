@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: TracAccountManager 0.3\n"
 "Report-Msgid-Bugs-To: hoff.st@shaas.net\n"
-"POT-Creation-Date: 2010-11-28 21:10+0100\n"
+"POT-Creation-Date: 2010-11-29 00:46+0100\n"
 "PO-Revision-Date: 2010-09-25 00:04+0200\n"
 "Last-Translator: Steffen Hoffmann <hoff.st@web.de>\n"
 "Language-Team: German de_DE <trac-dev@googlegroups.com>\n"
@@ -18,56 +18,70 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 1.0dev-r482\n"
 
-#: acct_mgr/admin.py:74
+#: acct_mgr/admin.py:77
 #, python-format
 msgid "Invalid key type (%s) for StoreOrder"
 msgstr "Ungültiger Schlüsseltyp (%s) für Kennwortspeicherreihenfolge"
 
-#: acct_mgr/admin.py:119 acct_mgr/admin.py:121 acct_mgr/notification.py:170
-#: acct_mgr/templates/admin_users.html:11
+#: acct_mgr/admin.py:123 acct_mgr/admin.py:125 acct_mgr/admin.py:311
+#: acct_mgr/notification.py:170 acct_mgr/templates/admin_users.html:11
 msgid "Accounts"
 msgstr "Nutzerkonten"
 
-#: acct_mgr/admin.py:119
+#: acct_mgr/admin.py:123
 msgid "Configuration"
 msgstr "Einstellungen"
 
-#: acct_mgr/admin.py:121
+#: acct_mgr/admin.py:125
 msgid "Users"
 msgstr "Nutzer"
 
-#: acct_mgr/admin.py:209
+#: acct_mgr/admin.py:214
 msgid ""
 "The password store\n"
 "                                                   does not support\n"
 "                                                   creating users."
 msgstr "Der Kennwortspeicher erlaubt das Erstellen neuer Nutzer nicht."
 
-#: acct_mgr/admin.py:222
+#: acct_mgr/admin.py:227
 msgid ""
 "The password store does\n"
 "                                               not support deleting users."
 msgstr "Der Kennwortspeicher erlaubt das Löschen von Nutzern nicht."
 
-#: acct_mgr/admin.py:233 acct_mgr/web_ui.py:55
+#: acct_mgr/admin.py:238 acct_mgr/web_ui.py:55
 msgid "Username cannot be empty."
 msgstr "Nutzername darf nicht leer sein."
 
-#: acct_mgr/admin.py:238 acct_mgr/web_ui.py:117 acct_mgr/web_ui.py:337
+#: acct_mgr/admin.py:243 acct_mgr/web_ui.py:117 acct_mgr/web_ui.py:337
 #: acct_mgr/web_ui.py:351
 msgid "Password cannot be empty."
 msgstr "Kennwort darf nicht leer sein."
 
-#: acct_mgr/admin.py:242 acct_mgr/web_ui.py:121 acct_mgr/web_ui.py:340
+#: acct_mgr/admin.py:247 acct_mgr/web_ui.py:121 acct_mgr/web_ui.py:340
 msgid "The passwords must match."
 msgstr "Die Kennwörter müssen übereinstimmen."
 
-#: acct_mgr/admin.py:250
+#: acct_mgr/admin.py:255
 msgid ""
 "The password store\n"
 "                                                      does not support\n"
 "                                                      changing passwords."
 msgstr "Der Kennwortspeicher erlaubt das Ändern von Kennwörtern nicht."
+
+#: acct_mgr/admin.py:270
+#, python-format
+msgid "Locked until %(t_release)s"
+msgstr "gesperrt bis %(t_release)s"
+
+#: acct_mgr/admin.py:311
+msgid "Account details"
+msgstr "Nutzerkontendetails"
+
+#: acct_mgr/admin.py:336
+#, python-format
+msgid "Failed login attempts for user %(user)s deleted"
+msgstr "Fehlgeschlagene Anmeldeversuche für Nutzer %(user)s gelöscht"
 
 #: acct_mgr/api.py:257
 #, python-format
@@ -237,7 +251,7 @@ msgid ""
 "Account locked, please try again after\n"
 "                            %(release_time)s\n"
 "                            "
-msgstr ""
+msgstr "Nutzerkonto gesperrt, bitte nach %(release_time)s nochmals versuchen"
 
 #: acct_mgr/web_ui.py:543
 msgid "Account locked"
@@ -299,6 +313,148 @@ msgstr "Vielen Dank, dass Sie Ihre E-Mail-Adresse bestätigt haben."
 #: acct_mgr/web_ui.py:752
 msgid "Invalid verification token"
 msgstr "Ungültiger Bestätigungscode"
+
+#: acct_mgr/templates/account_details.html:11
+msgid "Account Details"
+msgstr "Nutzerkontendetails"
+
+#: acct_mgr/templates/account_details.html:17
+msgid "Review User Account Details"
+msgstr "Benutzerkontendetailprüfung"
+
+#: acct_mgr/templates/account_details.html:19
+#: acct_mgr/templates/account_details.html:20
+msgid "for"
+msgstr "für"
+
+#: acct_mgr/templates/account_details.html:27
+msgid "Account Status"
+msgstr "Nutzerkontenstatus"
+
+#: acct_mgr/templates/account_details.html:31
+#, python-format
+msgid ""
+"Credentials for this user are stored in AuthStore number\n"
+"              [1:%(order_num)s] (%(store)s)."
+msgstr ""
+"Identitätsmerkmale für diesen Nutzer sind im Beglaubigungsregister Nummer"
+" [1:%(order_num)s] (%(store)s) gespeichert."
+
+#: acct_mgr/templates/account_details.html:35
+msgid "Username matching is set to [1:not case-sensitive]."
+msgstr "Nutzernamesvergleich beachtet [1:Groß-/Kleinschreibung nicht]."
+
+#: acct_mgr/templates/account_details.html:37
+msgid "Username matching is set to [1:case-sensitive]."
+msgstr "Nutzernamesvergleich beachtet [1:Groß-/Kleinschreibung]."
+
+#: acct_mgr/templates/account_details.html:42
+msgid ""
+"No store provides credentials for this user,\n"
+"              so the user currently can't be authenticated and\n"
+"              access to this [1:account is effectively blocked],\n"
+"              while account details may still be available."
+msgstr ""
+"Kein Register bietet Identitätsmerkmale für diesen Nutzer an, daher kann "
+"der Nutzer momentan nicht beglaubigt werden, und der Zugang zu diesem "
+"[1:Benutzerkonto ist praktisch gesperrt], während Nutzerkontendetails "
+"weiterhin verfügbar sein können."
+
+#: acct_mgr/templates/account_details.html:54
+#, python-format
+msgid ""
+"[1:]\n"
+"                This account has been locked until %(time)s[2:]\n"
+"                and even valid login attempts are rejected meanwhile."
+msgstr ""
+"[1:] Dieses Nutzerkonto ist bis %(time)s gesperrt worden,[2:] und auch "
+"gültige Anmeldeversuche werden bis dahin abgewiesen."
+
+#: acct_mgr/templates/account_details.html:59
+msgid "This account has been locked permanently."
+msgstr "Dieses Nutzerkonto ist dauerhaft gesperrt worden."
+
+#: acct_mgr/templates/account_details.html:63
+msgid "Release account lock"
+msgstr "Hebe Nutzerkontensperre auf"
+
+#: acct_mgr/templates/account_details.html:63
+msgid "Unlock"
+msgstr "Nutzerkonto entsperren"
+
+#: acct_mgr/templates/account_details.html:75
+#, python-format
+msgid ""
+"Lock condition has been met\n"
+"                    %(count)s time by now."
+msgid_plural ""
+"Lock condition has been met\n"
+"                    %(count)s times by now."
+msgstr[0] "Sperrbedingung wurde bisher einmal erreicht."
+msgstr[1] "Sperrbedingung wurde bisher %(count)s mal erreicht."
+
+#: acct_mgr/templates/account_details.html:81
+#, python-format
+msgid ""
+"Therefore after another failed login attempt authentication\n"
+"                  for this account would be retarded by %(time)s."
+msgstr ""
+"Deshalb würde die Anmeldung für dieses Benutzerkonto nach einem weiteren "
+"Fehlversuch um %(time)s verzögert."
+
+#: acct_mgr/templates/account_details.html:88
+msgid "Lock condition has not been met yet."
+msgstr "Bisher wurde die Sperrbedingung nicht erreicht."
+
+#: acct_mgr/templates/account_details.html:94
+msgid "No constraints are set for this account."
+msgstr "Für dieses Nutzerkonto sind keine Beschränkungen festgelegt."
+
+#: acct_mgr/templates/account_details.html:102
+msgid "Access History"
+msgstr "Zugriffsverlauf"
+
+#: acct_mgr/templates/account_details.html:105
+#, python-format
+msgid "Last login: %(time)s"
+msgstr "Letzte Anmeldung: %(time)s"
+
+#: acct_mgr/templates/account_details.html:107
+msgid "The user has not logged in before."
+msgstr "Der Nutzer hat sich bisher nicht angemeldet."
+
+#: acct_mgr/templates/account_details.html:111
+#, python-format
+msgid "Total failed attempts: %(count)s"
+msgstr "Fehlversuche gesamt: %(count)s"
+
+#: acct_mgr/templates/account_details.html:112
+msgid "Table: Last failed login attempts log view"
+msgstr "Tabelle: Protokoll der letzten fehlgeschlagenen Anmeldeversuche"
+
+#: acct_mgr/templates/account_details.html:117
+msgid "IP address"
+msgstr "IP-Adresse"
+
+#: acct_mgr/templates/account_details.html:118
+msgid "Log time"
+msgstr "Protokollzeit"
+
+#: acct_mgr/templates/account_details.html:129
+msgid "Delete login failure log"
+msgstr "Lösche Anmeldefehlerprotokoll"
+
+#: acct_mgr/templates/account_details.html:129
+msgid "Delete Log"
+msgstr "Lösche Protokoll"
+
+#: acct_mgr/templates/account_details.html:136
+msgid "There is currently no failed login attempt logged."
+msgstr "Aktuell ist kein fehlgeschlagener Anmeldeversuch protokolliert."
+
+#: acct_mgr/templates/account_details.html:142
+msgid "Update"
+msgstr "Aktualisieren"
 
 #: acct_mgr/templates/admin_accountsconfig.html:11
 #: acct_mgr/templates/admin_accountsconfig.html:15
@@ -470,7 +626,11 @@ msgstr "E-Mail"
 msgid "Last Login"
 msgstr "Letzte Anmeldung"
 
-#: acct_mgr/templates/admin_users.html:114
+#: acct_mgr/templates/admin_users.html:112
+msgid "Permanently locked"
+msgstr "dauerhaft gesperrt"
+
+#: acct_mgr/templates/admin_users.html:125
 msgid "Remove selected accounts"
 msgstr "Ausgewählte Nutzerkonten löschen"
 
