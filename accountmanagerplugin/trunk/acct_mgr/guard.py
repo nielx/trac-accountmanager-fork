@@ -260,6 +260,9 @@ class AccountGuard(Component):
 
         Expect False, if not, and True, if locked.
         """
+        if not self.login_attempt_max_count > 0:
+            # account locking turned off by configuration
+            return None
         count = self.failed_count(user, reset=None)
         ts_release = self.release_time(user)
         if count < self.login_attempt_max_count:
