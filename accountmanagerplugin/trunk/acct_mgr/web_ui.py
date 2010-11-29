@@ -503,7 +503,8 @@ class LoginModule(auth.LoginModule):
                             # reset failed login attempts counter
                             req.args['failed_logins'] = guard.failed_count(
                                                          user, reset = True)
-            req.environ['REMOTE_USER'] = user
+            if 'REMOTE_USER' not in req.environ:
+                req.environ['REMOTE_USER'] = user
         return auth.LoginModule.authenticate(self, req)
 
     authenticate = if_enabled(authenticate)
