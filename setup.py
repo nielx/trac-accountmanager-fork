@@ -40,10 +40,12 @@ setup(
     license = 'THE BEER-WARE LICENSE',
 
     packages=['acct_mgr'],
-    package_data={'acct_mgr': ['locale/*/LC_MESSAGES/*.mo',
-                               'locale/.placeholder',
-                               'templates/*.html',
-                               'templates/*.txt']},
+    package_data={
+        'acct_mgr': [
+            'htdocs/*', 'locale/*/LC_MESSAGES/*.mo', 'locale/.placeholder',
+            'templates/*.html', 'templates/*.txt'
+        ]
+    },
     test_suite = 'acct_mgr.tests.suite',
     zip_safe=True,
     install_requires = ['Genshi >= 0.5', 'Trac >= 0.11'],

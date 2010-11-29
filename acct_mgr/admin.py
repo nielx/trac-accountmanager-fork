@@ -11,17 +11,20 @@
 
 import inspect
 
-from pkg_resources import resource_filename
+from genshi.builder     import tag
+from genshi.core        import Markup
+from pkg_resources      import resource_filename
 
-from trac.core import *
-from trac.config import Option
-from trac.perm import IPermissionRequestor, PermissionSystem
-from trac.util.datefmt import format_datetime
-from trac.web.chrome import ITemplateProvider
-from trac.admin import IAdminPanelProvider
+from trac.core          import *
+from trac.config        import Option
+from trac.perm          import IPermissionRequestor, PermissionSystem
+from trac.util.datefmt  import format_datetime, to_datetime
+from trac.web.chrome    import ITemplateProvider, add_notice, add_stylesheet
+from trac.admin         import IAdminPanelProvider
 
-from acct_mgr.api import AccountManager, _, tag_ 
-from acct_mgr.web_ui import _create_user
+from acct_mgr.api       import _, tag_, AccountManager
+from acct_mgr.guard     import AccountGuard
+from acct_mgr.web_ui    import _create_user
 
 
 def _getoptions(cls):
@@ -106,6 +109,7 @@ class AccountManagerAdminPage(Component):
 
     def __init__(self):
         self.account_manager = AccountManager(self.env)
+        self.account_guard = AccountGuard(self.env)
 
     # IPermissionRequestor
     def get_permission_actions(self):
@@ -113,7 +117,7 @@ class AccountManagerAdminPage(Component):
         actions = [('ACCTMGR_ADMIN', action), action[0], action[1],]
         return actions
 
-    # IAdminPageProvider
+    # IAdminPanelProvider
     def get_admin_panels(self, req):
         if req.perm.has_permission('ACCTMGR_CONFIG_ADMIN'):
             yield ('accounts', _("Accounts"), 'config', _("Configuration"))
@@ -181,6 +185,7 @@ class AccountManagerAdminPage(Component):
     def _do_users(self, req):
         perm = PermissionSystem(self.env)
         mgr = self.account_manager
+        guard = self.account_guard
         listing_enabled = mgr.supports('get_users')
         create_enabled = mgr.supports('set_password')
         password_change_enabled = mgr.supports('set_password')
@@ -255,6 +260,16 @@ class AccountManagerAdminPage(Component):
             accounts = {}
             for username in mgr.get_users():
                 accounts[username] = {'username': username}
+                if guard.user_locked(username):
+                    accounts[username]['locked'] = True
+                    url = req.href.admin('accounts', 'details', user=username)
+                    accounts[username]['review_url'] = url
+                    t_lock = guard.lock_time(username)
+                    if t_lock > 0:
+                        t_release = guard.pretty_release_time(req, username)
+                        accounts[username]['release_hint'] = _(
+                            "Locked until %(t_release)s",
+                            t_release=t_release)
 
             for username, name, email in self.env.get_known_users():
                 account = accounts.get(username)
@@ -270,6 +285,7 @@ class AccountManagerAdminPage(Component):
                                                             tzinfo=req.tz)
             data['accounts'] = sorted(accounts.itervalues(),
                                       key=lambda acct: acct['username'])
+        add_stylesheet(req, 'acct_mgr/acct_mgr.css')
         return 'admin_users.html', data
 
     # ITemplateProvider
@@ -285,3 +301,86 @@ class AccountManagerAdminPage(Component):
         Genshi templates.
         """
         return [resource_filename(__name__, 'templates')]
+
+
+class AccountGuardAdminPage(AccountManagerAdminPage):
+
+    # IAdminPanelProvider
+    def get_admin_panels(self, req):
+        if req.perm.has_permission('ACCTMGR_USER_ADMIN'):
+            yield ('accounts', _("Accounts"), 'details', _("Account details"))
+
+    def render_admin_panel(self, req, cat, page, path_info):
+        if page == 'details':
+            return self._do_acct_details(req)
+
+    def _do_acct_details(self, req):
+        user = req.args.get('user')
+        if not user:
+            # Accessing user account details directly is not useful,
+            # so we revert such request immediately. 
+            req.redirect(req.href.admin('accounts', 'users'))
+
+        mgr = self.account_manager
+        guard = self.account_guard
+
+        if req.method == 'POST':
+            if req.args.get('update'):
+                req.redirect(req.href.admin('accounts', 'details', user=user))
+
+            if req.args.get('delete') or req.args.get('release'):
+                # delete failed login attempts, evaluating attempts count
+                if guard.failed_count(user, reset=True) > 0:
+                    add_notice(req, Markup(tag.span(tag_(
+                        "Failed login attempts for user %(user)s deleted",
+                        user=tag.b(user)
+                        ))))
+            req.redirect(req.href.admin('accounts', 'users'))
+
+        data = {'user': user,}
+        stores = StoreOrder(stores=mgr.stores, list=mgr.password_store)
+        user_store = mgr.find_user_store(user)
+        if not user_store is None:
+            data['user_store'] = user_store.__class__.__name__
+            data['store_order_num'] = stores[user_store]
+        data['ignore_auth_case'] = \
+            self.config.getbool('trac', 'ignore_auth_case')
+
+        for username, name, email in self.env.get_known_users():
+            if username == user:
+                data['name'] = name
+                if email:
+                    data['email'] = email
+                break
+        ts_seen = None
+        for row in mgr.last_seen(user):
+            if row[0] == user and row[1]:
+                data['last_visit'] = format_datetime(row[1], tzinfo=req.tz)
+                break
+
+        attempts = []
+        attempts_count = guard.failed_count(user, reset = None)
+        if attempts_count > 0:
+            for attempt in guard.get_failed_log(user):
+                t = format_datetime(to_datetime(
+                                         attempt['time']), tzinfo=req.tz)
+                attempts.append({'ipnr': attempt['ipnr'], 'time': t})
+        data['attempts'] = attempts
+        data['attempts_count'] = attempts_count
+        data['pretty_lock_time'] = guard.pretty_lock_time(user, next=True)
+        data['lock_count'] = guard.lock_count(user)
+        if guard.user_locked(user) is True:
+            data['user_locked'] = True
+            data['release_time'] = guard.pretty_release_time(req, user)
+
+        add_stylesheet(req, 'acct_mgr/acct_mgr.css')
+        #req.href.admin('accounts', 'details', user=user)
+        return 'account_details.html', data
+
+    # ITemplateProvider
+
+    def get_htdocs_dirs(self):
+        """Return the absolute path of a directory containing additional
+        static resources (such as images, style sheets, etc).
+        """
+        return [('acct_mgr', resource_filename(__name__, 'htdocs'))]

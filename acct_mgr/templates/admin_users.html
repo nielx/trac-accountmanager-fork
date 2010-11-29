@@ -103,7 +103,18 @@
             <td py:if="delete_enabled">
               <input type="checkbox" name="sel" value="${account.username}" />
             </td>
-            <td>${account.username}</td>
+            <td>${account.username}
+              <py:choose py:if="account.locked">
+                <a href="${account.review_url}" py:when="account.release_hint"
+                   title="${account.release_hint}">
+                   <img src="${href.chrome('/acct_mgr/time-locked.png')}" />
+                </a>
+                <a href="${account.review_url}" py:otherwise=""
+                   title="${dgettext('acct_mgr', 'Permanently locked')}">
+                   <img src="${href.chrome('/acct_mgr/locked.png')}" />
+                </a>
+              </py:choose>
+            </td>
             <td>${account.name}</td>
             <td>${account.email}</td>
             <td>${account.last_visit}</td>

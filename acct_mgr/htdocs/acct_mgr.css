@@ -1,0 +1,12 @@
+/* CSS definitions for AccountManagerPlugin */
+/* styles for account details page */
+
+div#user_locked p span img { vertical-align:middle; }
+div#failed_attempts p.tableheader {
+    color:#999; font-size:90%; font-weight:bold;
+    margin:0pt; padding:1em 5px 0;
+    }
+table#login_attempts { width: 480px; }
+td a img { vertical-align:middle; }
+p span.buttons input { margin-top:0; vertical-align:baseline; }
+
