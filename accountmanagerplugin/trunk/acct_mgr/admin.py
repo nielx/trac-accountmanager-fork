@@ -24,7 +24,7 @@ from trac.admin         import IAdminPanelProvider
 
 from acct_mgr.api       import _, tag_, AccountManager
 from acct_mgr.guard     import AccountGuard
-from acct_mgr.web_ui    import _create_user
+from acct_mgr.web_ui    import _create_user, EmailVerificationModule
 
 
 def _getoptions(cls):
@@ -372,6 +372,14 @@ class AccountGuardAdminPage(AccountManagerAdminPage):
         if guard.user_locked(user) is True:
             data['user_locked'] = True
             data['release_time'] = guard.pretty_release_time(req, user)
+
+        if self.env.is_component_enabled(EmailVerificationModule) and \
+                mgr.verify_email is True:
+            data['verification'] = 'enabled'
+            data['email_verified'] = mgr.email_verified(user, email)
+            self.log.debug('AcctMgr:admin:_do_acct_details for user \"' + \
+                user + '\", email \"' + str(email) + '\": ' + \
+                str(data['email_verified']))
 
         add_stylesheet(req, 'acct_mgr/acct_mgr.css')
         #req.href.admin('accounts', 'details', user=user)

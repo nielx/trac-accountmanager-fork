@@ -97,6 +97,32 @@
         </py:choose>
       </fieldset>
 
+      <div id="verification" py:if="verification">
+        <fieldset>
+          <legend>
+            <label>Verification</label>
+          </legend>
+          <py:choose>
+            <div py:when="email">
+              <p i18n:msg="email">
+                Current email address: &lt;${email}&gt;</p>
+              <py:choose>
+                <p py:when="email_verified is True">
+                  This address has been verified successfully.</p>
+                <p py:when="not email_verified is None" i18n:msg="token">
+                  Verification is pending
+                  (<span class="hint">token: '${email_verified}' </span>).</p>
+                <p py:otherwise="">
+                  This address has not been verified yet.</p>
+              </py:choose>
+            </div>
+            <div py:otherwise="">
+              <p>No email address is registered for this account.</p>
+            </div>
+          </py:choose>
+        </fieldset>
+      </div>
+
       <fieldset>
         <legend>
           <label>Access History</label>
