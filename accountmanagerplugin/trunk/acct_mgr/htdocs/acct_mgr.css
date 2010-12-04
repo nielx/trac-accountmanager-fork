@@ -1,5 +1,5 @@
 /* CSS definitions for AccountManagerPlugin */
-/* styles for account details page */
+/* styles for account details admin page */
 
 div#user_locked p span img { vertical-align:middle; }
 div#failed_attempts p.tableheader {
@@ -9,4 +9,3 @@ div#failed_attempts p.tableheader {
 table#login_attempts { width: 480px; }
 td a img { vertical-align:middle; }
 p span.buttons input { margin-top:0; vertical-align:baseline; }
-
