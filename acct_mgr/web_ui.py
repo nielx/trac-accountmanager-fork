@@ -23,12 +23,13 @@ from trac import perm, util
 from trac.core import *
 from trac.config import Configuration, IntOption, BoolOption
 from trac.prefs import IPreferencePanelProvider
+from trac.util.presentation import separated
 from trac.web import auth
 from trac.web.api import IAuthenticator
 from trac.web.main import IRequestHandler, IRequestFilter
 from trac.web import chrome
 from trac.web.chrome import INavigationContributor, ITemplateProvider, \
-                            add_script
+                            add_script, add_stylesheet
 from genshi.core import Markup
 from genshi.builder import tag
 
@@ -542,6 +543,8 @@ class LoginModule(auth.LoginModule):
                             """, release_time=release_time)
                     else:
                         data['login_error'] = _("Account locked")
+            add_stylesheet(req, 'acct_mgr/acct_mgr_login.css')
+
             return 'login.html', data, None
         else:
             n_plural=req.args.get('failed_logins')
@@ -645,6 +648,11 @@ class LoginModule(auth.LoginModule):
         if AccountManager(self.env).check_password(user, password):
             return user
         return None
+
+    def _format_ctxtnav(self, items):
+        """Prepare context navigation items for display on login page.
+        """
+        return list(separated(items, '|'))
 
     def enabled(self):
         # Users should disable the built-in authentication to use this one
