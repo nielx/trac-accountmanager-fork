@@ -8,6 +8,7 @@ div.login {
     border:1px solid #666666;
     }
 div.login h1 { margin-top:1em; text-align:center; width:100%; }
+div#login_options ul { margin:1em 0pt; text-align:center; }
 .central { text-align:center; }
 .spacer { height:7em; }
 .textbox { text-indent:0.5em; margin:0 120px 0.5em; }

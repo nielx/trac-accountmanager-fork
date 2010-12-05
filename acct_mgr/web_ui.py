@@ -401,7 +401,7 @@ class RegistrationModule(Component):
         return 'register'
 
     def get_navigation_items(self, req):
-        if not self._enable_check():
+        if not self._enable_check() or LoginModule(self.env).enabled:
             return
         if req.authname == 'anonymous':
             yield 'metanav', 'register', tag.a(_("Register"),
@@ -525,7 +525,9 @@ class LoginModule(auth.LoginModule):
                 'reset_password_enabled': AccountModule(self.env
                                           ).reset_password_enabled,
                 'persistent_sessions': AccountManager(self.env
-                                       ).persistent_sessions
+                                       ).persistent_sessions,
+                'registration_enabled': RegistrationModule(self.env
+                                        )._enable_check()
             }
             if req.method == 'POST':
                 self.log.debug('user_locked: ' + \
