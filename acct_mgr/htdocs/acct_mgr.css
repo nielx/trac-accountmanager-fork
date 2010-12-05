@@ -1,4 +1,9 @@
 /* CSS definitions for AccountManagerPlugin */
+/* styles for users admin page */
+
+div#accountlist { max-height:640px; overflow:auto; }
+
+
 /* styles for account details admin page */
 
 div#user_locked p span img { vertical-align:middle; }
