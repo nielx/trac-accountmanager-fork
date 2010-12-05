@@ -38,12 +38,26 @@
                  value="1" />
           <label for="rememberme">Remember me</label>
         </div>
-        <div class="central">
+        <div id="login_options" class="button central nav">
           <input type="submit" value="${dgettext('acct_mgr', 'Login')}" />
-
-          <p py:if="reset_password_enabled">
-            <a href="${href.reset_password()}">Forgot your password?</a>
-          </p>
+          <ul>
+            <py:choose py:if="registration_enabled">
+              <li class="first" py:when="reset_password_enabled">
+                <a href="${href.register()}">Register</a>
+              </li>
+              <li class="first last" py:otherwise="">
+                <a href="${href.register()}">Register</a>
+              </li>
+            </py:choose>
+            <py:choose py:if="reset_password_enabled">
+              <li class="last" py:when="registration_enabled">
+                <a href="${href.reset_password()}">Forgot your password?</a>
+              </li>
+              <li class="first last" py:otherwise="">
+                <a href="${href.reset_password()}">Forgot your password?</a>
+              </li>
+            </py:choose>
+          </ul>
         </div>
       </form>
 
