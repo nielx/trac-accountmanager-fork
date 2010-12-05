@@ -91,36 +91,40 @@
     <form method="post" py:otherwise="" py:strip="not delete_enabled">
       <div class="system-message"
            py:if="deletion_error"><p>${deletion_error}</p></div>
-      <table class="listing" id="accountlist">
-        <thead>
-          <tr>
-            <th class="sel" py:if="delete_enabled">&nbsp;</th>
-            <th>Account</th><th>Name</th><th>Email</th><th>Last Login</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr py:for="account in accounts">
-            <td py:if="delete_enabled">
-              <input type="checkbox" name="sel" value="${account.username}" />
-            </td>
-            <td>${account.username}
-              <py:choose py:if="account.locked">
-                <a href="${account.review_url}" py:when="account.release_hint"
-                   title="${account.release_hint}">
-                   <img src="${href.chrome('/acct_mgr/time-locked.png')}" />
-                </a>
-                <a href="${account.review_url}" py:otherwise=""
-                   title="${dgettext('acct_mgr', 'Permanently locked')}">
-                   <img src="${href.chrome('/acct_mgr/locked.png')}" />
-                </a>
-              </py:choose>
-            </td>
-            <td>${account.name}</td>
-            <td>${account.email}</td>
-            <td>${account.last_visit}</td>
-          </tr>
-        </tbody>
-      </table>
+      <div id="accountlist">
+        <table class="listing" id="accountlist">
+          <thead>
+            <tr>
+              <th class="sel" py:if="delete_enabled">&nbsp;</th>
+              <th>Account</th><th>Name</th><th>Email</th><th>Last Login</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr py:for="account in accounts">
+              <td py:if="delete_enabled">
+                <input type="checkbox" name="sel"
+                       value="${account.username}" />
+              </td>
+              <td>${account.username}
+                <py:choose py:if="account.locked">
+                  <a href="${account.review_url}"
+                     py:when="account.release_hint"
+                     title="${account.release_hint}">
+                    <img src="${href.chrome('/acct_mgr/time-locked.png')}" />
+                  </a>
+                  <a href="${account.review_url}" py:otherwise=""
+                     title="${dgettext('acct_mgr', 'Permanently locked')}">
+                    <img src="${href.chrome('/acct_mgr/locked.png')}" />
+                  </a>
+                </py:choose>
+              </td>
+              <td>${account.name}</td>
+              <td>${account.email}</td>
+              <td>${account.last_visit}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
       <div class="buttons" py:if="delete_enabled">
         <input type="submit" name="remove"
                value="${dgettext('acct_mgr', 'Remove selected accounts')}" />

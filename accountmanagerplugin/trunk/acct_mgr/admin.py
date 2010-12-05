@@ -19,7 +19,8 @@ from trac.core          import *
 from trac.config        import Option
 from trac.perm          import IPermissionRequestor, PermissionSystem
 from trac.util.datefmt  import format_datetime, to_datetime
-from trac.web.chrome    import ITemplateProvider, add_notice, add_stylesheet
+from trac.web.chrome    import ITemplateProvider, add_notice, \
+                               add_stylesheet, add_warning
 from trac.admin         import IAdminPanelProvider
 
 from acct_mgr.api       import _, tag_, AccountManager
@@ -319,6 +320,9 @@ class AccountGuardAdminPage(AccountManagerAdminPage):
         if not user:
             # Accessing user account details directly is not useful,
             # so we revert such request immediately. 
+            add_warning(req, Markup(tag.span(tag_(
+                "Please select a certain account by username to proceed."
+                ))))
             req.redirect(req.href.admin('accounts', 'users'))
 
         mgr = self.account_manager
