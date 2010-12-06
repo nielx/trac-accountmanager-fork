@@ -31,7 +31,9 @@ class AbstractPasswordFileStore(Component):
     See these concrete sub-classes for usage information.
     """
 
-    filename = EnvRelativePathOption('account-manager', 'password_file')
+    filename = EnvRelativePathOption('account-manager', 'password_file', '',
+        doc = _("""Path relative to Trac environment or full host machine
+                path to password file"""))
 
     def has_user(self, user):
         return user in self.get_users()
@@ -193,7 +195,7 @@ class HtPasswdStore(AbstractPasswordFileStore):
     implements(IPasswordStore)
 
     hash_type = Option('account-manager', 'htpasswd_hash_type', 'crypt',
-        doc = "Default hash type of new/updated passwords")
+        doc = _("Default hash type of new/updated passwords"))
 
     def config_key(self):
         return 'htpasswd'
@@ -230,7 +232,8 @@ class HtDigestStore(AbstractPasswordFileStore):
 
     implements(IPasswordStore)
 
-    realm = Option('account-manager', 'htdigest_realm', '')
+    realm = Option('account-manager', 'htdigest_realm', '',
+        doc = _("Realm to select relevant htdigest file entries"))
 
     def config_key(self):
         return 'htdigest'

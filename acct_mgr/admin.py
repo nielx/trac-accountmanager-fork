@@ -163,6 +163,7 @@ class AccountManagerAdminPage(Component):
                             {'label': attr,
                             'name': '%s.%s' % (store.__class__.__name__, attr),
                             'value': opt_val,
+                            'doc': option.__doc__
                             })
                 continue
             sections.append(
@@ -321,7 +322,7 @@ class AccountGuardAdminPage(AccountManagerAdminPage):
             # Accessing user account details directly is not useful,
             # so we revert such request immediately. 
             add_warning(req, Markup(tag.span(tag_(
-                "Please select a certain account by username to proceed."
+                "Please choose account by username from list to proceed."
                 ))))
             req.redirect(req.href.admin('accounts', 'users'))
 

@@ -15,12 +15,14 @@ from urllib2 import build_opener, HTTPBasicAuthHandler, \
 from trac.core import *
 from trac.config import Option
 
-from api import IPasswordStore
+from api import IPasswordStore, _
+
 
 class HttpAuthStore(Component):
     implements(IPasswordStore)
 
-    auth_url = Option('account-manager', 'authentication_url')
+    auth_url = Option('account-manager', 'authentication_url', '',
+        doc = _("URL of the HTTP authentication service"))
 
     def check_password(self, user, password):
         mgr = HTTPPasswordMgrWithDefaultRealm()
@@ -40,4 +42,3 @@ class HttpAuthStore(Component):
 
     def has_user(self, user):
         return False
-

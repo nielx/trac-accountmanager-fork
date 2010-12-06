@@ -47,7 +47,8 @@ class HtPasswdHashMethod(Component):
 class HtDigestHashMethod(Component):
     implements(IPasswordHashMethod)
 
-    realm = Option('account-manager', 'htdigest_realm', '')
+    realm = Option('account-manager', 'htdigest_realm', '',
+        doc = "Realm to select relevant htdigest file entries")
 
     def generate_hash(self, user, password):
         user,password,realm = _encode(user, password, self.realm)
