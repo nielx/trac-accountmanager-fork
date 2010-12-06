@@ -116,7 +116,7 @@ msgid ""
 "Path relative to Trac environment or full host machine\n"
 "                path to password file"
 msgstr ""
-"Pfad realativ zur Trac-Umgebung oder vollständiger Verzeichnispfad zur "
+"Pfad relativ zur Trac-Umgebung oder vollständiger Verzeichnispfad zur "
 "Kennwortdatei"
 
 #: acct_mgr/htfile.py:144
