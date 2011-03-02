@@ -10,7 +10,7 @@
 # Author: Matthew Good <trac@matt-good.net>
 
 import errno
-import os.path
+import os # to get not only os.path method but os.linesep too
 # DEVEL: Use `with` statement for better file access code,
 #   taking care of Python 2.5, but not needed for Python >= 2.6
 #from __future__ import with_statement
@@ -100,42 +100,39 @@ class AbstractPasswordFileStore(Component):
             # DEVEL: Use `with` statement available in Python >= 2.5
             #   as soon as we don't need to support 2.4 anymore.
             eol = '\n'
-            f = open(filename, 'rU')
+            f = open(filename, 'r')
             lines = f.readlines()
-            newlines = f.newlines
-            if newlines is not None:
-                if isinstance(newlines, str):
-                    newlines = [f.newlines]
-                elif isinstance(newlines, tuple):
-                    newlines = list(f.newlines)
-                if '\n' not in newlines:
-                    if '\r\n' in newlines:
-                        # Windows newline style
-                        eol = '\r\n'
-                    elif '\r' in newlines:
-                        # MacOS newline style
-                        eol = '\r'
+            # predict eol style for lines without eol characters
+            if not os.linesep == '\n':
+                if lines[0].endswith('\r') and os.linesep == '\r':
+                    # antique MacOS newline style safeguard
+                    # DEVEL: is this really still needed?
+                    eol = '\r'
+                elif lines[0].endswith('\r\n') and os.linesep == '\r\n':
+                    # Windows newline style safeguard
+                    eol = '\r\n'
 
             # DEVEL: Beware, in shared use there is a race-condition,
             #   since file changes by other programs that occure from now on
             #   are currently not detected and will get overwritten.
             #   This could be fixed by file locking, but a cross-platform
             #   implementation is certainly non-trivial.
+            # DEVEL: I've seen the AtomicFile object in trac.util lately,
+            #   that may be worth a try.
             if len(lines) > 0:
                 for line in lines:
                     if line.startswith(prefix):
                         if not matched and userline:
                             new_lines.append(userline + eol)
                         matched = True
-                    elif line.endswith('\n'):
-                        if eol == '\n':
-                            new_lines.append(line)
-                        else:
-                            # restore eol
-                            new_lines.append(line.rstrip('\n') + eol)
-                    # make sure the last line has a newline
+                    # preserve existing lines with proper eol
+                    elif line.endswith(eol) and not \
+                            (eol == '\n' and line.endswith('\r\n')):
+                        new_lines.append(line)
+                    # unify eol style using confirmed default and
+                    # make sure the (last) line has a newline anyway
                     else:
-                        new_lines.append(line + eol)
+                        new_lines.append(line.rstrip('\r\n') + eol)
         except EnvironmentError, e:
             if e.errno == errno.ENOENT:
                 # Ignore, when file doesn't exist and create it below.
