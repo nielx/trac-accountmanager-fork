@@ -102,15 +102,6 @@ class AbstractPasswordFileStore(Component):
             eol = '\n'
             f = open(filename, 'r')
             lines = f.readlines()
-            # predict eol style for lines without eol characters
-            if not os.linesep == '\n':
-                if lines[0].endswith('\r') and os.linesep == '\r':
-                    # antique MacOS newline style safeguard
-                    # DEVEL: is this really still needed?
-                    eol = '\r'
-                elif lines[0].endswith('\r\n') and os.linesep == '\r\n':
-                    # Windows newline style safeguard
-                    eol = '\r\n'
 
             # DEVEL: Beware, in shared use there is a race-condition,
             #   since file changes by other programs that occure from now on
@@ -120,6 +111,16 @@ class AbstractPasswordFileStore(Component):
             # DEVEL: I've seen the AtomicFile object in trac.util lately,
             #   that may be worth a try.
             if len(lines) > 0:
+                # predict eol style for lines without eol characters
+                if not os.linesep == '\n':
+                    if lines[-1].endswith('\r') and os.linesep == '\r':
+                        # antique MacOS newline style safeguard
+                        # DEVEL: is this really still needed?
+                        eol = '\r'
+                    elif lines[-1].endswith('\r\n') and os.linesep == '\r\n':
+                        # Windows newline style safeguard
+                        eol = '\r\n'
+
                 for line in lines:
                     if line.startswith(prefix):
                         if not matched and userline:
