@@ -59,6 +59,7 @@ class AccountChangeListener(Component):
         notifier = EmailVerificationNotification(self.env)
         notifier.notify(username, token)
 
+
 class AccountChangeNotification(NotifyEmail):
     template_name = 'user_changes_email.txt'
 
@@ -191,7 +192,7 @@ class AccountChangeNotificationAdminPanel(Component):
                     notify_addresses=notify_addresses)
         return 'admin_accountsnotification.html', data
 
-    # ITemplateProvider
+    # ITemplateProvider methods
     def get_htdocs_dirs(self):
         return []
 

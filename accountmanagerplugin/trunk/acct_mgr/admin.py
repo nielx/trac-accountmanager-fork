@@ -290,13 +290,13 @@ class AccountManagerAdminPage(Component):
         add_stylesheet(req, 'acct_mgr/acct_mgr.css')
         return 'admin_users.html', data
 
-    # ITemplateProvider
+    # ITemplateProvider methods
 
     def get_htdocs_dirs(self):
         """Return the absolute path of a directory containing additional
         static resources (such as images, style sheets, etc).
         """
-        return []
+        return [('acct_mgr', resource_filename(__name__, 'htdocs'))]
 
     def get_templates_dirs(self):
         """Return the absolute path of the directory containing the provided
@@ -390,10 +390,3 @@ class AccountGuardAdminPage(AccountManagerAdminPage):
         #req.href.admin('accounts', 'details', user=user)
         return 'account_details.html', data
 
-    # ITemplateProvider
-
-    def get_htdocs_dirs(self):
-        """Return the absolute path of a directory containing additional
-        static resources (such as images, style sheets, etc).
-        """
-        return [('acct_mgr', resource_filename(__name__, 'htdocs'))]
