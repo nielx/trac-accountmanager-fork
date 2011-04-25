@@ -356,7 +356,7 @@ class AccountModule(Component):
         mgr.delete_user(user)
         req.redirect(req.href.logout())
 
-    # ITemplateProvider
+    # ITemplateProvider methods
 
     def get_htdocs_dirs(self):
         """Return the absolute path of a directory containing additional
@@ -661,13 +661,13 @@ class LoginModule(auth.LoginModule):
         return not self.env.is_component_enabled(auth.LoginModule)
     enabled = property(enabled)
 
-    # ITemplateProvider
+    # ITemplateProvider methods
 
     def get_htdocs_dirs(self):
         """Return the absolute path of a directory containing additional
         static resources (such as images, style sheets, etc).
         """
-        return []
+        return [('acct_mgr', resource_filename(__name__, 'htdocs'))]
 
     def get_templates_dirs(self):
         """Return the absolute path of the directory containing the provided
@@ -677,7 +677,7 @@ class LoginModule(auth.LoginModule):
 
 
 class EmailVerificationModule(Component):
-    implements(IRequestFilter, IRequestHandler)
+    implements(IRequestFilter, IRequestHandler, ITemplateProvider)
 
     # IRequestFilter methods
 
@@ -770,3 +770,18 @@ class EmailVerificationModule(Component):
 
     def _gen_token(self):
         return base64.urlsafe_b64encode(urandom(6))
+
+    # ITemplateProvider methods
+
+    def get_htdocs_dirs(self):
+        """Return the absolute path of a directory containing additional
+        static resources (such as images, style sheets, etc).
+        """
+        return []
+
+    def get_templates_dirs(self):
+        """Return the absolute path of the directory containing the provided
+        Genshi templates.
+        """
+        return [resource_filename(__name__, 'templates')]
+
