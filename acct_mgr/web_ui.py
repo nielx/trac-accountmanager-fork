@@ -470,6 +470,11 @@ class LoginModule(auth.LoginModule):
 
     implements(ITemplateProvider)
 
+    t = 86400 * 30 # AcctMgr default - Trac core defaults to 0 instead
+    # check for properties to be set in auth cookies, defined since Trac 0.12
+    auth_cookie_lifetime = config.getint('trac', 'auth_cookie_lifetime', t)
+    auth_cookie_path = config.get('trac', 'auth_cookie_path', '')
+
     def authenticate(self, req):
         if req.method == 'POST' and req.path_info.startswith('/login'):
             user = self._remote_user(req)
@@ -602,15 +607,20 @@ class LoginModule(auth.LoginModule):
             # TODO Change session id (cookie.value) now and then as it otherwise
             #   never would change at all (i.e. stay the same indefinitely and
             #   therefore is vulnerable to be hacked).
+            cookie_path = self.auth_cookie_path or req.base_path or '/'
             req.outcookie['trac_auth'] = cookie.value
-            req.outcookie['trac_auth']['path'] = req.base_path or '/'
-            req.outcookie['trac_auth']['expires'] = 86400 * 30
+            req.outcookie['trac_auth']['path'] = cookie_path
+            if self.auth_cookie_lifetime > 0:
+                req.outcookie['trac_auth']['expires'] = \
+                                                    self.auth_cookie_lifetime
             if self.env.secure_cookies:
                 req.outcookie['trac_auth']['secure'] = True
-                
+
             req.outcookie['trac_auth_session'] = 1
-            req.outcookie['trac_auth_session']['path'] = req.base_path or '/'
-            req.outcookie['trac_auth_session']['expires'] = 86400 * 30
+            req.outcookie['trac_auth_session']['path'] = cookie_path
+            if self.auth_cookie_lifetime > 0:
+                req.outcookie['trac_auth_session']['expires'] = \
+                                                    self.auth_cookie_lifetime
 
         return name
 
@@ -620,16 +630,21 @@ class LoginModule(auth.LoginModule):
             self._redirect_back(req)
         res = auth.LoginModule._do_login(self, req)
         if req.args.get('rememberme', '0') == '1':
-            # Set the session to expire in 30 days (and not when to browser is
-            # closed - what is the default).
-            req.outcookie['trac_auth']['expires'] = 86400 * 30
+            cookie_path = self.auth_cookie_path or req.base_path or '/'
+            # Set the session to expire after some time
+            # (and not when the browser is closed - what is the default).
+            if self.auth_cookie_lifetime > 0:
+                req.outcookie['trac_auth']['expires'] = \
+                                                    self.auth_cookie_lifetime
             
             # This cookie is used to indicate that the user is actually using
             # the "Remember me" feature. This is necessary for 
             # '_get_name_for_cookie()'.
             req.outcookie['trac_auth_session'] = 1
-            req.outcookie['trac_auth_session']['path'] = req.base_path or '/'
-            req.outcookie['trac_auth_session']['expires'] = 86400 * 30
+            req.outcookie['trac_auth_session']['path'] = cookie_path
+            if self.auth_cookie_lifetime > 0:
+                req.outcookie['trac_auth_session']['expires'] = \
+                                                    self.auth_cookie_lifetime
             
         return res
 
@@ -638,8 +653,9 @@ class LoginModule(auth.LoginModule):
         auth.LoginModule._do_logout(self, req)
         
         # Expire the persistent session cookie
+        cookie_path = self.auth_cookie_path or req.base_path or '/'
         req.outcookie['trac_auth_session'] = ''
-        req.outcookie['trac_auth_session']['path'] = req.base_path or '/'
+        req.outcookie['trac_auth_session']['path'] = cookie_path
         req.outcookie['trac_auth_session']['expires'] = -10000
 
     def _remote_user(self, req):
