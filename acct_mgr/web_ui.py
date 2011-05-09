@@ -470,11 +470,6 @@ class LoginModule(auth.LoginModule):
 
     implements(ITemplateProvider)
 
-    t = 86400 * 30 # AcctMgr default - Trac core defaults to 0 instead
-    # check for properties to be set in auth cookies, defined since Trac 0.12
-    auth_cookie_lifetime = config.getint('trac', 'auth_cookie_lifetime', t)
-    auth_cookie_path = config.get('trac', 'auth_cookie_path', '')
-
     def authenticate(self, req):
         if req.method == 'POST' and req.path_info.startswith('/login'):
             user = self._remote_user(req)
@@ -568,7 +563,7 @@ class LoginModule(auth.LoginModule):
         """Returns the user name for the current Trac session. Is called by
            authenticate() when the cookie 'trac_auth' is sent by the browser.
         """
-        
+
         # Disable IP checking when a persistent session is available, as the
         # user may have a dynamic IP adress and this would lead to the user 
         # being logged out due to an IP address conflict.
@@ -604,23 +599,29 @@ class LoginModule(auth.LoginModule):
             db.commit()
             
             # Refresh session cookie
-            # TODO Change session id (cookie.value) now and then as it otherwise
-            #   never would change at all (i.e. stay the same indefinitely and
-            #   therefore is vulnerable to be hacked).
+            # TODO Change session id (cookie.value) now and then as it
+            #   otherwise never would change at all (i.e. stay the same
+            #   indefinitely and therefore is vulnerable to be hacked).
+            req.outcookie['trac_auth'] = cookie.value
+
+            # check for properties to be set in auth cookies,
+            # defined since Trac 0.12
             cookie_path = self.auth_cookie_path or req.base_path or '/'
             req.outcookie['trac_auth'] = cookie.value
             req.outcookie['trac_auth']['path'] = cookie_path
-            if self.auth_cookie_lifetime > 0:
-                req.outcookie['trac_auth']['expires'] = \
-                                                    self.auth_cookie_lifetime
+
+            t = 86400 * 30 # AcctMgr default - Trac core defaults to 0 instead
+            cookie_lifetime = self.env.config.getint(
+                                         'trac', 'auth_cookie_lifetime', t)
+            if cookie_lifetime > 0:
+                req.outcookie['trac_auth']['expires'] = cookie_lifetime
             if self.env.secure_cookies:
                 req.outcookie['trac_auth']['secure'] = True
 
             req.outcookie['trac_auth_session'] = 1
             req.outcookie['trac_auth_session']['path'] = cookie_path
-            if self.auth_cookie_lifetime > 0:
-                req.outcookie['trac_auth_session']['expires'] = \
-                                                    self.auth_cookie_lifetime
+            if cookie_lifetime > 0:
+                req.outcookie['trac_auth_session']['expires'] = cookie_lifetime
 
         return name
 
@@ -630,21 +631,24 @@ class LoginModule(auth.LoginModule):
             self._redirect_back(req)
         res = auth.LoginModule._do_login(self, req)
         if req.args.get('rememberme', '0') == '1':
+            # check for properties to be set in auth cookies,
+            # defined since Trac 0.12
             cookie_path = self.auth_cookie_path or req.base_path or '/'
+            t = 86400 * 30 # AcctMgr default - Trac core defaults to 0 instead
+            cookie_lifetime = self.env.config.getint(
+                                         'trac', 'auth_cookie_lifetime', t)
             # Set the session to expire after some time
             # (and not when the browser is closed - what is the default).
-            if self.auth_cookie_lifetime > 0:
-                req.outcookie['trac_auth']['expires'] = \
-                                                    self.auth_cookie_lifetime
+            if cookie_lifetime > 0:
+                req.outcookie['trac_auth']['expires'] = cookie_lifetime
             
             # This cookie is used to indicate that the user is actually using
             # the "Remember me" feature. This is necessary for 
             # '_get_name_for_cookie()'.
             req.outcookie['trac_auth_session'] = 1
             req.outcookie['trac_auth_session']['path'] = cookie_path
-            if self.auth_cookie_lifetime > 0:
-                req.outcookie['trac_auth_session']['expires'] = \
-                                                    self.auth_cookie_lifetime
+            if cookie_lifetime > 0:
+                req.outcookie['trac_auth_session']['expires'] = cookie_lifetime
             
         return res
 
