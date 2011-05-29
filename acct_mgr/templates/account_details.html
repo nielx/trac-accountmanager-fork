@@ -16,8 +16,12 @@
       <div id="header">
         <h2>Review User Account Details</h2>
         <py:choose>
-          <p py:when="name">for <b>${name}</b> (<em>${user}</em>)</p>
-          <p py:otherwise="">for <b>${user}</b></p>
+          <p py:when="name" i18n:msg="name, user">
+            for <b>${name}</b> (<em>${user}</em>)
+          </p>
+          <p py:otherwise="" i18n:msg="user">
+            for <b>${user}</b>
+          </p>
         </py:choose>
       </div>
 

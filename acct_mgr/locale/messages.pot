@@ -1,15 +1,15 @@
 # Translations template for TracAccountManager.
-# Copyright (C) 2010 ORGANIZATION
+# Copyright (C) 2011 ORGANIZATION
 # This file is distributed under the same license as the
 # TracAccountManager project.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2011.
 #
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: TracAccountManager 0.3\n"
 "Report-Msgid-Bugs-To: hoff.st@shaas.net\n"
-"POT-Creation-Date: 2010-12-06 00:17+0100\n"
+"POT-Creation-Date: 2011-05-29 22:50+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -24,7 +24,7 @@ msgid "Invalid key type (%s) for StoreOrder"
 msgstr ""
 
 #: acct_mgr/admin.py:124 acct_mgr/admin.py:126 acct_mgr/admin.py:313
-#: acct_mgr/notification.py:170 acct_mgr/templates/admin_users.html:11
+#: acct_mgr/notification.py:171 acct_mgr/templates/admin_users.html:11
 msgid "Accounts"
 msgstr ""
 
@@ -104,7 +104,7 @@ msgid ""
 "                or creating users."
 msgstr ""
 
-#: acct_mgr/db.py:24 acct_mgr/htfile.py:198
+#: acct_mgr/db.py:24 acct_mgr/htfile.py:196
 msgid "Default hash type of new/updated passwords"
 msgstr ""
 
@@ -114,21 +114,21 @@ msgid ""
 "                path to password file"
 msgstr ""
 
-#: acct_mgr/htfile.py:144
+#: acct_mgr/htfile.py:142
 msgid ""
 "The password file could not be read. Trac requires\n"
 "                    read and write access to both the password file\n"
 "                    and its parent directory."
 msgstr ""
 
-#: acct_mgr/htfile.py:162
+#: acct_mgr/htfile.py:160
 msgid ""
 "The password file could not be updated. Trac requires\n"
 "                    read and write access to both the password file\n"
 "                    and its parent directory."
 msgstr ""
 
-#: acct_mgr/htfile.py:236
+#: acct_mgr/htfile.py:234
 msgid "Realm to select relevant htdigest file entries"
 msgstr ""
 
@@ -140,7 +140,7 @@ msgstr ""
 msgid "The email and username do not match a known account."
 msgstr ""
 
-#: acct_mgr/notification.py:170
+#: acct_mgr/notification.py:171
 msgid "Notification"
 msgstr ""
 
@@ -278,48 +278,48 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. TRANSLATOR: Your permissions have been limited until you ...
-#: acct_mgr/web_ui.py:695
+#: acct_mgr/web_ui.py:715
 msgid "verify your email address"
 msgstr ""
 
 #. TRANSLATOR: ... verify your email address
-#: acct_mgr/web_ui.py:698
+#: acct_mgr/web_ui.py:718
 #, python-format
 msgid "Your permissions have been limited until you %(link)s."
 msgstr ""
 
 #. TRANSLATOR: An email has been sent to %(email)s
 #. with a token to ... (the link label for following message)
-#: acct_mgr/web_ui.py:726
+#: acct_mgr/web_ui.py:746
 msgid "verify your new email address"
 msgstr ""
 
 #. TRANSLATOR: ... verify your new email address
-#: acct_mgr/web_ui.py:729
+#: acct_mgr/web_ui.py:749
 #, python-format
 msgid ""
 "An email has been sent to %(email)s with a token to\n"
 "                %(link)s."
 msgstr ""
 
-#: acct_mgr/web_ui.py:742
+#: acct_mgr/web_ui.py:762
 msgid "Please log in to finish email verification procedure."
 msgstr ""
 
-#: acct_mgr/web_ui.py:746
+#: acct_mgr/web_ui.py:766
 msgid "Your email is already verified."
 msgstr ""
 
-#: acct_mgr/web_ui.py:754
+#: acct_mgr/web_ui.py:774
 #, python-format
 msgid "A notification email has been resent to <%s>."
 msgstr ""
 
-#: acct_mgr/web_ui.py:760
+#: acct_mgr/web_ui.py:780
 msgid "Thank you for verifying your email address."
 msgstr ""
 
-#: acct_mgr/web_ui.py:763
+#: acct_mgr/web_ui.py:783
 msgid "Invalid verification token"
 msgstr ""
 
@@ -332,30 +332,35 @@ msgid "Review User Account Details"
 msgstr ""
 
 #: acct_mgr/templates/account_details.html:19
-#: acct_mgr/templates/account_details.html:20
-msgid "for"
+#, python-format
+msgid "for [1:%(name)s] ([2:%(user)s])"
 msgstr ""
 
-#: acct_mgr/templates/account_details.html:27
-msgid "Account Status"
+#: acct_mgr/templates/account_details.html:22
+#, python-format
+msgid "for [1:%(user)s]"
 msgstr ""
 
 #: acct_mgr/templates/account_details.html:31
+msgid "Account Status"
+msgstr ""
+
+#: acct_mgr/templates/account_details.html:35
 #, python-format
 msgid ""
 "Credentials for this user are stored in AuthStore number\n"
 "              [1:%(order_num)s] (%(store)s)."
 msgstr ""
 
-#: acct_mgr/templates/account_details.html:35
+#: acct_mgr/templates/account_details.html:39
 msgid "Username matching is set to [1:not case-sensitive]."
 msgstr ""
 
-#: acct_mgr/templates/account_details.html:37
+#: acct_mgr/templates/account_details.html:41
 msgid "Username matching is set to [1:case-sensitive]."
 msgstr ""
 
-#: acct_mgr/templates/account_details.html:42
+#: acct_mgr/templates/account_details.html:46
 msgid ""
 "No store provides credentials for this user,\n"
 "              so the user currently can't be authenticated and\n"
@@ -363,7 +368,7 @@ msgid ""
 "              while account details may still be available."
 msgstr ""
 
-#: acct_mgr/templates/account_details.html:54
+#: acct_mgr/templates/account_details.html:58
 #, python-format
 msgid ""
 "[1:]\n"
@@ -371,19 +376,19 @@ msgid ""
 "                and even valid login attempts are rejected meanwhile."
 msgstr ""
 
-#: acct_mgr/templates/account_details.html:59
+#: acct_mgr/templates/account_details.html:63
 msgid "This account has been locked permanently."
 msgstr ""
 
-#: acct_mgr/templates/account_details.html:63
+#: acct_mgr/templates/account_details.html:67
 msgid "Release account lock"
 msgstr ""
 
-#: acct_mgr/templates/account_details.html:63
+#: acct_mgr/templates/account_details.html:67
 msgid "Unlock"
 msgstr ""
 
-#: acct_mgr/templates/account_details.html:75
+#: acct_mgr/templates/account_details.html:79
 #, python-format
 msgid ""
 "Lock condition has been met\n"
@@ -394,92 +399,92 @@ msgid_plural ""
 msgstr[0] ""
 msgstr[1] ""
 
-#: acct_mgr/templates/account_details.html:81
+#: acct_mgr/templates/account_details.html:85
 #, python-format
 msgid ""
 "Therefore after another failed login attempt authentication\n"
 "                  for this account would be retarded by %(time)s."
 msgstr ""
 
-#: acct_mgr/templates/account_details.html:88
+#: acct_mgr/templates/account_details.html:92
 msgid "Lock condition has not been met yet."
 msgstr ""
 
-#: acct_mgr/templates/account_details.html:94
+#: acct_mgr/templates/account_details.html:98
 msgid "No constraints are set for this account."
 msgstr ""
 
-#: acct_mgr/templates/account_details.html:103
+#: acct_mgr/templates/account_details.html:107
 msgid "Verification"
 msgstr ""
 
-#: acct_mgr/templates/account_details.html:107
+#: acct_mgr/templates/account_details.html:111
 #, python-format
 msgid "Current email address: <%(email)s>"
 msgstr ""
 
-#: acct_mgr/templates/account_details.html:110
+#: acct_mgr/templates/account_details.html:114
 msgid "This address has been verified successfully."
 msgstr ""
 
-#: acct_mgr/templates/account_details.html:112
+#: acct_mgr/templates/account_details.html:116
 #, python-format
 msgid ""
 "Verification is pending\n"
 "                  ([1:token: '%(token)s' ])."
 msgstr ""
 
-#: acct_mgr/templates/account_details.html:115
+#: acct_mgr/templates/account_details.html:119
 msgid "This address has not been verified yet."
 msgstr ""
 
-#: acct_mgr/templates/account_details.html:120
+#: acct_mgr/templates/account_details.html:124
 msgid "No email address is registered for this account."
 msgstr ""
 
-#: acct_mgr/templates/account_details.html:128
+#: acct_mgr/templates/account_details.html:132
 msgid "Access History"
 msgstr ""
 
-#: acct_mgr/templates/account_details.html:131
+#: acct_mgr/templates/account_details.html:135
 #, python-format
 msgid "Last login: %(time)s"
 msgstr ""
 
-#: acct_mgr/templates/account_details.html:133
+#: acct_mgr/templates/account_details.html:137
 msgid "The user has not logged in before."
 msgstr ""
 
-#: acct_mgr/templates/account_details.html:137
+#: acct_mgr/templates/account_details.html:141
 #, python-format
 msgid "Total failed attempts: %(count)s"
 msgstr ""
 
-#: acct_mgr/templates/account_details.html:138
+#: acct_mgr/templates/account_details.html:142
 msgid "Table: Last failed login attempts log view"
 msgstr ""
 
-#: acct_mgr/templates/account_details.html:143
+#: acct_mgr/templates/account_details.html:147
 msgid "IP address"
 msgstr ""
 
-#: acct_mgr/templates/account_details.html:144
+#: acct_mgr/templates/account_details.html:148
 msgid "Log time"
 msgstr ""
 
-#: acct_mgr/templates/account_details.html:155
+#: acct_mgr/templates/account_details.html:159
 msgid "Delete login failure log"
 msgstr ""
 
-#: acct_mgr/templates/account_details.html:155
+#: acct_mgr/templates/account_details.html:159
 msgid "Delete Log"
 msgstr ""
 
-#: acct_mgr/templates/account_details.html:162
+#: acct_mgr/templates/account_details.html:166
 msgid "There is currently no failed login attempt logged."
 msgstr ""
 
-#: acct_mgr/templates/account_details.html:168
+#: acct_mgr/templates/account_details.html:172
 msgid "Update"
 msgstr ""
 
