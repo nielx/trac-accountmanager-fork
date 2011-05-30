@@ -139,6 +139,12 @@ class AccountManager(Component):
             needing to re-authenticate. This is, user checks a
             \"Remember Me\" checkbox and, next time he visits the site,
             he'll be remembered.""")
+    refresh_passwd = BoolOption(
+        'account-manager', 'refresh_passwd', False,
+        doc="""Re-set passwords on successful authentication.
+            This is most useful to move users to a new password store or
+            enforce new store configuration (i.e. changed hash type),
+            but should be disabled/unset otherwise.""")
     verify_email = BoolOption(
         'account-manager', 'verify_email', True,
         doc="Verify the email address of Trac users.")
@@ -254,8 +260,8 @@ class AccountManager(Component):
         user = self.handle_username_casing(user)
         store = self.find_user_store(user)
         if store and not hasattr(store, 'set_password'):
-            raise TracError(_(
-                """The authentication backend for user %s does not support
+            raise TracError(_("""
+                The authentication backend for user %s does not support
                 setting the password.""" % user))
         elif not store:
             store = self.get_supporting_store('set_password')
@@ -265,17 +271,30 @@ class AccountManager(Component):
             else:
                 self._notify('password_changed', user, password)
         else:
-            raise TracError(_(
-                """None of the IPasswordStore components listed in the
-                trac.ini supports setting the password
-                or creating users."""))
+            raise TracError(_("""
+                None of the IPasswordStore components listed in the
+                trac.ini supports setting the password or creating users."""))
 
     def check_password(self, user, password):
         valid = False
         user = self.handle_username_casing(user)
         for store in self._password_store:
             valid = store.check_password(user, password)
-            if valid  or (valid == False):
+            if valid:
+                if valid == True and (self.refresh_passwd == True) and \
+                        self.get_supporting_store('set_password'):
+                    self.log.debug('refresh password for user: %s' % user)
+                    store = self.find_user_store(user)
+                    if store.delete_user(user) == True:
+                        # Recreate user account according to current settings
+                        store = self.get_supporting_store('set_password')
+                        if store.set_password(user, password) == False:
+                            self.log.warn("""
+                                possible duplicate entry for user '%s' updated
+                                """ % user)
+                    else:
+                        # Still try to update user password in place
+                        store.set_password(user, password)
                 break
             continue
         return valid
