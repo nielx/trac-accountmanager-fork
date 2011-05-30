@@ -33,10 +33,12 @@
           <input type="text" id="token" name="token" class="textwidget"
                  size="10" value="${value_of('token')}" />
         </div>
-        <input type="submit" name="verify" py:attrs="button_state"
-               value="${dgettext('acct_mgr', 'Verify')}" />
-        <input type="submit" name="resend" py:attrs="button_state"
-               value="${dgettext('acct_mgr', 'Resend Email')}" />
+        <div class="button central nav buttons">
+          <input type="submit" name="verify" py:attrs="button_state"
+                 value="${dgettext('acct_mgr', 'Verify')}" />
+          <input type="submit" name="resend" py:attrs="button_state"
+                 value="${dgettext('acct_mgr', 'Resend Email')}" />
+        </div>
       </form>
 
     </div>
