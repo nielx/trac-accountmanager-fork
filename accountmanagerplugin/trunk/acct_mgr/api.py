@@ -285,18 +285,14 @@ class AccountManager(Component):
                         self.get_supporting_store('set_password'):
                     self.log.debug('refresh password for user: %s' % user)
                     store = self.find_user_store(user)
-                    if store.delete_user(user) == True:
-                        # Recreate user account according to current settings
-                        store = self.get_supporting_store('set_password')
-                        if store.set_password(user, password) == False:
+                    pwstore = self.get_supporting_store('set_password')
+                    if pwstore.set_password(user, password) == True:
+                        # User account created according to current settings
+                        if store and not (store.delete_user(user) == True):
                             self.log.warn("""
-                                possible duplicate entry for user '%s' updated
+                                failed to remove old entry for user '%s'
                                 """ % user)
-                    else:
-                        # Still try to update user password in place
-                        store.set_password(user, password)
                 break
-            continue
         return valid
 
     def delete_user(self, user):
