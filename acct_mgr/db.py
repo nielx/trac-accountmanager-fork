@@ -23,6 +23,9 @@ class SessionStore(Component):
         IPasswordHashMethod, 'HtDigestHashMethod',
         doc = _("Default hash type of new/updated passwords"))
 
+    def __init__(self):
+        self.key = 'password'
+
     def get_users(self):
         """Returns an iterable of the known usernames."""
         db = self.env.get_db_cnx()
@@ -31,8 +34,8 @@ class SessionStore(Component):
             SELECT DISTINCT sid
             FROM    session_attribute
             WHERE   authenticated=1
-                AND name='password'
-            """)
+                AND name=%s
+            """, (self.key,))
         for sid, in cursor:
             yield sid
  
@@ -43,9 +46,9 @@ class SessionStore(Component):
             SELECT  *
             FROM    session_attribute
             WHERE   authenticated=1
-                AND name='password'
+                AND name=%s
                 AND sid=%s
-            """, (user,))
+            """, (self.key, user))
         for row in cursor:
             return True
         return False
@@ -64,17 +67,17 @@ class SessionStore(Component):
             UPDATE  session_attribute
                 SET value=%s
             WHERE   authenticated=1
-                AND name='password'
+                AND name=%s
                 AND sid=%s
-            """, (hash, user))
+            """, (hash, self.key, user))
         if cursor.rowcount > 0:
             db.commit()
             return False # Updated existing password
         cursor.execute("""
             INSERT INTO session_attribute
                     (sid,authenticated,name,value)
-            VALUES  (%s,1,'password',%s)
-            """, (user, hash))
+            VALUES  (%s,1,%s,%s)
+            """, (user, self.key, hash))
         db.commit()
         return True
 
@@ -86,9 +89,9 @@ class SessionStore(Component):
             SELECT  value
             FROM    session_attribute
             WHERE   authenticated=1
-                AND name='password'
+                AND name=%s
                 AND sid=%s
-            """, (user,))
+            """, (self.key, user))
         for hash, in cursor:
             return self.hash_method.check_hash(user, password, hash)
         return None
@@ -106,9 +109,9 @@ class SessionStore(Component):
             DELETE
             FROM    session_attribute
             WHERE   authenticated=1
-                AND name='password'
+                AND name=%s
                 AND sid=%s
-            """, (user,))
+            """, (self.key, user))
         # TODO: cursor.rowcount doesn't seem to get # deleted.
         #   Is there another way to get count instead of using has_user?
         db.commit()
