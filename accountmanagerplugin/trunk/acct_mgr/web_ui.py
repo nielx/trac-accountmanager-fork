@@ -20,7 +20,7 @@ from os import urandom
 from pkg_resources import resource_filename
 
 from trac import perm, util
-from trac.core import *
+from trac.core import Component, TracError, implements
 from trac.config import Configuration, IntOption, BoolOption
 from trac.prefs import IPreferencePanelProvider
 from trac.util.presentation import separated
@@ -37,21 +37,20 @@ from genshi.builder import tag
 from acct_mgr.api import AccountManager, _, ngettext, tag_
 from acct_mgr.guard import AccountGuard
 from acct_mgr.util import containsAny
-#import rpdb2; rpdb2.start_embedded_debugger('test')
 
 
 def _create_user(req, env, check_permissions=True):
-    mgr = AccountManager(env)
+    acctmgr = AccountManager(env)
 
-    user = mgr.handle_username_casing(req.args.get('user').strip())
+    user = acctmgr.handle_username_casing(req.args.get('user').strip())
     name = req.args.get('name')
     email = req.args.get('email').strip()
-    acctmgr = {'username' : user,
+    account = {'username' : user,
                'name' : name,
                'email' : email,
               }
     error = TracError('')
-    error.acctmgr = acctmgr
+    error.account = account
 
     if not user:
         error.message = _("Username cannot be empty.")
@@ -69,7 +68,7 @@ def _create_user(req, env, check_permissions=True):
     #   and cannot just check for the user being in the permission store.
     #   And obfuscate whether an existing user or group name
     #   was responsible for rejection of this user name.
-    if mgr.has_user(user):
+    if acctmgr.has_user(user):
         error.message = _(
             "Another account or group named %s already exists.") % user
         raise error
@@ -98,7 +97,7 @@ def _create_user(req, env, check_permissions=True):
     # Always exclude some special characters, i.e. 
     #   ':' can't be used in HtPasswdStore
     #   '[' and ']' can't be used in SvnServePasswordStore
-    blacklist = mgr.username_char_blacklist
+    blacklist = acctmgr.username_char_blacklist
     if containsAny(user, blacklist):
         pretty_blacklist = ''
         for c in blacklist:
@@ -125,7 +124,7 @@ def _create_user(req, env, check_permissions=True):
 
     # Validation of password passed.
 
-    if if_enabled(EmailVerificationModule) and mgr.verify_email:
+    if if_enabled(EmailVerificationModule) and acctmgr.verify_email:
         if not email:
             error.message = _("You must specify a valid email address.")
             raise error
@@ -135,7 +134,7 @@ def _create_user(req, env, check_permissions=True):
                               invalid. Please specify a valid email address.
                               """)
             raise error
-        elif mgr.has_email(email):
+        elif acctmgr.has_email(email):
             error.message = _("""The email address specified is already in
                               use. Please specify a different one.
                               """)
@@ -143,71 +142,85 @@ def _create_user(req, env, check_permissions=True):
 
     # Validation of email address passed.
 
-    mgr.set_password(user, password)
+    acctmgr.set_password(user, password)
 
     db = env.get_db_cnx()
     cursor = db.cursor()
-    cursor.execute("SELECT count(*) FROM session "
-                   "WHERE sid=%s AND authenticated=1",
-                   (user,))
-    exists, = cursor.fetchone()
+    cursor.execute("""
+        SELECT  COUNT(*)
+        FROM    session
+        WHERE   sid=%s
+            AND authenticated=1
+        """, (user,))
+    exists = cursor.fetchone()
     if not exists:
-        cursor.execute("INSERT INTO session "
-                       "(sid, authenticated, last_visit) "
-                       "VALUES (%s, 1, 0)",
-                       (user,))
+        cursor.execute("""
+            INSERT INTO session
+                    (sid,authenticated,last_visit)
+            VALUES  (%s,1,0)
+            """, (user,))
 
     for key in ('name', 'email'):
         value = req.args.get(key)
         if not value:
             continue
-        cursor.execute("UPDATE session_attribute SET value=%s "
-                       "WHERE name=%s AND sid=%s AND authenticated=1",
-                       (value, key, user))
+        cursor.execute("""
+            UPDATE  session_attribute
+                SET value=%s
+            WHERE   name=%s
+                AND sid=%s
+                AND authenticated=1
+            """, (value, key, user))
         if not cursor.rowcount:
-            cursor.execute("INSERT INTO session_attribute "
-                           "(sid,authenticated,name,value) "
-                           "VALUES (%s,1,%s,%s)",
-                           (user, key, value))
+            cursor.execute("""
+                INSERT INTO session_attribute
+                        (sid,authenticated,name,value)
+                VALUES  (%s,1,%s,%s)
+                """, (user, key, value))
     db.commit()
 
 
 class AccountModule(Component):
-    """Allows users to change their password, reset their password if they've
-    forgotten it, or delete their account.  The settings for the AccountManager
-    module must be set in trac.ini in order to use this.
+    """Exposes methods for users to do account management on their own.
+
+    Allows users to change their password, reset their password, if they've
+    forgotten it, even delete their account.  The settings for the
+    AccountManager module must be set in trac.ini in order to use this.
     """
 
     implements(IPreferencePanelProvider, IRequestHandler, ITemplateProvider,
                INavigationContributor, IRequestFilter)
 
     _password_chars = string.ascii_letters + string.digits
-    password_length = IntOption('account-manager', 'generated_password_length',
-                                8, 'Length of the randomly-generated passwords '
-                                'created when resetting the password for an '
-                                'account.')
+    password_length = IntOption(
+        'account-manager', 'generated_password_length', 8,
+        """Length of the randomly-generated passwords created when resetting
+        the password for an account.""")
 
-    reset_password = BoolOption('account-manager', 'reset_password',
-                                True, 'Set to false if there is no email '
-                                'system setup.')
+    reset_password = BoolOption(
+        'account-manager', 'reset_password', True,
+        'Set to False, if there is no email system setup.')
 
     def __init__(self):
         self._write_check(log=True)
 
     def _write_check(self, log=False):
-        writable = AccountManager(self.env).get_all_supporting_stores('set_password')
+        writable = AccountManager(self.env
+                                 ).get_all_supporting_stores('set_password')
         if not writable and log:
             self.log.warn('AccountModule is disabled because the password '
                           'store does not support writing.')
         return writable
 
-    #IPreferencePanelProvider methods
+    # IPreferencePanelProvider methods
+
     def get_preference_panels(self, req):
         writable = self._write_check()
         if not writable:
             return
         if req.authname and req.authname != 'anonymous':
-            user_store = AccountManager(self.env).find_user_store(req.authname)
+            user_store = AccountManager(self.env
+                                       ).find_user_store(req.authname)
             if user_store in writable:
                 yield 'account', _("Account")
 
@@ -216,6 +229,7 @@ class AccountModule(Component):
         return 'prefs_account.html', data
 
     # IRequestHandler methods
+
     def match_request(self, req):
         return (req.path_info == '/reset_password'
                 and self._write_check(log=True))
@@ -225,6 +239,7 @@ class AccountModule(Component):
         return 'reset_password.html', data, None
 
     # IRequestFilter methods
+
     def pre_process_request(self, req, handler):
         return handler
 
@@ -237,6 +252,7 @@ class AccountModule(Component):
         return (template, data, content_type)
 
     # INavigationContributor methods
+
     def get_active_navigation_item(self, req):
         return 'reset_password'
 
@@ -251,15 +267,17 @@ class AccountModule(Component):
         return (self.env.is_component_enabled(AccountModule)
                 and self.reset_password
                 and self._write_check())
+
     reset_password_enabled = property(reset_password_enabled)
 
     def _do_account(self, req):
         if not req.authname or req.authname == 'anonymous':
+            # DEVEL: Shouldn't this be a more generic URL?
             req.redirect(req.href.wiki())
+        acctmgr = AccountManager(self.env)
         action = req.args.get('action')
-        mgr = AccountManager(self.env)
-        delete_enabled = mgr.supports('delete_user') and \
-                             mgr.allow_delete_account
+        delete_enabled = acctmgr.supports('delete_user') and \
+                             acctmgr.allow_delete_account
         data = {'delete_enabled': delete_enabled,
                 'delete_msg_confirm': _(
                     "Are you sure you want to delete your account?"),
@@ -299,25 +317,29 @@ class AccountModule(Component):
             return {'error': _("Email is required")}
 
         new_password = self._random_password()
-        mgr = AccountManager(self.env)
+        acctmgr = AccountManager(self.env)
         try:
-            mgr._notify('password_reset', username, email, new_password)
+            acctmgr._notify('password_reset', username, email, new_password)
         except Exception, e:
             return {'error': ','.join(map(to_unicode, e.args))}
-        mgr.set_password(username, new_password)
-        if mgr.force_passwd_change:
+        acctmgr.set_password(username, new_password)
+        if acctmgr.force_passwd_change:
             db = self.env.get_db_cnx()
             cursor = db.cursor()
-            cursor.execute("UPDATE session_attribute SET value=%s "
-                           "WHERE name=%s AND sid=%s AND authenticated=1",
-                           (1, "force_change_passwd", username))
+            cursor.execute("""
+                UPDATE  session_attribute
+                    SET value=%s
+                WHERE   name=%s
+                    AND sid=%s
+                    AND authenticated=1
+                """, (1, "force_change_passwd", username))
             if not cursor.rowcount:
-                cursor.execute("INSERT INTO session_attribute "
-                               "(sid,authenticated,name,value) "
-                               "VALUES (%s,1,%s,%s)",
-                               (username, "force_change_passwd", 1))
+                cursor.execute("""
+                    INSERT INTO session_attribute
+                            (sid,authenticated,name,value)
+                    VALUES  (%s,1,%s,%s)
+                    """, (username, "force_change_passwd", 1))
             db.commit()
-
         return {'sent_to_email': email}
 
     def _random_password(self):
@@ -326,12 +348,12 @@ class AccountModule(Component):
 
     def _do_change_password(self, req):
         user = req.authname
-        mgr = AccountManager(self.env)
+        acctmgr = AccountManager(self.env)
 
         old_password = req.args.get('old_password')
         if not old_password:
             return {'save_error': _("Old Password cannot be empty.")}
-        if not mgr.check_password(user, old_password):
+        if not acctmgr.check_password(user, old_password):
             return {'save_error': _("Old Password is incorrect.")}
 
         password = req.args.get('password')
@@ -341,20 +363,20 @@ class AccountModule(Component):
         if password != req.args.get('password_confirm'):
             return {'save_error': _("The passwords must match.")}
 
-        mgr.set_password(user, password, old_password)
+        acctmgr.set_password(user, password, old_password)
         return {'message': _("Password successfully updated.")}
 
     def _do_delete(self, req):
         user = req.authname
-        mgr = AccountManager(self.env)
+        acctmgr = AccountManager(self.env)
 
         password = req.args.get('password')
         if not password:
             return {'delete_error': _("Password cannot be empty.")}
-        if not mgr.check_password(user, password):
+        if not acctmgr.check_password(user, password):
             return {'delete_error': _("Password is incorrect.")}
 
-        mgr.delete_user(user)
+        acctmgr.delete_user(user)
         req.redirect(req.href.logout())
 
     # ITemplateProvider methods
@@ -374,6 +396,7 @@ class AccountModule(Component):
 
 class RegistrationModule(Component):
     """Provides users the ability to register a new account.
+
     Requires configuration of the AccountManager module in trac.ini.
     """
 
@@ -407,7 +430,6 @@ class RegistrationModule(Component):
         if req.authname == 'anonymous':
             yield 'metanav', 'register', tag.a(_("Register"),
                                                href=req.href.register())
-
 
     # IRequestHandler methods
 
@@ -443,7 +465,6 @@ class RegistrationModule(Component):
 
         return 'register.html', data, None
 
-
     # ITemplateProvider
 
     def get_htdocs_dirs(self):
@@ -474,7 +495,7 @@ class LoginModule(auth.LoginModule):
     def authenticate(self, req):
         if req.method == 'POST' and req.path_info.startswith('/login'):
             user = self._remote_user(req)
-            mgr = AccountManager(self.env)
+            acctmgr = AccountManager(self.env)
             guard = AccountGuard(self.env)
             if guard.login_attempt_max_count > 0:
                 if user is None:
@@ -482,7 +503,7 @@ class LoginModule(auth.LoginModule):
                         # get user for failed authentication attempt
                         f_user = req.args.get('user')
                         req.args['user_locked'] = False
-                        if mgr.user_known(f_user) is True:
+                        if acctmgr.user_known(f_user) is True:
                             if guard.user_locked(f_user) is False:
                                 # log current failed login attempt
                                 guard.failed_count(f_user, req.remote_addr)
@@ -502,7 +523,7 @@ class LoginModule(auth.LoginModule):
                     else:
                         req.args['user_locked'] = False
                         if req.args.get('failed_logins') is None:
-                            # reset failed login attempts counter
+                            # Reset failed login attempts counter
                             req.args['failed_logins'] = guard.failed_count(
                                                          user, reset = True)
             if 'REMOTE_USER' not in req.environ:
@@ -517,7 +538,7 @@ class LoginModule(auth.LoginModule):
         if req.path_info.startswith('/login') and req.authname == 'anonymous':
             guard = AccountGuard(self.env)
             referrer = self._referer(req)
-            # steer clear of requests going nowhere or loop to self
+            # Steer clear of requests going nowhere or loop to self
             if referrer is None or \
                    referrer.startswith(str(req.abs_href()) + '/login'):
                 referrer = req.abs_href()
@@ -561,8 +582,10 @@ class LoginModule(auth.LoginModule):
 
     # overrides
     def _get_name_for_cookie(self, req, cookie):
-        """Returns the user name for the current Trac session. Is called by
-           authenticate() when the cookie 'trac_auth' is sent by the browser.
+        """Returns the user name for the current Trac session.
+
+        Is called by authenticate() when the cookie 'trac_auth' is sent
+        by the browser.
         """
 
         # Disable IP checking when a persistent session is available, as the
@@ -572,19 +595,19 @@ class LoginModule(auth.LoginModule):
                          AccountManager(self.env).persistent_sessions and \
                          'trac_auth_session' in req.incookie
         if checkIPSetting:
-          self.env.config.set('trac', 'check_auth_ip', False)
+            self.env.config.set('trac', 'check_auth_ip', False)
         
         name = auth.LoginModule._get_name_for_cookie(self, req, cookie)
         
         if checkIPSetting:
-          self.env.config.set('trac', 'check_auth_ip', True) # reenable ip checking
+            # Re-enable IP checking
+            self.env.config.set('trac', 'check_auth_ip', True)
         
         if AccountManager(self.env).persistent_sessions and \
-           name and \
-           'trac_auth_session' in req.incookie:
-            # Persistent sessions enabled, the user is logged in ('name' exists)
-            # and has actually decided to use this feature (indicated by the '
-            # trac_auth_session' cookie existing).
+            name and 'trac_auth_session' in req.incookie:
+            # Persistent sessions enabled, the user is logged in
+            # ('name' exists) and has actually decided to use this feature
+            # (indicated by the 'trac_auth_session' cookie existing).
             # 
             # NOTE: This method is called on every request.
             
@@ -595,8 +618,11 @@ class LoginModule(auth.LoginModule):
             # Refresh in database
             db = self.env.get_db_cnx()
             cursor = db.cursor()
-            cursor.execute('UPDATE auth_cookie SET time=%s WHERE cookie=%s',
-                            (int(time.time()), cookie.value))
+            cursor.execute("""
+                UPDATE  auth_cookie
+                    SET time=%s
+                WHERE   cookie=%s
+                """, (int(time.time()), cookie.value))
             db.commit()
             
             # Refresh session cookie
@@ -650,7 +676,6 @@ class LoginModule(auth.LoginModule):
             req.outcookie['trac_auth_session']['path'] = cookie_path
             if cookie_lifetime > 0:
                 req.outcookie['trac_auth_session']['expires'] = cookie_lifetime
-            
         return res
 
     # overrides
@@ -673,13 +698,13 @@ class LoginModule(auth.LoginModule):
         return None
 
     def _format_ctxtnav(self, items):
-        """Prepare context navigation items for display on login page.
-        """
+        """Prepare context navigation items for display on login page."""
         return list(separated(items, '|'))
 
     def enabled(self):
         # Users should disable the built-in authentication to use this one
         return not self.env.is_component_enabled(auth.LoginModule)
+
     enabled = property(enabled)
 
     # ITemplateProvider methods
@@ -708,7 +733,7 @@ class EmailVerificationModule(Component):
             # that anonymous users can't edit wiki pages and change or create
             # tickets. So this email verifying code won't be used on them.
             return handler
-#        req.perm = perm.PermissionCache(self.env, req.auth_nme)
+        #req.perm = perm.PermissionCache(self.env, req.authname)
         if AccountManager(self.env).verify_email and handler is not self and \
                 'email_verification_token' in req.session and \
                 not req.perm.has_permission('ACCTMGR_ADMIN'):
@@ -731,13 +756,13 @@ class EmailVerificationModule(Component):
 
         email = req.session.get('email')
         # Only send verification if the user entered an email address.
-        mgr = AccountManager(self.env)
-        if mgr.verify_email and email and \
+        acctmgr = AccountManager(self.env)
+        if acctmgr.verify_email and email and \
                 email != req.session.get('email_verification_sent_to') and \
                 not req.perm.has_permission('ACCTMGR_ADMIN'):
             req.session['email_verification_token'] = self._gen_token()
             req.session['email_verification_sent_to'] = email
-            mgr._notify(
+            acctmgr._notify(
                 'email_verification_requested', 
                 req.authname, 
                 req.session['email_verification_token']
@@ -778,7 +803,8 @@ class EmailVerificationModule(Component):
             # allow via POST or GET (the latter for email links)
             if req.args['token'] == req.session['email_verification_token']:
                 del req.session['email_verification_token']
-                chrome.add_notice(req, _("Thank you for verifying your email address."))
+                chrome.add_notice(
+                    req, _("Thank you for verifying your email address."))
                 req.redirect(req.href.prefs())
             else:
                 chrome.add_warning(req, _("Invalid verification token"))
