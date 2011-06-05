@@ -266,7 +266,7 @@ class AccountModule(Component):
     def reset_password_enabled(self):
         return (self.env.is_component_enabled(AccountModule)
                 and self.reset_password
-                and self._write_check())
+                and (self._write_check() != []))
 
     reset_password_enabled = property(reset_password_enabled)
 
