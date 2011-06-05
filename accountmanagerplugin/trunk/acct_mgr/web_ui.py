@@ -24,6 +24,7 @@ from trac.core import *
 from trac.config import Configuration, IntOption, BoolOption
 from trac.prefs import IPreferencePanelProvider
 from trac.util.presentation import separated
+from trac.util.text import to_unicode
 from trac.web import auth
 from trac.web.api import IAuthenticator
 from trac.web.main import IRequestHandler, IRequestFilter
@@ -302,7 +303,7 @@ class AccountModule(Component):
         try:
             mgr._notify('password_reset', username, email, new_password)
         except Exception, e:
-            return {'error': ','.join(e.args)}
+            return {'error': ','.join(map(to_unicode, e.args))}
         mgr.set_password(username, new_password)
         if mgr.force_passwd_change:
             db = self.env.get_db_cnx()
