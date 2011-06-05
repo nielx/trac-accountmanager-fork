@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2005 Matthew Good <trac@matt-good.net>
+# Copyright (C) 2010-2011 Steffen Hoffmann <hoff.st@web.de>
 #
 # "THE BEER-WARE LICENSE" (Revision 42):
 # <trac@matt-good.net> wrote this file.  As long as you retain this notice you
@@ -35,6 +36,7 @@ from genshi.core import Markup
 from genshi.builder import tag
 
 from acct_mgr.api import AccountManager, _, ngettext, tag_
+from acct_mgr.db import SessionStore
 from acct_mgr.guard import AccountGuard
 from acct_mgr.util import containsAny
 
@@ -180,6 +182,12 @@ def _create_user(req, env, check_permissions=True):
     db.commit()
 
 
+class ResetPwStore(SessionStore):
+    """User password store for the 'lost password' procedure."""
+    def __init__(self):
+        self.key = 'password_reset'
+
+
 class AccountModule(Component):
     """Exposes methods for users to do account management on their own.
 
@@ -203,6 +211,7 @@ class AccountModule(Component):
 
     def __init__(self):
         self._write_check(log=True)
+        self.store = ResetPwStore(self.env)
 
     def _write_check(self, log=False):
         writable = AccountManager(self.env
@@ -322,7 +331,7 @@ class AccountModule(Component):
             acctmgr._notify('password_reset', username, email, new_password)
         except Exception, e:
             return {'error': ','.join(map(to_unicode, e.args))}
-        acctmgr.set_password(username, new_password)
+        self.store.set_password(username, new_password)
         if acctmgr.force_passwd_change:
             db = self.env.get_db_cnx()
             cursor = db.cursor()
@@ -494,7 +503,9 @@ class LoginModule(auth.LoginModule):
 
     def authenticate(self, req):
         if req.method == 'POST' and req.path_info.startswith('/login'):
+            self.env.log.debug('REMOTE_USER-ENTRY')
             user = self._remote_user(req)
+            self.env.log.debug('REMOTE_USER-EXIT')
             acctmgr = AccountManager(self.env)
             guard = AccountGuard(self.env)
             if guard.login_attempt_max_count > 0:
@@ -689,12 +700,45 @@ class LoginModule(auth.LoginModule):
         req.outcookie['trac_auth_session']['expires'] = -10000
 
     def _remote_user(self, req):
+        """The real authentication using configured providers and stores."""
         user = req.args.get('user')
         password = req.args.get('password')
         if not user or not password:
             return None
-        if AccountManager(self.env).check_password(user, password):
+        acctmgr = AccountManager(self.env)
+        acctmod = AccountModule(self.env)
+        if acctmod.reset_password_enabled == True:
+            reset_store = acctmod.store
+        else:
+            reset_store = None
+        if acctmgr.check_password(user, password) == True:
+            if reset_store:
+                # Purge any temporary password set for this user before,
+                # to avoid DOS by continuously triggered resets from
+                # a malicious third party.
+                if reset_store.delete_user(user) == True and \
+                        'PASSWORD_RESET' not in req.environ:
+                    db = self.env.get_db_cnx()
+                    cursor = db.cursor()
+                    cursor.execute("""
+                        DELETE
+                        FROM    session_attribute
+                        WHERE   sid=%s
+                            AND name='force_change_passwd'
+                            AND authenticated=1
+                        """, (user,))
+                    db.commit()
             return user
+        # Alternative authentication provided by password reset procedure
+        elif reset_store:
+            if reset_store.check_password(user, password) == True:
+                # Lock, required to prevent another authentication
+                # (spawned by `set_password()`) from possibly deleting
+                # a 'force_change_passwd' db entry for this user.
+                req.environ['PASSWORD_RESET'] = user
+                # Change password to temporary password from reset procedure
+                acctmgr.set_password(user, password)
+                return user
         return None
 
     def _format_ctxtnav(self, items):
