@@ -241,7 +241,8 @@ class AccountModule(Component):
 
     def match_request(self, req):
         return (req.path_info == '/reset_password'
-                and self._write_check(log=True))
+                and self._write_check(log=True)
+                and self.reset_password)
 
     def process_request(self, req):
         data = {'reset': self._do_reset_password(req)}
