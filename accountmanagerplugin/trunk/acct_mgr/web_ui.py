@@ -516,9 +516,7 @@ class LoginModule(auth.LoginModule):
 
     def authenticate(self, req):
         if req.method == 'POST' and req.path_info.startswith('/login'):
-            self.env.log.debug('REMOTE_USER-ENTRY')
             user = self._remote_user(req)
-            self.env.log.debug('REMOTE_USER-EXIT')
             acctmgr = AccountManager(self.env)
             guard = AccountGuard(self.env)
             if guard.login_attempt_max_count > 0:
@@ -780,17 +778,34 @@ class LoginModule(auth.LoginModule):
 
 
 class EmailVerificationModule(Component):
+    """Performs email verification on every new or changed address.
+
+    A working email sender for Trac (!TracNotification or !TracAnnouncer)
+    is strictly required to enable this module's functionality.
+
+    Anonymous users should register and perms should be tweaked, so that
+    anonymous users can't edit wiki pages and change or create tickets.
+    So this email verification code won't be used on them. 
+    """
+
     implements(IRequestFilter, IRequestHandler, ITemplateProvider)
+
+    def __init__(self, *args, **kwargs):
+        self.email_enabled = True
+        if self.config.getbool('announcer', 'email_enabled') != True and \
+                self.config.getbool('notification', 'smtp_enabled') != True:
+            self.email_enabled = False
+            cls_name = self.__class__.__name__
+            if self.env.is_component_enabled(cls_name) != False:
+                self.env.log.warn(
+                    cls_name + ' can\'t work because of missing email setup.')
 
     # IRequestFilter methods
 
     def pre_process_request(self, req, handler):
         if not req.session.authenticated:
-            # Anonymous users should register and perms should be tweaked so
-            # that anonymous users can't edit wiki pages and change or create
-            # tickets. So this email verifying code won't be used on them.
+            # Permissions for anonymous users remain unchanged.
             return handler
-        #req.perm = perm.PermissionCache(self.env, req.authname)
         if AccountManager(self.env).verify_email and handler is not self and \
                 'email_verification_token' in req.session and \
                 not req.perm.has_permission('ACCTMGR_ADMIN'):
@@ -806,15 +821,13 @@ class EmailVerificationModule(Component):
 
     def post_process_request(self, req, template, data, content_type):
         if not req.session.authenticated:
-            # Anonymous users should register and perms should be tweaked so
-            # that anonymous users can't edit wiki pages and change or create
-            # tickets. So, this email verifying code won't be used on them.
+            # Don't start the email verification precedure on anonymous users.
             return template, data, content_type
 
         email = req.session.get('email')
         # Only send verification if the user entered an email address.
         acctmgr = AccountManager(self.env)
-        if acctmgr.verify_email and email and \
+        if acctmgr.verify_email and self.email_enabled is True and email and \
                 email != req.session.get('email_verification_sent_to') and \
                 not req.perm.has_permission('ACCTMGR_ADMIN'):
             req.session['email_verification_token'] = self._gen_token()
