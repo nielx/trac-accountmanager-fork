@@ -30,6 +30,7 @@ class AbstractPasswordFileStore(Component):
     Apache's htpasswd and htdigest format.
     See these concrete sub-classes for usage information.
     """
+    abstract = True
 
     filename = EnvRelativePathOption('account-manager', 'password_file', '',
         doc = _("""Path relative to Trac environment or full host machine
