@@ -238,12 +238,12 @@ class AccountManagerAdminPage(Component):
             elif req.args.get('change'):
                 if password_change_enabled:
                     try:
-                        user = req.args.get('change_user')
-                        account = { 'change_username' : user,
+                        username = req.args.get('change_username')
+                        account = { 'change_username' : username,
                         }
                         error = TracError('')
                         error.account = account
-                        if not user:
+                        if not username:
                             error.message = _("Username cannot be empty.")
                             raise error
 
@@ -256,7 +256,7 @@ class AccountManagerAdminPage(Component):
                             error.message = _("The passwords must match.")
                             raise error
 
-                        acctmgr.set_password(user, password)
+                        acctmgr.set_password(username, password)
                     except TracError, e:
                         data['password_change_error'] = e.message
                         data['account'] = getattr(e, 'account', '')
@@ -324,8 +324,8 @@ class AccountGuardAdminPage(AccountManagerAdminPage):
             return self._do_acct_details(req)
 
     def _do_acct_details(self, req):
-        user = req.args.get('user')
-        if not user:
+        username = req.args.get('user')
+        if not username:
             # Accessing user account details directly is not useful,
             # so we revert such request immediately. 
             add_warning(req, Markup(tag.span(tag_(
@@ -338,63 +338,63 @@ class AccountGuardAdminPage(AccountManagerAdminPage):
 
         if req.method == 'POST':
             if req.args.get('update'):
-                req.redirect(req.href.admin('accounts', 'details', user=user))
-
+                req.redirect(req.href.admin('accounts', 'details',
+                                            user=username))
             if req.args.get('delete') or req.args.get('release'):
                 # delete failed login attempts, evaluating attempts count
-                if guard.failed_count(user, reset=True) > 0:
+                if guard.failed_count(username, reset=True) > 0:
                     add_notice(req, Markup(tag.span(tag_(
                         "Failed login attempts for user %(user)s deleted",
-                        user=tag.b(user)
+                        user=tag.b(username)
                         ))))
             req.redirect(req.href.admin('accounts', 'users'))
 
-        data = {'user': user,}
+        data = {'user': username,}
         stores = StoreOrder(stores=acctmgr.stores,
                             list=acctmgr.password_store)
-        user_store = acctmgr.find_user_store(user)
+        user_store = acctmgr.find_user_store(username)
         if not user_store is None:
             data['user_store'] = user_store.__class__.__name__
             data['store_order_num'] = stores[user_store]
         data['ignore_auth_case'] = \
             self.config.getbool('trac', 'ignore_auth_case')
 
-        for username, name, email in self.env.get_known_users():
-            if username == user:
+        for username_, name, email in self.env.get_known_users():
+            if username_ == username:
                 data['name'] = name
                 if email:
                     data['email'] = email
                 break
         ts_seen = None
-        for row in acctmgr.last_seen(user):
-            if row[0] == user and row[1]:
+        for row in acctmgr.last_seen(username):
+            if row[0] == username and row[1]:
                 data['last_visit'] = format_datetime(row[1], tzinfo=req.tz)
                 break
 
         attempts = []
-        attempts_count = guard.failed_count(user, reset = None)
+        attempts_count = guard.failed_count(username, reset = None)
         if attempts_count > 0:
-            for attempt in guard.get_failed_log(user):
+            for attempt in guard.get_failed_log(username):
                 t = format_datetime(to_datetime(
                                          attempt['time']), tzinfo=req.tz)
                 attempts.append({'ipnr': attempt['ipnr'], 'time': t})
         data['attempts'] = attempts
         data['attempts_count'] = attempts_count
-        data['pretty_lock_time'] = guard.pretty_lock_time(user, next=True)
-        data['lock_count'] = guard.lock_count(user)
-        if guard.user_locked(user) is True:
+        data['pretty_lock_time'] = guard.pretty_lock_time(username, next=True)
+        data['lock_count'] = guard.lock_count(username)
+        if guard.user_locked(username) is True:
             data['user_locked'] = True
-            data['release_time'] = guard.pretty_release_time(req, user)
+            data['release_time'] = guard.pretty_release_time(req, username)
 
         if self.env.is_component_enabled(EmailVerificationModule) and \
                 acctmgr.verify_email is True:
             data['verification'] = 'enabled'
-            data['email_verified'] = acctmgr.email_verified(user, email)
+            data['email_verified'] = acctmgr.email_verified(username, email)
             self.log.debug('AcctMgr:admin:_do_acct_details for user \"' + \
-                user + '\", email \"' + str(email) + '\": ' + \
+                username + '\", email \"' + str(email) + '\": ' + \
                 str(data['email_verified']))
 
         add_stylesheet(req, 'acct_mgr/acct_mgr.css')
-        #req.href.admin('accounts', 'details', user=user)
+        #req.href.admin('accounts', 'details', user=username)
         return 'account_details.html', data
 
