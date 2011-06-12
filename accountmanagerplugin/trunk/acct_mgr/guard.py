@@ -87,40 +87,30 @@ class AccountGuard(Component):
             attempts.append({'ipnr': ipnr,
                              'time': to_utimestamp(to_datetime(None))})
             count += 1
-            if count > 1:
-                # update existing attempts list
-                updated = False
+            # update or create existing attempts list
+            for key, value in [('failed_logins', str(attempts)),
+                               ('failed_logins_count', count)]:
+                sql = """
+                    WHERE   authenticated=1
+                        AND name=%s
+                        AND sid=%s
+                    """
                 cursor.execute("""
-                    UPDATE session_attribute
-                       SET value=%s
-                     WHERE authenticated=1 AND
-                           name='failed_logins' AND sid=%s
-                """, (str(attempts), user))
-                if cursor.rowcount > 0:
-                    updated = True
+                    UPDATE  session_attribute
+                        SET value=%s
+                """ + sql, (value, key, user))
                 cursor.execute("""
-                    UPDATE session_attribute
-                       SET value=%s
-                     WHERE authenticated=1 AND
-                           name='failed_logins_count' AND sid=%s
-                """, (count, user))
-                if (cursor.rowcount > 0 or updated is True):
-                    db.commit()
-            else:
-                # create new attempts list
-                cursor.execute("""
-                    INSERT
-                      INTO session_attribute
-                           (sid,authenticated,name,value)
-                    VALUES (%s,1,'failed_logins',%s)
-                    """, (user, str(attempts)))
-                cursor.execute("""
-                    INSERT
-                      INTO session_attribute
-                           (sid,authenticated,name,value)
-                    VALUES (%s,1,'failed_logins_count',1)
-                    """, (user,))
-                db.commit()
+                    SELECT  value
+                    FROM    session_attribute
+                """ + sql, (key, user))
+                if cursor.fetchone() is None:
+                    cursor.execute("""
+                        INSERT
+                        INTO session_attribute
+                                 (sid,authenticated,name,value)
+                        VALUES   (%s,1,%s,%s)
+                    """, (user, key, value))
+            db.commit()
             self.log.debug(
                 'AcctMgr:failed_count(%s): ' % user + str(count))
             return count
@@ -182,23 +172,18 @@ class AccountGuard(Component):
                 if lock_count is None:
                     # create lock_count cache
                     cursor.execute("""
-                        INSERT
-                          INTO session_attribute
-                               (sid,authenticated,name,value)
-                        VALUES (%s,1,'lock_count',%s)
+                        INSERT INTO session_attribute
+                                (sid,authenticated,name,value)
+                        VALUES  (%s,1,'lock_count',%s)
                         """, (user, 1))
-                    db.commit()
                     lock_count = 1
                 else:
                     lock_count += 1
                     cursor.execute("""
-                        UPDATE session_attribute
-                           SET value=%s
-                         WHERE authenticated=1 AND
-                               name='lock_count' AND sid=%s
-                        """, (lock_count, user))
-                    if cursor.rowcount > 0:
-                        db.commit()
+                        UPDATE  session_attribute
+                            SET value=%s
+                        """ + sql, (lock_count, user))
+                db.commit()
                 return lock_count
         else:
             # reset/delete lock_count cache

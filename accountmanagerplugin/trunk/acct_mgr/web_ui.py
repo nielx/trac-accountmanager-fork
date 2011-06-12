@@ -162,6 +162,11 @@ def _create_user(req, env, check_permissions=True):
             VALUES  (%s,1,0)
             """, (user,))
 
+    sql = """
+        WHERE   name=%s
+            AND sid=%s
+            AND authenticated=1
+        """
     for key in ('name', 'email'):
         value = req.args.get(key)
         if not value:
@@ -169,11 +174,12 @@ def _create_user(req, env, check_permissions=True):
         cursor.execute("""
             UPDATE  session_attribute
                 SET value=%s
-            WHERE   name=%s
-                AND sid=%s
-                AND authenticated=1
-            """, (value, key, user))
-        if not cursor.rowcount:
+            """ + sql, (value, key, user))
+        cursor.execute("""
+            SELECT  value
+            FROM    session_attribute
+            """ + sql, (key, user))
+        if not cursor.fetchone():
             cursor.execute("""
                 INSERT INTO session_attribute
                         (sid,authenticated,name,value)
@@ -336,19 +342,25 @@ class AccountModule(Component):
         if acctmgr.force_passwd_change:
             db = self.env.get_db_cnx()
             cursor = db.cursor()
-            cursor.execute("""
-                UPDATE  session_attribute
-                    SET value=%s
+            sql = """
                 WHERE   name=%s
                     AND sid=%s
                     AND authenticated=1
-                """, (1, "force_change_passwd", username))
-            if not cursor.rowcount:
+                """
+            cursor.execute("""
+                UPDATE  session_attribute
+                    SET value=%s
+                """ + sql, (1, 'force_change_passwd', username))
+            cursor.execute("""
+                SELECT  value
+                FROM    session_attribute
+                """ + sql, ('force_change_passwd', username))
+            if not cursor.fetchone():
                 cursor.execute("""
                     INSERT INTO session_attribute
                             (sid,authenticated,name,value)
                     VALUES  (%s,1,%s,%s)
-                    """, (username, "force_change_passwd", 1))
+                    """, (username, 'force_change_passwd', 1))
             db.commit()
         return {'sent_to_email': email}
 
