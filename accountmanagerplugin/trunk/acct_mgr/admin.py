@@ -109,8 +109,8 @@ class AccountManagerAdminPage(Component):
     implements(IPermissionRequestor, IAdminPanelProvider, ITemplateProvider)
 
     def __init__(self):
-        self.account_manager = AccountManager(self.env)
-        self.account_guard = AccountGuard(self.env)
+        self.acctmgr = AccountManager(self.env)
+        self.guard = AccountGuard(self.env)
 
     # IPermissionRequestor
     def get_permission_actions(self):
@@ -132,8 +132,8 @@ class AccountManagerAdminPage(Component):
             return self._do_users(req)
 
     def _do_config(self, req):
-        stores = StoreOrder(stores=self.account_manager.stores,
-                            list=self.account_manager.password_store)
+        stores = StoreOrder(stores=self.acctmgr.stores,
+                            list=self.acctmgr.password_store)
         if req.method == 'POST':
             _setorder(req, stores)
             self.config.set('account-manager', 'password_store',
@@ -155,7 +155,7 @@ class AccountManagerAdminPage(Component):
                             req.args.get('refresh_passwd', False))
             self.config.save()
         sections = []
-        for store in self.account_manager.stores:
+        for store in self.acctmgr.stores:
             if store.__class__.__name__ == "ResetPwStore":
                 # Exclude special store, that is used strictly internally and
                 # inherits configuration from SessionStore anyway.
@@ -184,28 +184,28 @@ class AccountManagerAdminPage(Component):
         data = {
             'sections': sections,
             'numstores': numstores,
-            'force_passwd_change': self.account_manager.force_passwd_change,
-            'persistent_sessions': self.account_manager.persistent_sessions,
-            'verify_email': self.account_manager.verify_email,
-            'refresh_passwd': self.account_manager.refresh_passwd,
+            'force_passwd_change': self.acctmgr.force_passwd_change,
+            'persistent_sessions': self.acctmgr.persistent_sessions,
+            'verify_email': self.acctmgr.verify_email,
+            'refresh_passwd': self.acctmgr.refresh_passwd,
             }
         return 'admin_accountsconfig.html', data
 
     def _do_users(self, req):
         perm = PermissionSystem(self.env)
-        mgr = self.account_manager
-        guard = self.account_guard
-        listing_enabled = mgr.supports('get_users')
-        create_enabled = mgr.supports('set_password')
-        password_change_enabled = mgr.supports('set_password')
-        delete_enabled = mgr.supports('delete_user')
+        acctmgr = self.acctmgr
+        guard = self.guard
+        listing_enabled = acctmgr.supports('get_users')
+        create_enabled = acctmgr.supports('set_password')
+        password_change_enabled = acctmgr.supports('set_password')
+        delete_enabled = acctmgr.supports('delete_user')
 
         data = {
             'listing_enabled': listing_enabled,
             'create_enabled': create_enabled,
             'delete_enabled': delete_enabled,
             'password_change_enabled': password_change_enabled,
-            'acctmgr' : { 'username' : None,
+            'account' : { 'username' : None,
                           'name' : None,
                           'email' : None,
                         }
@@ -218,7 +218,7 @@ class AccountManagerAdminPage(Component):
                         _create_user(req, self.env, check_permissions=False)
                     except TracError, e:
                         data['registration_error'] = e.message
-                        data['acctmgr'] = getattr(e, 'acctmgr', '')
+                        data['account'] = getattr(e, 'account', '')
                 else:
                     data['registration_error'] = _("""The password store
                                                    does not support
@@ -231,7 +231,7 @@ class AccountManagerAdminPage(Component):
                 elif delete_enabled:
                     sel = isinstance(sel, list) and sel or [sel]
                     for account in sel:
-                        mgr.delete_user(account)
+                        acctmgr.delete_user(account)
                 else:
                     data['deletion_error'] = _("""The password store does
                                                not support deleting users.""")
@@ -239,10 +239,10 @@ class AccountManagerAdminPage(Component):
                 if password_change_enabled:
                     try:
                         user = req.args.get('change_user')
-                        acctmgr = { 'change_username' : user,
+                        account = { 'change_username' : user,
                         }
                         error = TracError('')
-                        error.acctmgr = acctmgr
+                        error.account = account
                         if not user:
                             error.message = _("Username cannot be empty.")
                             raise error
@@ -256,10 +256,10 @@ class AccountManagerAdminPage(Component):
                             error.message = _("The passwords must match.")
                             raise error
 
-                        mgr.set_password(user, password)
+                        acctmgr.set_password(user, password)
                     except TracError, e:
                         data['password_change_error'] = e.message
-                        data['acctmgr'] = getattr(e, 'acctmgr', '')
+                        data['account'] = getattr(e, 'account', '')
                 else:
                     data['password_change_error'] = _("""The password store
                                                       does not support
@@ -267,7 +267,7 @@ class AccountManagerAdminPage(Component):
 
         if listing_enabled:
             accounts = {}
-            for username in mgr.get_users():
+            for username in acctmgr.get_users():
                 accounts[username] = {'username': username}
                 if guard.user_locked(username):
                     accounts[username]['locked'] = True
@@ -286,7 +286,7 @@ class AccountManagerAdminPage(Component):
                     account['name'] = name
                     account['email'] = email
 
-            cursor = mgr.last_seen()
+            cursor = acctmgr.last_seen()
             for username, last_visit in cursor:
                 account = accounts.get(username)
                 if account and last_visit:
@@ -333,8 +333,8 @@ class AccountGuardAdminPage(AccountManagerAdminPage):
                 ))))
             req.redirect(req.href.admin('accounts', 'users'))
 
-        mgr = self.account_manager
-        guard = self.account_guard
+        acctmgr = self.acctmgr
+        guard = self.guard
 
         if req.method == 'POST':
             if req.args.get('update'):
@@ -350,8 +350,9 @@ class AccountGuardAdminPage(AccountManagerAdminPage):
             req.redirect(req.href.admin('accounts', 'users'))
 
         data = {'user': user,}
-        stores = StoreOrder(stores=mgr.stores, list=mgr.password_store)
-        user_store = mgr.find_user_store(user)
+        stores = StoreOrder(stores=acctmgr.stores,
+                            list=acctmgr.password_store)
+        user_store = acctmgr.find_user_store(user)
         if not user_store is None:
             data['user_store'] = user_store.__class__.__name__
             data['store_order_num'] = stores[user_store]
@@ -365,7 +366,7 @@ class AccountGuardAdminPage(AccountManagerAdminPage):
                     data['email'] = email
                 break
         ts_seen = None
-        for row in mgr.last_seen(user):
+        for row in acctmgr.last_seen(user):
             if row[0] == user and row[1]:
                 data['last_visit'] = format_datetime(row[1], tzinfo=req.tz)
                 break
@@ -386,9 +387,9 @@ class AccountGuardAdminPage(AccountManagerAdminPage):
             data['release_time'] = guard.pretty_release_time(req, user)
 
         if self.env.is_component_enabled(EmailVerificationModule) and \
-                mgr.verify_email is True:
+                acctmgr.verify_email is True:
             data['verification'] = 'enabled'
-            data['email_verified'] = mgr.email_verified(user, email)
+            data['email_verified'] = acctmgr.email_verified(user, email)
             self.log.debug('AcctMgr:admin:_do_acct_details for user \"' + \
                 user + '\", email \"' + str(email) + '\": ' + \
                 str(data['email_verified']))
