@@ -38,6 +38,14 @@
       </fieldset>
 
       <fieldset>
+        <legend>Password Refresh</legend>
+        <label>
+          <input type="checkbox" name="refresh_passwd" value="true"
+                 checked="${refresh_passwd and 'checked' or None}" />
+          Silently update password hashes on next successful login.</label>
+      </fieldset>
+
+      <fieldset>
         <legend>Persistent Sessions</legend>
         <label>
           <input type="checkbox" name="persistent_sessions" value="true"
