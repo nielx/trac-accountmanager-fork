@@ -23,7 +23,7 @@ from trac.web.chrome    import ITemplateProvider, add_notice, \
                                add_stylesheet, add_warning
 from trac.admin         import IAdminPanelProvider
 
-from acct_mgr.api       import _, tag_, AccountManager
+from acct_mgr.api       import _, tag_, AccountManager, set_user_attribute
 from acct_mgr.guard     import AccountGuard
 from acct_mgr.web_ui    import _create_user, EmailVerificationModule
 
@@ -236,34 +236,47 @@ class AccountManagerAdminPage(Component):
                     data['deletion_error'] = _("""The password store does
                                                not support deleting users.""")
             elif req.args.get('change'):
-                if password_change_enabled:
-                    try:
-                        username = req.args.get('change_username')
-                        account = { 'change_username' : username,
-                        }
-                        error = TracError('')
-                        error.account = account
-                        if not username:
-                            error.message = _("Username cannot be empty.")
-                            raise error
+                attributes = {
+                    'email': _("Email Address"),
+                    'name': _("Pre-/Surname (Nickname)"),
+                    'password': _("Password")
+                    }
+                data['success'] = []
+                error = TracError('')
+                username = acctmgr.handle_username_casing(
+                                   req.args.get('username').strip())
+                try:
+                    if not username:
+                        error.account = {'username' : username}
+                        error.message = _("Username cannot be empty.")
+                        raise error
 
-                        password = req.args.get('change_password')
-                        if not password:
-                            error.message = _("Password cannot be empty.")
-                            raise error
+                    if not acctmgr.has_user(username):
+                        error.account = {'username' : username}
+                        error.message = _("Unknown user %(user)s.",
+                                          user=username)
+                        raise error
 
-                        if password != req.args.get('change_password_confirm'):
-                            error.message = _("The passwords must match.")
-                            raise error
-
-                        acctmgr.set_password(username, password)
-                    except TracError, e:
-                        data['password_change_error'] = e.message
-                        data['account'] = getattr(e, 'account', '')
-                else:
-                    data['password_change_error'] = _("""The password store
-                                                      does not support
-                                                      changing passwords.""")
+                    password = req.args.get('password')
+                    if password and (password.strip() != ''):
+                        if password_change_enabled:
+                            if password != req.args.get('password_confirm'):
+                                error.message = _("The passwords must match.")
+                                raise error
+                            acctmgr.set_password(username, password)
+                            data['success'].append(attributes.get('password'))
+                        else:
+                            data['password_change_error'] = _("""The password store
+                                                              does not support
+                                                              changing passwords.""")
+                except TracError, e:
+                    data['password_change_error'] = e.message
+                    data['account'] = getattr(e, 'account', '')
+                for attribute in ('name', 'email'):
+                    value = req.args.get(attribute).strip()
+                    if value:
+                        set_user_attribute(self.env, username, attribute, value)
+                        data['success'].append(attributes.get(attribute))
 
         if listing_enabled:
             accounts = {}
