@@ -14,16 +14,26 @@
   <body>
     <h2>Manage User Accounts</h2>
 
-    <form id="addaccount" class="addnew" method="post" py:if="create_enabled">
+    <form id="addaccount" class="addnew" method="post"
+          py:if="create_enabled">
       <fieldset>
-        <div class="system-message"
-             py:if="registration_error"><p>${registration_error}</p></div>
+        <div class="system-message" py:if="registration_error">
+          <p>${registration_error}</p>
+        </div>
+        <div class="system-message" py:if="password_change_error">
+          <p>${password_change_error}</p>
+        </div>
+        <div class="notice system-message" py:if="success">
+          <p i18n:msg="success">
+            Successfully updated: ${', '.join(success)}
+          </p>
+        </div>
 
-        <legend>Add Account:</legend>
+        <legend>Add/Edit Account:</legend>
         <div class="field">
           <label>Username: 
-            <input type="text" name="username" class="textwidget" 
-                   value="${account.username}" /></label>
+            <input type="text" name="username" id="username"
+                   class="textwidget" value="${account.username}" /></label>
         </div>
         <div class="field">
           <label>Password: 
@@ -36,47 +46,19 @@
                    class="textwidget" /></label>
         </div>
         <div class="field">
-          <label>Name: 
+          <label>Pre-/Surname (Nickname): 
             <input type="text" name="name" class="textwidget"
                    value="${account.name}" /></label>
         </div>
         <div class="field">
-          <label>Email: 
+          <label>Email Address: 
             <input type="text" name="email" class="textwidget"
                    value="${account.email}" /></label>
         </div>
-        <p class="help">Add a new user account.</p>
+        <p class="help">Add a new user account or edit an existing one.</p>
         <div class="buttons">
           <input type="submit" name="add"
                  value="${dgettext('acct_mgr', ' Add ')}" />
-        </div>
-      </fieldset>
-    </form>
-
-    <form id="changepassword" class="addnew" method="post"
-          py:if="password_change_enabled">
-      <fieldset>
-        <div class="system-message" py:if="password_change_error">
-          <p>${password_change_error}</p></div>
-
-        <legend>Change Password:</legend>
-        <div class="field">
-          <label>Username:
-            <input type="text" name="change_username" class="textwidget"
-                   value="${account.change_username}" /></label>
-        </div>
-        <div class="field">
-          <label>Password:
-            <input type="password" name="change_password" 
-                   class="textwidget" /></label>
-        </div>
-        <div class="field">
-          <label>Confirm Password:
-            <input type="password" name="change_password_confirm"
-                   class="textwidget" /></label>
-        </div>
-        <p class="help">Change a user's password.</p>
-        <div class="buttons">
           <input type="submit" name="change"
                  value="${dgettext('acct_mgr', ' Change ')}" />
         </div>
