@@ -448,3 +448,32 @@ class AccountManager(Component):
     def user_email_verification_requested(self, user, token):
         self.log.info('Email verification requested user: %s' % user)
 
+
+def set_user_attribute(env, username, attribute, value, db=None):
+    """Set or update a Trac user attribute within an atomic db transaction."""
+    db = _get_db(env, db)
+    cursor = db.cursor()
+    sql = """
+        WHERE   sid=%s
+            AND authenticated=1
+            AND name=%s
+        """
+    cursor.execute("""
+        UPDATE  session_attribute
+            SET value=%s
+        """ + sql, (value, username, attribute))
+    cursor.execute("""
+        SELECT  value
+          FROM  session_attribute
+        """ + sql, (username, attribute))
+    if cursor.fetchone() is None:
+        cursor.execute("""
+            INSERT INTO session_attribute
+                    (sid,authenticated,name,value)
+            VALUES  (%s,1,%s,%s)
+            """, (username, attribute, value))
+    db.commit()
+
+def _get_db(env, db=None):
+    return db or env.get_db_cnx()
+
