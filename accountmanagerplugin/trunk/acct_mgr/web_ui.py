@@ -35,7 +35,7 @@ from trac.web.chrome import INavigationContributor, ITemplateProvider, \
 from genshi.core import Markup
 from genshi.builder import tag
 
-from acct_mgr.api import AccountManager, _, ngettext, tag_
+from acct_mgr.api import AccountManager, _, ngettext, tag_, set_user_attribute
 from acct_mgr.db import SessionStore
 from acct_mgr.guard import AccountGuard
 from acct_mgr.util import containsAny
@@ -162,30 +162,11 @@ def _create_user(req, env, check_permissions=True):
             VALUES  (%s,1,0)
             """, (user,))
 
-    sql = """
-        WHERE   name=%s
-            AND sid=%s
-            AND authenticated=1
-        """
-    for key in ('name', 'email'):
-        value = req.args.get(key)
+    for attribute in ('name', 'email'):
+        value = req.args.get(attribute)
         if not value:
             continue
-        cursor.execute("""
-            UPDATE  session_attribute
-                SET value=%s
-            """ + sql, (value, key, user))
-        cursor.execute("""
-            SELECT  value
-            FROM    session_attribute
-            """ + sql, (key, user))
-        if not cursor.fetchone():
-            cursor.execute("""
-                INSERT INTO session_attribute
-                        (sid,authenticated,name,value)
-                VALUES  (%s,1,%s,%s)
-                """, (user, key, value))
-    db.commit()
+        set_user_attribute(env, user, attribute, value, db)
 
 
 class ResetPwStore(SessionStore):
