@@ -260,9 +260,10 @@ class AccountManager(Component):
         user = self.handle_username_casing(user)
         store = self.find_user_store(user)
         if store and not hasattr(store, 'set_password'):
-            raise TracError(_("""
-                The authentication backend for user %s does not support
-                setting the password.""" % user))
+            raise TracError(_(
+                """The authentication backend for user %s does not support
+                setting the password.
+                """ % user))
         elif not store:
             store = self.get_supporting_store('set_password')
         if store:
@@ -271,9 +272,10 @@ class AccountManager(Component):
             else:
                 self._notify('password_changed', user, password)
         else:
-            raise TracError(_("""
-                None of the IPasswordStore components listed in the
-                trac.ini supports setting the password or creating users."""))
+            raise TracError(_(
+                """None of the IPasswordStore components listed in the
+                trac.ini supports setting the password or creating users.
+                """))
 
     def check_password(self, user, password):
         valid = False

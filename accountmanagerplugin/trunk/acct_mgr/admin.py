@@ -140,8 +140,9 @@ class AccountManagerAdminPage(Component):
                             ','.join(stores.get_enabled_store_names()))
             for store in stores.get_all_stores():
                 for attr, option in _getoptions(store):
-                    newvalue = req.args.get('%s.%s' % (store.__class__.__name__, attr))
-                    self.log.debug("%s.%s: %s" % (store.__class__.__name__, attr, newvalue))
+                    cls_name = store.__class__.__name__
+                    newvalue = req.args.get('%s.%s' % (cls_name, attr))
+                    self.log.debug("%s.%s: %s" % (cls_name, attr, newvalue))
                     if newvalue is not None:
                         self.config.set(option.section, option.name, newvalue)
                         self.config.save()
@@ -192,7 +193,8 @@ class AccountManagerAdminPage(Component):
         return 'admin_accountsconfig.html', data
 
     def _do_users(self, req):
-        perm = PermissionSystem(self.env)
+        env = self.env
+        perm = PermissionSystem(env)
         acctmgr = self.acctmgr
         guard = self.guard
         listing_enabled = acctmgr.supports('get_users')
@@ -215,14 +217,13 @@ class AccountManagerAdminPage(Component):
             if req.args.get('add'):
                 if create_enabled:
                     try:
-                        _create_user(req, self.env, check_permissions=False)
+                        _create_user(req, env, check_permissions=False)
                     except TracError, e:
                         data['registration_error'] = e.message
                         data['account'] = getattr(e, 'account', '')
                 else:
-                    data['registration_error'] = _("""The password store
-                                                   does not support
-                                                   creating users.""")
+                    data['registration_error'] = _(
+                        "The password store does not support creating users.")
             elif req.args.get('remove'):
                 sel = req.args.get('sel')
                 if sel is None:
@@ -233,8 +234,8 @@ class AccountManagerAdminPage(Component):
                     for account in sel:
                         acctmgr.delete_user(account)
                 else:
-                    data['deletion_error'] = _("""The password store does
-                                               not support deleting users.""")
+                    data['deletion_error'] = _(
+                        "The password store does not support deleting users.")
             elif req.args.get('change'):
                 attributes = {
                     'email': _("Email Address"),
@@ -266,16 +267,17 @@ class AccountManagerAdminPage(Component):
                             acctmgr.set_password(username, password)
                             data['success'].append(attributes.get('password'))
                         else:
-                            data['password_change_error'] = _("""The password store
-                                                              does not support
-                                                              changing passwords.""")
+                            data['password_change_error'] = _(
+                                """The password store does not support
+                                changing passwords.
+                                """)
                 except TracError, e:
                     data['password_change_error'] = e.message
                     data['account'] = getattr(e, 'account', '')
                 for attribute in ('name', 'email'):
                     value = req.args.get(attribute).strip()
                     if value:
-                        set_user_attribute(self.env, username, attribute, value)
+                        set_user_attribute(env, username, attribute, value)
                         data['success'].append(attributes.get(attribute))
 
         if listing_enabled:
@@ -293,7 +295,7 @@ class AccountManagerAdminPage(Component):
                             "Locked until %(t_release)s",
                             t_release=t_release)
 
-            for username, name, email in self.env.get_known_users():
+            for username, name, email in env.get_known_users():
                 account = accounts.get(username)
                 if account:
                     account['name'] = name
