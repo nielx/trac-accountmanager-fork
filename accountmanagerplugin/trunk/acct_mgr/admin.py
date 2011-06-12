@@ -154,6 +154,10 @@ class AccountManagerAdminPage(Component):
             self.config.save()
         sections = []
         for store in self.account_manager.stores:
+            if store.__class__.__name__ == "ResetPwStore":
+                # Exclude special store, that is used strictly internally and
+                # inherits configuration from SessionStore anyway.
+                continue
             options = []
             for attr, option in _getoptions(store):
                 opt_val = option.__get__(store, store)
