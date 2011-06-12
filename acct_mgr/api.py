@@ -325,12 +325,17 @@ class AccountManager(Component):
         user = self.handle_username_casing(user)
         db = self.env.get_db_cnx()
         cursor = db.cursor()
-        # Delete session attributes 
-        cursor.execute("DELETE FROM session_attribute where sid=%s", (user,))
-        # Delete session 
-        cursor.execute("DELETE FROM session where sid=%s", (user,))
-        # Delete any custom permissions set for the user 
-        cursor.execute("DELETE FROM permission where username=%s", (user,))
+        # Delete session attributes, session and any custom permissions
+        # set for the user.
+        for table in ['session_attribute', 'session', 'permission']:
+            key = (table == 'permission') and 'username' or 'sid'
+            # Preseed with table name, that is not allowed as SQL argument.
+            sql = """
+                DELETE
+                FROM   %s
+                WHERE  %%s=%%s
+                """ % table
+            cursor.execute(sql, (key, user))
         db.commit()
         db.close()
         # Delete from password store 

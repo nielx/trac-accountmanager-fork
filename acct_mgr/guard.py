@@ -117,10 +117,12 @@ class AccountGuard(Component):
         else:
             # delete existing attempts list
             cursor.execute("""
-                DELETE FROM session_attribute
-                 WHERE authenticated=1 AND
-                       (name='failed_logins' OR
-                       name='failed_logins_count') AND sid=%s
+                DELETE
+                FROM   session_attribute
+                WHERE  authenticated=1
+                    AND (name='failed_logins'
+                        OR name='failed_logins_count')
+                    AND sid=%s
                 """, (user,))
             db.commit()
             # delete lock count too
@@ -135,9 +137,11 @@ class AccountGuard(Component):
         db = self.env.get_db_cnx()
         cursor = db.cursor()
         cursor.execute("""
-            SELECT value
-              FROM session_attribute
-             WHERE authenticated=1 AND name='failed_logins' AND sid=%s
+            SELECT  value
+            FROM    session_attribute
+            WHERE   authenticated=1
+                AND name='failed_logins'
+                AND sid=%s
             """, (user,))
         # read list and add new attempt
         attempts = []
@@ -155,12 +159,15 @@ class AccountGuard(Component):
         db = self.env.get_db_cnx()
         cursor = db.cursor()
         if not action == 'reset':
+            sql = """
+                WHERE   authenticated=1
+                    AND name='lock_count'
+                    AND sid=%s
+                """ 
             cursor.execute("""
-                SELECT value
-                  FROM session_attribute
-                 WHERE authenticated=1 AND
-                       name='lock_count' AND sid=%s
-            """, (user,))
+                SELECT  value
+                FROM    session_attribute
+            """ + sql, (user,))
             lock_count = None
             for row in cursor:
                 lock_count = eval(row[0])
@@ -188,9 +195,11 @@ class AccountGuard(Component):
         else:
             # reset/delete lock_count cache
             cursor.execute("""
-                DELETE FROM session_attribute
-                 WHERE authenticated=1 AND
-                       name='lock_count' AND sid=%s
+                DELETE
+                FROM    session_attribute
+                WHERE   authenticated=1
+                    AND name='lock_count'
+                    AND sid=%s
                 """, (user,))
             db.commit()
             return 0
