@@ -23,7 +23,7 @@
         <div class="field">
           <label>Username: 
             <input type="text" name="user" class="textwidget" 
-                   value="${acctmgr.username}" /></label>
+                   value="${account.username}" /></label>
         </div>
         <div class="field">
           <label>Password: 
@@ -38,12 +38,12 @@
         <div class="field">
           <label>Name: 
             <input type="text" name="name" class="textwidget"
-                   value="${acctmgr.name}" /></label>
+                   value="${account.name}" /></label>
         </div>
         <div class="field">
           <label>Email: 
             <input type="text" name="email" class="textwidget"
-                   value="${acctmgr.email}" /></label>
+                   value="${account.email}" /></label>
         </div>
         <p class="help">Add a new user account.</p>
         <div class="buttons">
@@ -63,7 +63,7 @@
         <div class="field">
           <label>Username:
             <input type="text" name="change_user" class="textwidget"
-                   value="${acctmgr.change_username}" /></label>
+                   value="${account.change_username}" /></label>
         </div>
         <div class="field">
           <label>Password:
@@ -100,27 +100,27 @@
             </tr>
           </thead>
           <tbody>
-            <tr py:for="account in accounts">
+            <tr py:for="acct in accounts">
               <td py:if="delete_enabled">
                 <input type="checkbox" name="sel"
-                       value="${account.username}" />
+                       value="${acct.username}" />
               </td>
-              <td>${account.username}
-                <py:choose py:if="account.locked">
-                  <a href="${account.review_url}"
-                     py:when="account.release_hint"
-                     title="${account.release_hint}">
+              <td>${acct.username}
+                <py:choose py:if="acct.locked">
+                  <a href="${acct.review_url}"
+                     py:when="acct.release_hint"
+                     title="${acct.release_hint}">
                     <img src="${href.chrome('/acct_mgr/time-locked.png')}" />
                   </a>
-                  <a href="${account.review_url}" py:otherwise=""
+                  <a href="${acct.review_url}" py:otherwise=""
                      title="${dgettext('acct_mgr', 'Permanently locked')}">
                     <img src="${href.chrome('/acct_mgr/locked.png')}" />
                   </a>
                 </py:choose>
               </td>
-              <td>${account.name}</td>
-              <td>${account.email}</td>
-              <td>${account.last_visit}</td>
+              <td>${acct.name}</td>
+              <td>${acct.email}</td>
+              <td>${acct.last_visit}</td>
             </tr>
           </tbody>
         </table>
