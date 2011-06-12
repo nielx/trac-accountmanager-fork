@@ -151,6 +151,8 @@ class AccountManagerAdminPage(Component):
                             req.args.get('persistent_sessions', False))
             self.config.set('account-manager', 'verify_email',
                             req.args.get('verify_email', False))
+            self.config.set('account-manager', 'refresh_passwd',
+                            req.args.get('refresh_passwd', False))
             self.config.save()
         sections = []
         for store in self.account_manager.stores:
@@ -185,6 +187,7 @@ class AccountManagerAdminPage(Component):
             'force_passwd_change': self.account_manager.force_passwd_change,
             'persistent_sessions': self.account_manager.persistent_sessions,
             'verify_email': self.account_manager.verify_email,
+            'refresh_passwd': self.account_manager.refresh_passwd,
             }
         return 'admin_accountsconfig.html', data
 
