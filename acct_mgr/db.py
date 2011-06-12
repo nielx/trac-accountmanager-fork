@@ -63,23 +63,28 @@ class SessionStore(Component):
         hash = self.hash_method.generate_hash(user, password)
         db = self.env.get_db_cnx()
         cursor = db.cursor()
-        cursor.execute("""
-            UPDATE  session_attribute
-                SET value=%s
+        sql = """
             WHERE   authenticated=1
                 AND name=%s
                 AND sid=%s
-            """, (hash, self.key, user))
-        if cursor.rowcount > 0:
-            db.commit()
-            return False # Updated existing password
+            """
         cursor.execute("""
-            INSERT INTO session_attribute
-                    (sid,authenticated,name,value)
-            VALUES  (%s,1,%s,%s)
-            """, (user, self.key, hash))
+            UPDATE  session_attribute
+                SET value=%s
+            """ + sql, (hash, self.key, user))
+        cursor.execute("""
+            SELECT  value
+            FROM    session_attribute
+            """ + sql, (self.key, user))
+        not_exists = cursor.fetchone() is None
+        if not_exists:
+            cursor.execute("""
+                INSERT INTO session_attribute
+                        (sid,authenticated,name,value)
+                VALUES  (%s,1,%s,%s)
+                """, (user, self.key, hash))
         db.commit()
-        return True
+        return not_exists
 
     def check_password(self, user, password):
         """Checks if the password is valid for the user."""
@@ -101,19 +106,24 @@ class SessionStore(Component):
 
         Returns True, if the account existed and was deleted, False otherwise.
         """
-        if not self.has_user(user):
-            return False
         db = self.env.get_db_cnx()
         cursor = db.cursor()
-        cursor.execute("""
-            DELETE
-            FROM    session_attribute
+        sql = """
             WHERE   authenticated=1
                 AND name=%s
                 AND sid=%s
-            """, (self.key, user))
-        # TODO: cursor.rowcount doesn't seem to get # deleted.
-        #   Is there another way to get count instead of using has_user?
-        db.commit()
-        return True
+            """
+        # Avoid has_user() to make this transaction atomic.
+        cursor.execute("""
+            SELECT  *
+            FROM    session_attribute
+            """ + sql, (self.key, user))
+        exists = cursor.fetchone() is not None
+        if exists:
+            cursor.execute("""
+                DELETE
+                FROM    session_attribute
+                """ + sql, (self.key, user))
+            db.commit()
+        return exists
 
