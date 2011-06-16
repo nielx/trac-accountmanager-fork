@@ -420,7 +420,7 @@ class RegistrationModule(Component):
                                'usernames only and convert them forcefully '
                                'as required, while \'ignore_auth_case\' is '
                                'enabled in [trac] section of your trac.ini.')
-        return writable
+        return env.is_component_enabled(self.__class__.__name__) and writable
 
     #INavigationContributor methods
 
