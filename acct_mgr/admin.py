@@ -104,7 +104,7 @@ class StoreOrder(dict):
         return len(self.get_all_stores())
 
 
-class AccountManagerAdminPage(Component):
+class AccountManagerAdminPages(Component):
 
     implements(IPermissionRequestor, IAdminPanelProvider, ITemplateProvider)
 
@@ -124,12 +124,15 @@ class AccountManagerAdminPage(Component):
             yield ('accounts', _("Accounts"), 'config', _("Configuration"))
         if req.perm.has_permission('ACCTMGR_USER_ADMIN'):
             yield ('accounts', _("Accounts"), 'users', _("Users"))
+            yield ('accounts', _("Accounts"), 'details', _("Account details"))
 
     def render_admin_panel(self, req, cat, page, path_info):
         if page == 'config':
             return self._do_config(req)
         elif page == 'users':
             return self._do_users(req)
+        elif page == 'details':
+            return self._do_acct_details(req)
 
     def _do_config(self, req):
         stores = StoreOrder(stores=self.acctmgr.stores,
@@ -312,32 +315,6 @@ class AccountManagerAdminPage(Component):
         add_stylesheet(req, 'acct_mgr/acct_mgr.css')
         return 'admin_users.html', data
 
-    # ITemplateProvider methods
-
-    def get_htdocs_dirs(self):
-        """Return the absolute path of a directory containing additional
-        static resources (such as images, style sheets, etc).
-        """
-        return [('acct_mgr', resource_filename(__name__, 'htdocs'))]
-
-    def get_templates_dirs(self):
-        """Return the absolute path of the directory containing the provided
-        Genshi templates.
-        """
-        return [resource_filename(__name__, 'templates')]
-
-
-class AccountGuardAdminPage(AccountManagerAdminPage):
-
-    # IAdminPanelProvider
-    def get_admin_panels(self, req):
-        if req.perm.has_permission('ACCTMGR_USER_ADMIN'):
-            yield ('accounts', _("Accounts"), 'details', _("Account details"))
-
-    def render_admin_panel(self, req, cat, page, path_info):
-        if page == 'details':
-            return self._do_acct_details(req)
-
     def _do_acct_details(self, req):
         username = req.args.get('user')
         if not username:
@@ -412,4 +389,18 @@ class AccountGuardAdminPage(AccountManagerAdminPage):
         add_stylesheet(req, 'acct_mgr/acct_mgr.css')
         #req.href.admin('accounts', 'details', user=username)
         return 'account_details.html', data
+
+    # ITemplateProvider methods
+
+    def get_htdocs_dirs(self):
+        """Return the absolute path of a directory containing additional
+        static resources (such as images, style sheets, etc).
+        """
+        return [('acct_mgr', resource_filename(__name__, 'htdocs'))]
+
+    def get_templates_dirs(self):
+        """Return the absolute path of the directory containing the provided
+        Genshi templates.
+        """
+        return [resource_filename(__name__, 'templates')]
 
