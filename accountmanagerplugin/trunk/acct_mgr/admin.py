@@ -26,6 +26,7 @@ from trac.admin         import IAdminPanelProvider
 from acct_mgr.api       import _, tag_, AccountManager, set_user_attribute
 from acct_mgr.guard     import AccountGuard
 from acct_mgr.web_ui    import _create_user, EmailVerificationModule
+from acct_mgr.util      import is_enabled
 
 
 def _getoptions(cls):
@@ -378,7 +379,7 @@ class AccountManagerAdminPages(Component):
             data['user_locked'] = True
             data['release_time'] = guard.pretty_release_time(req, username)
 
-        if self.env.is_component_enabled(EmailVerificationModule) and \
+        if is_enabled(self.env, EmailVerificationModule) and \
                 acctmgr.verify_email is True:
             data['verification'] = 'enabled'
             data['email_verified'] = acctmgr.email_verified(username, email)

@@ -38,7 +38,7 @@ from genshi.builder import tag
 from acct_mgr.api import AccountManager, _, ngettext, tag_, set_user_attribute
 from acct_mgr.db import SessionStore
 from acct_mgr.guard import AccountGuard
-from acct_mgr.util import containsAny
+from acct_mgr.util import containsAny, is_enabled
 
 
 def _create_user(req, env, check_permissions=True):
@@ -259,7 +259,7 @@ class AccountModule(Component):
                 _("Forgot your password?"), href=req.href.reset_password())
 
     def _reset_password_enabled(self, log=False):
-        return self.env.is_component_enabled(self.__class__.__name__) and \
+        return is_enabled(self.env, self.__class__) and \
                self.reset_password and (self._write_check(log) != [])
 
     reset_password_enabled = property(_reset_password_enabled)
@@ -416,7 +416,7 @@ class RegistrationModule(Component):
                                'usernames only and convert them forcefully '
                                'as required, while \'ignore_auth_case\' is '
                                'enabled in [trac] section of your trac.ini.')
-        return env.is_component_enabled(self.__class__.__name__) and writable
+        return is_enabled(env, self.__class__) and writable
 
     enabled = property(_enable_check)
 
@@ -446,8 +446,8 @@ class RegistrationModule(Component):
                               'email' : None,
                             },
                }
-        data['verify_account_enabled'] = self.env.is_component_enabled(
-                                               EmailVerificationModule)
+        data['verify_account_enabled'] = is_enabled(self.env,
+                                                    EmailVerificationModule)
         if req.method == 'POST' and action == 'create':
             try:
                 _create_user(req, self.env)
@@ -741,7 +741,7 @@ class LoginModule(auth.LoginModule):
 
     def enabled(self):
         # Admin must disable the built-in authentication to use this one.
-        return not self.env.is_component_enabled(auth.LoginModule)
+        return not is_enabled(self.env, auth.LoginModule)
 
     enabled = property(enabled)
 
@@ -778,10 +778,9 @@ class EmailVerificationModule(Component):
         if self.config.getbool('announcer', 'email_enabled') != True and \
                 self.config.getbool('notification', 'smtp_enabled') != True:
             self.email_enabled = False
-            cls_name = self.__class__.__name__
-            if self.env.is_component_enabled(cls_name) != False:
-                self.env.log.warn(
-                    cls_name + ' can\'t work because of missing email setup.')
+            if is_enabled(self.env, self.__class__) == True:
+                self.env.log.warn(self.__class__.__name__ + \
+                    ' can\'t work because of missing email setup.')
 
     # IRequestFilter methods
 
