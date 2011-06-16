@@ -197,12 +197,12 @@ class AccountModule(Component):
         'Set to False, if there is no email system setup.')
 
     def __init__(self):
-        self._write_check(log=True)
+        self.acctmgr = AccountManager(self.env)
         self.store = ResetPwStore(self.env)
+        self._write_check(log=True)
 
     def _write_check(self, log=False):
-        writable = AccountManager(self.env
-                                 ).get_all_supporting_stores('set_password')
+        writable = self.acctmgr.get_all_supporting_stores('set_password')
         if not writable and log:
             self.log.warn('AccountModule is disabled because the password '
                           'store does not support writing.')
@@ -215,8 +215,7 @@ class AccountModule(Component):
         if not writable:
             return
         if req.authname and req.authname != 'anonymous':
-            user_store = AccountManager(self.env
-                                       ).find_user_store(req.authname)
+            user_store = self.acctmgr.find_user_store(req.authname)
             if user_store in writable:
                 yield 'account', _("Account")
 
@@ -227,9 +226,8 @@ class AccountModule(Component):
     # IRequestHandler methods
 
     def match_request(self, req):
-        return (req.path_info == '/reset_password'
-                and self._write_check(log=True)
-                and self.reset_password)
+        return req.path_info == '/reset_password' and \
+               self._reset_password_enabled(log=True)
 
     def process_request(self, req):
         data = {'reset': self._do_reset_password(req)}
@@ -260,21 +258,19 @@ class AccountModule(Component):
             yield 'metanav', 'reset_password', tag.a(
                 _("Forgot your password?"), href=req.href.reset_password())
 
-    def reset_password_enabled(self):
-        return (self.env.is_component_enabled(AccountModule)
-                and self.reset_password
-                and (self._write_check() != []))
+    def _reset_password_enabled(self, log=False):
+        return self.env.is_component_enabled(self.__class__.__name__) and \
+               self.reset_password and (self._write_check(log) != [])
 
-    reset_password_enabled = property(reset_password_enabled)
+    reset_password_enabled = property(_reset_password_enabled)
 
     def _do_account(self, req):
         if not req.authname or req.authname == 'anonymous':
             # DEVEL: Shouldn't this be a more generic URL?
             req.redirect(req.href.wiki())
-        acctmgr = AccountManager(self.env)
         action = req.args.get('action')
-        delete_enabled = acctmgr.supports('delete_user') and \
-                             acctmgr.allow_delete_account
+        delete_enabled = self.acctmgr.supports('delete_user') and \
+                             self.acctmgr.allow_delete_account
         data = {'delete_enabled': delete_enabled,
                 'delete_msg_confirm': _(
                     "Are you sure you want to delete your account?"),
@@ -313,8 +309,8 @@ class AccountModule(Component):
         if not email:
             return {'error': _("Email is required")}
 
+        acctmgr = self.acctmgr
         new_password = self._random_password()
-        acctmgr = AccountManager(self.env)
         try:
             acctmgr._notify('password_reset', username, email, new_password)
         except Exception, e:
@@ -351,12 +347,11 @@ class AccountModule(Component):
 
     def _do_change_password(self, req):
         user = req.authname
-        acctmgr = AccountManager(self.env)
 
         old_password = req.args.get('old_password')
         if not old_password:
             return {'save_error': _("Old Password cannot be empty.")}
-        if not acctmgr.check_password(user, old_password):
+        if not self.acctmgr.check_password(user, old_password):
             return {'save_error': _("Old Password is incorrect.")}
 
         password = req.args.get('password')
@@ -366,17 +361,16 @@ class AccountModule(Component):
         if password != req.args.get('password_confirm'):
             return {'save_error': _("The passwords must match.")}
 
-        acctmgr.set_password(user, password, old_password)
+        self.acctmgr.set_password(user, password, old_password)
         return {'message': _("Password successfully updated.")}
 
     def _do_delete(self, req):
         user = req.authname
-        acctmgr = AccountManager(self.env)
 
         password = req.args.get('password')
         if not password:
             return {'delete_error': _("Password cannot be empty.")}
-        if not acctmgr.check_password(user, password):
+        if not self.acctmgr.check_password(user, password):
             return {'delete_error': _("Password is incorrect.")}
 
         acctmgr.delete_user(user)
@@ -406,11 +400,13 @@ class RegistrationModule(Component):
     implements(INavigationContributor, IRequestHandler, ITemplateProvider)
 
     def __init__(self):
+        self.acctmgr = AccountManager(self.env)
         self._enable_check(log=True)
 
     def _enable_check(self, log=False):
-        writable = AccountManager(self.env).supports('set_password')
-        ignore_case = auth.LoginModule(self.env).ignore_case
+        env = self.env
+        writable = self.acctmgr.supports('set_password')
+        ignore_case = auth.LoginModule(env).ignore_case
         if log:
             if not writable:
                 self.log.warn('RegistrationModule is disabled because the '
@@ -422,13 +418,15 @@ class RegistrationModule(Component):
                                'enabled in [trac] section of your trac.ini.')
         return env.is_component_enabled(self.__class__.__name__) and writable
 
-    #INavigationContributor methods
+    enabled = property(_enable_check)
+
+    # INavigationContributor methods
 
     def get_active_navigation_item(self, req):
         return 'register'
 
     def get_navigation_items(self, req):
-        if not self._enable_check() or LoginModule(self.env).enabled:
+        if not self.enabled or LoginModule(self.env).enabled:
             return
         if req.authname == 'anonymous':
             yield 'metanav', 'register', tag.a(_("Register"),
@@ -462,10 +460,8 @@ class RegistrationModule(Component):
                      You may login as user %(user)s now.""",
                      user=tag.b(req.args.get('user'))))))
                 req.redirect(req.href.login())
-        data['reset_password_enabled'] = \
-            (self.env.is_component_enabled(AccountModule)
-             and AccountModule(self.env).reset_password)
-
+        data['reset_password_enabled'] = AccountModule(self.env
+                                                      ).reset_password_enabled
         return 'register.html', data, None
 
     # ITemplateProvider
@@ -492,6 +488,12 @@ def if_enabled(func):
 
 
 class LoginModule(auth.LoginModule):
+    """Custom login form and processing.
+
+    This is woven with the trac.auth.LoginModule it inherits and overwrites.
+    But both can't co-exist, so Trac's built-in authentication module
+    must be disabled to use this one.
+    """
 
     implements(ITemplateProvider)
 
@@ -538,8 +540,9 @@ class LoginModule(auth.LoginModule):
     match_request = if_enabled(auth.LoginModule.match_request)
 
     def process_request(self, req):
+        env = self.env
         if req.path_info.startswith('/login') and req.authname == 'anonymous':
-            guard = AccountGuard(self.env)
+            guard = AccountGuard(env)
             referrer = self._referer(req)
             # Steer clear of requests going nowhere or loop to self
             if referrer is None or \
@@ -547,12 +550,11 @@ class LoginModule(auth.LoginModule):
                 referrer = req.abs_href()
             data = {
                 'referer': referrer,
-                'reset_password_enabled': AccountModule(self.env
+                'reset_password_enabled': AccountModule(env
                                           ).reset_password_enabled,
-                'persistent_sessions': AccountManager(self.env
+                'persistent_sessions': AccountManager(env
                                        ).persistent_sessions,
-                'registration_enabled': RegistrationModule(self.env
-                                        )._enable_check()
+                'registration_enabled': RegistrationModule(env).enabled
             }
             if req.method == 'POST':
                 self.log.debug('user_locked: ' + \
@@ -587,15 +589,16 @@ class LoginModule(auth.LoginModule):
     def _get_name_for_cookie(self, req, cookie):
         """Returns the user name for the current Trac session.
 
-        Is called by authenticate() when the cookie 'trac_auth' is sent
+        It's called by authenticate() when the cookie 'trac_auth' is sent
         by the browser.
         """
+
+        acctmgr = AccountManager(self.env)
 
         # Disable IP checking when a persistent session is available, as the
         # user may have a dynamic IP adress and this would lead to the user 
         # being logged out due to an IP address conflict.
-        checkIPSetting = self.check_ip and \
-                         AccountManager(self.env).persistent_sessions and \
+        checkIPSetting = self.check_ip and acctmgr.persistent_sessions and \
                          'trac_auth_session' in req.incookie
         if checkIPSetting:
             self.env.config.set('trac', 'check_auth_ip', False)
@@ -606,8 +609,8 @@ class LoginModule(auth.LoginModule):
             # Re-enable IP checking
             self.env.config.set('trac', 'check_auth_ip', True)
         
-        if AccountManager(self.env).persistent_sessions and \
-            name and 'trac_auth_session' in req.incookie:
+        if acctmgr.persistent_sessions and name and \
+                'trac_auth_session' in req.incookie:
             # Persistent sessions enabled, the user is logged in
             # ('name' exists) and has actually decided to use this feature
             # (indicated by the 'trac_auth_session' cookie existing).
@@ -652,7 +655,6 @@ class LoginModule(auth.LoginModule):
             req.outcookie['trac_auth_session']['path'] = cookie_path
             if cookie_lifetime > 0:
                 req.outcookie['trac_auth_session']['expires'] = cookie_lifetime
-
         return name
 
     # overrides
@@ -738,7 +740,7 @@ class LoginModule(auth.LoginModule):
         return list(separated(items, '|'))
 
     def enabled(self):
-        # Users should disable the built-in authentication to use this one
+        # Admin must disable the built-in authentication to use this one.
         return not self.env.is_component_enabled(auth.LoginModule)
 
     enabled = property(enabled)
