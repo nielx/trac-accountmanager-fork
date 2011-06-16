@@ -426,7 +426,8 @@ class RegistrationModule(Component):
         return 'register'
 
     def get_navigation_items(self, req):
-        if not self.enabled or LoginModule(self.env).enabled:
+        loginmod = LoginModule(self.env)
+        if not self.enabled:
             return
         if req.authname == 'anonymous':
             yield 'metanav', 'register', tag.a(_("Register"),
@@ -497,6 +498,11 @@ class LoginModule(auth.LoginModule):
 
     implements(ITemplateProvider)
 
+    login_opt_list = BoolOption(
+        'account-manager', 'login_opt_list', False,
+        """Set to True, to switch login page style showing alternative actions
+        in a single listing together.""")
+
     def authenticate(self, req):
         if req.method == 'POST' and req.path_info.startswith('/login'):
             user = self._remote_user(req)
@@ -549,12 +555,13 @@ class LoginModule(auth.LoginModule):
                    referrer.startswith(str(req.abs_href()) + '/login'):
                 referrer = req.abs_href()
             data = {
-                'referer': referrer,
-                'reset_password_enabled': AccountModule(env
-                                          ).reset_password_enabled,
+                'login_opt_list': self.login_opt_list == True,
                 'persistent_sessions': AccountManager(env
                                        ).persistent_sessions,
-                'registration_enabled': RegistrationModule(env).enabled
+                'referer': referrer,
+                'registration_enabled': RegistrationModule(env).enabled,
+                'reset_password_enabled': AccountModule(env
+                                          ).reset_password_enabled
             }
             if req.method == 'POST':
                 self.log.debug('user_locked: ' + \
@@ -572,8 +579,6 @@ class LoginModule(auth.LoginModule):
                             """, release_time=release_time)
                     else:
                         data['login_error'] = _("Account locked")
-            add_stylesheet(req, 'acct_mgr/acct_mgr_login.css')
-
             return 'login.html', data, None
         else:
             n_plural=req.args.get('failed_logins')
@@ -751,7 +756,7 @@ class LoginModule(auth.LoginModule):
         """Return the absolute path of a directory containing additional
         static resources (such as images, style sheets, etc).
         """
-        return [('acct_mgr', resource_filename(__name__, 'htdocs'))]
+        return []
 
     def get_templates_dirs(self):
         """Return the absolute path of the directory containing the provided
