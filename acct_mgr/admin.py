@@ -228,12 +228,9 @@ class AccountManagerAdminPages(Component):
                 else:
                     data['registration_error'] = _(
                         "The password store does not support creating users.")
-            elif req.args.get('remove'):
-                sel = req.args.get('sel')
-                if sel is None:
-                    # so nothing to be done
-                    pass
-                elif delete_enabled:
+            elif req.args.get('remove') and req.args.get('sel'):
+                if delete_enabled:
+                    sel = req.args.get('sel')
                     sel = isinstance(sel, list) and sel or [sel]
                     for account in sel:
                         acctmgr.delete_user(account)
