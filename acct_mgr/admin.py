@@ -25,7 +25,8 @@ from trac.admin         import IAdminPanelProvider
 
 from acct_mgr.api       import _, tag_, AccountManager, set_user_attribute
 from acct_mgr.guard     import AccountGuard
-from acct_mgr.web_ui    import _create_user, EmailVerificationModule
+from acct_mgr.web_ui    import _create_user, AccountModule, \
+                               EmailVerificationModule
 from acct_mgr.util      import is_enabled
 
 
@@ -200,10 +201,12 @@ class AccountManagerAdminPages(Component):
         env = self.env
         perm = PermissionSystem(env)
         acctmgr = self.acctmgr
+        acctmod = AccountModule(env)
         guard = self.guard
         listing_enabled = acctmgr.supports('get_users')
         create_enabled = acctmgr.supports('set_password')
         password_change_enabled = acctmgr.supports('set_password')
+        password_reset_enabled = acctmod.reset_password_enabled
         delete_enabled = acctmgr.supports('delete_user')
 
         data = {
@@ -211,6 +214,7 @@ class AccountManagerAdminPages(Component):
             'create_enabled': create_enabled,
             'delete_enabled': delete_enabled,
             'password_change_enabled': password_change_enabled,
+            'password_reset_enabled': password_reset_enabled,
             'account' : { 'username' : None,
                           'name' : None,
                           'email' : None,
@@ -228,6 +232,16 @@ class AccountManagerAdminPages(Component):
                 else:
                     data['registration_error'] = _(
                         "The password store does not support creating users.")
+            elif req.args.get('reset') and req.args.get('sel'):
+                if password_reset_enabled:
+                    sel = req.args.get('sel')
+                    sel = isinstance(sel, list) and sel or [sel]
+                    for username, name, email in env.get_known_users():
+                        if username in sel:
+                            acctmod._reset_password(username, email)
+                else:
+                    data['password_reset_error'] = _(
+                        "The password reset procedure is not enabled.")
             elif req.args.get('remove') and req.args.get('sel'):
                 if delete_enabled:
                     sel = req.args.get('sel')

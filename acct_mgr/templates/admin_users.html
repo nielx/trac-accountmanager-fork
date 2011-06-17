@@ -107,8 +107,12 @@
           </tbody>
         </table>
       </div>
-      <div class="buttons" py:if="delete_enabled">
+      <div class="buttons">
+        <input type="submit" name="reset"
+               py:if="password_reset_enabled"
+               value="${dgettext('acct_mgr', 'Reset passwords')}" />
         <input type="submit" name="remove"
+               py:if="delete_enabled"
                value="${dgettext('acct_mgr', 'Remove selected accounts')}" />
       </div>
     </form>
