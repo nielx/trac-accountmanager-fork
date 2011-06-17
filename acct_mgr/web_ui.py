@@ -308,7 +308,15 @@ class AccountModule(Component):
             return {'error': _("Username is required")}
         if not email:
             return {'error': _("Email is required")}
+        for username_, name, email_ in self.env.get_known_users():
+            if username_ == username and email_ == email:
+                self._reset_password(username, email)
+                break
+        else:
+            return {'error': _("Username and email must match.")}
+        return {'sent_to_email': email}
 
+    def _reset_password(self, username, email):
         acctmgr = self.acctmgr
         new_password = self._random_password()
         try:
@@ -317,29 +325,7 @@ class AccountModule(Component):
             return {'error': ','.join(map(to_unicode, e.args))}
         self.store.set_password(username, new_password)
         if acctmgr.force_passwd_change:
-            db = self.env.get_db_cnx()
-            cursor = db.cursor()
-            sql = """
-                WHERE   name=%s
-                    AND sid=%s
-                    AND authenticated=1
-                """
-            cursor.execute("""
-                UPDATE  session_attribute
-                    SET value=%s
-                """ + sql, (1, 'force_change_passwd', username))
-            cursor.execute("""
-                SELECT  value
-                FROM    session_attribute
-                """ + sql, ('force_change_passwd', username))
-            if not cursor.fetchone():
-                cursor.execute("""
-                    INSERT INTO session_attribute
-                            (sid,authenticated,name,value)
-                    VALUES  (%s,1,%s,%s)
-                    """, (username, 'force_change_passwd', 1))
-            db.commit()
-        return {'sent_to_email': email}
+            set_user_attribute(self.env, username, 'force_change_passwd', 1)
 
     def _random_password(self):
         return ''.join([random.choice(self._password_chars)
