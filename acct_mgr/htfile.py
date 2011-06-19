@@ -18,7 +18,7 @@ import os # to get not only os.path method but os.linesep too
 from trac.core import *
 from trac.config import Option
 
-from acct_mgr.api import IPasswordStore, _
+from acct_mgr.api import IPasswordStore, _, N_
 from acct_mgr.pwhash import htpasswd, mkhtpasswd, htdigest
 from acct_mgr.util import EnvRelativePathOption
 
@@ -33,7 +33,7 @@ class AbstractPasswordFileStore(Component):
     abstract = True
 
     filename = EnvRelativePathOption('account-manager', 'password_file', '',
-        doc = _("""Path relative to Trac environment or full host machine
+        doc = N_("""Path relative to Trac environment or full host machine
                 path to password file"""))
 
     def has_user(self, user):
@@ -194,7 +194,7 @@ class HtPasswdStore(AbstractPasswordFileStore):
     implements(IPasswordStore)
 
     hash_type = Option('account-manager', 'htpasswd_hash_type', 'crypt',
-        doc = _("Default hash type of new/updated passwords"))
+        doc = N_("Default hash type of new/updated passwords"))
 
     def config_key(self):
         return 'htpasswd'
@@ -232,7 +232,7 @@ class HtDigestStore(AbstractPasswordFileStore):
     implements(IPasswordStore)
 
     realm = Option('account-manager', 'htdigest_realm', '',
-        doc = _("Realm to select relevant htdigest file entries"))
+        doc = N_("Realm to select relevant htdigest file entries"))
 
     def config_key(self):
         return 'htdigest'

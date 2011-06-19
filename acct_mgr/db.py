@@ -12,7 +12,7 @@
 from trac.core import *
 from trac.config import ExtensionOption
 
-from acct_mgr.api import IPasswordStore, _
+from acct_mgr.api import IPasswordStore, _, N_
 from acct_mgr.pwhash import IPasswordHashMethod
 
 
@@ -21,7 +21,7 @@ class SessionStore(Component):
 
     hash_method = ExtensionOption('account-manager', 'hash_method',
         IPasswordHashMethod, 'HtDigestHashMethod',
-        doc = _("Default hash type of new/updated passwords"))
+        doc = N_("Default hash type of new/updated passwords"))
 
     def __init__(self):
         self.key = 'password'

@@ -22,7 +22,7 @@ class HttpAuthStore(Component):
     implements(IPasswordStore)
 
     auth_url = Option('account-manager', 'authentication_url', '',
-        doc = _("URL of the HTTP authentication service"))
+        doc = N_("URL of the HTTP authentication service"))
 
     def check_password(self, user, password):
         mgr = HTTPPasswordMgrWithDefaultRealm()
