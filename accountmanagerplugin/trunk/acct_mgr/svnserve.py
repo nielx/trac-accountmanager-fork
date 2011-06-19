@@ -15,7 +15,7 @@ from trac.core import *
 from trac.config import Configuration
 from trac.versioncontrol import RepositoryManager
 
-from acct_mgr.api import IPasswordStore, _
+from acct_mgr.api import IPasswordStore, _, N_
 from acct_mgr.util import EnvRelativePathOption
 
 
@@ -26,7 +26,7 @@ class SvnServePasswordStore(Component):
     implements(IPasswordStore)
 
     filename = EnvRelativePathOption('account-manager', 'password_file',
-        doc = _("""Path to the users file; leave blank to locate
+        doc = N_("""Path to the users file; leave blank to locate
                 the users file by reading svnserve.conf"""))
 
     def __init__(self):

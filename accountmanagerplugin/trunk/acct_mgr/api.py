@@ -19,12 +19,14 @@ from trac.core      import *
 # by keeping Babel optional here.
 try:
     from  trac.util.translation  import  domain_functions
-    add_domain, _, ngettext, tag_ = \
-        domain_functions('acct_mgr', ('add_domain', '_', 'ngettext', 'tag_'))
+    add_domain, _, N_, gettext, ngettext, tag_ = \
+        domain_functions('acct_mgr', ('add_domain', '_', 'N_', 'gettext',
+                                      'ngettext', 'tag_'))
 except ImportError:
     from  genshi.builder         import  tag as tag_
     from  trac.util.translation  import  gettext
     _ = gettext
+    N_ = lambda text: text
     ngettext = _
     def add_domain(a,b,c=None):
         pass

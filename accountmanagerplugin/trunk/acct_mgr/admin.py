@@ -23,7 +23,8 @@ from trac.web.chrome    import ITemplateProvider, add_notice, \
                                add_stylesheet, add_warning
 from trac.admin         import IAdminPanelProvider
 
-from acct_mgr.api       import _, tag_, AccountManager, set_user_attribute
+from acct_mgr.api       import _, gettext, tag_, AccountManager, \
+                               set_user_attribute
 from acct_mgr.guard     import AccountGuard
 from acct_mgr.web_ui    import _create_user, AccountModule, \
                                EmailVerificationModule
@@ -175,7 +176,7 @@ class AccountManagerAdminPages(Component):
                             {'label': attr,
                             'name': '%s.%s' % (store.__class__.__name__, attr),
                             'value': opt_val,
-                            'doc': option.__doc__
+                            'doc': gettext(option.__doc__)
                             })
                 continue
             sections.append(
