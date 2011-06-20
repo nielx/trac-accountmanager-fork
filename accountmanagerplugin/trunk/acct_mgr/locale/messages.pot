@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: TracAccountManager 0.3\n"
 "Report-Msgid-Bugs-To: hoff.st@shaas.net\n"
-"POT-Creation-Date: 2011-06-12 15:07+0200\n"
+"POT-Creation-Date: 2011-06-20 22:09+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,83 +18,87 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 1.0dev-r482\n"
 
-#: acct_mgr/admin.py:78
+#: acct_mgr/admin.py:81
 #, python-format
 msgid "Invalid key type (%s) for StoreOrder"
 msgstr ""
 
-#: acct_mgr/admin.py:124 acct_mgr/admin.py:126 acct_mgr/admin.py:335
+#: acct_mgr/admin.py:127 acct_mgr/admin.py:129 acct_mgr/admin.py:130
 #: acct_mgr/notification.py:171 acct_mgr/templates/admin_users.html:11
 msgid "Accounts"
 msgstr ""
 
-#: acct_mgr/admin.py:124
+#: acct_mgr/admin.py:127
 msgid "Configuration"
 msgstr ""
 
-#: acct_mgr/admin.py:126
+#: acct_mgr/admin.py:129
 msgid "Users"
 msgstr ""
 
-#: acct_mgr/admin.py:225
+#: acct_mgr/admin.py:130
+msgid "Account details"
+msgstr ""
+
+#: acct_mgr/admin.py:234
 msgid "The password store does not support creating users."
 msgstr ""
 
-#: acct_mgr/admin.py:237
+#: acct_mgr/admin.py:244
+msgid "The password reset procedure is not enabled."
+msgstr ""
+
+#: acct_mgr/admin.py:253
 msgid "The password store does not support deleting users."
 msgstr ""
 
-#: acct_mgr/admin.py:241
+#: acct_mgr/admin.py:257
 msgid "Email Address"
 msgstr ""
 
-#: acct_mgr/admin.py:242
+#: acct_mgr/admin.py:258
 msgid "Pre-/Surname (Nickname)"
 msgstr ""
 
-#: acct_mgr/admin.py:243
+#: acct_mgr/admin.py:259
 msgid "Password"
 msgstr ""
 
-#: acct_mgr/admin.py:252 acct_mgr/web_ui.py:58
+#: acct_mgr/admin.py:268 acct_mgr/web_ui.py:58
 msgid "Username cannot be empty."
 msgstr ""
 
-#: acct_mgr/admin.py:257
+#: acct_mgr/admin.py:273
 #, python-format
 msgid "Unknown user %(user)s."
 msgstr ""
 
-#: acct_mgr/admin.py:265 acct_mgr/web_ui.py:124 acct_mgr/web_ui.py:367
+#: acct_mgr/admin.py:281 acct_mgr/web_ui.py:124 acct_mgr/web_ui.py:349
 msgid "The passwords must match."
 msgstr ""
 
-#: acct_mgr/admin.py:270
+#: acct_mgr/admin.py:286
 msgid ""
 "The password store does not support\n"
 "                                changing passwords.\n"
 "                                "
 msgstr ""
 
-#: acct_mgr/admin.py:294
+#: acct_mgr/admin.py:311
 #, python-format
 msgid "Locked until %(t_release)s"
 msgstr ""
 
-#: acct_mgr/admin.py:335
-msgid "Account details"
-msgstr ""
-
-#: acct_mgr/admin.py:346
+#: acct_mgr/admin.py:337
 msgid "Please choose account by username from list to proceed."
 msgstr ""
 
-#: acct_mgr/admin.py:363
+#: acct_mgr/admin.py:354
 #, python-format
 msgid "Failed login attempts for user %(user)s deleted"
 msgstr ""
 
-#: acct_mgr/api.py:263
+#: acct_mgr/api.py:265
 #, python-format
 msgid ""
 "The authentication backend for user %s does not support\n"
@@ -102,7 +106,7 @@ msgid ""
 "                "
 msgstr ""
 
-#: acct_mgr/api.py:275
+#: acct_mgr/api.py:277
 msgid ""
 "None of the IPasswordStore components listed in the\n"
 "                trac.ini supports setting the password or creating "
@@ -110,31 +114,31 @@ msgid ""
 "                "
 msgstr ""
 
-#: acct_mgr/db.py:24 acct_mgr/htfile.py:196
+#: acct_mgr/db.py:24 acct_mgr/htfile.py:197
 msgid "Default hash type of new/updated passwords"
 msgstr ""
 
-#: acct_mgr/htfile.py:35
+#: acct_mgr/htfile.py:36
 msgid ""
 "Path relative to Trac environment or full host machine\n"
 "                path to password file"
 msgstr ""
 
-#: acct_mgr/htfile.py:142
+#: acct_mgr/htfile.py:143
 msgid ""
 "The password file could not be read. Trac requires\n"
 "                    read and write access to both the password file\n"
 "                    and its parent directory."
 msgstr ""
 
-#: acct_mgr/htfile.py:160
+#: acct_mgr/htfile.py:161
 msgid ""
 "The password file could not be updated. Trac requires\n"
 "                    read and write access to both the password file\n"
 "                    and its parent directory."
 msgstr ""
 
-#: acct_mgr/htfile.py:234
+#: acct_mgr/htfile.py:235
 msgid "Realm to select relevant htdigest file entries"
 msgstr ""
 
@@ -176,7 +180,7 @@ msgstr ""
 msgid "The username must not contain any of these characters:"
 msgstr ""
 
-#: acct_mgr/web_ui.py:120 acct_mgr/web_ui.py:364 acct_mgr/web_ui.py:378
+#: acct_mgr/web_ui.py:120 acct_mgr/web_ui.py:346 acct_mgr/web_ui.py:359
 msgid "Password cannot be empty."
 msgstr ""
 
@@ -199,64 +203,68 @@ msgid ""
 "                              "
 msgstr ""
 
-#: acct_mgr/web_ui.py:221 acct_mgr/templates/admin_users.html:81
+#: acct_mgr/web_ui.py:220 acct_mgr/templates/admin_users.html:80
 #: acct_mgr/templates/prefs_account.html:42
 msgid "Account"
 msgstr ""
 
-#: acct_mgr/web_ui.py:261 acct_mgr/templates/login.html:54
-#: acct_mgr/templates/login.html:57
+#: acct_mgr/web_ui.py:259 acct_mgr/templates/login.html:42
+#: acct_mgr/templates/login.html:63 acct_mgr/templates/login.html:66
 msgid "Forgot your password?"
 msgstr ""
 
-#: acct_mgr/web_ui.py:279
+#: acct_mgr/web_ui.py:275
 msgid "Are you sure you want to delete your account?"
 msgstr ""
 
-#: acct_mgr/web_ui.py:289
+#: acct_mgr/web_ui.py:285
 msgid "Thank you for taking the time to update your password."
 msgstr ""
 
-#: acct_mgr/web_ui.py:298
+#: acct_mgr/web_ui.py:294
 msgid ""
 "You are required to change password because of a recent password "
 "change request. "
 msgstr ""
 
-#: acct_mgr/web_ui.py:301
+#: acct_mgr/web_ui.py:297
 msgid "Please change your password now."
 msgstr ""
 
-#: acct_mgr/web_ui.py:312
+#: acct_mgr/web_ui.py:308
 msgid "Username is required"
 msgstr ""
 
-#: acct_mgr/web_ui.py:314
+#: acct_mgr/web_ui.py:310
 msgid "Email is required"
 msgstr ""
 
-#: acct_mgr/web_ui.py:358
+#: acct_mgr/web_ui.py:316
+msgid "The email and username must match a known account."
+msgstr ""
+
+#: acct_mgr/web_ui.py:340
 msgid "Old Password cannot be empty."
 msgstr ""
 
-#: acct_mgr/web_ui.py:360
+#: acct_mgr/web_ui.py:342
 msgid "Old Password is incorrect."
 msgstr ""
 
-#: acct_mgr/web_ui.py:370
+#: acct_mgr/web_ui.py:352
 msgid "Password successfully updated."
 msgstr ""
 
-#: acct_mgr/web_ui.py:380
+#: acct_mgr/web_ui.py:361
 msgid "Password is incorrect."
 msgstr ""
 
-#: acct_mgr/web_ui.py:434 acct_mgr/templates/login.html:46
-#: acct_mgr/templates/login.html:49 acct_mgr/templates/register.html:11
+#: acct_mgr/web_ui.py:420 acct_mgr/templates/login.html:55
+#: acct_mgr/templates/login.html:58 acct_mgr/templates/register.html:11
 msgid "Register"
 msgstr ""
 
-#: acct_mgr/web_ui.py:463
+#: acct_mgr/web_ui.py:449
 #, python-format
 msgid ""
 "Registration has been finished successfully.\n"
@@ -264,11 +272,11 @@ msgid ""
 msgstr ""
 
 #. TRANSLATOR: Intentionally obfuscated login error
-#: acct_mgr/web_ui.py:562
+#: acct_mgr/web_ui.py:558
 msgid "Invalid username or password"
 msgstr ""
 
-#: acct_mgr/web_ui.py:567
+#: acct_mgr/web_ui.py:563
 #, python-format
 msgid ""
 "Account locked, please try again after\n"
@@ -276,11 +284,11 @@ msgid ""
 "                            "
 msgstr ""
 
-#: acct_mgr/web_ui.py:572
+#: acct_mgr/web_ui.py:568
 msgid "Account locked"
 msgstr ""
 
-#: acct_mgr/web_ui.py:579
+#: acct_mgr/web_ui.py:573
 #, python-format
 msgid "Login after %(attempts)s failed attempt"
 msgid_plural "Login after %(attempts)s failed attempts"
@@ -288,48 +296,48 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. TRANSLATOR: Your permissions have been limited until you ...
-#: acct_mgr/web_ui.py:794
+#: acct_mgr/web_ui.py:787
 msgid "verify your email address"
 msgstr ""
 
 #. TRANSLATOR: ... verify your email address
-#: acct_mgr/web_ui.py:797
+#: acct_mgr/web_ui.py:790
 #, python-format
 msgid "Your permissions have been limited until you %(link)s."
 msgstr ""
 
 #. TRANSLATOR: An email has been sent to %(email)s
 #. with a token to ... (the link label for following message)
-#: acct_mgr/web_ui.py:823
+#: acct_mgr/web_ui.py:816
 msgid "verify your new email address"
 msgstr ""
 
 #. TRANSLATOR: ... verify your new email address
-#: acct_mgr/web_ui.py:826
+#: acct_mgr/web_ui.py:819
 #, python-format
 msgid ""
 "An email has been sent to %(email)s with a token to\n"
 "                %(link)s."
 msgstr ""
 
-#: acct_mgr/web_ui.py:839
+#: acct_mgr/web_ui.py:832
 msgid "Please log in to finish email verification procedure."
 msgstr ""
 
-#: acct_mgr/web_ui.py:843
+#: acct_mgr/web_ui.py:836
 msgid "Your email is already verified."
 msgstr ""
 
-#: acct_mgr/web_ui.py:851
+#: acct_mgr/web_ui.py:844
 #, python-format
 msgid "A notification email has been resent to <%s>."
 msgstr ""
 
-#: acct_mgr/web_ui.py:858
+#: acct_mgr/web_ui.py:851
 msgid "Thank you for verifying your email address."
 msgstr ""
 
-#: acct_mgr/web_ui.py:861
+#: acct_mgr/web_ui.py:854
 msgid "Invalid verification token"
 msgstr ""
 
@@ -600,88 +608,92 @@ msgstr ""
 msgid "Manage User Accounts"
 msgstr ""
 
-#: acct_mgr/templates/admin_users.html:27
+#: acct_mgr/templates/admin_users.html:24
 #, python-format
 msgid "Successfully updated: %(success)s"
 msgstr ""
 
-#: acct_mgr/templates/admin_users.html:32
+#: acct_mgr/templates/admin_users.html:29
 msgid "Add/Edit Account:"
 msgstr ""
 
-#: acct_mgr/templates/admin_users.html:34 acct_mgr/templates/login.html:27
+#: acct_mgr/templates/admin_users.html:31 acct_mgr/templates/login.html:30
 #: acct_mgr/templates/register.html:33
 #: acct_mgr/templates/reset_password.html:50
 msgid "Username:"
 msgstr ""
 
-#: acct_mgr/templates/admin_users.html:39 acct_mgr/templates/login.html:32
+#: acct_mgr/templates/admin_users.html:36 acct_mgr/templates/login.html:35
 #: acct_mgr/templates/prefs_account.html:27
 #: acct_mgr/templates/register.html:39
 msgid "Password:"
 msgstr ""
 
-#: acct_mgr/templates/admin_users.html:44
+#: acct_mgr/templates/admin_users.html:41
 #: acct_mgr/templates/prefs_account.html:71
 #: acct_mgr/templates/register.html:45
 msgid "Confirm Password:"
 msgstr ""
 
-#: acct_mgr/templates/admin_users.html:49
+#: acct_mgr/templates/admin_users.html:46
 msgid "Pre-/Surname (Nickname):"
 msgstr ""
 
-#: acct_mgr/templates/admin_users.html:54
+#: acct_mgr/templates/admin_users.html:51
 #: acct_mgr/templates/reset_password.html:55
 msgid "Email Address:"
 msgstr ""
 
-#: acct_mgr/templates/admin_users.html:58
+#: acct_mgr/templates/admin_users.html:55
 msgid "Add a new user account or edit an existing one."
 msgstr ""
 
-#: acct_mgr/templates/admin_users.html:60
+#: acct_mgr/templates/admin_users.html:57
 msgid " Add "
 msgstr ""
 
-#: acct_mgr/templates/admin_users.html:62
+#: acct_mgr/templates/admin_users.html:60
 msgid " Change "
 msgstr ""
 
-#: acct_mgr/templates/admin_users.html:71
+#: acct_mgr/templates/admin_users.html:70
 msgid "This password store does not support listing users."
 msgstr ""
 
-#: acct_mgr/templates/admin_users.html:81
+#: acct_mgr/templates/admin_users.html:80
 msgid "Name"
 msgstr ""
 
-#: acct_mgr/templates/admin_users.html:81
+#: acct_mgr/templates/admin_users.html:80
 msgid "Email"
 msgstr ""
 
-#: acct_mgr/templates/admin_users.html:81
+#: acct_mgr/templates/admin_users.html:80
 msgid "Last Login"
 msgstr ""
 
-#: acct_mgr/templates/admin_users.html:97
+#: acct_mgr/templates/admin_users.html:96
 msgid "Permanently locked"
 msgstr ""
 
-#: acct_mgr/templates/admin_users.html:111
+#: acct_mgr/templates/admin_users.html:110
+msgid "Reset passwords"
+msgstr ""
+
+#: acct_mgr/templates/admin_users.html:113
 msgid "Remove selected accounts"
 msgstr ""
 
-#: acct_mgr/templates/login.html:11 acct_mgr/templates/login.html:22
-#: acct_mgr/templates/login.html:42
+#: acct_mgr/templates/login.html:11 acct_mgr/templates/login.html:23
+#: acct_mgr/templates/login.html:51
 msgid "Login"
 msgstr ""
 
-#: acct_mgr/templates/login.html:39
+#: acct_mgr/templates/login.html:48
 msgid "Remember me"
 msgstr ""
 
-#: acct_mgr/templates/login.html:67
+#: acct_mgr/templates/login.html:76
 #: acct_mgr/templates/prefs_account.html:20
 #: acct_mgr/templates/prefs_account.html:47
 #: acct_mgr/templates/prefs_account.html:54

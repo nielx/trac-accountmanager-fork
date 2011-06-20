@@ -313,7 +313,8 @@ class AccountModule(Component):
                 self._reset_password(username, email)
                 break
         else:
-            return {'error': _("Username and email must match.")}
+            return {'error': _(
+                "The email and username must match a known account.")}
         return {'sent_to_email': email}
 
     def _reset_password(self, username, email):
