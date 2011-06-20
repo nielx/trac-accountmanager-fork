@@ -14,14 +14,11 @@
   <body>
     <h2>Manage User Accounts</h2>
 
-    <form id="addaccount" class="addnew" method="post"
-          py:if="create_enabled">
+    <form id="account-editor" class="addnew" method="post"
+          py:if="create_enabled or password_change_enabled">
       <fieldset>
-        <div class="system-message" py:if="registration_error">
-          <p>${registration_error}</p>
-        </div>
-        <div class="system-message" py:if="password_change_error">
-          <p>${password_change_error}</p>
+        <div class="system-message" py:if="editor_error">
+          <p>${editor_error}</p>
         </div>
         <div class="notice system-message" py:if="success">
           <p i18n:msg="success">
@@ -58,8 +55,10 @@
         <p class="help">Add a new user account or edit an existing one.</p>
         <div class="buttons">
           <input type="submit" name="add"
+                 py:if="create_enabled"
                  value="${dgettext('acct_mgr', ' Add ')}" />
           <input type="submit" name="change"
+                 py:if="password_change_enabled"
                  value="${dgettext('acct_mgr', ' Change ')}" />
         </div>
       </fieldset>
