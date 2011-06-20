@@ -43,25 +43,25 @@ from acct_mgr.util import containsAny, is_enabled
 
 def _create_user(req, env, check_permissions=True):
     acctmgr = AccountManager(env)
-
-    user = acctmgr.handle_username_casing(req.args.get('user').strip())
+    username = acctmgr.handle_username_casing(
+                        req.args.get('username').strip())
     name = req.args.get('name')
     email = req.args.get('email').strip()
-    account = {'username' : user,
+    account = {'username' : username,
                'name' : name,
                'email' : email,
               }
     error = TracError('')
     error.account = account
 
-    if not user:
+    if not username:
         error.message = _("Username cannot be empty.")
         raise error
 
     # Prohibit some user names that are important for Trac and therefor
     # reserved, even if they're not in the permission store for some reason.
-    if user in ['authenticated', 'anonymous']:
-        error.message = _("Username %s is not allowed.") % user
+    if username in ['authenticated', 'anonymous']:
+        error.message = _("Username %s is not allowed.") % username
         raise error
 
     # NOTE: A user may exist in the password store but not in the permission
@@ -70,37 +70,37 @@ def _create_user(req, env, check_permissions=True):
     #   and cannot just check for the user being in the permission store.
     #   And obfuscate whether an existing user or group name
     #   was responsible for rejection of this user name.
-    if acctmgr.has_user(user):
+    if acctmgr.has_user(username):
         error.message = _(
-            "Another account or group named %s already exists.") % user
+            "Another account or group named %s already exists.") % username
         raise error
 
     # Check whether there is also a user or a group with that name.
     if check_permissions:
-        # NOTE: We can't use "get_user_permissions(user)" here as this always
-        #   returns a list - even if the user doesn't exist.
+        # NOTE: We can't use 'get_user_permissions(username)' here
+        #   as this always returns a list - even if the user doesn't exist.
         #   In this case the permissions of "anonymous" are returned.
         #
         #   Also note that we can't simply compare the result of
-        #   "get_user_permissions(user)" to some known set of permission,
+        #   'get_user_permissions(username)' to some known set of permission,
         #   i.e. "get_user_permissions('authenticated') as this is always
-        #   false when "user" is the name of an existing permission group.
+        #   false when 'username' is the name of an existing permission group.
         #
         #   And again obfuscate whether an existing user or group name
-        #   was responsible for rejection of this user name.
+        #   was responsible for rejection of this username.
         for (perm_user, perm_action) in \
                 perm.PermissionSystem(env).get_all_permissions():
-            if perm_user == user:
+            if perm_user == username:
                 error.message = _(
                     "Another account or group named %s already exists.") \
-                    % user
+                    % username
                 raise error
 
     # Always exclude some special characters, i.e. 
     #   ':' can't be used in HtPasswdStore
     #   '[' and ']' can't be used in SvnServePasswordStore
     blacklist = acctmgr.username_char_blacklist
-    if containsAny(user, blacklist):
+    if containsAny(username, blacklist):
         pretty_blacklist = ''
         for c in blacklist:
             if pretty_blacklist == '':
@@ -144,7 +144,7 @@ def _create_user(req, env, check_permissions=True):
 
     # Validation of email address passed.
 
-    acctmgr.set_password(user, password)
+    acctmgr.set_password(username, password)
 
     db = env.get_db_cnx()
     cursor = db.cursor()
@@ -153,20 +153,20 @@ def _create_user(req, env, check_permissions=True):
         FROM    session
         WHERE   sid=%s
             AND authenticated=1
-        """, (user,))
+        """, (username,))
     exists = cursor.fetchone()
     if not exists:
         cursor.execute("""
             INSERT INTO session
                     (sid,authenticated,last_visit)
             VALUES  (%s,1,0)
-            """, (user,))
+            """, (username,))
 
     for attribute in ('name', 'email'):
         value = req.args.get(attribute)
         if not value:
             continue
-        set_user_attribute(env, user, attribute, value, db)
+        set_user_attribute(env, username, attribute, value, db)
 
 
 class ResetPwStore(SessionStore):
