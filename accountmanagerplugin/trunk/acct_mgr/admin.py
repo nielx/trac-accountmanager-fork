@@ -228,10 +228,10 @@ class AccountManagerAdminPages(Component):
                     try:
                         _create_user(req, env, check_permissions=False)
                     except TracError, e:
-                        data['registration_error'] = e.message
+                        data['editor_error'] = e.message
                         data['account'] = getattr(e, 'account', '')
                 else:
-                    data['registration_error'] = _(
+                    data['editor_error'] = _(
                         "The password store does not support creating users.")
             elif req.args.get('reset') and req.args.get('sel'):
                 if password_reset_enabled:
@@ -241,7 +241,7 @@ class AccountManagerAdminPages(Component):
                         if username in sel:
                             acctmod._reset_password(username, email)
                 else:
-                    data['password_reset_error'] = _(
+                    data['deletion_error'] = _(
                         "The password reset procedure is not enabled.")
             elif req.args.get('remove') and req.args.get('sel'):
                 if delete_enabled:
@@ -283,18 +283,19 @@ class AccountManagerAdminPages(Component):
                             acctmgr.set_password(username, password)
                             data['success'].append(attributes.get('password'))
                         else:
-                            data['password_change_error'] = _(
+                            data['editor_error'] = _(
                                 """The password store does not support
                                 changing passwords.
                                 """)
+                    for attribute in ('name', 'email'):
+                        value = req.args.get(attribute).strip()
+                        if value:
+                            set_user_attribute(env, username,
+                                               attribute, value)
+                            data['success'].append(attributes.get(attribute))
                 except TracError, e:
-                    data['password_change_error'] = e.message
+                    data['editor_error'] = e.message
                     data['account'] = getattr(e, 'account', '')
-                for attribute in ('name', 'email'):
-                    value = req.args.get(attribute).strip()
-                    if value:
-                        set_user_attribute(env, username, attribute, value)
-                        data['success'].append(attributes.get(attribute))
 
         if listing_enabled:
             accounts = {}
