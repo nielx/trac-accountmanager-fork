@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: TracAccountManager 0.3\n"
 "Report-Msgid-Bugs-To: hoff.st@shaas.net\n"
 "POT-Creation-Date: 2010-12-06 00:17+0100\n"
-"PO-Revision-Date: 2011-06-13 07:38+0900\n"
+"PO-Revision-Date: 2011-06-21 17:44+0900\n"
 "Last-Translator: Jun Omae <jun66j5@gmail.com>\n"
 "Language-Team: ja <LL@li.org>\n"
 "Plural-Forms: nplurals=1; plural=0\n"
@@ -18,83 +18,87 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 0.9.5\n"
 
-#: acct_mgr/admin.py:78
+#: acct_mgr/admin.py:81
 #, python-format
 msgid "Invalid key type (%s) for StoreOrder"
 msgstr "StoreOrder に対するキーの型 (%s) が正しくありません"
 
-#: acct_mgr/admin.py:124 acct_mgr/admin.py:126 acct_mgr/admin.py:335
+#: acct_mgr/admin.py:127 acct_mgr/admin.py:129 acct_mgr/admin.py:130
 #: acct_mgr/notification.py:171 acct_mgr/templates/admin_users.html:11
 msgid "Accounts"
 msgstr "アカウント"
 
-#: acct_mgr/admin.py:124
+#: acct_mgr/admin.py:127
 msgid "Configuration"
 msgstr "設定"
 
-#: acct_mgr/admin.py:126
+#: acct_mgr/admin.py:129
 msgid "Users"
 msgstr "ユーザ"
 
-#: acct_mgr/admin.py:225
+#: acct_mgr/admin.py:130
+msgid "Account details"
+msgstr "アカウント詳細"
+
+#: acct_mgr/admin.py:234
 msgid "The password store does not support creating users."
 msgstr "パスワードストアはユーザの列挙をサポートしていません。"
 
-#: acct_mgr/admin.py:237
+#: acct_mgr/admin.py:244
+msgid "The password reset procedure is not enabled."
+msgstr "パスワードリセットは有効になっていません。"
+
+#: acct_mgr/admin.py:253
 msgid "The password store does not support deleting users."
 msgstr "パスワードストアはユーザの列挙をサポートしていません。"
 
-#: acct_mgr/admin.py:241
+#: acct_mgr/admin.py:257
 msgid "Email Address"
-msgstr "メールアドレス:"
+msgstr "メールアドレス"
 
-#: acct_mgr/admin.py:242
+#: acct_mgr/admin.py:258
 msgid "Pre-/Surname (Nickname)"
 msgstr "名前"
 
-#: acct_mgr/admin.py:243
+#: acct_mgr/admin.py:259
 msgid "Password"
 msgstr "パスワード"
 
-#: acct_mgr/admin.py:252 acct_mgr/web_ui.py:58
+#: acct_mgr/admin.py:268 acct_mgr/web_ui.py:58
 msgid "Username cannot be empty."
 msgstr "ユーザ名は空にできません。"
 
-#: acct_mgr/admin.py:257
+#: acct_mgr/admin.py:273
 #, python-format
 msgid "Unknown user %(user)s."
 msgstr "不明なユーザ %(user)s。"
 
-#: acct_mgr/admin.py:265 acct_mgr/web_ui.py:124 acct_mgr/web_ui.py:367
+#: acct_mgr/admin.py:281 acct_mgr/web_ui.py:124 acct_mgr/web_ui.py:349
 msgid "The passwords must match."
 msgstr "パスワードが一致しません。"
 
-#: acct_mgr/admin.py:270
+#: acct_mgr/admin.py:286
 msgid ""
 "The password store does not support\n"
 "                                changing passwords.\n"
 "                                "
 msgstr "パスワードストアはパスワード変更をサポートしていません。"
 
-#: acct_mgr/admin.py:294
+#: acct_mgr/admin.py:311
 #, python-format
 msgid "Locked until %(t_release)s"
 msgstr "%(t_release)sまでロックします"
 
-#: acct_mgr/admin.py:335
-msgid "Account details"
-msgstr "アカウント詳細"
-
-#: acct_mgr/admin.py:346
+#: acct_mgr/admin.py:337
 msgid "Please choose account by username from list to proceed."
 msgstr "処理するアカウントをリストから名前で選んでください。"
 
-#: acct_mgr/admin.py:363
+#: acct_mgr/admin.py:354
 #, python-format
 msgid "Failed login attempts for user %(user)s deleted"
 msgstr "削除ユーザ %(user)s に対してログインを試みて失敗しています"
 
-#: acct_mgr/api.py:263
+#: acct_mgr/api.py:265
 #, python-format
 msgid ""
 "The authentication backend for user %s does not support\n"
@@ -102,7 +106,7 @@ msgid ""
 "                "
 msgstr "ユーザ %s に対する認証バックエンドはパスワードの設定をサポートしていません。"
 
-#: acct_mgr/api.py:275
+#: acct_mgr/api.py:277
 msgid ""
 "None of the IPasswordStore components listed in the\n"
 "                trac.ini supports setting the password or creating users."
@@ -110,17 +114,17 @@ msgid ""
 "                "
 msgstr "パスワードの設定やユーザ作成をサポートする IPasswordStore コンポーネントを trac.ini に指定していません。"
 
-#: acct_mgr/db.py:24 acct_mgr/htfile.py:196
+#: acct_mgr/db.py:24 acct_mgr/htfile.py:197
 msgid "Default hash type of new/updated passwords"
 msgstr "新規/更新パスワードに対するデフォルトのハッシュタイプ"
 
-#: acct_mgr/htfile.py:35
+#: acct_mgr/htfile.py:36
 msgid ""
 "Path relative to Trac environment or full host machine\n"
 "                path to password file"
 msgstr "パスワードファイルへの Trac Environment からの相対パス、もしくはフルパス"
 
-#: acct_mgr/htfile.py:142
+#: acct_mgr/htfile.py:143
 msgid ""
 "The password file could not be read. Trac requires\n"
 "                    read and write access to both the password file\n"
@@ -129,7 +133,7 @@ msgstr ""
 "パスワードファイルが読み取り可能ではありません。\n"
 "Trac はパスワードファイルとその親ディレクトリに対して読み書きのアクセスを行います。"
 
-#: acct_mgr/htfile.py:160
+#: acct_mgr/htfile.py:161
 msgid ""
 "The password file could not be updated. Trac requires\n"
 "                    read and write access to both the password file\n"
@@ -138,7 +142,7 @@ msgstr ""
 "パスワードファイルを更新できませんでした。\n"
 "Trac はパスワードファイルとその親ディレクトリに対して読み書きのアクセスを行います。"
 
-#: acct_mgr/htfile.py:234
+#: acct_mgr/htfile.py:235
 msgid "Realm to select relevant htdigest file entries"
 msgstr "htdigest ファイルに対応するレルム"
 
@@ -178,9 +182,9 @@ msgstr "%s という名前のアカウント、もしくはグループはすで
 
 #: acct_mgr/web_ui.py:111
 msgid "The username must not contain any of these characters:"
-msgstr "ユーザ名にはこれらの文字は使えません: "
+msgstr "ユーザ名にはこれらの文字は使えません:"
 
-#: acct_mgr/web_ui.py:120 acct_mgr/web_ui.py:364 acct_mgr/web_ui.py:378
+#: acct_mgr/web_ui.py:120 acct_mgr/web_ui.py:346 acct_mgr/web_ui.py:359
 msgid "Password cannot be empty."
 msgstr "パスワードは空にできません。"
 
@@ -207,64 +211,68 @@ msgstr ""
 "このメールアドレスはすでに使用しています。\n"
 "別のメールアドレスを指定してください。"
 
-#: acct_mgr/web_ui.py:221 acct_mgr/templates/admin_users.html:81
+#: acct_mgr/web_ui.py:220 acct_mgr/templates/admin_users.html:80
 #: acct_mgr/templates/prefs_account.html:42
 msgid "Account"
 msgstr "アカウント"
 
-#: acct_mgr/web_ui.py:261 acct_mgr/templates/login.html:54
-#: acct_mgr/templates/login.html:57
+#: acct_mgr/web_ui.py:259 acct_mgr/templates/login.html:42
+#: acct_mgr/templates/login.html:63 acct_mgr/templates/login.html:66
 msgid "Forgot your password?"
 msgstr "パスワードが思い出せない?"
 
-#: acct_mgr/web_ui.py:279
+#: acct_mgr/web_ui.py:275
 msgid "Are you sure you want to delete your account?"
 msgstr "本当にアカウントを削除しますか?"
 
-#: acct_mgr/web_ui.py:289
+#: acct_mgr/web_ui.py:285
 msgid "Thank you for taking the time to update your password."
 msgstr "パスワードの更新に時間を割いてくれてありがとうございます。"
 
-#: acct_mgr/web_ui.py:298
+#: acct_mgr/web_ui.py:294
 msgid ""
 "You are required to change password because of a recent password change "
 "request. "
 msgstr "パスワード変更要求により、パスワードを変更する必要があります。"
 
-#: acct_mgr/web_ui.py:301
+#: acct_mgr/web_ui.py:297
 msgid "Please change your password now."
 msgstr "直ちにパスワードを変更してください。"
 
-#: acct_mgr/web_ui.py:312
+#: acct_mgr/web_ui.py:308
 msgid "Username is required"
 msgstr "ユーザ名が必要です"
 
-#: acct_mgr/web_ui.py:314
+#: acct_mgr/web_ui.py:310
 msgid "Email is required"
 msgstr "メールアドレスが必要です"
 
-#: acct_mgr/web_ui.py:358
+#: acct_mgr/web_ui.py:316
+msgid "The email and username must match a known account."
+msgstr "メールアドレスとユーザ名は既存のアカウントと一致しなければなりません。"
+
+#: acct_mgr/web_ui.py:340
 msgid "Old Password cannot be empty."
 msgstr "旧パスワードは空にできません。"
 
-#: acct_mgr/web_ui.py:360
+#: acct_mgr/web_ui.py:342
 msgid "Old Password is incorrect."
 msgstr "旧パスワードが間違っています。"
 
-#: acct_mgr/web_ui.py:370
+#: acct_mgr/web_ui.py:352
 msgid "Password successfully updated."
 msgstr "パスワードを正常に更新しました。"
 
-#: acct_mgr/web_ui.py:380
+#: acct_mgr/web_ui.py:361
 msgid "Password is incorrect."
 msgstr "パスワードが間違っています。"
 
-#: acct_mgr/web_ui.py:434 acct_mgr/templates/login.html:46
-#: acct_mgr/templates/login.html:49 acct_mgr/templates/register.html:11
+#: acct_mgr/web_ui.py:420 acct_mgr/templates/login.html:55
+#: acct_mgr/templates/login.html:58 acct_mgr/templates/register.html:11
 msgid "Register"
 msgstr "登録"
 
-#: acct_mgr/web_ui.py:463
+#: acct_mgr/web_ui.py:449
 #, python-format
 msgid ""
 "Registration has been finished successfully.\n"
@@ -274,11 +282,11 @@ msgstr ""
 "いまからユーザ %(user)s でログインできます。"
 
 #. TRANSLATOR: Intentionally obfuscated login error
-#: acct_mgr/web_ui.py:562
+#: acct_mgr/web_ui.py:558
 msgid "Invalid username or password"
 msgstr "ユーザ名、またはパスワードが間違っています"
 
-#: acct_mgr/web_ui.py:567
+#: acct_mgr/web_ui.py:563
 #, python-format
 msgid ""
 "Account locked, please try again after\n"
@@ -286,59 +294,59 @@ msgid ""
 "                            "
 msgstr "アカウントをロックしているので、%(release_time)s以降にやり直してください。"
 
-#: acct_mgr/web_ui.py:572
+#: acct_mgr/web_ui.py:568
 msgid "Account locked"
 msgstr "アカウントロック"
 
-#: acct_mgr/web_ui.py:579
+#: acct_mgr/web_ui.py:573
 #, python-format
 msgid "Login after %(attempts)s failed attempt"
 msgid_plural "Login after %(attempts)s failed attempts"
 msgstr[0] "ログイン (%(attempts)s回失敗)"
 
 #. TRANSLATOR: Your permissions have been limited until you ...
-#: acct_mgr/web_ui.py:794
+#: acct_mgr/web_ui.py:787
 msgid "verify your email address"
 msgstr "メールアドレスが確認できる"
 
 #. TRANSLATOR: ... verify your email address
-#: acct_mgr/web_ui.py:797
+#: acct_mgr/web_ui.py:790
 #, python-format
 msgid "Your permissions have been limited until you %(link)s."
 msgstr "%(link)sまでは、権限に制限が付きます。"
 
 #. TRANSLATOR: An email has been sent to %(email)s
 #. with a token to ... (the link label for following message)
-#: acct_mgr/web_ui.py:823
+#: acct_mgr/web_ui.py:816
 msgid "verify your new email address"
 msgstr "新しいメールアドレスを確認する"
 
 #. TRANSLATOR: ... verify your new email address
-#: acct_mgr/web_ui.py:826
+#: acct_mgr/web_ui.py:819
 #, python-format
 msgid ""
 "An email has been sent to %(email)s with a token to\n"
 "                %(link)s."
 msgstr "%(link)sために確認用コードを %(email)s に送信しました。"
 
-#: acct_mgr/web_ui.py:839
+#: acct_mgr/web_ui.py:832
 msgid "Please log in to finish email verification procedure."
 msgstr "メールアドレスを確認するためにログインしてください。"
 
-#: acct_mgr/web_ui.py:843
+#: acct_mgr/web_ui.py:836
 msgid "Your email is already verified."
 msgstr "メールアドレスはすでに確認済みです。"
 
-#: acct_mgr/web_ui.py:851
+#: acct_mgr/web_ui.py:844
 #, python-format
 msgid "A notification email has been resent to <%s>."
 msgstr "通知メールを <%s> に再送信しました。"
 
-#: acct_mgr/web_ui.py:858
+#: acct_mgr/web_ui.py:851
 msgid "Thank you for verifying your email address."
 msgstr "メールアドレスを確認してくれてありがとうございます。"
 
-#: acct_mgr/web_ui.py:861
+#: acct_mgr/web_ui.py:854
 msgid "Invalid verification token"
 msgstr "確認用コードが正しくありません"
 
@@ -611,86 +619,90 @@ msgstr "上記通知を受け取るメールアドレスまたはユーザ名を
 msgid "Manage User Accounts"
 msgstr "ユーザアカウントの管理"
 
-#: acct_mgr/templates/admin_users.html:27
+#: acct_mgr/templates/admin_users.html:24
 #, python-format
 msgid "Successfully updated: %(success)s"
 msgstr "正常に更新しました: %(success)s"
 
-#: acct_mgr/templates/admin_users.html:32
+#: acct_mgr/templates/admin_users.html:29
 msgid "Add/Edit Account:"
 msgstr "アカウントの追加/変更:"
 
-#: acct_mgr/templates/admin_users.html:34 acct_mgr/templates/login.html:27
+#: acct_mgr/templates/admin_users.html:31 acct_mgr/templates/login.html:30
 #: acct_mgr/templates/register.html:33
 #: acct_mgr/templates/reset_password.html:50
 msgid "Username:"
 msgstr "ユーザ名:"
 
-#: acct_mgr/templates/admin_users.html:39 acct_mgr/templates/login.html:32
+#: acct_mgr/templates/admin_users.html:36 acct_mgr/templates/login.html:35
 #: acct_mgr/templates/prefs_account.html:27 acct_mgr/templates/register.html:39
 msgid "Password:"
 msgstr "パスワード:"
 
-#: acct_mgr/templates/admin_users.html:44
+#: acct_mgr/templates/admin_users.html:41
 #: acct_mgr/templates/prefs_account.html:71 acct_mgr/templates/register.html:45
 msgid "Confirm Password:"
 msgstr "パスワード(確認):"
 
-#: acct_mgr/templates/admin_users.html:49
+#: acct_mgr/templates/admin_users.html:46
 msgid "Pre-/Surname (Nickname):"
 msgstr "名前:"
 
-#: acct_mgr/templates/admin_users.html:54
+#: acct_mgr/templates/admin_users.html:51
 #: acct_mgr/templates/reset_password.html:55
 msgid "Email Address:"
 msgstr "メールアドレス:"
 
-#: acct_mgr/templates/admin_users.html:58
+#: acct_mgr/templates/admin_users.html:55
 msgid "Add a new user account or edit an existing one."
 msgstr "新しいアカウントを追加、または既存のアカウントを変更します。"
 
-#: acct_mgr/templates/admin_users.html:60
+#: acct_mgr/templates/admin_users.html:57
 msgid " Add "
 msgstr " 追加 "
 
-#: acct_mgr/templates/admin_users.html:62
+#: acct_mgr/templates/admin_users.html:60
 msgid " Change "
 msgstr " 変更 "
 
-#: acct_mgr/templates/admin_users.html:71
+#: acct_mgr/templates/admin_users.html:70
 msgid "This password store does not support listing users."
 msgstr "パスワードストアはユーザの列挙をサポートしていません。"
 
-#: acct_mgr/templates/admin_users.html:81
+#: acct_mgr/templates/admin_users.html:80
 msgid "Name"
 msgstr "名前"
 
-#: acct_mgr/templates/admin_users.html:81
+#: acct_mgr/templates/admin_users.html:80
 msgid "Email"
 msgstr "メールアドレス"
 
-#: acct_mgr/templates/admin_users.html:81
+#: acct_mgr/templates/admin_users.html:80
 msgid "Last Login"
 msgstr "最終ログイン"
 
-#: acct_mgr/templates/admin_users.html:97
+#: acct_mgr/templates/admin_users.html:96
 msgid "Permanently locked"
 msgstr "期限なしでロック中"
 
-#: acct_mgr/templates/admin_users.html:111
+#: acct_mgr/templates/admin_users.html:110
+msgid "Reset passwords"
+msgstr "パスワードのリセット"
+
+#: acct_mgr/templates/admin_users.html:113
 msgid "Remove selected accounts"
 msgstr "選択したアカウントを削除"
 
-#: acct_mgr/templates/login.html:11 acct_mgr/templates/login.html:22
-#: acct_mgr/templates/login.html:42
+#: acct_mgr/templates/login.html:11 acct_mgr/templates/login.html:23
+#: acct_mgr/templates/login.html:51
 msgid "Login"
 msgstr "ログイン"
 
-#: acct_mgr/templates/login.html:39
+#: acct_mgr/templates/login.html:48
 msgid "Remember me"
 msgstr "ログインを記憶させる"
 
-#: acct_mgr/templates/login.html:67 acct_mgr/templates/prefs_account.html:20
+#: acct_mgr/templates/login.html:76 acct_mgr/templates/prefs_account.html:20
 #: acct_mgr/templates/prefs_account.html:47
 #: acct_mgr/templates/prefs_account.html:54 acct_mgr/templates/register.html:24
 #: acct_mgr/templates/reset_password.html:42
