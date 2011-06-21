@@ -14,8 +14,7 @@
   <body>
     <h2>Manage User Accounts</h2>
 
-    <form id="account-editor" class="addnew" method="post"
-          py:if="create_enabled or password_change_enabled">
+    <form id="account-editor" class="addnew" method="post">
       <fieldset>
         <div class="system-message" py:if="editor_error">
           <p>${editor_error}</p>
@@ -28,27 +27,33 @@
 
         <legend>Add/Edit Account:</legend>
         <div class="field">
-          <label>Username: 
+          <label>Username:<br />
             <input type="text" name="username" id="username"
                    class="textwidget" value="${account.username}" /></label>
         </div>
         <div class="field">
-          <label>Password: 
-            <input type="password" name="password"
-                   class="textwidget" /></label>
+          <label py:choose="">Password:<br />
+            <input type="password" name="password" class="textwidget"
+                   py:when="create_enabled or password_change_enabled" />
+            <input type="password" name="password" class="textwidget"
+                   py:otherwise="" disabled="disabled" />
+          </label>
         </div>
         <div class="field">
-          <label>Confirm Password: 
-            <input type="password" name="password_confirm"
-                   class="textwidget" /></label>
+          <label py:choose="">Confirm Password:<br />
+            <input type="password" name="password_confirm" class="textwidget"
+                   py:when="create_enabled or password_change_enabled" />
+            <input type="password" name="password_confirm" class="textwidget"
+                   py:otherwise="" disabled="disabled" />
+          </label>
         </div>
         <div class="field">
-          <label>Pre-/Surname (Nickname): 
+          <label>Pre-/Surname (Nickname):<br />
             <input type="text" name="name" class="textwidget"
                    value="${account.name}" /></label>
         </div>
         <div class="field">
-          <label>Email Address: 
+          <label>Email Address:<br />
             <input type="text" name="email" class="textwidget"
                    value="${account.email}" /></label>
         </div>
@@ -58,7 +63,6 @@
                  py:if="create_enabled"
                  value="${dgettext('acct_mgr', ' Add ')}" />
           <input type="submit" name="change"
-                 py:if="password_change_enabled"
                  value="${dgettext('acct_mgr', ' Change ')}" />
         </div>
       </fieldset>
