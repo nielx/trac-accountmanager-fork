@@ -11,7 +11,7 @@
     <title>Register</title>
     <script type="text/javascript">
     jQuery(document).ready(function($) {
-        $('input[@name=user]')[0].focus();
+        $('input[@name=username]')[0].focus();
     });
     </script>
   </head>
@@ -31,7 +31,7 @@
           <div>
             <input type="hidden" name="action" value="create" />
             <label>Username:
-              <input type="text" name="user" class="textwidget"
+              <input type="text" name="username" class="textwidget"
                      size="20" value="${acctmgr.username}" />
             </label>
           </div>
