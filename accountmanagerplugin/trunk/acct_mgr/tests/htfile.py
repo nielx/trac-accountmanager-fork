@@ -79,6 +79,7 @@ class HtDigestTestCase(_BaseTestCase):
         self.assertEqual([], list(self.store.get_users()))
 
     def test_update_password(self):
+        self._init_password_file('test_passwdupd', '')
         self.store.set_password('foo', 'pass1')
         self.assertFalse(self.store.check_password('foo', 'pass2'))
         self.store.set_password('foo', 'pass2')
@@ -130,6 +131,7 @@ class HtPasswdTestCase(_BaseTestCase):
         self.assertEqual([], list(self.store.get_users()))
 
     def test_update_password(self):
+        self._init_password_file('test_passwdupd', '')
         self.store.set_password('foo', 'pass1')
         self.assertFalse(self.store.check_password('foo', 'pass2'))
         self.store.set_password('foo', 'pass2')
@@ -138,6 +140,7 @@ class HtPasswdTestCase(_BaseTestCase):
         self.assertTrue(self.store.check_password('foo', 'pass3'))
 
     def test_create_hash(self):
+        self._init_password_file('test_hash', '')
         self.env.config.set('account-manager', 'htpasswd_hash_type', 'bad')
         self.assertTrue(self.store.userline('user',
                                             'password').startswith('user:'))
