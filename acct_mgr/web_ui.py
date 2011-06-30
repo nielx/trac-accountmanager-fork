@@ -360,7 +360,7 @@ class AccountModule(Component):
         if not self.acctmgr.check_password(user, password):
             return {'delete_error': _("Password is incorrect.")}
 
-        acctmgr.delete_user(user)
+        self.acctmgr.delete_user(user)
         req.redirect(req.href.logout())
 
     # ITemplateProvider methods
