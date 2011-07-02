@@ -361,6 +361,10 @@ class AccountModule(Component):
             return {'delete_error': _("Password is incorrect.")}
 
         self.acctmgr.delete_user(user)
+        # Delete the whole session since records in session_attribute would
+        # get restored on logout otherwise.
+        req.session.clear()
+        req.session.save()
         req.redirect(req.href.logout())
 
     # ITemplateProvider methods
