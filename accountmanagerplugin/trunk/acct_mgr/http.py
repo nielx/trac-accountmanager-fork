@@ -28,8 +28,8 @@ class HttpAuthStore(Component):
         acctmgr = HTTPPasswordMgrWithDefaultRealm()
         acctmgr.add_password(None, self.auth_url, user, password)
         try:
-            build_opener(HTTPBasicAuthHandler(mgr),
-                         HTTPDigestAuthHandler(mgr)).open(self.auth_url)
+            build_opener(HTTPBasicAuthHandler(acctmgr),
+                         HTTPDigestAuthHandler(acctmgr)).open(self.auth_url)
         except IOError:
             return None
         except ValueError:
