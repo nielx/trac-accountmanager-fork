@@ -349,6 +349,10 @@ class AccountModule(Component):
             return {'save_error': _("The passwords must match.")}
 
         self.acctmgr.set_password(user, password, old_password)
+        if req.session.get('password') is not None:
+            # Fetch all session_attributes in case new user password is in
+            # SessionStore, to prevent unintended overwrite by session.save().
+            req.session.get_session(req.authname, authenticated=True)
         return {'message': _("Password successfully updated.")}
 
     def _do_delete(self, req):
