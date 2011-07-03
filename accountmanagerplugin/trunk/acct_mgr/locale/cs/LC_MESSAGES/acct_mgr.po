@@ -1,409 +1,429 @@
 # Czech translations for TracAccountManager.
-# Copyright (C) 2010
+# Copyright (C) 2011
 # This file is distributed under the same license as the
 # TracAccountManager project.
 # Tomas Capek <soulcharmer@gmail.com>, 2011.
+# Honza Rames <ramejan@gmail.com>, 2011.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: TracAccountManager 0.3\n"
 "Report-Msgid-Bugs-To: hoff.st@shaas.net\n"
-"POT-Creation-Date: 2010-12-06 00:17+0100\n"
-"PO-Revision-Date: 2009-04-05 12:31+0200\n"
-"Last-Translator: Tomas Capek <soulcharmer@gmail.com>\n"
-"Language-Team: cs_CZ <soulcharmer@gmail.com>\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
-"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2)\n"
+"POT-Creation-Date: 2011-06-20 22:09+0200\n"
+"PO-Revision-Date: 2011-06-23 00:39+0000\n"
+"Last-Translator: shadow <ramejan@gmail.com>\n"
+"Language-Team: Czech (http://www.transifex.net/projects/p/Trac_Plugin-"
+"L10N/team/cs/)\n"
+"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 1.0dev-r482\n"
 
-#: acct_mgr/admin.py:78
+#: acct_mgr/admin.py:81
 #, python-format
 msgid "Invalid key type (%s) for StoreOrder"
 msgstr "Neplatný typ klíče (%s) pro StoreOrder"
 
-#: acct_mgr/admin.py:124 acct_mgr/admin.py:126 acct_mgr/admin.py:313
-#: acct_mgr/notification.py:170 acct_mgr/templates/admin_users.html:11
+#: acct_mgr/admin.py:127 acct_mgr/admin.py:129 acct_mgr/admin.py:130
+#: acct_mgr/notification.py:171 acct_mgr/templates/admin_users.html:11
 msgid "Accounts"
 msgstr "Účty"
 
-#: acct_mgr/admin.py:124
+#: acct_mgr/admin.py:127
 msgid "Configuration"
-msgstr "Nastavení"
+msgstr "Konfigurace"
 
-#: acct_mgr/admin.py:126
+#: acct_mgr/admin.py:129
 msgid "Users"
 msgstr "Uživatelé"
 
-#: acct_mgr/admin.py:216
-msgid ""
-"The password store\n"
-"                                                   does not support\n"
-"                                                   creating users."
-msgstr "Úložiště hesel nepodporuje vytváření uživatelů."
-
-#: acct_mgr/admin.py:229
-msgid ""
-"The password store does\n"
-"                                               not support deleting users."
-msgstr "Úložiště hesel nepodporuje mazání uživatelů."
-
-#: acct_mgr/admin.py:240 acct_mgr/web_ui.py:56
-msgid "Username cannot be empty."
-msgstr "Uživatelské jméno namůže být prázdné."
-
-#: acct_mgr/admin.py:245 acct_mgr/web_ui.py:118 acct_mgr/web_ui.py:338
-#: acct_mgr/web_ui.py:352
-msgid "Password cannot be empty."
-msgstr "Heslo nemůže být prázdné."
-
-#: acct_mgr/admin.py:249 acct_mgr/web_ui.py:122 acct_mgr/web_ui.py:341
-msgid "The passwords must match."
-msgstr "Hesla se musí shodovat."
-
-#: acct_mgr/admin.py:257
-msgid ""
-"The password store\n"
-"                                                      does not support\n"
-"                                                      changing passwords."
-msgstr "Úložiště hesel nepodporuje měnění hesel."
-
-#: acct_mgr/admin.py:272
-#, python-format
-msgid "Locked until %(t_release)s"
-msgstr "Zamčeno do %(t_release)s"
-
-#: acct_mgr/admin.py:313
+#: acct_mgr/admin.py:130
 msgid "Account details"
 msgstr "Detaily účtu"
 
-#: acct_mgr/admin.py:324
-msgid "Please choose account by username from list to proceed."
-msgstr "Nejprve prosím určete účet zvolením uživatelského jména v seznamu."
+#: acct_mgr/admin.py:234
+msgid "The password store does not support creating users."
+msgstr ""
 
-#: acct_mgr/admin.py:341
+#: acct_mgr/admin.py:244
+msgid "The password reset procedure is not enabled."
+msgstr ""
+
+#: acct_mgr/admin.py:253
+msgid "The password store does not support deleting users."
+msgstr ""
+
+#: acct_mgr/admin.py:257
+msgid "Email Address"
+msgstr ""
+
+#: acct_mgr/admin.py:258
+msgid "Pre-/Surname (Nickname)"
+msgstr ""
+
+#: acct_mgr/admin.py:259
+msgid "Password"
+msgstr ""
+
+#: acct_mgr/admin.py:268 acct_mgr/web_ui.py:58
+msgid "Username cannot be empty."
+msgstr "Uživatelské jméno nesmí být prázdné."
+
+#: acct_mgr/admin.py:273
+#, python-format
+msgid "Unknown user %(user)s."
+msgstr ""
+
+#: acct_mgr/admin.py:281 acct_mgr/web_ui.py:124 acct_mgr/web_ui.py:349
+msgid "The passwords must match."
+msgstr "Hesla se musí shodovat."
+
+#: acct_mgr/admin.py:286
+msgid ""
+"The password store does not support\n"
+"                                changing passwords.\n"
+"                                "
+msgstr ""
+
+#: acct_mgr/admin.py:311
+#, python-format
+msgid "Locked until %(t_release)s"
+msgstr "Uzamčeno do %(t_release)s"
+
+#: acct_mgr/admin.py:337
+msgid "Please choose account by username from list to proceed."
+msgstr ""
+
+#: acct_mgr/admin.py:354
 #, python-format
 msgid "Failed login attempts for user %(user)s deleted"
-msgstr "Neúspěšné pokusy o přihlášení uživatele %(user)s byly smazány"
+msgstr ""
 
-#: acct_mgr/api.py:257
+#: acct_mgr/api.py:265
 #, python-format
 msgid ""
 "The authentication backend for user %s does not support\n"
-"                setting the password."
-msgstr "Autentizační backend uživatele %s nepodporuje nastavování hesla."
+"                setting the password.\n"
+"                "
+msgstr ""
 
-#: acct_mgr/api.py:268
+#: acct_mgr/api.py:277
 msgid ""
 "None of the IPasswordStore components listed in the\n"
-"                trac.ini supports setting the password\n"
-"                or creating users."
+"                trac.ini supports setting the password or creating users."
+"\n"
+"                "
 msgstr ""
-"Žádná komponenta IPasswordStore uvedená v souboru trac.ini nepodporuje "
-"nastavování hesel nebo vytváření uživatelů."
 
-#: acct_mgr/db.py:24 acct_mgr/htfile.py:198
+#: acct_mgr/db.py:24 acct_mgr/htfile.py:197
 msgid "Default hash type of new/updated passwords"
-msgstr "Výchozí typ hashe pro nová/aktualizovaná hesla"
+msgstr ""
 
-#: acct_mgr/htfile.py:35
+#: acct_mgr/htfile.py:36
 msgid ""
 "Path relative to Trac environment or full host machine\n"
 "                path to password file"
-msgstr "Cesta relativní k prostředí Tracu nebo absolutní cesta k souboru s hesly"
+msgstr ""
 
-#: acct_mgr/htfile.py:144
+#: acct_mgr/htfile.py:143
 msgid ""
 "The password file could not be read. Trac requires\n"
 "                    read and write access to both the password file\n"
 "                    and its parent directory."
 msgstr ""
-"Soubor s hesly nelze přečíst. Trac vyžaduje oprávnění číst a zapisovat "
-"jak do souboru s hesly, tak do rodičovského adresáře."
+"Soubor hesel nelze přečíst. Trac vyžaduje \n"
+"    čtecí a zapisovací přístup k souboru hesel a jeho\n"
+"    nadřazené složce."
 
-#: acct_mgr/htfile.py:162
+#: acct_mgr/htfile.py:161
 msgid ""
 "The password file could not be updated. Trac requires\n"
 "                    read and write access to both the password file\n"
 "                    and its parent directory."
 msgstr ""
-"Soubor s hesly nelze aktualizovat. Trac vyžaduje oprávnění číst a "
-"zapisovat jak do souboru s hesly, tak do rodičovského adresáře."
+"Soubor hesel nemůže být aktualizován. Trac vyžaduje \n"
+"    čtecí a zapisovací přístup k souboru hesel a jeho\n"
+"    nadřazené složce."
 
-#: acct_mgr/htfile.py:236
+#: acct_mgr/htfile.py:235
 msgid "Realm to select relevant htdigest file entries"
-msgstr "Prostředí pro výběr relevantních záznamů htdigest"
+msgstr ""
 
 #: acct_mgr/http.py:25
 msgid "URL of the HTTP authentication service"
-msgstr "URL autentizační služby pro HTTP"
+msgstr ""
 
 #: acct_mgr/notification.py:55
 msgid "The email and username do not match a known account."
-msgstr ""
-"E-mailová adresa a uživatelské jméno neodpovídají žádnému existujícímu "
-"účtu."
+msgstr "K uvedenému E-mail a jméno nebyl nalezen známý účet."
 
-#: acct_mgr/notification.py:170
+#: acct_mgr/notification.py:171
 msgid "Notification"
-msgstr "Upozornění"
+msgstr "Oznámení"
 
 #: acct_mgr/pwhash.py:97
 msgid ""
 "The \"crypt\" module is unavailable\n"
 "                                    on this platform."
-msgstr "Modul \"crypt\" není na této platformě k dispozici."
+msgstr "\"crypt\" modul není na této platformě k dispozici."
 
 #: acct_mgr/svnserve.py:29
 msgid ""
 "Path to the users file; leave blank to locate\n"
 "                the users file by reading svnserve.conf"
 msgstr ""
-"Cesta k souboru uživatelů; nevyplňujte, pokud ji chcete načítat ze "
-"souboru svnserve.conf"
 
-#: acct_mgr/web_ui.py:62
+#: acct_mgr/web_ui.py:64
 #, python-format
 msgid "Username %s is not allowed."
 msgstr "Uživatelské jméno %s není povoleno."
 
-#: acct_mgr/web_ui.py:72 acct_mgr/web_ui.py:92
+#: acct_mgr/web_ui.py:74 acct_mgr/web_ui.py:94
 #, python-format
 msgid "Another account or group named %s already exists."
-msgstr "Účet nebo skupina se jménem %s již existuje."
+msgstr "Jiný účet nebo skupina s názvem %s již existuje."
 
-#: acct_mgr/web_ui.py:109
+#: acct_mgr/web_ui.py:111
 msgid "The username must not contain any of these characters:"
-msgstr "Uživatelské jméno nesmí obsahovat tyto znaky:"
+msgstr "Uživatelské jméno nesmí obsahovat některý z těchto znaků:"
 
-#: acct_mgr/web_ui.py:129
+#: acct_mgr/web_ui.py:120 acct_mgr/web_ui.py:346 acct_mgr/web_ui.py:359
+msgid "Password cannot be empty."
+msgstr "Heslo nesmí být prázdné."
+
+#: acct_mgr/web_ui.py:131
 msgid "You must specify a valid email address."
 msgstr "Musíte zadat platnou e-mailovou adresu."
 
-#: acct_mgr/web_ui.py:133
+#: acct_mgr/web_ui.py:135
 msgid ""
 "The email address specified appears to be\n"
 "                              invalid. Please specify a valid email "
 "address.\n"
 "                              "
 msgstr ""
-"Zadaná e-mailová adresa je zřejmě neplatná. Zadejte prosím platnou "
-"e-mailovou adresu."
+"Zadaná e-mailová adresa je neplatná.\n"
+"    Prosím zadejte platnou e-mailovou adresu."
 
-#: acct_mgr/web_ui.py:138
+#: acct_mgr/web_ui.py:140
 msgid ""
 "The email address specified is already in\n"
 "                              use. Please specify a different one.\n"
 "                              "
-msgstr "Zadanou e-mailovou adresu již používá jiný účet. Zadejte prosím jinou."
+msgstr ""
+"Zadaná e-mailová adresa je již používána.\n"
+"    Prosím zadejte jinou."
 
-#: acct_mgr/web_ui.py:211 acct_mgr/templates/admin_users.html:99
+#: acct_mgr/web_ui.py:220 acct_mgr/templates/admin_users.html:80
 #: acct_mgr/templates/prefs_account.html:42
 msgid "Account"
 msgstr "Účet"
 
-#: acct_mgr/web_ui.py:247 acct_mgr/templates/login.html:54
-#: acct_mgr/templates/login.html:57
+#: acct_mgr/web_ui.py:259 acct_mgr/templates/login.html:42
+#: acct_mgr/templates/login.html:63 acct_mgr/templates/login.html:66
 msgid "Forgot your password?"
 msgstr "Zapomněli jste heslo?"
 
-#: acct_mgr/web_ui.py:263
+#: acct_mgr/web_ui.py:275
 msgid "Are you sure you want to delete your account?"
-msgstr "Chcete určitě smazat svůj účet?"
+msgstr "Jste si jisti, že chcete smazat svůj účet?"
 
-#: acct_mgr/web_ui.py:273
+#: acct_mgr/web_ui.py:285
 msgid "Thank you for taking the time to update your password."
-msgstr "Díky, že věnujete čas aktualizaci svého hesla."
+msgstr "Děkujeme, že jste si udělali čas na aktualizaci svého hesla."
 
-#: acct_mgr/web_ui.py:282
+#: acct_mgr/web_ui.py:294
 msgid ""
 "You are required to change password because of a recent password change "
 "request. "
-msgstr ""
-"Na základě nedávné systémové výzvy je potřeba, abyste aktualizovali své "
-"heslo. "
+msgstr "Je nutné provést změnu hesla z důvodu nedávné žádosti o jeho změnu."
 
-#: acct_mgr/web_ui.py:285
+#: acct_mgr/web_ui.py:297
 msgid "Please change your password now."
-msgstr "Změňte si prosím své heslo."
+msgstr "Změňte prosím vaše heslo."
 
-#: acct_mgr/web_ui.py:296
+#: acct_mgr/web_ui.py:308
 msgid "Username is required"
-msgstr "Uživatelské jméno musí být zadáno"
+msgstr "Uživatelské jméno je požadováno"
 
-#: acct_mgr/web_ui.py:298
+#: acct_mgr/web_ui.py:310
 msgid "Email is required"
-msgstr "E-mailová adresa musí být zadána"
+msgstr "E-mail je požadován"
 
-#: acct_mgr/web_ui.py:332
+#: acct_mgr/web_ui.py:316
+msgid "The email and username must match a known account."
+msgstr ""
+
+#: acct_mgr/web_ui.py:340
 msgid "Old Password cannot be empty."
-msgstr "Původní heslo nemůže být prázdné."
+msgstr "Staré heslo nemůže být prázdné."
 
-#: acct_mgr/web_ui.py:334
+#: acct_mgr/web_ui.py:342
 msgid "Old Password is incorrect."
-msgstr "Původní heslo je nesprávné."
+msgstr "Staré heslo je nesprávné."
 
-#: acct_mgr/web_ui.py:344
+#: acct_mgr/web_ui.py:352
 msgid "Password successfully updated."
-msgstr "Heslo bylo aktualizováno."
+msgstr "Heslo bylo úspěšně aktualizováno."
 
-#: acct_mgr/web_ui.py:354
+#: acct_mgr/web_ui.py:361
 msgid "Password is incorrect."
-msgstr "Heslo není správné."
+msgstr "Heslo je nesprávné."
 
-#: acct_mgr/web_ui.py:407 acct_mgr/templates/login.html:46
-#: acct_mgr/templates/login.html:49 acct_mgr/templates/register.html:11
+#: acct_mgr/web_ui.py:420 acct_mgr/templates/login.html:55
+#: acct_mgr/templates/login.html:58 acct_mgr/templates/register.html:11
 msgid "Register"
-msgstr "Registrace"
+msgstr "Registrovat"
 
-#: acct_mgr/web_ui.py:437
+#: acct_mgr/web_ui.py:449
 #, python-format
 msgid ""
 "Registration has been finished successfully.\n"
 "                     You may login as user %(user)s now."
-msgstr "Registrace proběhla v pořádku. Nyní se můžete přihlásit jako %(user)s."
+msgstr ""
+"Registrace byla úspěšně dokončena. \n"
+"    Nyní se můžete přihlásit jako uživatel %(user)s."
 
 #. TRANSLATOR: Intentionally obfuscated login error
-#: acct_mgr/web_ui.py:537
+#: acct_mgr/web_ui.py:558
 msgid "Invalid username or password"
-msgstr "Nesprávné uživatelské jméno nebo heslo"
+msgstr "Neplatné uživatelské jméno nebo heslo"
 
-#: acct_mgr/web_ui.py:542
+#: acct_mgr/web_ui.py:563
 #, python-format
 msgid ""
 "Account locked, please try again after\n"
 "                            %(release_time)s\n"
 "                            "
-msgstr "Účet je zamčen, zkuste to znovu za %(release_time)s"
+msgstr "Účet uzamčen, prosím zkuste to znovu za %(release_time)s"
 
-#: acct_mgr/web_ui.py:547
+#: acct_mgr/web_ui.py:568
 msgid "Account locked"
-msgstr "Účet je zamčen"
+msgstr "Účet uzamčen"
 
-#: acct_mgr/web_ui.py:554
+#: acct_mgr/web_ui.py:573
 #, python-format
 msgid "Login after %(attempts)s failed attempt"
 msgid_plural "Login after %(attempts)s failed attempts"
-msgstr[0] "Přihlášení po %(attempts)s neúspěšném pokusu"
-msgstr[1] "Přihlášení po %(attempts)s neúspěšných pokusech"
-msgstr[2] "Přihlášení po %(attempts)s neúspěšných pokusech"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
 
 #. TRANSLATOR: Your permissions have been limited until you ...
-#: acct_mgr/web_ui.py:695
+#: acct_mgr/web_ui.py:787
 msgid "verify your email address"
-msgstr "potvrdit svou e-mailovou adresu"
+msgstr "ověřit svou e-mailovou adresu"
 
 #. TRANSLATOR: ... verify your email address
-#: acct_mgr/web_ui.py:698
+#: acct_mgr/web_ui.py:790
 #, python-format
 msgid "Your permissions have been limited until you %(link)s."
-msgstr "Vaše oprávnění jsou dočasně omezena. Musíte %(link)s."
+msgstr "Vaše oprávnění jsou omezena dokud %(link)s."
 
 #. TRANSLATOR: An email has been sent to %(email)s
 #. with a token to ... (the link label for following message)
-#: acct_mgr/web_ui.py:726
+#: acct_mgr/web_ui.py:816
 msgid "verify your new email address"
-msgstr "potvrdit svou novou e-mailovou adresu"
+msgstr "neověříte vaši novou emailovou adresu"
 
 #. TRANSLATOR: ... verify your new email address
-#: acct_mgr/web_ui.py:729
+#: acct_mgr/web_ui.py:819
 #, python-format
 msgid ""
 "An email has been sent to %(email)s with a token to\n"
 "                %(link)s."
-msgstr "Na %(email)s byl odeslán e-mail s návodem, jak můžete %(link)s."
+msgstr ""
+"E-mail byl odeslán na adresu %(email)s s tokenem na \n"
+"    %(link)s."
 
-#: acct_mgr/web_ui.py:742
+#: acct_mgr/web_ui.py:832
 msgid "Please log in to finish email verification procedure."
-msgstr "Prosím přihlaste se a dokončete potvrzení e-mailové adresy."
+msgstr "Prosím, přihlaste se pro dokončení ověřeni Vašeho e-mailu."
 
-#: acct_mgr/web_ui.py:746
+#: acct_mgr/web_ui.py:836
 msgid "Your email is already verified."
-msgstr "Vaše e-mailová adresa je již potvrzena."
+msgstr "Váš e-mail je již ověřen."
 
-#: acct_mgr/web_ui.py:754
+#: acct_mgr/web_ui.py:844
 #, python-format
 msgid "A notification email has been resent to <%s>."
-msgstr "Oznamovací e-mail byl znovu odeslán na <%s>."
+msgstr "Potvrzovací e-mail byl znovu odeslána na <%s>."
 
-#: acct_mgr/web_ui.py:760
+#: acct_mgr/web_ui.py:851
 msgid "Thank you for verifying your email address."
-msgstr "Díky za potvrzení své e-mailové adresy."
+msgstr "Děkujeme Vám za ověření Vaší emailové adresy."
 
-#: acct_mgr/web_ui.py:763
+#: acct_mgr/web_ui.py:854
 msgid "Invalid verification token"
-msgstr "Neplatná potvrzovací adresa"
+msgstr "Neplatný ověřovací token"
 
 #: acct_mgr/templates/account_details.html:11
 msgid "Account Details"
-msgstr "Nastavení účtu"
+msgstr "Detaily účtu"
 
 #: acct_mgr/templates/account_details.html:17
 msgid "Review User Account Details"
-msgstr "Nastavte detaily svého účtu"
+msgstr "Zkontrolujte detaily uživatelského účtu"
 
 #: acct_mgr/templates/account_details.html:19
-#: acct_mgr/templates/account_details.html:20
-msgid "for"
-msgstr "pro"
+#, python-format
+msgid "for [1:%(name)s] ([2:%(user)s])"
+msgstr ""
 
-#: acct_mgr/templates/account_details.html:27
+#: acct_mgr/templates/account_details.html:22
+#, python-format
+msgid "for [1:%(user)s]"
+msgstr ""
+
+#: acct_mgr/templates/account_details.html:31
 msgid "Account Status"
 msgstr "Stav účtu"
 
-#: acct_mgr/templates/account_details.html:31
+#: acct_mgr/templates/account_details.html:35
 #, python-format
 msgid ""
 "Credentials for this user are stored in AuthStore number\n"
 "              [1:%(order_num)s] (%(store)s)."
 msgstr ""
-"Ověřovací údaje o tomto uživateli jsou uloženy v AuthStore číslo "
-"[1:%(order_num)s] (%(store)s)."
 
-#: acct_mgr/templates/account_details.html:35
+#: acct_mgr/templates/account_details.html:39
 msgid "Username matching is set to [1:not case-sensitive]."
-msgstr "U uživatelských jmen se [1:nekontroluje velikost písmen]."
+msgstr ""
 
-#: acct_mgr/templates/account_details.html:37
+#: acct_mgr/templates/account_details.html:41
 msgid "Username matching is set to [1:case-sensitive]."
-msgstr "U uživatelských jmen se [1:kontroluje velikost písmen]."
+msgstr ""
 
-#: acct_mgr/templates/account_details.html:42
+#: acct_mgr/templates/account_details.html:46
 msgid ""
 "No store provides credentials for this user,\n"
 "              so the user currently can't be authenticated and\n"
 "              access to this [1:account is effectively blocked],\n"
 "              while account details may still be available."
 msgstr ""
-"Ověřovací údaje o tomto uživateli nejsou v žádném úložišti, proto nelze "
-"tohoto uživatele autentizovat a přístup k tomuto účtu je [1:de facto "
-"zablokován]. Jiné detaily účtu mohou být stále k dispozici."
 
-#: acct_mgr/templates/account_details.html:54
+#: acct_mgr/templates/account_details.html:58
 #, python-format
 msgid ""
 "[1:]\n"
 "                This account has been locked until %(time)s[2:]\n"
 "                and even valid login attempts are rejected meanwhile."
 msgstr ""
-"[1:] Tento účet byl zamčen do %(time)s[2:] a do té doby budou odmítnuty i"
-" korektní pokusy o přihlášení."
 
-#: acct_mgr/templates/account_details.html:59
+#: acct_mgr/templates/account_details.html:63
 msgid "This account has been locked permanently."
-msgstr "Tento účet byl natrvalo zamčen."
+msgstr ""
 
-#: acct_mgr/templates/account_details.html:63
+#: acct_mgr/templates/account_details.html:67
 msgid "Release account lock"
-msgstr "Zrušit uzamčení účtu"
+msgstr ""
 
-#: acct_mgr/templates/account_details.html:63
+#: acct_mgr/templates/account_details.html:67
 msgid "Unlock"
-msgstr "Odemknout"
+msgstr ""
 
-#: acct_mgr/templates/account_details.html:75
+#: acct_mgr/templates/account_details.html:79
 #, python-format
 msgid ""
 "Lock condition has been met\n"
@@ -411,144 +431,151 @@ msgid ""
 msgid_plural ""
 "Lock condition has been met\n"
 "                    %(count)s times by now."
-msgstr[0] "Podmínka uzamčení byla dosud splněna %(count)s-krát."
-msgstr[1] "Podmínka uzamčení byla dosud splněna %(count)s-krát."
-msgstr[2] "Podmínka uzamčení byla dosud splněna %(count)s-krát."
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
 
-#: acct_mgr/templates/account_details.html:81
+#: acct_mgr/templates/account_details.html:85
 #, python-format
 msgid ""
 "Therefore after another failed login attempt authentication\n"
 "                  for this account would be retarded by %(time)s."
 msgstr ""
-"Proto po dalším neúspěšném pokusu o autentizaci k tomuto účtu bude "
-"zbrzděna o %(time)s."
 
-#: acct_mgr/templates/account_details.html:88
+#: acct_mgr/templates/account_details.html:92
 msgid "Lock condition has not been met yet."
-msgstr "Podmínka uzamčení zatím nebyla splněna."
+msgstr ""
 
-#: acct_mgr/templates/account_details.html:94
+#: acct_mgr/templates/account_details.html:98
 msgid "No constraints are set for this account."
-msgstr "Pro tento účet nejsou nastavena žádná omezení."
-
-#: acct_mgr/templates/account_details.html:103
-msgid "Verification"
-msgstr "Ověření"
+msgstr ""
 
 #: acct_mgr/templates/account_details.html:107
+msgid "Verification"
+msgstr ""
+
+#: acct_mgr/templates/account_details.html:111
 #, python-format
 msgid "Current email address: <%(email)s>"
-msgstr "Aktuální e-mailová adresa: <%(email)s>"
+msgstr ""
 
-#: acct_mgr/templates/account_details.html:110
+#: acct_mgr/templates/account_details.html:114
 msgid "This address has been verified successfully."
-msgstr "Tato adresa byla úspěšně ověřena."
+msgstr ""
 
-#: acct_mgr/templates/account_details.html:112
+#: acct_mgr/templates/account_details.html:116
 #, python-format
 msgid ""
 "Verification is pending\n"
 "                  ([1:token: '%(token)s' ])."
-msgstr "Čeká se na ověření ([1:symbol: '%(token)s' ])."
+msgstr ""
 
-#: acct_mgr/templates/account_details.html:115
+#: acct_mgr/templates/account_details.html:119
 msgid "This address has not been verified yet."
-msgstr "Tato adresa zatím nebyla potvrzena."
+msgstr ""
 
-#: acct_mgr/templates/account_details.html:120
+#: acct_mgr/templates/account_details.html:124
 msgid "No email address is registered for this account."
-msgstr "Pro tento účet není registrována žádná e-mailová adresa."
+msgstr ""
 
-#: acct_mgr/templates/account_details.html:128
+#: acct_mgr/templates/account_details.html:132
 msgid "Access History"
-msgstr "Historie přístupů"
+msgstr ""
 
-#: acct_mgr/templates/account_details.html:131
+#: acct_mgr/templates/account_details.html:135
 #, python-format
 msgid "Last login: %(time)s"
-msgstr "Poslední přihlášení: %(time)s"
-
-#: acct_mgr/templates/account_details.html:133
-msgid "The user has not logged in before."
-msgstr "Uživatel se ještě nepřihlásil."
+msgstr ""
 
 #: acct_mgr/templates/account_details.html:137
+msgid "The user has not logged in before."
+msgstr ""
+
+#: acct_mgr/templates/account_details.html:141
 #, python-format
 msgid "Total failed attempts: %(count)s"
-msgstr "Celkový počet neúspěšných pokusů: %(count)s"
+msgstr ""
 
-#: acct_mgr/templates/account_details.html:138
+#: acct_mgr/templates/account_details.html:142
 msgid "Table: Last failed login attempts log view"
-msgstr "Tabulka: přehled neúspěšných přihlášení"
+msgstr ""
 
-#: acct_mgr/templates/account_details.html:143
+#: acct_mgr/templates/account_details.html:147
 msgid "IP address"
-msgstr "IP adresa"
+msgstr ""
 
-#: acct_mgr/templates/account_details.html:144
+#: acct_mgr/templates/account_details.html:148
 msgid "Log time"
-msgstr "Čas zaznamenání"
+msgstr ""
 
-#: acct_mgr/templates/account_details.html:155
+#: acct_mgr/templates/account_details.html:159
 msgid "Delete login failure log"
-msgstr "Smazat záznam neúspěšných přihlášení"
+msgstr ""
 
-#: acct_mgr/templates/account_details.html:155
+#: acct_mgr/templates/account_details.html:159
 msgid "Delete Log"
-msgstr "Smazat záznam"
+msgstr ""
 
-#: acct_mgr/templates/account_details.html:162
+#: acct_mgr/templates/account_details.html:166
 msgid "There is currently no failed login attempt logged."
-msgstr "Žádné záznamy o neúspěšných přihlášení."
+msgstr ""
 
-#: acct_mgr/templates/account_details.html:168
+#: acct_mgr/templates/account_details.html:172
 msgid "Update"
-msgstr "Aktualizovat"
+msgstr ""
 
 #: acct_mgr/templates/admin_accountsconfig.html:11
 #: acct_mgr/templates/admin_accountsconfig.html:15
 msgid "Accounts: Configuration"
-msgstr "Účty: Nastavení"
+msgstr "Účty: Konfigurace"
 
 #: acct_mgr/templates/admin_accountsconfig.html:41
-msgid "Persistent Sessions"
-msgstr "Trvalá sezení"
+msgid "Password Refresh"
+msgstr ""
 
 #: acct_mgr/templates/admin_accountsconfig.html:44
+msgid "Silently update password hashes on next successful login."
+msgstr ""
+
+#: acct_mgr/templates/admin_accountsconfig.html:49
+msgid "Persistent Sessions"
+msgstr "Přetrvávající zasedání"
+
+#: acct_mgr/templates/admin_accountsconfig.html:52
 msgid ""
 "Allow the user to be remembered across sessions without needing to\n"
 "          re-authenticate."
 msgstr ""
-"Povolit uživateli, aby mohlo být jeho sezení zapamatováno bez nutnosti "
-"reautentizace."
+"Umožní uživatelům zapamatování přihlášení napříč sezeními bez nutnosti "
+"znovupřihlášení."
 
-#: acct_mgr/templates/admin_accountsconfig.html:48
+#: acct_mgr/templates/admin_accountsconfig.html:56
 msgid ""
 "This is, user checks a \"Remember Me\"\n"
 "          [1:checkbox] and, next time he visits the site,\n"
 "          he'll be remembered and automatically authenticated."
 msgstr ""
-"Uživatel může zaškrtnout [1:pole] \"Zapamatovat si mě\" a při příští "
-"návštěvě bude automaticky rozpoznán a autentizován."
+"Pokud uživatel zaškrtne \"Pamatuj si mě\"\n"
+"    [1:zaškrtávátko] pak bude zapamatován a \n"
+"    při příští návštěvě automaticky přihlášen"
 
-#: acct_mgr/templates/admin_accountsconfig.html:55
+#: acct_mgr/templates/admin_accountsconfig.html:63
 msgid "Password Reset"
-msgstr "Znovunastavení hesla"
+msgstr "Obnovení hesla"
 
-#: acct_mgr/templates/admin_accountsconfig.html:58
+#: acct_mgr/templates/admin_accountsconfig.html:66
 msgid "Force users to change passwords after a password reset."
-msgstr "Přinutit uživatele změnit své heslo při příští autentizaci."
+msgstr "Přinutit uživatele ke změně hesla po resetování hesla."
 
-#: acct_mgr/templates/admin_accountsconfig.html:64
+#: acct_mgr/templates/admin_accountsconfig.html:72
 msgid "Verify email"
 msgstr "Ověřit e-mail"
 
-#: acct_mgr/templates/admin_accountsconfig.html:67
+#: acct_mgr/templates/admin_accountsconfig.html:75
 msgid "Force users to verify their email addresses."
-msgstr "Přinutit uživatele ověřit své e-mailové adresy."
+msgstr "Přinutit uživatele k ověření jejich e-mailové adresy."
 
-#: acct_mgr/templates/admin_accountsconfig.html:72
+#: acct_mgr/templates/admin_accountsconfig.html:80
 #: acct_mgr/templates/admin_accountsnotification.html:48
 msgid "Save"
 msgstr "Uložit"
@@ -556,146 +583,144 @@ msgstr "Uložit"
 #: acct_mgr/templates/admin_accountsnotification.html:11
 #: acct_mgr/templates/admin_accountsnotification.html:15
 msgid "Accounts: Notification Configuration"
-msgstr "Účty: Nastavení notifikace"
+msgstr "Účty: Konfigurace oznámení"
 
 #: acct_mgr/templates/admin_accountsnotification.html:19
 msgid "Account Notification"
-msgstr "Notifikace účtu"
+msgstr "Oznámení o účtech"
 
 #: acct_mgr/templates/admin_accountsnotification.html:20
 msgid ""
 "Set the following options in order to be notified of\n"
 "          account creation, password reset and account deletion."
 msgstr ""
-"Nastavte následující volby týkající se zasílání upozornění při založení "
-"nebo zrušní účtu a při znovunastavení hesla."
+"Nastavte následující volby, aby Vám mohly být \n"
+"    doručovány informace o vytvoření účtu, změně hesla a smazání účtu."
 
 #: acct_mgr/templates/admin_accountsnotification.html:23
 msgid "Notification Actions"
-msgstr "Akce"
+msgstr "Oznamovací akce"
 
 #: acct_mgr/templates/admin_accountsnotification.html:24
 msgid ""
 "This is a list of actions which you can\n"
 "          enable or disable by [1:checking] the [2:checkboxes]."
 msgstr ""
-"Toto je seznam akcí, které můžete nastavit [1:zaškrtnutím] příslušných "
-"[2:políček]."
+"Toto je seznam akcí, které můžete \n"
+"    povolit nebo zakázat pokud [1:zaškrtnete] [2: zaškrtávací políčka]."
 
 #: acct_mgr/templates/admin_accountsnotification.html:28
 msgid "Get notified of new account creation"
-msgstr "Upozornit na vytvoření účtu"
+msgstr "Upozorňováni o novém vytvoření účtu"
 
 #: acct_mgr/templates/admin_accountsnotification.html:32
 msgid "Get notified of password reset"
-msgstr "Upozornit na znovunastavení hesla"
+msgstr "Upozorňováni o resetování hesla"
 
 #: acct_mgr/templates/admin_accountsnotification.html:36
 msgid "Get notified of account deletion"
-msgstr "Upozornit na smazání účtu"
+msgstr "Upozorňováni o smazání účtu"
 
 #: acct_mgr/templates/admin_accountsnotification.html:39
 msgid "Notification Recipient Addresses"
-msgstr "Adresy příjemců upozornění"
+msgstr "Upozorňováni o změně adresy příjemců"
 
 #: acct_mgr/templates/admin_accountsnotification.html:40
 msgid ""
 "Space-separated list of email addresses and/or\n"
 "          usernames that get notified of the above actions:"
 msgstr ""
-"Seznam e-mailových adres a/nebo uživatelských jmen oddělených mezerami. "
-"Tito uživatelé budou dostávat upozornění k akcím výše:"
+"Seznam e-mailových adres a/nebo\n"
+"    uživatelských jmen kteří budou informováni o akcích uvedených výše:"
 
 #: acct_mgr/templates/admin_users.html:15
 msgid "Manage User Accounts"
 msgstr "Správa uživatelských účtů"
 
-#: acct_mgr/templates/admin_users.html:22
-msgid "Add Account:"
-msgstr "Přidat účet:"
-
 #: acct_mgr/templates/admin_users.html:24
-#: acct_mgr/templates/admin_users.html:64 acct_mgr/templates/login.html:27
+#, python-format
+msgid "Successfully updated: %(success)s"
+msgstr ""
+
+#: acct_mgr/templates/admin_users.html:29
+msgid "Add/Edit Account:"
+msgstr ""
+
+#: acct_mgr/templates/admin_users.html:31 acct_mgr/templates/login.html:30
 #: acct_mgr/templates/register.html:33
 #: acct_mgr/templates/reset_password.html:50
 msgid "Username:"
 msgstr "Uživatelské jméno:"
 
-#: acct_mgr/templates/admin_users.html:29
-#: acct_mgr/templates/admin_users.html:69 acct_mgr/templates/login.html:32
+#: acct_mgr/templates/admin_users.html:36 acct_mgr/templates/login.html:35
 #: acct_mgr/templates/prefs_account.html:27 acct_mgr/templates/register.html:39
 msgid "Password:"
 msgstr "Heslo:"
 
-#: acct_mgr/templates/admin_users.html:34
-#: acct_mgr/templates/admin_users.html:74
+#: acct_mgr/templates/admin_users.html:41
 #: acct_mgr/templates/prefs_account.html:71 acct_mgr/templates/register.html:45
 msgid "Confirm Password:"
-msgstr "Potvrzení hesla:"
+msgstr "Potvrdit heslo:"
 
-#: acct_mgr/templates/admin_users.html:39 acct_mgr/templates/register.html:67
-msgid "Name:"
-msgstr "Jméno"
+#: acct_mgr/templates/admin_users.html:46
+msgid "Pre-/Surname (Nickname):"
+msgstr ""
 
-#: acct_mgr/templates/admin_users.html:44 acct_mgr/templates/register.html:51
-#: acct_mgr/templates/register.html:73
-msgid "Email:"
-msgstr "E-mail:"
+#: acct_mgr/templates/admin_users.html:51
+#: acct_mgr/templates/reset_password.html:55
+msgid "Email Address:"
+msgstr "E-mailová adresa:"
 
-#: acct_mgr/templates/admin_users.html:48
-msgid "Add a new user account."
-msgstr "Přidat nový účet."
+#: acct_mgr/templates/admin_users.html:55
+msgid "Add a new user account or edit an existing one."
+msgstr ""
 
-#: acct_mgr/templates/admin_users.html:50
+#: acct_mgr/templates/admin_users.html:57
 msgid " Add "
 msgstr " Přidat "
 
-#: acct_mgr/templates/admin_users.html:62
-msgid "Change Password:"
-msgstr "Změnit heslo:"
-
-#: acct_mgr/templates/admin_users.html:78
-msgid "Change a user's password."
-msgstr "Nastavit nové heslo uživatele."
-
-#: acct_mgr/templates/admin_users.html:80
+#: acct_mgr/templates/admin_users.html:60
 msgid " Change "
 msgstr " Změnit "
 
-#: acct_mgr/templates/admin_users.html:89
+#: acct_mgr/templates/admin_users.html:70
 msgid "This password store does not support listing users."
-msgstr "Toto úložiště nepodporuje výpis uživatelů."
+msgstr "Úložiště hesel nepodporuje výpis uživatelů."
 
-#: acct_mgr/templates/admin_users.html:99
+#: acct_mgr/templates/admin_users.html:80
 msgid "Name"
 msgstr "Jméno"
 
-#: acct_mgr/templates/admin_users.html:99
+#: acct_mgr/templates/admin_users.html:80
 msgid "Email"
 msgstr "E-mail"
 
-#: acct_mgr/templates/admin_users.html:99
+#: acct_mgr/templates/admin_users.html:80
 msgid "Last Login"
 msgstr "Poslední přihlášení"
 
-#: acct_mgr/templates/admin_users.html:115
+#: acct_mgr/templates/admin_users.html:96
 msgid "Permanently locked"
-msgstr "Natrvalo uzamčen"
+msgstr ""
 
-#: acct_mgr/templates/admin_users.html:129
+#: acct_mgr/templates/admin_users.html:110
+msgid "Reset passwords"
+msgstr ""
+
+#: acct_mgr/templates/admin_users.html:113
 msgid "Remove selected accounts"
-msgstr "Odstranit zvolené účty"
+msgstr "Odstranit vybrané účty"
 
-#: acct_mgr/templates/login.html:11 acct_mgr/templates/login.html:22
-#: acct_mgr/templates/login.html:42
+#: acct_mgr/templates/login.html:11 acct_mgr/templates/login.html:23
+#: acct_mgr/templates/login.html:51
 msgid "Login"
-msgstr "Přihlášení"
+msgstr "Přihlásit se"
 
-#: acct_mgr/templates/login.html:39
+#: acct_mgr/templates/login.html:48
 msgid "Remember me"
-msgstr "Zapamatovat si mě"
+msgstr "Pamatuj si mě"
 
-#: acct_mgr/templates/login.html:67 acct_mgr/templates/prefs_account.html:20
+#: acct_mgr/templates/login.html:76 acct_mgr/templates/prefs_account.html:20
 #: acct_mgr/templates/prefs_account.html:47
 #: acct_mgr/templates/prefs_account.html:54 acct_mgr/templates/register.html:24
 #: acct_mgr/templates/reset_password.html:42
@@ -704,11 +729,11 @@ msgstr "Chyba"
 
 #: acct_mgr/templates/prefs_account.html:17
 msgid "Delete Account"
-msgstr "Smazat účet"
+msgstr "Odstranit účet"
 
 #: acct_mgr/templates/prefs_account.html:34
 msgid "Delete account"
-msgstr "Smazat účet"
+msgstr "Odstranit účet"
 
 #: acct_mgr/templates/prefs_account.html:51
 msgid "Change Password"
@@ -716,7 +741,7 @@ msgstr "Změnit heslo"
 
 #: acct_mgr/templates/prefs_account.html:59
 msgid "Old Password:"
-msgstr "Původní heslo:"
+msgstr "Staré heslo:"
 
 #: acct_mgr/templates/prefs_account.html:65
 msgid "New Password:"
@@ -724,17 +749,23 @@ msgstr "Nové heslo:"
 
 #: acct_mgr/templates/register.html:21
 msgid "Register an account"
-msgstr "Zaregistrovat nový účet"
+msgstr "Zaregistrovat"
 
 #: acct_mgr/templates/register.html:30
 msgid "Required"
-msgstr "Povinné"
+msgstr "Požadované"
+
+#: acct_mgr/templates/register.html:51 acct_mgr/templates/register.html:73
+msgid "Email:"
+msgstr "E-mail:"
 
 #: acct_mgr/templates/register.html:55
 msgid ""
 "The email address is required for Trac to send you a\n"
 "              verification token."
-msgstr "E-mailová adresa je nutná, aby na ni Trac mohl zaslat ověřovací symbol."
+msgstr ""
+"E-mailová adresa je nutná, aby Vám Trac mohl poslat\n"
+"    ověřovací token."
 
 #: acct_mgr/templates/register.html:58
 msgid ""
@@ -742,12 +773,16 @@ msgid ""
 "              also enable you to reset your password if you ever forget "
 "it."
 msgstr ""
-"Zadání e-mailové adresy Vám také umožní znovunastavit heslo, pokud byste "
-"jej zapomněli."
+"Zadání e-mailové adresy Vám \n"
+"    také umožní obnovit své heslo, pokud jej zapomenete."
 
 #: acct_mgr/templates/register.html:65
 msgid "Optional"
 msgstr "Volitelné"
+
+#: acct_mgr/templates/register.html:67
+msgid "Name:"
+msgstr "Jméno:"
 
 #: acct_mgr/templates/register.html:77
 msgid ""
@@ -755,8 +790,8 @@ msgid ""
 "              will enable you to reset your password if you ever forget "
 "it."
 msgstr ""
-"Zadání e-mailové adresy Vám také umožní znovunastavit heslo, pokud byste "
-"jej zapomněli."
+"Zadání e-mailové adresy Vám \n"
+"    umožní obnovit své heslo, pokud jej zapomenete."
 
 #: acct_mgr/templates/register.html:82
 msgid "Create account"
@@ -765,11 +800,11 @@ msgstr "Vytvořit účet"
 #: acct_mgr/templates/reset_password.html:11
 #: acct_mgr/templates/reset_password.html:21
 msgid "Reset Password"
-msgstr "Znovunastavit heslo"
+msgstr "Reset hesla"
 
 #: acct_mgr/templates/reset_password.html:25
 msgid "Already logged in"
-msgstr "Již jste přihlášen/a"
+msgstr "Již přihlášen"
 
 #: acct_mgr/templates/reset_password.html:26
 msgid ""
@@ -777,36 +812,32 @@ msgid ""
 "          your password please use the\n"
 "          [1:Account Preferences] page."
 msgstr ""
-"Nyní jste přihlášen/a. Pokud potřebujete změnit své heslo, přejděte "
-"prosím na stránku [1:Nastavení účtu]."
+"Už jste přihlášeni. Pokud potřebujete změnit Vaše heslo použijte stránku "
+"[1:Nastavení účtu]."
 
 #: acct_mgr/templates/reset_password.html:32
 #, python-format
 msgid ""
 "A new password\n"
 "        has been emailed to you at %(email)s ."
-msgstr "Nové heslo bylo zasláno na adresu %(email)s ."
+msgstr "Nové heslo bylo zasláno na %(email)s ."
 
 #: acct_mgr/templates/reset_password.html:37
 msgid ""
 "If you've forgotten your password, enter your username and\n"
 "        email address below and you'll be emailed a new password."
 msgstr ""
-"Pokud jste zapomněli své heslo, zadejte své uživatelské jméno a "
-"e-mailovou adresu a bude Vám zasláno nové heslo."
-
-#: acct_mgr/templates/reset_password.html:55
-msgid "Email Address:"
-msgstr "E-mailová adresa:"
+"Pokud jste zapomněli své heslo, zadejte své uživatelské jméno a \n"
+"    e-mailovou adresu a bude Vám e-mailem zasláno heslo nové."
 
 #: acct_mgr/templates/reset_password.html:59
 msgid "Reset password"
-msgstr "Znovunastavit heslo"
+msgstr "Obnovit heslo"
 
 #: acct_mgr/templates/verify_email.html:11
 #: acct_mgr/templates/verify_email.html:22
 msgid "Verify Email"
-msgstr "Ověřit e-mail"
+msgstr "Ověřte e-mail"
 
 #: acct_mgr/templates/verify_email.html:24
 #, python-format
@@ -815,24 +846,28 @@ msgid ""
 "        %(email)s with a token to verify your new address.\n"
 "        Please check your email and enter the token in the form below."
 msgstr ""
-"E-mail s ověřovacím symbolem byl odeslán na %(email)s. Zkontrolujte "
-"prosím svou poštu a zadejte zaslaný symbol do formuláře."
+"E-mail byl zaslán na \n"
+"    %(email)s s tokenem pro ověření Vaší nové adresy. \n"
+"    Zkontrolujte prosím svoji e-mailovou schránku a zadejte token do níže"
+" uvedeného formuláře."
 
 #: acct_mgr/templates/verify_email.html:27
 msgid ""
 "You can [1:change your\n"
 "        email address], if it is incorrect."
-msgstr "Můžete [1:změnit svou e-mailovou adresu], pokud je nesprávná."
+msgstr ""
+"Můžete [1: změnit svou \n"
+"    e-mailovou adresu], pokud je tato nesprávná."
 
 #: acct_mgr/templates/verify_email.html:32
 msgid "Verification Token:"
-msgstr "Ověřovací symbol:"
+msgstr "Ověřovácí Token:"
 
-#: acct_mgr/templates/verify_email.html:36
+#: acct_mgr/templates/verify_email.html:37
 msgid "Verify"
 msgstr "Ověřit"
 
-#: acct_mgr/templates/verify_email.html:38
+#: acct_mgr/templates/verify_email.html:39
 msgid "Resend Email"
 msgstr "Znovu poslat e-mail"
 

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: TracAccountManager 0.3\n"
 "Report-Msgid-Bugs-To: hoff.st@shaas.net\n"
-"POT-Creation-Date: 2010-12-06 00:17+0100\n"
+"POT-Creation-Date: 2011-06-20 22:09+0200\n"
 "PO-Revision-Date: 2011-06-21 17:44+0900\n"
 "Last-Translator: Jun Omae <jun66j5@gmail.com>\n"
 "Language-Team: ja <LL@li.org>\n"
@@ -16,7 +16,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 0.9.5\n"
+"Generated-By: Babel 1.0dev-r482\n"
 
 #: acct_mgr/admin.py:81
 #, python-format
