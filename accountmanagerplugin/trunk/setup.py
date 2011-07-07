@@ -29,7 +29,7 @@ except ImportError:
 
 setup(
     name = 'TracAccountManager',
-    version = '0.3',
+    version = '0.4',
     author = 'Matthew Good',
     author_email = 'trac@matt-good.net',
     maintainer = 'Steffen Hoffmann',
