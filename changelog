@@ -1,0 +1,143 @@
+Author: Matthew Good <trac@matt-good.net>
+Maintainer: Steffen Hoffmann <hoff.st@web.de>
+
+acct_mgr-0.3 (07.07.2011) - branch 0.11
+ resolved issues
+ * #3233: Infinite redirect loop after resetting the password
+ * #3783: Form based login fails to forward nicely on referrer outside of Trac
+ * #3989: Email verification and password reset with notification lock users
+ * #4040: TracError instance has no attribute 'acctmgr' on new user creation
+ * #4160: Password reset oddness with multiple projects config
+ * #5247: Stack trace escapes to user when htdigest file is not writeable
+ * #5964: Prevent multiple calls to LoginModule._remote_user()
+ * #6821: Register and 'Forgot your password?' links can no longer be enabled
+ * #7850: Error after upgrade from 0.11 to trunk version
+ * #7863: Syntax error found when building egg
+ * #7880: 'ioerror: invalid mode: Ur' in htfile.py
+ * #8061: An input element has no child nodes
+ * #8063: Better i18n codes
+ * #8381: Failure to verify valid passwords after migration Windows => FreeBSD
+ * #8534: Can't resend password reset email
+ * #8549: Changing password in SessionStore if forced has no effect
+ * #8663: Disable register link on the login page
+ * #8834: TypeError: sequence item 0: expected string, int found
+ * #8813: German docs of options, even when browser's locale isn't 'de'
+ * #8925: Register form user field should be username
+ * #8936: Cannot delete user using AccountModule from web_ui
+ * #8939: Fix for "mgr" not found error in http.py
+ * fix AccountModule.reset_password_enabled() from type list to boolean
+ * really disable reset password page, if feature is disabled
+ * fix password reset procedure (preventing easy account takeover)
+
+ new features
+ * #442: Add email verification for new/changed email addresses
+   by completing a matured procedure i.e. with account details display
+ * #809: Fit long user list in users admin page to one screen height
+ * #816: 'forgot password' should not reset password directly
+   by introducing a separate ResetPwStore (a SessionStore derivate)
+ * #2966: Add user account (name, email) edit support to user account page
+ * #6803: Add i18n/l10n support
+   adding i18n setup and message markup and several translations
+    complete   (>95%): English (default), German, Japanese, Russian, Swedish
+    convenient (>75%): Czech, Italian
+    partial    (>33%): Dutch, French, Spanish
+   Check https://www.transifex.net/projects/p/Trac_Plugin-L10N/
+   for more recently added and updated translations
+ * #7111: Password reset from users admin page
+ * #7437: Lock user after configurable number of failed login attempts
+   by a new AccountGuard module for login attempt tracking and account locking
+ * #8257: Display PasswordStore option docs on configuration admin page
+ * #8487: AcctMgr creates blank lines in password_file under Windows
+ * #8563: IndexError: list index out of range
+ * #8774: KeyError: acct_mgr.web_ui after failed import of acct_mgr.web_ui
+ * #8814: Generic word `for` is extracted, term is difficult to translate
+ * #8843: XHTML invalid verify_email.html
+ * extend AccountManager class API by 'email_verified' and 'user_known'
+ * re-design 'ugly' HTML login form
+   adding new 'login_opt_list' option and contribute recommended CSS styles
+ * add account details admin page
+ * add auth cookie options introduced in Trac 0.12
+ * add optional password hash refresh on successful login
+ * code cleanup and more readable multiline SQL statement formatting
+ * add changelog (this file)
+ * add OpenPGP signed md5 and sha1 hash lists and verification script
+
+ backported - branch 0.10
+ * #8381: Failure to verify valid passwords after migration Windows => FreeBSD
+ * fix password reset procedure (preventing easy account takeover)
+
+
+acct_mgr-0.2.x (updates to 0.2.1, never officially released) - branch 0.11
+ resolved issues
+ * #831: Case sensitive Authentication, but Case in-sensitive Authorization
+ * #1382: Make 'Delete Account' function on 'My Account' page optional
+ * #1602: Pass old_password when changing password
+ * #1922: ValueError with HttpAuthStore when entering invalid credentials
+ * #2044: AccountManagerPlugin README missing an example for HttpAuth backend
+ * #2327: Fix unicode support in htdigest password file store
+ * #2630: Registration of usernames which can corrupt a SvnServePasswordStore
+ * #3086: Admin "Last Login" users info should use correct time zone
+ * #3137: Fix tests and include functional tests
+ * #3200: Add and register user corrupts password file with no carriage return
+ * #3343: Error onClick 'Remove selected accounts' when no account is selected
+ * #3401: Removing email from preferences makes account unusable
+ * #4125: Fix message wrapper for AccountModule and EmailVerificationModule
+ * #4276: HtPasswdStore changes ownership of htpasswd file (bad file IO)
+ * #4525: SvnServePasswordStore looks at wrong place for svnserve.conf file
+ * #4628: Fix SessionStore unicode errors htdigest hash method
+ * #4682: Registration of user names with colon could corrupt htpasswd file
+ * #4830: NameError: global name 'sorted' is not defined on Python 2.3
+ * #4895: AccountManagerPlugin + Trac 0.12 (no attribute 'smtp_server')
+ * #4897: TracAccountManager htpasswd file handling clobbers symlinks
+ * #4984: Prefer hashlib over deprecated md5 and sha
+ * #5509: EmailVerificationModule undocumented, allows email-less registration
+ * #5514: Typo 'acct_mge' in web_ui.py in 0.11 branch
+ * #5789: Change description on notification admin page
+ * #6453: AttributeError: 'NoneType' object has no attribute 'encode'
+ * #6730: AnnouncerPlugin compatibility with AccountManager
+ * #7087: Trailing spaces are not being removed from the username
+ * #7396: Password salts and randomness length
+ * #7576: Users redirected with no confirmation, fail to note register success
+ * #7687: Always redirect to referer after login
+ * #7807: Show error into 'after-registration form'
+ * extend and fix IPasswordStore API implementation for HttpAuthStore
+ * improve error reporting for failures in password stores
+ * fix a bunch of small typos in Python doc-strings and elsewhere
+ * redirect anonymous GET '/verify_email', no more 'email already verified'
+ * several fixes against infinite redirect loop conditions
+
+ new features
+ * #131: Add 'Remember Me' functionality
+   adding a new 'persistent_sessions' option
+ * #442: Email verification for new/changed addresses
+ * #1902: Allow more granular permissions
+ * #2282: Make default htpasswd hash type configurable
+ * #3153: Easy option to disable email verification
+ * #3726: Split admin pages in seperate components
+ * #5299: Improvements to the email verification page
+ * #7700: Allow user management without having TRAC_ADMIN permission
+ * added support for chained password stores
+ * added password change in the users admin page
+ * extend username checks before registration
+   adding a new 'username_char_blacklist' option
+
+ backported - branch 0.10
+ * #2327: Fix unicode support in htdigest password file store
+ * #3200: Add and register user corrupts password file with no carriage return
+ * #4125: Fix message wrapper for AccountModule and EmailVerificationModule
+ * #4628: Fix SessionStore unicode errors htdigest hash method
+ * #4830: NameError: global name 'sorted' is not defined on Python 2.3
+
+
+acct_mgr-0.2.1 (28-May-2008) - branch 0.11
+ new features
+ * #147: Email notification of account related events
+ ToDo: add more historic enties
+
+acct_mgr-0.2 (10-Nov-2006) - new branch 0.11
+
+acct_mgr-0.1.2 (10-Nov-2006) - new branch 0.10
+
+acct_mgr-0.1.1 (10-Jan-2006) - new branch 0.9
+
+acct_mgr-0.1 (20-Jul-2005) - initial release
