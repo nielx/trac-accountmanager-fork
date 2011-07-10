@@ -7,7 +7,12 @@ from datetime           import timedelta
 from trac.config        import Configuration, IntOption, Option
 from trac.core          import Component
 from trac.util.datefmt  import format_datetime, pretty_timedelta, \
-                               to_datetime, to_utimestamp
+                               to_datetime
+try:
+    from trac.util.datefmt  import to_utimestamp
+except ImportError:
+    # Fallback for Trac 0.11 compatibility
+    from trac.util.datefmt  import to_timestamp as to_utimestamp
 
 from acct_mgr.api       import AccountManager
 
