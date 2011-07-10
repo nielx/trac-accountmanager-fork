@@ -269,7 +269,11 @@ class AccountManager(Component):
         if user:
             sql = "%s AND sid='%s'" % (sql, user)
         cursor.execute(sql)
-        return cursor or None
+        # Don't pass over the cursor (outside of scope), only it's content.
+        res = []
+        for row in cursor:
+            res.append(row)
+        return not len(res) == 0 and res or None
 
     def set_password(self, user, password, old_password = None):
         user = self.handle_username_casing(user)
