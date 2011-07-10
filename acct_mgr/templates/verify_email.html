@@ -7,6 +7,9 @@
       xmlns:i18n="http://genshi.edgewall.org/i18n"
       i18n:domain="acct_mgr">
   <xi:include href="layout.html" />
+  <?python
+    if _dgettext is not None:
+        dgettext = _dgettext ?>
   <head>
     <title>Verify Email</title>
     <script type="text/javascript">

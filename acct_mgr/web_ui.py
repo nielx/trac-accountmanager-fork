@@ -35,7 +35,8 @@ from trac.web.chrome import INavigationContributor, ITemplateProvider, \
 from genshi.core import Markup
 from genshi.builder import tag
 
-from acct_mgr.api import AccountManager, _, ngettext, tag_, set_user_attribute
+from acct_mgr.api import AccountManager, _, dgettext, ngettext, tag_, \
+                         set_user_attribute
 from acct_mgr.db import SessionStore
 from acct_mgr.guard import AccountGuard
 from acct_mgr.util import containsAny, is_enabled
@@ -220,7 +221,9 @@ class AccountModule(Component):
                 yield 'account', _("Account")
 
     def render_preference_panel(self, req, panel):
-        data = {'account': self._do_account(req)}
+        data = {'account': self._do_account(req),
+                '_dgettext': dgettext,
+               }
         return 'prefs_account.html', data
 
     # IRequestHandler methods
@@ -230,7 +233,9 @@ class AccountModule(Component):
                self._reset_password_enabled(log=True)
 
     def process_request(self, req):
-        data = {'reset': self._do_reset_password(req)}
+        data = {'_dgettext': dgettext,
+                'reset': self._do_reset_password(req)
+               }
         return 'reset_password.html', data, None
 
     # IRequestFilter methods
@@ -441,6 +446,7 @@ class RegistrationModule(Component):
                               'name' : None,
                               'email' : None,
                             },
+                '_dgettext': dgettext,
                }
         data['verify_account_enabled'] = is_enabled(self.env,
                                                     EmailVerificationModule)
@@ -554,6 +560,7 @@ class LoginModule(auth.LoginModule):
                     referer.startswith(str(req.abs_href()) + '/login'):
                 referer = req.abs_href()
             data = {
+                '_dgettext': dgettext,
                 'login_opt_list': self.login_opt_list == True,
                 'persistent_sessions': AccountManager(env
                                        ).persistent_sessions,
@@ -874,7 +881,7 @@ class EmailVerificationModule(Component):
                 req.redirect(req.href.prefs())
             else:
                 chrome.add_warning(req, _("Invalid verification token"))
-        data = {}
+        data = {'_dgettext': dgettext}
         if 'token' in req.args:
             data['token'] = req.args['token']
         if 'email_verification_token' not in req.session:

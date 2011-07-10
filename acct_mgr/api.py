@@ -22,14 +22,27 @@ try:
     add_domain, _, N_, gettext, ngettext, tag_ = \
         domain_functions('acct_mgr', ('add_domain', '_', 'N_', 'gettext',
                                       'ngettext', 'tag_'))
+    dgettext = None
 except ImportError:
     from  genshi.builder         import  tag as tag_
     from  trac.util.translation  import  gettext
     _ = gettext
     N_ = lambda text: text
-    ngettext = _
     def add_domain(a,b,c=None):
         pass
+    def dgettext(domain, string, **kwargs):
+        return safefmt(string, kwargs)
+    def ngettext(singular, plural, num, **kwargs):
+        string = singular if num == 1 else plural
+        kwargs.setdefault('num', num)
+        return safefmt(string, kwargs)
+    def safefmt(string, kwargs):
+        if kwargs:
+            try:
+                return string % kwargs
+            except KeyError:
+                pass
+        return string
 
 
 class IPasswordStore(Interface):
