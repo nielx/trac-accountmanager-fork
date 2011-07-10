@@ -663,9 +663,15 @@ class LoginModule(auth.LoginModule):
                                          'trac', 'auth_cookie_lifetime', t)
             if cookie_lifetime > 0:
                 req.outcookie['trac_auth']['expires'] = cookie_lifetime
-            if self.env.secure_cookies:
-                req.outcookie['trac_auth']['secure'] = True
-
+            try:
+                if self.env.secure_cookies:
+                    req.outcookie['trac_auth']['secure'] = True
+            except AttributeError:
+                # Report details about Trac compatibility for the feature.
+                self.env.log.warn(
+                    """Restricting cookies to HTTPS connections is requested,
+                    but is supported only by Trac 0.11.2 or later version.
+                    """)
             req.outcookie['trac_auth_session'] = 1
             req.outcookie['trac_auth_session']['path'] = cookie_path
             if cookie_lifetime > 0:
