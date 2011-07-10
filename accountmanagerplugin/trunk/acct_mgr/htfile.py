@@ -42,8 +42,8 @@ class AbstractPasswordFileStore(Component):
     def get_users(self):
         filename = str(self.filename)
         if not os.path.exists(filename):
-            self.log.debug('acct_mgr: get_users() -- '
-                           'Can\'t locate "%s"' % filename)
+            self.log.error('acct_mgr: get_users() -- '
+                           'Can\'t locate password file "%s"' % filename)
             return []
         return self._get_users(filename)
 
@@ -60,8 +60,8 @@ class AbstractPasswordFileStore(Component):
     def check_password(self, user, password):
         filename = str(self.filename)
         if not os.path.exists(filename):
-            self.log.debug('acct_mgr: check_password() -- '
-                           'Can\'t locate "%s"' % filename)
+            self.log.error('acct_mgr: check_password() -- '
+                           'Can\'t locate password file "%s"' % filename)
             return False
         user = user.encode('utf-8')
         password = password.encode('utf-8')
@@ -75,8 +75,8 @@ class AbstractPasswordFileStore(Component):
         # DEVEL: Better use new 'finally' statement here, but
         #   still need to care for Python 2.4 (RHEL5.x) for now
         except:
-            self.log.debug('acct_mgr: check_password() -- '
-                           'Can\'t read "%s"' % filename)
+            self.log.error('acct_mgr: check_password() -- '
+                           'Can\'t read password file "%s"' % filename)
             pass
         if isinstance(f, file):
             f.close()
@@ -171,7 +171,7 @@ class AbstractPasswordFileStore(Component):
             f.close()
             if not f.closed:
                 self.log.debug('acct_mgr: _update_file() -- '
-                               'Closing file "%s" failed' % filename)
+                               'Closing password file "%s" failed' % filename)
         return matched
 
 
