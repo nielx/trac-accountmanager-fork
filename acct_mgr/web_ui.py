@@ -545,19 +545,19 @@ class LoginModule(auth.LoginModule):
         if req.path_info.startswith('/login') and req.authname == 'anonymous':
             guard = AccountGuard(env)
             try:
-                referrer = self._referer(req)
+                referer = self._referer(req)
             except AttributeError:
                 # Fallback for Trac 0.11 compatibility.
-                referrer = req.get_header('Referer')
+                referer = req.get_header('Referer')
             # Steer clear of requests going nowhere or loop to self
-            if referrer is None or \
-                   referrer.startswith(str(req.abs_href()) + '/login'):
-                referrer = req.abs_href()
+            if referer is None or \
+                    referer.startswith(str(req.abs_href()) + '/login'):
+                referer = req.abs_href()
             data = {
                 'login_opt_list': self.login_opt_list == True,
                 'persistent_sessions': AccountManager(env
                                        ).persistent_sessions,
-                'referer': referrer,
+                'referer': referer,
                 'registration_enabled': RegistrationModule(env).enabled,
                 'reset_password_enabled': AccountModule(env
                                           ).reset_password_enabled
