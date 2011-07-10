@@ -650,7 +650,11 @@ class LoginModule(auth.LoginModule):
 
             # check for properties to be set in auth cookies,
             # defined since Trac 0.12
-            cookie_path = self.auth_cookie_path or req.base_path or '/'
+            try:
+                cookie_path = self.auth_cookie_path or req.base_path or '/'
+            except AttributeError:
+                # Fallback for Trac 0.11 compatibility
+                cookie_path = req.base_path or '/'
             req.outcookie['trac_auth'] = cookie.value
             req.outcookie['trac_auth']['path'] = cookie_path
 
@@ -686,7 +690,11 @@ class LoginModule(auth.LoginModule):
         if req.args.get('rememberme', '0') == '1':
             # check for properties to be set in auth cookies,
             # defined since Trac 0.12
-            cookie_path = self.auth_cookie_path or req.base_path or '/'
+            try:
+                cookie_path = self.auth_cookie_path or req.base_path or '/'
+            except AttributeError:
+                # Fallback for Trac 0.11 compatibility
+                cookie_path = req.base_path or '/'
             t = 86400 * 30 # AcctMgr default - Trac core defaults to 0 instead
             cookie_lifetime = self.env.config.getint(
                                          'trac', 'auth_cookie_lifetime', t)
@@ -709,7 +717,11 @@ class LoginModule(auth.LoginModule):
         auth.LoginModule._do_logout(self, req)
         
         # Expire the persistent session cookie
-        cookie_path = self.auth_cookie_path or req.base_path or '/'
+        try:
+            cookie_path = self.auth_cookie_path or req.base_path or '/'
+        except AttributeError:
+            # Fallback for Trac 0.11 compatibility
+            cookie_path = req.base_path or '/'
         req.outcookie['trac_auth_session'] = ''
         req.outcookie['trac_auth_session']['path'] = cookie_path
         req.outcookie['trac_auth_session']['expires'] = -10000
