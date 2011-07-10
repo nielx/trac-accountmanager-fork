@@ -544,7 +544,11 @@ class LoginModule(auth.LoginModule):
         env = self.env
         if req.path_info.startswith('/login') and req.authname == 'anonymous':
             guard = AccountGuard(env)
-            referrer = self._referer(req)
+            try:
+                referrer = self._referer(req)
+            except AttributeError:
+                # Fallback for Trac 0.11 compatibility.
+                referrer = req.get_header('Referer')
             # Steer clear of requests going nowhere or loop to self
             if referrer is None or \
                    referrer.startswith(str(req.abs_href()) + '/login'):
