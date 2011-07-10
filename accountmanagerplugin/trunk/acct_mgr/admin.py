@@ -23,7 +23,7 @@ from trac.web.chrome    import ITemplateProvider, add_notice, \
                                add_stylesheet, add_warning
 from trac.admin         import IAdminPanelProvider
 
-from acct_mgr.api       import _, gettext, tag_, AccountManager, \
+from acct_mgr.api       import AccountManager, _, dgettext, gettext, tag_, \
                                set_user_attribute
 from acct_mgr.guard     import AccountGuard
 from acct_mgr.web_ui    import _create_user, AccountModule, \
@@ -189,6 +189,7 @@ class AccountManagerAdminPages(Component):
         sections = sorted(sections, key=lambda i: i['name'])
         numstores = range(0, stores.numstores() + 1)
         data = {
+            '_dgettext': dgettext,
             'sections': sections,
             'numstores': numstores,
             'force_passwd_change': self.acctmgr.force_passwd_change,
@@ -211,6 +212,7 @@ class AccountManagerAdminPages(Component):
         delete_enabled = acctmgr.supports('delete_user')
 
         data = {
+            '_dgettext': dgettext,
             'listing_enabled': listing_enabled,
             'create_enabled': create_enabled,
             'delete_enabled': delete_enabled,
@@ -355,7 +357,9 @@ class AccountManagerAdminPages(Component):
                         ))))
             req.redirect(req.href.admin('accounts', 'users'))
 
-        data = {'user': username,}
+        data = {'_dgettext': dgettext,
+                'user': username,
+               }
         stores = StoreOrder(stores=acctmgr.stores,
                             list=acctmgr.password_store)
         user_store = acctmgr.find_user_store(username)

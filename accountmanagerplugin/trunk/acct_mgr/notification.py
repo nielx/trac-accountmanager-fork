@@ -21,7 +21,7 @@ from trac.notification import NotifyEmail
 
 from pkg_resources import resource_filename
 
-from acct_mgr.api import IAccountChangeListener, _
+from acct_mgr.api import IAccountChangeListener, _, dgettext
 
 class AccountChangeListener(Component):
     implements(IAccountChangeListener)
@@ -188,8 +188,10 @@ class AccountChangeNotificationAdminPanel(Component):
             'account-manager', 'account_changes_notify_addresses').split()
         notify_actions = self.config.getlist('account-manager',
                                              'notify_actions')
-        data = dict(notify_actions=notify_actions,
-                    notify_addresses=notify_addresses)
+        data = {'_dgettext': dgettext,
+                'notify_actions': notify_actions,
+                'notify_addresses': notify_addresses
+               }
         return 'admin_accountsnotification.html', data
 
     # ITemplateProvider methods
