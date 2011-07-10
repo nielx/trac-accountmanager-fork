@@ -664,6 +664,16 @@ class LoginModule(auth.LoginModule):
     # overrides
     def _do_login(self, req):
         if not req.remote_user:
+            if req.method == 'GET':
+                # Trac before 0.12 has known weak redirect loop protection.
+                # Adding redirect fix from Trac 0.12, and especially avert
+                # from 'self._redirect_back', when we see a 'GET' here.
+                referer = req.get_header('Referer')
+                # Steer clear of requests going nowhere or loop to self
+                if referer is None or \
+                        referer.startswith(str(req.abs_href()) + '/login'):
+                    referer = req.abs_href()
+                req.redirect(referer)
             self._redirect_back(req)
         res = auth.LoginModule._do_login(self, req)
         if req.args.get('rememberme', '0') == '1':
