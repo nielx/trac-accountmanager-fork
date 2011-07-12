@@ -1,6 +1,19 @@
 Author: Matthew Good <trac@matt-good.net>
 Maintainer: Steffen Hoffmann <hoff.st@web.de>
 
+acct_mgr-0.4 (not yet released) - branch 0.11
+ resolved issues
+ * #4677: Admin based chaining HtDigestStore & HtPasswdStore breaks config
+   by adding dedicated options 'htdigest_file' and 'htpasswd_file'
+
+
+acct_mgr-0.3.1 (not yet released) - branch 0.11
+ resolved issues
+ * #8963: Restore compatibility with Trac 0.11 - holding 10 different issues
+ * further improve redirect loop protection (infinite loop after /login)
+ * add more verbose error log messages for missing/unreadable password file
+
+
 acct_mgr-0.3 (07.07.2011) - branch 0.11
  resolved issues
  * #3233: Infinite redirect loop after resetting the password
