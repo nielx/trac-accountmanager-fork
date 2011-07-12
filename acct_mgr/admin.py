@@ -334,7 +334,7 @@ class AccountManagerAdminPages(Component):
     def _do_acct_details(self, req):
         username = req.args.get('user')
         if not username:
-            # Accessing user account details directly is not useful,
+            # Accessing user account details without username is not useful,
             # so we revert such request immediately. 
             add_warning(req, Markup(tag.span(tag_(
                 "Please choose account by username from list to proceed."
@@ -351,10 +351,10 @@ class AccountManagerAdminPages(Component):
             if req.args.get('delete') or req.args.get('release'):
                 # delete failed login attempts, evaluating attempts count
                 if guard.failed_count(username, reset=True) > 0:
-                    add_notice(req, Markup(tag.span(tag_(
+                    add_notice(req, Markup(tag.span(tag(_(
                         "Failed login attempts for user %(user)s deleted",
-                        user=tag.b(username)
-                        ))))
+                        user=Markup(tag.b(username))
+                        )))))
             req.redirect(req.href.admin('accounts', 'users'))
 
         data = {'_dgettext': dgettext,
@@ -405,7 +405,7 @@ class AccountManagerAdminPages(Component):
                 str(data['email_verified']))
 
         add_stylesheet(req, 'acct_mgr/acct_mgr.css')
-        #req.href.admin('accounts', 'details', user=username)
+        data['url'] = req.href.admin('accounts', 'details')
         return 'account_details.html', data
 
     # ITemplateProvider methods
