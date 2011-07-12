@@ -8,7 +8,7 @@
       i18n:domain="acct_mgr">
   <xi:include href="admin.html" />
   <?python
-    if _dgettext is not None:
+    if _dgettext:
         dgettext = _dgettext ?>
   <head>
     <title>Account Details</title>
@@ -79,12 +79,18 @@
           <div id="restricted" py:when="pretty_lock_time">
             <py:choose>
               <div py:when="lock_count > 0">
-                <i18n:choose numeral="lock_count" params="count">
+                <i18n:choose numeral="lock_count" params="count"
+                             py:if="not _dgettext">
                   <p i18n:singular="">Lock condition has been met
                     ${lock_count} time by now.</p>
                   <p i18n:plural="">Lock condition has been met
                     ${lock_count} times by now.</p>
                 </i18n:choose>
+                <!--! i18n:choose doesn't play nicely with Trac releases
+                  before Trac 0.12, so we provide an alternative message
+                  that is excluded from extraction and translation. -->
+                <p py:if="_dgettext" xml:lang="en">Lock condition has been met
+                  ${lock_count} time(s) by now.</p>
                 <p i18n:msg="time">
                   Therefore after another failed login attempt authentication
                   for this account would be retarded by ${pretty_lock_time}.
