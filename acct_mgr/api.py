@@ -495,6 +495,23 @@ def set_user_attribute(env, username, attribute, value, db=None):
             """, (username, attribute, value))
     db.commit()
 
+def del_user_attribute(env, username, attribute, db=None):
+    """Delete a Trac user attribute for one user or for all users."""
+    db = _get_db(env, db)
+    cursor = db.cursor()
+    sql = """
+        DELETE
+        FROM    session_attribute
+        WHERE   name=%s
+        """
+    if username:
+        cursor.execute(sql + """
+            AND sid=%s
+        """, (attribute, username))
+    else:
+        cursor.execute(sql, (attribute,))
+    db.commit()
+
 def _get_db(env, db=None):
     return db or env.get_db_cnx()
 
