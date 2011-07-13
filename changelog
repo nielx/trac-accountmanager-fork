@@ -7,7 +7,7 @@ acct_mgr-0.4 (not yet released) - branch 0.11
    by adding dedicated options 'htdigest_file' and 'htpasswd_file'
 
 
-acct_mgr-0.3.1 (not yet released) - branch 0.11
+acct_mgr-0.3.1 (13-Jul-2011) - branch 0.11
  resolved issues
  * #8963: Restore compatibility with Trac 0.11 - holding 10 different issues
  * further improve redirect loop protection (infinite loop after /login)
@@ -17,7 +17,7 @@ acct_mgr-0.3.1 (not yet released) - branch 0.11
  * enable admin to restart password hash refresh from configuration admin page
 
 
-acct_mgr-0.3 (07.07.2011) - branch 0.11
+acct_mgr-0.3 (07-Jul-2011) - branch 0.11
  resolved issues
  * #3233: Infinite redirect loop after resetting the password
  * #3783: Form based login fails to forward nicely on referrer outside of Trac
