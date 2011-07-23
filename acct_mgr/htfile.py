@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2005,2006,2007 Matthew Good <trac@matt-good.net>
+# Copyright (C) 2011 Steffen Hoffmann <hoff.st@web.de>
 #
 # "THE BEER-WARE LICENSE" (Revision 42):
 # <trac@matt-good.net> wrote this file.  As long as you retain this notice you
@@ -32,9 +33,11 @@ class AbstractPasswordFileStore(Component):
     """
     abstract = True
 
+    # DEVEL: This option is subject to removal after next major release.
     filename = EnvRelativePathOption('account-manager', 'password_file', '',
         doc = N_("""Path relative to Trac environment or full host machine
-                path to password file"""))
+                path to password file - depreciated in favor of similar,
+                but store-specific options"""))
 
     def has_user(self, user):
         return user in self.get_users()
@@ -184,7 +187,7 @@ class HtPasswdStore(AbstractPasswordFileStore):
     [account-manager]
     password_store = HtPasswdStore
     htpasswd_file = /path/to/trac.htpasswd
-    htpasswd_hash_type = crypt|md5|sha <- None or one of these options
+    htpasswd_hash_type = crypt|md5|sha|sha512 <- None or one of these options
     }}}
 
     Default behaviour is to detect presence of 'crypt' and use it or
