@@ -16,7 +16,7 @@ from trac.core import *
 from trac.config import Option
 
 from acct_mgr.api import AccountManager, _
-from acct_mgr.hashlib_compat import md5, sha1
+from acct_mgr.hashlib_compat import md5, sha1, sha512
 from acct_mgr.md5crypt import md5crypt
 
 
@@ -63,7 +63,7 @@ def _encode(*args):
 
 # check for the availability of the "crypt" module for checking passwords on
 # Unix-like platforms
-# MD5 is still used when adding/updating passwords
+# MD5 is still used when adding/updating passwords with htdigest
 try:
     from crypt import crypt
 except ImportError:
@@ -83,6 +83,8 @@ def hash_prefix(hash_type):
         return '$apr1$'
     elif hash_type == 'sha':
         return '{SHA}'
+    elif hash_type == 'sha512':
+        return '$6$'
     else:
         # use 'crypt' hash by default anyway
         return ''
@@ -92,6 +94,14 @@ def htpasswd(password, hash):
         return md5crypt(password, hash[6:].split('$')[0], '$apr1$')
     elif hash.startswith('{SHA}'):
         return '{SHA}' + sha1(password).digest().encode('base64')[:-1]
+    elif hash.startswith('$6$'):
+        if sha512 is None:
+            # Import of required hashlib (since Python2.5) failed, so bail out.
+            raise NotImplementedError(_(
+                """The \"sha512\" hash algorithm is unavailable
+                   on this platform."""))
+        return '$6$' + sha512(password).digest().encode('base64') \
+                                                .replace('\n','')
     elif crypt is None:
         # crypt passwords are only supported on Unix-like systems
         raise NotImplementedError(_("""The \"crypt\" module is unavailable
@@ -112,3 +122,4 @@ def mkhtpasswd(password, hash_type=''):
 def htdigest(user, realm, password):
     p = ':'.join([user, realm, password])
     return md5(p).hexdigest()
+

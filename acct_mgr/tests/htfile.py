@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2005 Matthew Good <trac@matt-good.net>
+# Copyright (C) 2011 Steffen Hoffmann <hoff.st@web.de>
 #
 # "THE BEER-WARE LICENSE" (Revision 42):
 # <trac@matt-good.net> wrote this file.  As long as you retain this notice you
@@ -158,6 +159,11 @@ class HtPasswdTestCase(_BaseTestCase):
         self.env.config.set('account-manager', 'htpasswd_hash_type', 'sha')
         self.assertTrue(self.store.userline('user', 'password'
                                            ).startswith('user:{SHA}'))
+        self.store.set_password('user', 'password')
+        self.assertTrue(self.store.check_password('user', 'password'))
+        self.env.config.set('account-manager', 'htpasswd_hash_type', 'sha512')
+        self.assertTrue(self.store.userline('user', 'password'
+                                           ).startswith('user:$6$'))
         self.store.set_password('user', 'password')
         self.assertTrue(self.store.check_password('user', 'password'))
 
