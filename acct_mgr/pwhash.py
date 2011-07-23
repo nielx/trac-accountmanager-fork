@@ -15,7 +15,7 @@ from os import urandom
 from trac.core import *
 from trac.config import Option
 
-from acct_mgr.api import AccountManager, _
+from acct_mgr.api import AccountManager, _, N_
 from acct_mgr.hashlib_compat import md5, sha1, sha512
 from acct_mgr.md5crypt import md5crypt
 
@@ -31,8 +31,8 @@ class IPasswordHashMethod(Interface):
 class HtPasswdHashMethod(Component):
     implements(IPasswordHashMethod)
 
-    hash_type = Option('account-manager', 'htpasswd_hash_type', 'crypt',
-        doc = "Default hash type of new/updated passwords")
+    hash_type = Option('account-manager', 'db_htpasswd_hash_type', 'crypt',
+        doc = N_("Default hash type of new/updated passwords"))
 
     def generate_hash(self, user, password):
         password = password.encode('utf-8')
@@ -47,8 +47,8 @@ class HtPasswdHashMethod(Component):
 class HtDigestHashMethod(Component):
     implements(IPasswordHashMethod)
 
-    realm = Option('account-manager', 'htdigest_realm', '',
-        doc = "Realm to select relevant htdigest file entries")
+    realm = Option('account-manager', 'db_htdigest_realm', '',
+        doc = N_("Realm to select relevant htdigest db entries"))
 
     def generate_hash(self, user, password):
         user,password,realm = _encode(user, password, self.realm)

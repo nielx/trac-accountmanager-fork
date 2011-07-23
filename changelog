@@ -7,6 +7,8 @@ acct_mgr-0.4 (not yet released) - branch 0.11
    by adding dedicated options 'htdigest_file' and 'htpasswd_file'
  * #8791: Obsolete patch needed for authentication against Jira
    by adding sha512 hash support (requires Python>=2.5)
+ * #8990: HtPasswdStore and SessionStore with HtPasswdHashMethod share option
+   by adding dedicated options 'db_htpasswd_hash_type' and 'db_htdigest_realm'
 
 
 acct_mgr-0.3.1 (13-Jul-2011) - branch 0.11
