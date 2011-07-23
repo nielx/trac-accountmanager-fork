@@ -21,7 +21,7 @@ class SessionStore(Component):
 
     hash_method = ExtensionOption('account-manager', 'hash_method',
         IPasswordHashMethod, 'HtDigestHashMethod',
-        doc = N_("Default hash type of new/updated passwords"))
+        doc = N_("IPasswordHashMethod used to create new/updated passwords"))
 
     def __init__(self):
         self.key = 'password'
