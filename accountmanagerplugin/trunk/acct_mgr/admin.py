@@ -32,10 +32,25 @@ from acct_mgr.util      import is_enabled
 
 
 def _getoptions(cls):
-    if isinstance(cls, Component):
-        cls = cls.__class__
-    return [(name, value) for name, value in inspect.getmembers(cls)
-            if isinstance(value, Option)]
+    opt_cls = isinstance(cls, Component) and cls.__class__ or cls
+    options = [(name, value) for name, value in inspect.getmembers(opt_cls)
+               if isinstance(value, Option)]
+    index = 0
+    for option in options:
+        index += 1
+        try:
+            opt_val = option[1].__get__(cls, cls)
+        except AttributeError:
+            # Error will be raised again when parsing options list,
+            # so don't care here.
+            continue
+        # Check, if option is a valid component (possibly with own options).
+        opt_cls = isinstance(opt_val, Component) and opt_val.__class__ or None
+        extents = _getoptions(opt_cls)
+        for extent in extents:
+            options.insert(index, extent)
+            index += 1
+    return options
 
 def _setorder(req, stores):
     """Pull the password store ordering out of the req object"""
@@ -173,13 +188,39 @@ class AccountManagerAdminPages(Component):
                 continue
             options = []
             for attr, option in _getoptions(store):
-                opt_val = option.__get__(store, store)
-                opt_val = isinstance(opt_val, Component) and \
-                          opt_val.__class__.__name__ or opt_val
+                error = None
+                opt_val = None
+                value = None
+                try:
+                    opt_val = option.__get__(store, store)
+                except AttributeError, e:
+                    self.env.log.error(e)
+                    error = _("""Error while reading configuration -
+                              Hint: Enable/install the required component.""")
+                    pass
+                if opt_val:
+                    value = isinstance(opt_val, Component) and \
+                            opt_val.__class__.__name__ or opt_val
+                opt_sel = None
+                try:
+                    interface = option.xtnpt.interface
+                    opt_sel = {'options': [], 'selected': None}
+                except AttributeError:
+                    # No ExtensionOption / Interface undefined
+                    pass
+                if opt_sel:
+                    for impl in option.xtnpt.extensions(self.env):
+                        extension = impl.__class__.__name__
+                        opt_sel['options'].append(extension)
+                        if opt_val and extension == value:
+                            opt_sel['selected'] = extension
+                    if len(opt_sel['options']) == 0 and error:
+                        opt_sel['error'] = error
+                    value = opt_sel
                 options.append(
                             {'label': attr,
                             'name': '%s.%s' % (store.__class__.__name__, attr),
-                            'value': opt_val,
+                            'value': value,
                             'doc': gettext(option.__doc__)
                             })
                 continue

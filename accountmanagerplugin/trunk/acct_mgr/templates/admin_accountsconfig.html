@@ -36,8 +36,23 @@
 
         <div class="field" py:for="option in section.options">
           <label>$option.label:
-            <input type="text" name="$option.name" value="$option.value"
-                   class="textwidget" />
+            <py:choose>
+              <div class="system-message"
+                   py:when="isinstance(option.value, dict) and
+                            'error' in option.value.keys()" >
+                <p>${option.value['error']}</p>
+              </div>
+              <select name="$option.name"
+                      py:when="isinstance(option.value, dict)" >
+                <option py:for="opt in option.value['options']"
+                        value="${opt}" class="textwidget" 
+                        selected="${opt == option.value['selected'] or None}">
+                  ${opt}
+                </option>
+              </select>
+              <input class="textwidget" py:otherwise=""
+                     type="text" name="$option.name" value="$option.value" />
+            </py:choose>
           </label>
           <p class="help" py:if="option.doc">$option.doc</p>
         </div>
