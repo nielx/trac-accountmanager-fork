@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2007 Matthew Good <trac@matt-good.net>
+# Copyright (C) 2011 Steffen Hoffmann <hoff.st@web.de>
 #
 # "THE BEER-WARE LICENSE" (Revision 42):
 # <trac@matt-good.net> wrote this file.  As long as you retain this notice you
@@ -85,7 +86,7 @@ class HtDigestTestCase(_BaseTestCase):
         _BaseTestCase.setUp(self)
         self.env.config.set('account-manager', 'hash_method',
                             'HtDigestHashMethod')
-        self.env.config.set('account-manager', 'htdigest_realm',
+        self.env.config.set('account-manager', 'db_htdigest_realm',
                             'TestRealm')
 
 
