@@ -304,41 +304,7 @@ class AccountManager(Component):
             if valid:
                 if valid == True and (self.refresh_passwd == True) and \
                         self.get_supporting_store('set_password'):
-                    db = self.env.get_db_cnx()
-                    cursor = db.cursor()
-                    sql = """
-                        SELECT  sid
-                          FROM  session_attribute
-                        WHERE   sid=%s
-                            AND name='password_refreshed'
-                            AND value=1
-                        """
-                    cursor.execute(sql, (user,))
-                    if cursor.fetchone() is None:
-                        self.log.debug('refresh password for user: %s' % user)
-                        store = self.find_user_store(user)
-                        pwstore = self.get_supporting_store('set_password')
-                        if pwstore.set_password(user, password) == True:
-                            # Account re-created according to current settings
-                            if store and not \
-                                    (store.delete_user(user) == True):
-                                self.log.warn("""
-                                    failed to remove old entry for user '%s'
-                                    """ % user)
-                        cursor.execute("""
-                            UPDATE  session_attribute
-                                SET value='1'
-                            WHERE   sid=%s
-                                AND name='password_refreshed'
-                            """, (user,))
-                        cursor.execute(sql, (user,))
-                        if cursor.fetchone() is None:
-                            cursor.execute("""
-                                INSERT INTO session_attribute
-                                        (sid,authenticated,name,value)
-                                VALUES  (%s,1,'password_refreshed',1)
-                                """, (user,))
-                        db.commit()
+                    self._maybe_update_hash(user, password)
                 break
         return valid
 
@@ -444,6 +410,41 @@ class AccountManager(Component):
         """
         ignore_auth_case = self.config.getbool('trac', 'ignore_auth_case')
         return ignore_auth_case and user.lower() or user
+
+    def _maybe_update_hash(self, user, password):
+        db = self.env.get_db_cnx()
+        cursor = db.cursor()
+        sql = """
+            SELECT  sid
+              FROM  session_attribute
+            WHERE   sid=%s
+                AND name='password_refreshed'
+                AND value=1
+            """
+        cursor.execute(sql, (user,))
+        if cursor.fetchone() is None:
+            self.log.debug('refresh password for user: %s' % user)
+            store = self.find_user_store(user)
+            pwstore = self.get_supporting_store('set_password')
+            if pwstore.set_password(user, password) == True:
+                # Account re-created according to current settings
+                if store and not (store.delete_user(user) == True):
+                    self.log.warn(
+                        "failed to remove old entry for user '%s'" % user)
+            cursor.execute("""
+                UPDATE  session_attribute
+                    SET value='1'
+                WHERE   sid=%s
+                    AND name='password_refreshed'
+                """, (user,))
+            cursor.execute(sql, (user,))
+            if cursor.fetchone() is None:
+                cursor.execute("""
+                    INSERT INTO session_attribute
+                            (sid,authenticated,name,value)
+                    VALUES  (%s,1,'password_refreshed',1)
+                    """, (user,))
+            db.commit()
 
     def _notify(self, func, *args):
         func = 'user_' + func
