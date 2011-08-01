@@ -368,8 +368,8 @@ class AccountManagerAdminPages(Component):
                     account['name'] = name
                     account['email'] = email
 
-            cursor = acctmgr.last_seen()
-            for username, last_visit in cursor:
+            ts_seen = acctmgr.last_seen()
+            for username, last_visit in ts_seen:
                 account = accounts.get(username)
                 if account and last_visit:
                     account['last_visit'] = format_datetime(last_visit, 
@@ -423,11 +423,9 @@ class AccountManagerAdminPages(Component):
                 if email:
                     data['email'] = email
                 break
-        ts_seen = None
-        for row in acctmgr.last_seen(username):
-            if row[0] == username and row[1]:
-                data['last_visit'] = format_datetime(row[1], tzinfo=req.tz)
-                break
+        ts_seen = acctmgr.last_seen(username)
+        if ts_seen is not None:
+            data['last_visit'] = format_datetime(ts_seen[0][1], tzinfo=req.tz)
 
         attempts = []
         attempts_count = guard.failed_count(username, reset = None)

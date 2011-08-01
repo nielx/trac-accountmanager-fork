@@ -9,6 +9,7 @@ acct_mgr-0.4 (not yet released) - branch 0.11
    by adding sha512 hash support (requires Python>=2.5)
  * #8990: HtPasswdStore and SessionStore with HtPasswdHashMethod share option
    by adding dedicated options 'db_htpasswd_hash_type' and 'db_htdigest_realm'
+ * fix TypeError in account details admin page for not yet authenticated users
 
  new features
  * add recursion to option parser for configuration admin page and provide
