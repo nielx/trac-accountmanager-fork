@@ -16,8 +16,15 @@ from trac.core import *
 from trac.config import Option
 
 from acct_mgr.api import AccountManager, _, N_
-from acct_mgr.hashlib_compat import md5, sha1, sha512
+from acct_mgr.hashlib_compat import md5, sha1
 from acct_mgr.md5crypt import md5crypt
+
+try:
+    from passlib.apps import custom_app_context as passlib_ctxt
+except ImportError:
+    # not available
+    # Hint: Python2.5 is required too
+    passlib_ctxt = None
 
 
 class IPasswordHashMethod(Interface):
@@ -83,6 +90,8 @@ def hash_prefix(hash_type):
         return '$apr1$'
     elif hash_type == 'sha':
         return '{SHA}'
+    elif hash_type == 'sha256':
+        return '$5$'
     elif hash_type == 'sha512':
         return '$6$'
     else:
@@ -94,19 +103,27 @@ def htpasswd(password, hash):
         return md5crypt(password, hash[6:].split('$')[0], '$apr1$')
     elif hash.startswith('{SHA}'):
         return '{SHA}' + sha1(password).digest().encode('base64')[:-1]
-    elif hash.startswith('$6$'):
-        if sha512 is None:
-            # Import of required hashlib (since Python2.5) failed, so bail out.
-            raise NotImplementedError(_(
-                """The \"sha512\" hash algorithm is unavailable
-                   on this platform."""))
-        return '$6$' + sha512(password).digest().encode('base64') \
-                                                .replace('\n','')
+    elif passlib_ctxt is not None and hash.startswith('$5$') and \
+            'sha256_crypt' in passlib_ctxt.policy.schemes():
+        return passlib_ctxt.encrypt(password, scheme="sha256_crypt",
+                                    rounds=5000, salt=hash[3:].split('$')[0])
+    elif passlib_ctxt is not None and hash.startswith('$6$') and \
+            'sha512_crypt' in passlib_ctxt.policy.schemes():
+        return passlib_ctxt.encrypt(password, scheme="sha512_crypt",
+                                    rounds=5000, salt=hash[3:].split('$')[0])
     elif crypt is None:
         # crypt passwords are only supported on Unix-like systems
         raise NotImplementedError(_("""The \"crypt\" module is unavailable
                                     on this platform."""))
     else:
+        if hash.startswith('$5$') or hash.startswith('$6$'):
+            # Import of passlib failed, now check, if crypt is capable.
+            if not crypt(password, hash).startswith(hash):
+                # No, so bail out.
+                raise NotImplementedError(_(
+                    """Neither are \"sha2\" hash algorithms supported by the
+                    \"crypt\" module on this platform nor is \"passlib\"
+                    available."""))
         return crypt(password, hash)
 
 def mkhtpasswd(password, hash_type=''):
