@@ -427,8 +427,6 @@ class AccountManager(Component):
         user_stores = []
         for store in self._password_store:
             userlist = store.get_users()
-            if ignore_auth_case:
-                userlist = [u.lower() for u in userlist]
             user_stores.append((store, userlist))
             continue
         user = self.handle_username_casing(user)

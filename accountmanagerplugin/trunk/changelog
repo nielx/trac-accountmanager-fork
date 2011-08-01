@@ -11,6 +11,8 @@ acct_mgr-0.4 (not yet released) - branch 0.11
    by adding dedicated options 'db_htpasswd_hash_type' and 'db_htdigest_realm'
  * fix TypeError in account details admin page for not yet authenticated users
  * make option `verify_email` effective for `RegistrationModule`
+ * fix bug from initial password store chaining implementation leading to
+   false-positives on user store discovery and later unexpected login failure
 
  new features
  * add recursion to option parser for configuration admin page and provide
