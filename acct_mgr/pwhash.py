@@ -76,11 +76,11 @@ try:
 except ImportError:
     crypt = None
 
-def salt():
+def salt(salt_char_count=8):
     s = ''
-    v = long(hexlify(urandom(6)), 16)
+    v = long(hexlify(urandom(int(salt_char_count/8*6))), 16)
     itoa64 = './0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
-    for i in range(8):
+    for i in range(int(salt_char_count)):
         s += itoa64[v & 0x3f]; v >>= 6
     return s
 
@@ -128,7 +128,11 @@ def htpasswd(password, hash):
 
 def mkhtpasswd(password, hash_type=''):
     hash_prefix_ = hash_prefix(hash_type)
-    salt_ = salt()
+    if hash_type.startswith('sha') and len(hash_type) > 3:
+        salt_ = salt(16)
+    else:
+        # Don't waste entropy to older hash types.
+        salt_ = salt()
     if hash_prefix_ == '':
         if crypt is None:
             salt_ = '$apr1$' + salt_

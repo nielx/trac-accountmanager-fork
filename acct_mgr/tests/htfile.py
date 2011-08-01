@@ -110,12 +110,14 @@ class HtPasswdTestCase(_BaseTestCase):
 
     def test_sha256(self):
         self._do_password_test('htpasswd', 'test_sha256',
-            'user:$5$salt$Gcm6FsVtF/Qa77ZKD.iwsJlCVPY0XSMgLJL0Hnww/c1\n')
+                               'user:$5$saltsaltsaltsalt$'
+                               'WsFBeg1qQ90JL3VkUTuM7xVV/5njhLngIVm6ftSnBR2\n')
 
     def test_sha512(self):
         self._do_password_test('htpasswd', 'test_sha512',
-            'user:$6$salt$IxDD3jeSOb5eB1CX5LBsqZFVkJdido3OUILO5Ifz5iw'
-                          'MuTS4XMS130MTSuDDl3aCI6WouIL9AjRbLCelDCy.g.\n')
+                               'user:$6$saltsaltsaltsalt$'
+                               'bcXJ8qxwY5sQ4v8MTl.0B1jeZ0z0JlA9jjmbUoCJZ.1'
+                               'wYXiLTU.q2ILyrDJLm890lyfuF7sWAeli0yjOyFPkf0\n')
 
     def test_no_trailing_newline(self):
         self._do_password_test('htpasswd', 'test_no_trailing_newline',
