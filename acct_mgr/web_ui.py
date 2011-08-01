@@ -448,8 +448,8 @@ class RegistrationModule(Component):
                             },
                 '_dgettext': dgettext,
                }
-        data['verify_account_enabled'] = is_enabled(self.env,
-                                                    EmailVerificationModule)
+        data['verify_account_enabled'] = is_enabled(
+            self.env, EmailVerificationModule) and self.acctmgr.verify_email
         if req.method == 'POST' and action == 'create':
             try:
                 _create_user(req, self.env)
