@@ -108,6 +108,15 @@ class HtPasswdTestCase(_BaseTestCase):
         self._do_password_test('htpasswd', 'test_sha',
                                'user:{SHA}W6ph5Mm5Pz8GgiULbPgzG37mj9g=\n')
 
+    def test_sha256(self):
+        self._do_password_test('htpasswd', 'test_sha256',
+            'user:$5$salt$Gcm6FsVtF/Qa77ZKD.iwsJlCVPY0XSMgLJL0Hnww/c1\n')
+
+    def test_sha512(self):
+        self._do_password_test('htpasswd', 'test_sha512',
+            'user:$6$salt$IxDD3jeSOb5eB1CX5LBsqZFVkJdido3OUILO5Ifz5iw'
+                          'MuTS4XMS130MTSuDDl3aCI6WouIL9AjRbLCelDCy.g.\n')
+
     def test_no_trailing_newline(self):
         self._do_password_test('htpasswd', 'test_no_trailing_newline',
                                'user:$apr1$xW/09...$fb150dT95SoL1HwXtHS/I0')
@@ -160,6 +169,11 @@ class HtPasswdTestCase(_BaseTestCase):
         self.env.config.set('account-manager', 'htpasswd_hash_type', 'sha')
         self.assertTrue(self.store.userline('user', 'password'
                                            ).startswith('user:{SHA}'))
+        self.store.set_password('user', 'password')
+        self.assertTrue(self.store.check_password('user', 'password'))
+        self.env.config.set('account-manager', 'htpasswd_hash_type', 'sha256')
+        self.assertTrue(self.store.userline('user', 'password'
+                                           ).startswith('user:$5$'))
         self.store.set_password('user', 'password')
         self.assertTrue(self.store.check_password('user', 'password'))
         self.env.config.set('account-manager', 'htpasswd_hash_type', 'sha512')

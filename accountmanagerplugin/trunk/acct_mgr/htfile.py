@@ -187,7 +187,7 @@ class HtPasswdStore(AbstractPasswordFileStore):
     [account-manager]
     password_store = HtPasswdStore
     htpasswd_file = /path/to/trac.htpasswd
-    htpasswd_hash_type = crypt|md5|sha|sha512 <- None or one of these options
+    htpasswd_hash_type = crypt|md5|sha|sha256|sha512 <- None or one of these
     }}}
 
     Default behaviour is to detect presence of 'crypt' and use it or
