@@ -147,27 +147,11 @@ def _create_user(req, env, check_permissions=True):
 
     acctmgr.set_password(username, password)
 
-    db = env.get_db_cnx()
-    cursor = db.cursor()
-    cursor.execute("""
-        SELECT  COUNT(*)
-        FROM    session
-        WHERE   sid=%s
-            AND authenticated=1
-        """, (username,))
-    exists = cursor.fetchone()
-    if not exists:
-        cursor.execute("""
-            INSERT INTO session
-                    (sid,authenticated,last_visit)
-            VALUES  (%s,1,0)
-            """, (username,))
-
     for attribute in ('name', 'email'):
         value = req.args.get(attribute)
         if not value:
             continue
-        set_user_attribute(env, username, attribute, value, db)
+        set_user_attribute(env, username, attribute, value)
 
 
 class ResetPwStore(SessionStore):
