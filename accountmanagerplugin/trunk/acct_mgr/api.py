@@ -316,13 +316,14 @@ class AccountManager(Component):
         # set for the user.
         for table in ['session_attribute', 'session', 'permission']:
             key = (table == 'permission') and 'username' or 'sid'
-            # Preseed with table name, that is not allowed as SQL argument.
+            # Preseed, since variable table and column names are allowed
+            # as SQL arguments (security measure agains SQL injections).
             sql = """
                 DELETE
                 FROM   %s
-                WHERE  %%s=%%s
-                """ % table
-            cursor.execute(sql, (key, user))
+                WHERE  %s=%%s
+                """ % (table, key)
+            cursor.execute(sql, (user,))
         db.commit()
         db.close()
         # Delete from password store 
