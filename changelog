@@ -9,15 +9,21 @@ acct_mgr-0.4 (not yet released) - branch 0.11
    by adding sha256/sha512 hash support (needs `passlib` or extended `crypt`)
  * #8990: HtPasswdStore and SessionStore with HtPasswdHashMethod share option
    by adding dedicated options 'db_htpasswd_hash_type' and 'db_htdigest_realm'
- * fix TypeError in account details admin page for not yet authenticated users
- * make option `verify_email` effective for `RegistrationModule`
- * fix bug from initial password store chaining implementation leading to
-   false-positives on user store discovery and later unexpected login failure
 
  new features
  * add recursion to option parser for configuration admin page and provide
    available valid values for an `ExtensionOption` like `IPasswordHashMethod`
    by a select field (dropdown box) - or meaningful message on missing options
+
+
+acct_mgr-0.3.2 (not yet released) - branch 0.11
+ resolved issues
+ * #9051: Unable to add users due to existing email addresses
+   by fixing SQL statements responsible for db cleanup on account deletion
+ * fix TypeError in account details admin page for not yet authenticated users
+ * make option `verify_email` effective for `RegistrationModule`
+ * fix bug from initial password store chaining implementation leading to
+   false-positives on user store discovery and later unexpected login failure
 
 
 acct_mgr-0.3.1 (13-Jul-2011) - branch 0.11
