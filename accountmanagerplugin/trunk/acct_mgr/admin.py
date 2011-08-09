@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2005 Matthew Good <trac@matt-good.net>
+# Copyright (C) 2010,2011 Steffen Hoffmann <hoff.st@web.de>
 #
 # "THE BEER-WARE LICENSE" (Revision 42):
 # <trac@matt-good.net> wrote this file.  As long as you retain this notice you
@@ -23,8 +24,9 @@ from trac.web.chrome    import ITemplateProvider, add_notice, \
                                add_stylesheet, add_warning
 from trac.admin         import IAdminPanelProvider
 
-from acct_mgr.api       import AccountManager, _, dgettext, gettext, tag_, \
-                               del_user_attribute, set_user_attribute
+from acct_mgr.api       import AccountManager, _, dgettext, gettext, \
+                               ngettext, tag_, del_user_attribute, \
+                               get_user_attribute, set_user_attribute
 from acct_mgr.guard     import AccountGuard
 from acct_mgr.web_ui    import _create_user, AccountModule, \
                                EmailVerificationModule
@@ -143,6 +145,7 @@ class AccountManagerAdminPages(Component):
         if req.perm.has_permission('ACCTMGR_USER_ADMIN'):
             yield ('accounts', _("Accounts"), 'users', _("Users"))
             yield ('accounts', _("Accounts"), 'details', _("Account details"))
+            yield ('accounts', _("Accounts"), 'cleanup', _("Cleanup"))
 
     def render_admin_panel(self, req, cat, page, path_info):
         if page == 'config':
@@ -151,6 +154,8 @@ class AccountManagerAdminPages(Component):
             return self._do_users(req)
         elif page == 'details':
             return self._do_acct_details(req)
+        elif page == 'cleanup':
+            return self._do_db_cleanup(req)
 
     def _do_config(self, req):
         stores = StoreOrder(stores=self.acctmgr.stores,
@@ -453,6 +458,91 @@ class AccountManagerAdminPages(Component):
         add_stylesheet(req, 'acct_mgr/acct_mgr.css')
         data['url'] = req.href.admin('accounts', 'details')
         return 'account_details.html', data
+
+    def _do_db_cleanup(self, req):
+        if req.perm.has_permission('ACCTMGR_ADMIN'):
+            changed = False
+            # Get all data from 'session_attributes' db table.
+            attr = get_user_attribute(self.env, username=None,
+                                      authenticated=None)
+            attrs = {}
+            sel = req.args.get('sel')
+            if req.args.get('purge') and sel is not None:
+                sel = isinstance(sel, list) and sel or [sel]
+                sel_len = len(sel)
+                matched = []
+                for acct, states in attr.iteritems():
+                    for state in states['id'].keys():
+                        for elem, id in states[state]['id'].iteritems():
+                            if id in sel:
+                                if acct in attrs.keys():
+                                    if state in attrs[acct].keys():
+                                        attrs[acct][state] \
+                                            .append(elem)
+                                    else:
+                                        attrs[acct][state] = [elem]
+                                else:
+                                    attrs[acct] = {state: [elem]}
+                                matched.append(id)
+                                if len(matched) == sel_len:
+                                    break
+                        if len(matched) == sel_len:
+                            break
+                    if len(matched) == sel_len:
+                        break
+                for id in (frozenset(sel) - frozenset(matched)):
+                    for acct, states in attr.iteritems():
+                        for state, id_ in states['id'].iteritems():
+                            if id == id_:
+                                # Full account is marked, forget attributes.
+                                if acct in attrs.keys():
+                                    attrs[acct].update({state: []})
+                                else:
+                                    attrs[acct] = {state: []}
+                                matched.append(id)
+                                if len(matched) == sel_len:
+                                    break
+                        if len(matched) == sel_len:
+                            break
+                # DEVEL: for Python>2.4 better use defaultdict for counters
+                del_count = {'acct': 0, 'attr': 0}
+                for account, states in attrs.iteritems():
+                    for state, elem in states.iteritems():
+                        if len(elem) == 0:
+                            del_user_attribute(self.env, account, state)
+                            del_count['acct'] += 1
+                        else:
+                            for attribute in elem:
+                                del_user_attribute(self.env, account, state,
+                                                   attribute)
+                                del_count['attr'] += 1
+                    changed = True
+            if changed == True:
+                # Update the dict after changes.
+                attr = get_user_attribute(self.env, username=None,
+                                          authenticated=None)
+            data = {'_dgettext': dgettext,
+                'attr': attr}
+            if req.args.get('purge') and sel is not None:
+                accounts = attributes = ''
+                n_plural=del_count['acct']
+                if n_plural > 0:
+                    accounts = tag.li(tag.span(tag(ngettext(
+                    "%(count)s account",
+                    "%(count)s accounts",
+                    n_plural, count=n_plural
+                ))))
+                n_plural=del_count['attr']
+                if n_plural > 0:
+                    attributes = tag.li(tag.span(tag(ngettext(
+                    "%(count)s account attribute",
+                    "%(count)s account attributes",
+                    n_plural, count=n_plural
+                ))))
+                data['result'] = tag(_("Successfully deleted:"),
+                                     tag.ul(accounts, attributes))
+            add_stylesheet(req, 'acct_mgr/acct_mgr.css')
+            return 'db_cleanup.html', data
 
     # ITemplateProvider methods
 
