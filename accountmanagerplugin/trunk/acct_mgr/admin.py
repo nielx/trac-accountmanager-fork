@@ -157,7 +157,7 @@ class AccountManagerAdminPages(Component):
                             list=self.acctmgr.password_store)
         if req.method == 'POST':
             if req.args.get('restart'):
-                del_user_attribute(self.env, None, 'password_refreshed')
+                del_user_attribute(self.env, attribute='password_refreshed')
                 req.redirect(req.href.admin('accounts', 'config',
                                             done='restart'))
             _setorder(req, stores)
