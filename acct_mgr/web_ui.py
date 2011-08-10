@@ -147,6 +147,23 @@ def _create_user(req, env, check_permissions=True):
 
     acctmgr.set_password(username, password)
 
+    # INSERT new sid, needed as foreign key in some db schemata later on,
+    # at least for PostgreSQL.
+    db = env.get_db_cnx()
+    cursor = db.cursor()
+    cursor.execute("""
+        SELECT  COUNT(*)
+        FROM    session
+        WHERE   sid=%s
+        """, (username,))
+    exists = cursor.fetchone()
+    if not exists:
+        cursor.execute("""
+            INSERT INTO session
+                    (sid,authenticated,last_visit)
+            VALUES  (%s,0,0)
+            """, (username,))
+
     for attribute in ('name', 'email'):
         value = req.args.get(attribute)
         if not value:
