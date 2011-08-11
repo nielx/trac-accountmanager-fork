@@ -717,6 +717,15 @@ class LoginModule(auth.LoginModule):
             req.outcookie['trac_auth_session']['path'] = cookie_path
             if cookie_lifetime > 0:
                 req.outcookie['trac_auth_session']['expires'] = cookie_lifetime
+        else:
+            # In Trac 0.12 the built-in authentication module may have already
+            # set cookie's expires attribute, so because the user did not
+            # check 'remember me' we need to delete it here to ensure that the
+            # cookie will still expire at the end of the session.
+            try:
+                del req.outcookie['trac_auth']['expires']
+            except KeyError:
+                pass
         return res
 
     # overrides

@@ -20,6 +20,7 @@ acct_mgr-0.3.2 (not yet released) - branch 0.11
  resolved issues
  * #9051: Unable to add users due to existing email addresses
    by fixing SQL statements responsible for db cleanup on account deletion
+ * #9082: Remove cookie's `expires` param (0.12) when rememberme is unchecked
  * fix TypeError in account details admin page for not yet authenticated users
  * make option `verify_email` effective for `RegistrationModule`
  * fix bug from initial password store chaining implementation leading to
