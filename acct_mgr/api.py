@@ -528,7 +528,8 @@ def get_user_attribute(env, username=None, authenticated=1, attribute=None,
         authenticated = res_row.pop('authenticated')
         # Create single unique attribute ID.
         m = md5()
-        m.update(''.join([account, str(authenticated), res_row.get('name')]))
+        m.update(''.join([account, str(authenticated),
+                           res_row.get('name')]).encode('utf-8'))
         row_id = m.hexdigest()
         if account in res:
             if authenticated in res[account]:
@@ -545,12 +546,13 @@ def get_user_attribute(env, username=None, authenticated=1, attribute=None,
                 }
                 # Create account ID for additional authentication state.
                 m = md5()
-                m.update(''.join([account, str(authenticated)]))
+                m.update(''.join([account,
+                                  str(authenticated)]).encode('utf-8'))
                 res[account]['id'][authenticated] = m.hexdigest()
         else:
             # Create account ID for authentication state.
             m = md5()
-            m.update(''.join([account, str(authenticated)]))
+            m.update(''.join([account, str(authenticated)]).encode('utf-8'))
             res[account] = {authenticated: {res_row['name']: res_row['value'],
                                             'id': {res_row['name']: row_id}},
                             'id': {authenticated: m.hexdigest()}}
