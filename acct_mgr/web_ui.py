@@ -730,9 +730,10 @@ class LoginModule(auth.LoginModule):
 
     # overrides
     def _do_logout(self, req):
-        auth.LoginModule._do_logout(self, req)
-        
-        # Expire the persistent session cookie
+        # Expire the persistent session cookie. We need to do that before
+        # calling trac.auth.LoginModule._do_logout because that method
+        # will not return, if a custom redirect is configured using
+        # 'logout.redirect' option in 'metanav' section (since 0.12).
         try:
             cookie_path = self.auth_cookie_path or req.base_path or '/'
         except AttributeError:
@@ -741,6 +742,8 @@ class LoginModule(auth.LoginModule):
         req.outcookie['trac_auth_session'] = ''
         req.outcookie['trac_auth_session']['path'] = cookie_path
         req.outcookie['trac_auth_session']['expires'] = -10000
+
+        auth.LoginModule._do_logout(self, req)
 
     def _remote_user(self, req):
         """The real authentication using configured providers and stores."""
