@@ -12,6 +12,11 @@
         dgettext = _dgettext ?>
   <head>
     <title>Accounts: Cleanup</title>
+    <py:if test="attr">
+        <meta name="startIndex" content="${attr.span[0] + 1}"/>
+        <meta name="totalResults" content="$attr.num_items"/>
+        <meta name="itemsPerPage" content="$attr.max_per_page"/>
+    </py:if>
   </head>
 
   <body>
@@ -22,6 +27,10 @@
     </div>
     <form id="cleanup" class="mod" method="post">
       <div id="attributelist">
+        <p py:if="attr" i18n:msg="slice">
+          Accounts (${attr.displayed_items()})
+        </p>
+        <xi:include py:with="paginator = attr" href="page_index.html" />
         <table class="listing" id="attributelist">
           <thead>
             <tr>
@@ -39,7 +48,7 @@
             <tr class="important">
               <td colspan="4">Not Authenticated Accounts</td>
             </tr>
-            <py:for each="account, states in attr.iteritems()">
+            <py:for each="account, states in attr">
               <py:for each="state in states['id'].keys()">
                 <py:if test="state != 1">
                   <tr>
@@ -66,7 +75,7 @@
             <tr class="suggestions">
               <td colspan="4">Authenticated Accounts</td>
             </tr>
-            <py:for each="account, states in attr.iteritems()">
+            <py:for each="account, states in attr">
               <py:if test="1 in states['id'].keys()">
                 <tr>
                   <th><input type="checkbox" name="sel"
@@ -90,6 +99,7 @@
             </py:for>
           </tbody>
         </table>
+        <xi:include py:with="paginator = attr" href="page_index.html" />
       </div>
       <div class="buttons">
         <input type="submit" name="purge"

@@ -20,7 +20,8 @@ from trac.core          import *
 from trac.config        import Option
 from trac.perm          import IPermissionRequestor, PermissionSystem
 from trac.util.datefmt  import format_datetime, to_datetime
-from trac.web.chrome    import ITemplateProvider, add_notice, \
+from trac.util.presentation import Paginator
+from trac.web.chrome    import ITemplateProvider, add_link, add_notice, \
                                add_stylesheet, add_warning
 from trac.admin         import IAdminPanelProvider
 
@@ -127,6 +128,8 @@ class StoreOrder(dict):
 class AccountManagerAdminPages(Component):
 
     implements(IPermissionRequestor, IAdminPanelProvider, ITemplateProvider)
+
+    ACCTS_PER_PAGE = 5
 
     def __init__(self):
         self.acctmgr = AccountManager(self.env)
@@ -521,8 +524,9 @@ class AccountManagerAdminPages(Component):
                 # Update the dict after changes.
                 attr = get_user_attribute(self.env, username=None,
                                           authenticated=None)
-            data = {'_dgettext': dgettext,
-                'attr': attr}
+            data = {'_dgettext': dgettext}
+            data.update(self._prepare_attrs(req, attr))
+
             if req.args.get('purge') and sel is not None:
                 accounts = attributes = ''
                 n_plural=del_count['acct']
@@ -543,6 +547,35 @@ class AccountManagerAdminPages(Component):
                                      tag.ul(accounts, attributes))
             add_stylesheet(req, 'acct_mgr/acct_mgr.css')
             return 'db_cleanup.html', data
+
+    def _prepare_attrs(self, req, attr):
+        page = int(req.args.get('page', '1'))
+        # Paginator can't deal with dict, so convert to list.
+        attr_lst = [(k,v) for k,v in attr.iteritems()]
+        attr = Paginator(attr_lst, page - 1, self.ACCTS_PER_PAGE)
+
+        pagedata = []
+        shown_pages = attr.get_shown_pages(21)
+        for shown_page in shown_pages:
+            page_href = req.href.admin('accounts', 'cleanup', page=shown_page)
+            pagedata.append([page_href, None, str(shown_page),
+                             'page ' + str(shown_page)])
+
+        fields = ['href', 'class', 'string', 'title']
+        attr.shown_pages = [dict(zip(fields, p)) for p in pagedata]
+
+        attr.current_page = {'href': None, 'class': 'current',
+                             'string': str(attr.page + 1), 'title':None}
+
+        if attr.has_next_page:
+            next_href = req.href.admin('accounts', 'cleanup', page=page + 1)
+            add_link(req, 'next', next_href, _('Next Page'))
+
+        if attr.has_previous_page:
+            prev_href = req.href.admin('accounts', 'cleanup', page=page - 1)
+            add_link(req, 'prev', prev_href, _('Previous Page'))
+        page_href = req.href.admin('accounts', 'cleanup')
+        return {'attr': attr, 'page_href': page_href}
 
     # ITemplateProvider methods
 
