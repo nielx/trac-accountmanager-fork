@@ -386,11 +386,14 @@ class AccountManagerAdminPages(Component):
                             "Locked until %(t_release)s",
                             t_release=t_release)
 
-            for username, name, email in env.get_known_users():
-                account = accounts.get(username)
-                if account:
-                    account['name'] = name
-                    account['email'] = email
+            for acct, status in get_user_attribute(env, username=None,
+                                       authenticated=None).iteritems():
+                account = accounts.get(acct)
+                if account is not None and 1 in status:
+                    # Only use attributes related to authenticated
+                    # accounts.
+                    account['name'] = status[1].get('name')
+                    account['email'] = status[1].get('email')
 
             ts_seen = acctmgr.last_seen()
             for username, last_visit in ts_seen:
