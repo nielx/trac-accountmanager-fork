@@ -25,6 +25,19 @@
     <div class="notice system-message" py:if="result">
       <p>${result}</p>
     </div>
+    <form id="prefs" method="get" action="">
+      <div i18n:msg="">
+        <label>
+          Max accounts per page
+          <input type="text" size="3" name="max_per_page"
+                 value="${attr.max_per_page}" />
+        </label>
+      </div>
+      <div class="buttons">
+        <input type="submit" value="${dgettext('acct_mgr', 'Update')}" />
+      </div>
+    </form>
+
     <form id="cleanup" class="mod" method="post">
       <div id="attributelist">
         <p py:if="attr" i18n:msg="slice">
