@@ -33,6 +33,22 @@ from acct_mgr.web_ui    import _create_user, AccountModule, \
                                EmailVerificationModule
 from acct_mgr.util      import is_enabled
 
+try:
+    from trac.util  import as_int
+except ImportError:
+    def as_int(s, default, min=None, max=None):
+        """Convert s to an int and limit it to the given range, or
+        return default if unsuccessful (copied verbatim from Trac0.12dev)."""
+        try:
+            value = int(s)
+        except (TypeError, ValueError):
+            return default
+        if min is not None and value < min:
+            value = min
+        if max is not None and value > max:
+            value = max
+        return value
+
 
 def _getoptions(cls):
     opt_cls = isinstance(cls, Component) and cls.__class__ or cls
@@ -552,7 +568,10 @@ class AccountManagerAdminPages(Component):
         page = int(req.args.get('page', '1'))
         # Paginator can't deal with dict, so convert to list.
         attr_lst = [(k,v) for k,v in attr.iteritems()]
-        attr = Paginator(attr_lst, page - 1, self.ACCTS_PER_PAGE)
+        max_per_page = as_int(req.args.get('max_per_page'), None)
+        if max_per_page is None:
+            max_per_page = self.ACCTS_PER_PAGE
+        attr = Paginator(attr_lst, page - 1, max_per_page)
 
         pagedata = []
         shown_pages = attr.get_shown_pages(21)

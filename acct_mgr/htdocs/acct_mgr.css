@@ -2,7 +2,6 @@
 /* styles for users admin page */
 
 div#accountlist { max-height:640px; overflow:auto; }
-div#attributelist { max-height:640px; overflow:auto; }
 
 
 /* styles for account details admin page */
