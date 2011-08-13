@@ -876,10 +876,10 @@ class EmailVerificationModule(Component):
             link = tag.a(_("verify your new email address"),
                          href=req.href.verify_email())
             # TRANSLATOR: ... verify your new email address
-            chrome.add_notice(req, Markup(tag.span(tag_(
+            chrome.add_notice(req, Markup(tag.span(Markup(_(
                 """An email has been sent to %(email)s with a token to
                 %(link)s.""",
-                email=email, link=link))))
+                email=email, link=link)))))
         return template, data, content_type
 
     # IRequestHandler methods
