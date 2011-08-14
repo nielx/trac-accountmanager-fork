@@ -847,9 +847,9 @@ class EmailVerificationModule(Component):
             link = tag.a(_("verify your email address"),
                          href=req.href.verify_email())
             # TRANSLATOR: ... verify your email address
-            chrome.add_warning(req, Markup(tag.span(tag_(
+            chrome.add_warning(req, Markup(tag.span(Markup(_(
                 "Your permissions have been limited until you %(link)s.",
-                link=link))))
+                link=link)))))
             req.perm = perm.PermissionCache(self.env, 'anonymous')
         return handler
 
