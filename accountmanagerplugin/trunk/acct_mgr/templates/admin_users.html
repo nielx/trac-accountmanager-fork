@@ -98,10 +98,10 @@
                 <!--! Additional account status icons -->
                 <py:choose py:if="acct.locked">
                   <img src="${href.chrome('/acct_mgr/time-locked.png')}"
-                       py:when="acct.release_hint" alt="account locked"
+                       py:when="acct.release_hint" alt="Account locked"
                        title="${acct.release_hint}" />
                   <img src="${href.chrome('/acct_mgr/locked.png')}"
-                       py:otherwise="" alt="account locked permanently"
+                       py:otherwise="" alt="Permanently locked"
                        title="${dgettext('acct_mgr', 'Permanently locked')}" />
                 </py:choose>
               </td>
