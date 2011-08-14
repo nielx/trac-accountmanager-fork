@@ -143,7 +143,7 @@ class StoreOrder(dict):
 
 class AccountManagerAdminPages(Component):
 
-    implements(IPermissionRequestor, IAdminPanelProvider, ITemplateProvider)
+    implements(IAdminPanelProvider, IPermissionRequestor, ITemplateProvider)
 
     ACCTS_PER_PAGE = 5
 
@@ -164,7 +164,6 @@ class AccountManagerAdminPages(Component):
         if req.perm.has_permission('ACCTMGR_USER_ADMIN'):
             yield ('accounts', _("Accounts"), 'users', _("Users"))
             yield ('accounts', _("Accounts"), 'details', _("Account details"))
-            yield ('accounts', _("Accounts"), 'cleanup', _("Cleanup"))
 
     def render_admin_panel(self, req, cat, page, path_info):
         if page == 'config':
@@ -173,8 +172,6 @@ class AccountManagerAdminPages(Component):
             return self._do_users(req)
         elif page == 'details':
             return self._do_acct_details(req)
-        elif page == 'cleanup':
-            return self._do_db_cleanup(req)
 
     def _do_config(self, req):
         stores = StoreOrder(stores=self.acctmgr.stores,
@@ -295,6 +292,9 @@ class AccountManagerAdminPages(Component):
                           'email' : None,
                         }
         }
+        if req.method == 'GET' and (req.args.get('max_per_page') or \
+                                    req.args.get('page')):
+            return self._do_db_cleanup(req)
 
         if req.method == 'POST':
             if req.args.get('add'):
@@ -370,6 +370,9 @@ class AccountManagerAdminPages(Component):
                 except TracError, e:
                     data['editor_error'] = e.message
                     data['account'] = getattr(e, 'account', '')
+            elif len([action for action in req.args.iterkeys() \
+                      if action in ('cleanup' 'purge' 'unselect')]) > 0:
+                return self._do_db_cleanup(req)
 
         if listing_enabled:
             accounts = {}
@@ -483,6 +486,7 @@ class AccountManagerAdminPages(Component):
 
     def _do_db_cleanup(self, req):
         if req.perm.has_permission('ACCTMGR_ADMIN'):
+            env = self.env
             changed = False
             # Get all data from 'session_attributes' db table.
             attr = get_user_attribute(self.env, username=None,
@@ -531,17 +535,17 @@ class AccountManagerAdminPages(Component):
                 for account, states in attrs.iteritems():
                     for state, elem in states.iteritems():
                         if len(elem) == 0:
-                            del_user_attribute(self.env, account, state)
+                            del_user_attribute(env, account, state)
                             del_count['acct'] += 1
                         else:
                             for attribute in elem:
-                                del_user_attribute(self.env, account, state,
+                                del_user_attribute(env, account, state,
                                                    attribute)
                                 del_count['attr'] += 1
                     changed = True
             if changed == True:
                 # Update the dict after changes.
-                attr = get_user_attribute(self.env, username=None,
+                attr = get_user_attribute(env, username=None,
                                           authenticated=None)
             data = {'_dgettext': dgettext}
             data.update(self._prepare_attrs(req, attr))
@@ -579,7 +583,8 @@ class AccountManagerAdminPages(Component):
         pagedata = []
         shown_pages = attr.get_shown_pages(21)
         for shown_page in shown_pages:
-            page_href = req.href.admin('accounts', 'cleanup', page=shown_page)
+            page_href = req.href.admin('accounts', 'users', page=shown_page,
+                                       max_per_page=max_per_page)
             pagedata.append([page_href, None, str(shown_page),
                              'page ' + str(shown_page)])
 

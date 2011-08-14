@@ -115,6 +115,8 @@
         <xi:include py:with="paginator = attr" href="page_index.html" />
       </div>
       <div class="buttons">
+        <input type="hidden" name="max_per_page"
+               value="${attr.max_per_page}" />
         <input type="submit" name="purge"
           value="${dgettext('acct_mgr', 'Remove selected entries')}" />
         <input type="submit" name="unselect"

@@ -120,6 +120,9 @@
         <input type="submit" name="remove"
                py:if="delete_enabled"
                value="${dgettext('acct_mgr', 'Remove selected accounts')}" />
+        <input type="submit" name="cleanup"
+               py:if="req.perm.has_permission('ACCTMGR_ADMIN')"
+               value="${dgettext('acct_mgr', 'Review account attributes')}" />
       </div>
     </form>
     </py:choose>
