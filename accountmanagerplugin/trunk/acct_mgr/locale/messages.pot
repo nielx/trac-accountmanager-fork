@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: TracAccountManager 0.4\n"
 "Report-Msgid-Bugs-To: hoff.st@shaas.net\n"
-"POT-Creation-Date: 2011-08-15 00:53+0200\n"
+"POT-Creation-Date: 2011-08-15 01:11+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -121,6 +121,11 @@ msgstr[1] ""
 
 #: acct_mgr/admin.py:573
 msgid "Successfully deleted:"
+msgstr ""
+
+#: acct_mgr/admin.py:593
+#, python-format
+msgid "page %(num)s"
 msgstr ""
 
 #: acct_mgr/admin.py:603
