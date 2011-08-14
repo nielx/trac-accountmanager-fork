@@ -163,7 +163,6 @@ class AccountManagerAdminPages(Component):
             yield ('accounts', _("Accounts"), 'config', _("Configuration"))
         if req.perm.has_permission('ACCTMGR_USER_ADMIN'):
             yield ('accounts', _("Accounts"), 'users', _("Users"))
-            yield ('accounts', _("Accounts"), 'details', _("Account details"))
 
     def render_admin_panel(self, req, cat, page, path_info):
         if page == 'config':
@@ -292,9 +291,11 @@ class AccountManagerAdminPages(Component):
                           'email' : None,
                         }
         }
-        if req.method == 'GET' and (req.args.get('max_per_page') or \
-                                    req.args.get('page')):
-            return self._do_db_cleanup(req)
+        if req.method == 'GET':
+            if 'user' in req.args.iterkeys():
+                return self._do_acct_details(req)
+            elif req.args.get('max_per_page'):
+                return self._do_db_cleanup(req)
 
         if req.method == 'POST':
             if req.args.get('add'):
@@ -377,11 +378,11 @@ class AccountManagerAdminPages(Component):
         if listing_enabled:
             accounts = {}
             for username in acctmgr.get_users():
-                accounts[username] = {'username': username}
+                url = req.href.admin('accounts', 'users', user=username)
+                accounts[username] = {'username': username,
+                                      'review_url': url}
                 if guard.user_locked(username):
                     accounts[username]['locked'] = True
-                    url = req.href.admin('accounts', 'details', user=username)
-                    accounts[username]['review_url'] = url
                     t_lock = guard.lock_time(username)
                     if t_lock > 0:
                         t_release = guard.pretty_release_time(req, username)
@@ -422,17 +423,17 @@ class AccountManagerAdminPages(Component):
         acctmgr = self.acctmgr
         guard = self.guard
 
-        if req.method == 'POST':
-            if req.args.get('update'):
-                req.redirect(req.href.admin('accounts', 'details',
-                                            user=username))
-            if req.args.get('delete') or req.args.get('release'):
-                # delete failed login attempts, evaluating attempts count
-                if guard.failed_count(username, reset=True) > 0:
-                    add_notice(req, Markup(tag.span(tag(_(
-                        "Failed login attempts for user %(user)s deleted",
-                        user=Markup(tag.b(username))
-                        )))))
+        if req.args.get('update'):
+            req.redirect(req.href.admin('accounts', 'users',
+                                        user=username))
+        elif req.args.get('delete') or req.args.get('release'):
+            # delete failed login attempts, evaluating attempts count
+            if guard.failed_count(username, reset=True) > 0:
+                add_notice(req, Markup(tag.span(Markup(_(
+                    "Failed login attempts for user %(user)s deleted",
+                    user=tag.b(username)
+                    )))))
+        elif req.args.get('list'):
             req.redirect(req.href.admin('accounts', 'users'))
 
         data = {'_dgettext': dgettext,
@@ -481,7 +482,7 @@ class AccountManagerAdminPages(Component):
                 str(data['email_verified']))
 
         add_stylesheet(req, 'acct_mgr/acct_mgr.css')
-        data['url'] = req.href.admin('accounts', 'details')
+        data['url'] = req.href.admin('accounts', 'users', user=username)
         return 'account_details.html', data
 
     def _do_db_cleanup(self, req):
