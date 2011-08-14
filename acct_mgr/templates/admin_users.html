@@ -93,17 +93,16 @@
                 <input type="checkbox" name="sel"
                        value="${acct.username}" />
               </td>
-              <td>${acct.username}
+              <td>
+                <a href="${acct.review_url}">${acct.username}</a>
+                <!--! Additional account status icons -->
                 <py:choose py:if="acct.locked">
-                  <a href="${acct.review_url}"
-                     py:when="acct.release_hint"
-                     title="${acct.release_hint}">
-                    <img src="${href.chrome('/acct_mgr/time-locked.png')}" />
-                  </a>
-                  <a href="${acct.review_url}" py:otherwise=""
-                     title="${dgettext('acct_mgr', 'Permanently locked')}">
-                    <img src="${href.chrome('/acct_mgr/locked.png')}" />
-                  </a>
+                  <img src="${href.chrome('/acct_mgr/time-locked.png')}"
+                       py:when="acct.release_hint" alt="account locked"
+                       title="${acct.release_hint}" />
+                  <img src="${href.chrome('/acct_mgr/locked.png')}"
+                       py:otherwise="" alt="account locked permanently"
+                       title="${dgettext('acct_mgr', 'Permanently locked')}" />
                 </py:choose>
               </td>
               <td>${acct.name}</td>

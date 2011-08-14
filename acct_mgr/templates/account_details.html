@@ -28,7 +28,7 @@
         </py:choose>
       </div>
 
-      <form method="post" action="${url}">
+      <form method="get" action="${url}">
       <fieldset>
         <legend>
           <label>Account Status</label>
@@ -178,9 +178,11 @@
       </fieldset>
 
       <div class="buttons">
+        <input type="hidden" name="user" value="${user}" />
+        <input type="submit" name="list"
+               value="${dgettext('acct_mgr', 'Back to accounts')}" />
         <input type="submit" name="update"
                value="${dgettext('acct_mgr', 'Update')}" />
-        <input type="hidden" name="user" value="${user}" />
       </div>
       </form>
     </div>
