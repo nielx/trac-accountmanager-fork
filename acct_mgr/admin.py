@@ -590,7 +590,7 @@ class AccountManagerAdminPages(Component):
             page_href = req.href.admin('accounts', 'users', page=shown_page,
                                        max_per_page=max_per_page)
             pagedata.append([page_href, None, str(shown_page),
-                             'page ' + str(shown_page)])
+                             _("page %(num)s", num=str(shown_page))])
 
         fields = ['href', 'class', 'string', 'title']
         attr.shown_pages = [dict(zip(fields, p)) for p in pagedata]
