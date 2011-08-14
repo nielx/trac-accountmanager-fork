@@ -544,6 +544,9 @@ class AccountManagerAdminPages(Component):
                                                    attribute)
                                 del_count['attr'] += 1
                     changed = True
+            elif req.args.get('list'):
+                req.redirect(req.href.admin('accounts', 'users'))
+
             if changed == True:
                 # Update the dict after changes.
                 attr = get_user_attribute(env, username=None,
