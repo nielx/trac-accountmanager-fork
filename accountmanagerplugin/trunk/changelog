@@ -25,6 +25,8 @@ acct_mgr-0.3.2 (not yet released) - branch 0.11
  * #9088: Expire trac_auth_session cookie before LoginModule._do_logout
  * #9091: <b> tags in user registration notification
  * #9092: TypeError: __call__() got an unexpected keyword argument 'link'
+ * #9093: A href tags in verification notice
+ * #9095: Delete session cookie if client sent it and rememberme is unchecked
  * fix TypeError in account details admin page for not yet authenticated users
  * make option `verify_email` effective for `RegistrationModule`
  * fix bug from initial password store chaining implementation leading to

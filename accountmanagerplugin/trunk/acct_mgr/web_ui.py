@@ -647,36 +647,28 @@ class LoginModule(auth.LoginModule):
             # TODO Change session id (cookie.value) now and then as it
             #   otherwise never would change at all (i.e. stay the same
             #   indefinitely and therefore is vulnerable to be hacked).
-            req.outcookie['trac_auth'] = cookie.value
-
-            # check for properties to be set in auth cookies,
-            # defined since Trac 0.12
-            try:
-                cookie_path = self.auth_cookie_path or req.base_path or '/'
-            except AttributeError:
-                # Fallback for Trac 0.11 compatibility
-                cookie_path = req.base_path or '/'
-            req.outcookie['trac_auth'] = cookie.value
-            req.outcookie['trac_auth']['path'] = cookie_path
-
+            cookie_path = self._get_cookie_path(req)
             t = 86400 * 30 # AcctMgr default - Trac core defaults to 0 instead
             cookie_lifetime = self.env.config.getint(
                                          'trac', 'auth_cookie_lifetime', t)
+            req.outcookie['trac_auth'] = cookie.value
+            req.outcookie['trac_auth']['path'] = cookie_path
             if cookie_lifetime > 0:
                 req.outcookie['trac_auth']['expires'] = cookie_lifetime
-            try:
-                if self.env.secure_cookies:
-                    req.outcookie['trac_auth']['secure'] = True
-            except AttributeError:
-                # Report details about Trac compatibility for the feature.
-                self.env.log.warn(
-                    """Restricting cookies to HTTPS connections is requested,
-                    but is supported only by Trac 0.11.2 or later version.
-                    """)
             req.outcookie['trac_auth_session'] = 1
             req.outcookie['trac_auth_session']['path'] = cookie_path
             if cookie_lifetime > 0:
                 req.outcookie['trac_auth_session']['expires'] = cookie_lifetime
+            try:
+                if self.env.secure_cookies:
+                    req.outcookie['trac_auth']['secure'] = True
+                    req.outcookie['trac_auth_session']['secure'] = True
+            except AttributeError:
+                # Report details about Trac compatibility for the feature.
+                self.env.log.debug(
+                    """Restricting cookies to HTTPS connections is requested,
+                    but is supported only by Trac 0.11.2 or later version.
+                    """)
         return name
 
     # overrides
@@ -695,13 +687,8 @@ class LoginModule(auth.LoginModule):
             self._redirect_back(req)
         res = auth.LoginModule._do_login(self, req)
         if req.args.get('rememberme', '0') == '1':
-            # check for properties to be set in auth cookies,
-            # defined since Trac 0.12
-            try:
-                cookie_path = self.auth_cookie_path or req.base_path or '/'
-            except AttributeError:
-                # Fallback for Trac 0.11 compatibility
-                cookie_path = req.base_path or '/'
+            # Check for properties to be set in auth cookie.
+            cookie_path = self._get_cookie_path(req)
             t = 86400 * 30 # AcctMgr default - Trac core defaults to 0 instead
             cookie_lifetime = self.env.config.getint(
                                          'trac', 'auth_cookie_lifetime', t)
@@ -717,6 +704,15 @@ class LoginModule(auth.LoginModule):
             req.outcookie['trac_auth_session']['path'] = cookie_path
             if cookie_lifetime > 0:
                 req.outcookie['trac_auth_session']['expires'] = cookie_lifetime
+            try:
+                if self.env.secure_cookies:
+                    req.outcookie['trac_auth_session']['secure'] = True
+            except AttributeError:
+                # Report details about Trac compatibility for the feature.
+                self.env.log.debug(
+                    """Restricting cookies to HTTPS connections is requested,
+                    but is supported only by Trac 0.11.2 or later version.
+                    """)
         else:
             # In Trac 0.12 the built-in authentication module may have already
             # set cookie's expires attribute, so because the user did not
@@ -726,6 +722,10 @@ class LoginModule(auth.LoginModule):
                 del req.outcookie['trac_auth']['expires']
             except KeyError:
                 pass
+            # If there is a left-over session cookie from a previous
+            # authentication session, expire it now.
+            if 'trac_auth_session' in req.incookie:
+                self._expire_session_cookie(req)
         return res
 
     # overrides
@@ -734,16 +734,38 @@ class LoginModule(auth.LoginModule):
         # calling trac.auth.LoginModule._do_logout because that method
         # will not return, if a custom redirect is configured using
         # 'logout.redirect' option in 'metanav' section (since 0.12).
+        self._expire_session_cookie(req)
+        auth.LoginModule._do_logout(self, req)
+
+    def _get_cookie_path(self, req):
+        """Check request object for "path" cookie property.
+
+        There is even a configuration option (since Trac 0.12).
+        """
         try:
             cookie_path = self.auth_cookie_path or req.base_path or '/'
         except AttributeError:
             # Fallback for Trac 0.11 compatibility
             cookie_path = req.base_path or '/'
+        return cookie_path
+
+    def _expire_session_cookie(self, req):
+        """Instruct the user agent to drop the session cookie by setting
+        the "expires" property to a date in the past.
+        """
+        cookie_path = self._get_cookie_path(req)
         req.outcookie['trac_auth_session'] = ''
         req.outcookie['trac_auth_session']['path'] = cookie_path
         req.outcookie['trac_auth_session']['expires'] = -10000
-
-        auth.LoginModule._do_logout(self, req)
+        try:
+            if self.env.secure_cookies:
+                req.outcookie['trac_auth_session']['secure'] = True
+        except AttributeError:
+            # Report details about Trac compatibility for the feature.
+            self.env.log.debug(
+                """Restricting cookies to HTTPS connections is requested,
+                but is supported only by Trac 0.11.2 or later version.
+                """)
 
     def _remote_user(self, req):
         """The real authentication using configured providers and stores."""
