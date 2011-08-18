@@ -728,15 +728,6 @@ class LoginModule(auth.LoginModule):
                 self._expire_session_cookie(req)
         return res
 
-    # overrides
-    def _do_logout(self, req):
-        # Expire the persistent session cookie. We need to do that before
-        # calling trac.auth.LoginModule._do_logout because that method
-        # will not return, if a custom redirect is configured using
-        # 'logout.redirect' option in 'metanav' section (since 0.12).
-        self._expire_session_cookie(req)
-        auth.LoginModule._do_logout(self, req)
-
     def _get_cookie_path(self, req):
         """Check request object for "path" cookie property.
 
@@ -749,9 +740,26 @@ class LoginModule(auth.LoginModule):
             cookie_path = req.base_path or '/'
         return cookie_path
 
-    def _expire_session_cookie(self, req):
-        """Instruct the user agent to drop the session cookie by setting
+    # overrides
+    def _expire_cookie(self, req):
+        """Instruct the user agent to drop the auth_session cookie by setting
         the "expires" property to a date in the past.
+
+        Basically, whenever "trac_auth" cookie gets expired, expire
+        "trac_auth_session" too.
+        """
+        # First of all expire trac_auth_session cookie, if it exists.
+        if 'trac_auth_session' in req.incookie:
+            self._expire_session_cookie(req)
+        # And then let auth.LoginModule expire all other cookies.
+        auth.LoginModule._expire_cookie(self, req)
+
+    # Keep this code in a separate methode to be able to expire the session
+    # cookie trac_auth_session independently of the trac_auth cookie.
+    def _expire_session_cookie(self, req):
+        """Instruct the user agent to drop the session cookie.
+
+        This is achieved by setting "expires" property to a date in the past.
         """
         cookie_path = self._get_cookie_path(req)
         req.outcookie['trac_auth_session'] = ''
