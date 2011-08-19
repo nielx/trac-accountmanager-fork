@@ -34,7 +34,7 @@ except ImportError:
     def dgettext(domain, string, **kwargs):
         return safefmt(string, kwargs)
     def ngettext(singular, plural, num, **kwargs):
-        string = singular if num == 1 else plural
+        string = num == 1 and singular or plural
         kwargs.setdefault('num', num)
         return safefmt(string, kwargs)
     def safefmt(string, kwargs):
