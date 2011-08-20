@@ -400,11 +400,12 @@ class AccountManagerAdminPages(Component):
                     account['email'] = status[1].get('email')
 
             ts_seen = acctmgr.last_seen()
-            for username, last_visit in ts_seen:
-                account = accounts.get(username)
-                if account and last_visit:
-                    account['last_visit'] = format_datetime(last_visit, 
-                                                            tzinfo=req.tz)
+            if ts_seen is not None:
+                for username, last_visit in ts_seen:
+                    account = accounts.get(username)
+                    if account and last_visit:
+                        account['last_visit'] = format_datetime(last_visit, 
+                                                                tzinfo=req.tz)
             data['accounts'] = sorted(accounts.itervalues(),
                                       key=lambda acct: acct['username'])
         add_stylesheet(req, 'acct_mgr/acct_mgr.css')
