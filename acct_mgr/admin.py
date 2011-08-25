@@ -169,8 +169,6 @@ class AccountManagerAdminPages(Component):
             return self._do_config(req)
         elif page == 'users':
             return self._do_users(req)
-        elif page == 'details':
-            return self._do_acct_details(req)
 
     def _do_config(self, req):
         stores = StoreOrder(stores=self.acctmgr.stores,
@@ -404,7 +402,7 @@ class AccountManagerAdminPages(Component):
                 for username, last_visit in ts_seen:
                     account = accounts.get(username)
                     if account and last_visit:
-                        account['last_visit'] = format_datetime(last_visit, 
+                        account['last_visit'] = format_datetime(last_visit,
                                                                 tzinfo=req.tz)
             data['accounts'] = sorted(accounts.itervalues(),
                                       key=lambda acct: acct['username'])
