@@ -28,10 +28,14 @@ acct_mgr-0.3.2 (not yet released) - branch 0.11
  * #9093: A href tags in verification notice
  * #9095: Delete session cookie if client sent it and rememberme is unchecked
  * #9099: Expire session cookie whenever trac_auth cookie gets expired
+ * #9107: Error when building the egg file
+ * #9108: TypeError: 'NoneType' object is not iterable
+ * #9109: TypeError: 'NoneType' object is not iterable
  * fix TypeError in account details admin page for not yet authenticated users
  * make option `verify_email` effective for `RegistrationModule`
  * fix bug from initial password store chaining implementation leading to
    false-positives on user store discovery and later unexpected login failure
+ * change account details admin page into users admin subpage
 
 
 acct_mgr-0.3.1 (13-Jul-2011) - branch 0.11
