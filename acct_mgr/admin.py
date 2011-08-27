@@ -598,11 +598,13 @@ class AccountManagerAdminPages(Component):
                              'string': str(attr.page + 1), 'title':None}
 
         if attr.has_next_page:
-            next_href = req.href.admin('accounts', 'cleanup', page=page + 1)
+            next_href = req.href.admin('accounts', 'users', page=page + 1,
+                                       max_per_page=max_per_page)
             add_link(req, 'next', next_href, _('Next Page'))
 
         if attr.has_previous_page:
-            prev_href = req.href.admin('accounts', 'cleanup', page=page - 1)
+            prev_href = req.href.admin('accounts', 'users', page=page - 1,
+                                       max_per_page=max_per_page)
             add_link(req, 'prev', prev_href, _('Previous Page'))
         page_href = req.href.admin('accounts', 'cleanup')
         return {'attr': attr, 'page_href': page_href}
