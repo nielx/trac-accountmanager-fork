@@ -42,6 +42,9 @@ class SvnServePasswordStore(Component):
             filename = self._svnserve_conf['general'].getpath('password-db')
         if self._userconf is None or filename != self._userconf.filename:
             self._userconf = Configuration(filename)
+            # Overwrite default with str class to preserve case.
+            self._userconf.parser.optionxform = str
+            self._userconf.parse_if_needed(force=True)
         else:
             self._userconf.parse_if_needed()
         return self._userconf
