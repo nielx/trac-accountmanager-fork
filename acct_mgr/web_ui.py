@@ -157,7 +157,7 @@ def _create_user(req, env, check_permissions=True):
         WHERE   sid=%s
         """, (username,))
     exists = cursor.fetchone()
-    if not exists:
+    if not exists[0]:
         cursor.execute("""
             INSERT INTO session
                     (sid,authenticated,last_visit)
