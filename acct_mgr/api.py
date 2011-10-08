@@ -319,7 +319,7 @@ class AccountManager(Component):
         # set for the user.
         for table in ['session_attribute', 'session', 'permission']:
             key = (table == 'permission') and 'username' or 'sid'
-            # Preseed, since variable table and column names are allowed
+            # Preseed, since variable table and column names aren't allowed
             # as SQL arguments (security measure agains SQL injections).
             sql = """
                 DELETE
@@ -423,7 +423,7 @@ class AccountManager(Component):
               FROM  session_attribute
             WHERE   sid=%s
                 AND name='password_refreshed'
-                AND value=1
+                AND value='1'
             """
         cursor.execute(sql, (user,))
         if cursor.fetchone() is None:
