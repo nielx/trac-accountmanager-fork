@@ -14,6 +14,8 @@ acct_mgr-0.4 (not yet released) - branch 0.11
  * #9246: InternalError when refresh_passwd = true
 
  new features
+ * 9618: HttpAuthStore authentication enhancement
+   by allowing a relative URL for `authentication_url` configuration option
  * add recursion to option parser for configuration admin page and provide
    available valid values for an `ExtensionOption` like `IPasswordHashMethod`
    by a select field (dropdown box) - or meaningful message on missing options
