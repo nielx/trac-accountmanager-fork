@@ -184,9 +184,20 @@ acct_mgr-0.2.x (updates to 0.2.1, never officially released) - branch 0.11
 acct_mgr-0.2.1 (28-May-2008) - branch 0.11
  new features
  * #147: Email notification of account related events
- ToDo: add more historic enties
+
+
+ ToDo: historic entries below are still incomplete - more work needed
+
 
 acct_mgr-0.2 (10-Nov-2006) - new branch 0.11
+ * add SessionStore for storing user passwords as a Trac session attribute
+
+
+acct_mgr-0.1.3 (13-Nov-2006) branch 0.10
+ new features
+ * #173: Integrate login-related plugins
+   by adding HttpAuthStore
+
 
 acct_mgr-0.1.2 (10-Nov-2006) - new branch 0.10
 

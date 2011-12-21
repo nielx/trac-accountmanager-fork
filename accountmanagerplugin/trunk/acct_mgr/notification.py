@@ -162,7 +162,7 @@ class EmailVerificationNotification(SingleUserNotification):
         SingleUserNotification.notify(self, username, subject)
 
 
-class AccountChangeNotificationAdminPage(Component):
+class AccountChangeNotificationAdminPanel(Component):
     implements(IAdminPanelProvider, ITemplateProvider)
 
     # IAdminPageProvider

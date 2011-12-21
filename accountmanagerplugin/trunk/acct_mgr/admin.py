@@ -141,7 +141,7 @@ class StoreOrder(dict):
         return len(self.get_all_stores())
 
 
-class AccountManagerAdminPages(Component):
+class AccountManagerAdminPanels(Component):
 
     implements(IAdminPanelProvider, IPermissionRequestor, ITemplateProvider)
 
