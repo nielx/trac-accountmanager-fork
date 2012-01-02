@@ -24,6 +24,7 @@ from trac import perm, util
 from trac.core import Component, TracError, implements
 from trac.config import Configuration, IntOption, BoolOption
 from trac.prefs import IPreferencePanelProvider
+from trac.util import hex_entropy
 from trac.util.presentation import separated
 from trac.util.text import to_unicode
 from trac.web import auth
@@ -505,6 +506,12 @@ class LoginModule(auth.LoginModule):
         """Set to True, to switch login page style showing alternative actions
         in a single listing together.""")
 
+    cookie_refresh_pct = IntOption(
+        'account-manager', 'cookie_refresh_pct', 1,
+        """Persistent sessions randomly get a new session cookie ID with
+        likelihood in percent per request given here (zero equals to never)
+        to decrease vulnerability of long-lasting sessions.""")
+
     def __init__(self):
         self.cookie_lifetime = self.env.config.getint(
                                    'trac', 'auth_cookie_lifetime', 0)
@@ -637,10 +644,10 @@ class LoginModule(auth.LoginModule):
             # 
             # NOTE: This method is called on every request.
             
-            # Update the timestamp of the session so that it doesn't expire
+            # Refresh session cookie
+            # Update the timestamp of the session so that it doesn't expire.
             self.env.log.debug('Updating session %s for user %s' %
                                 (cookie.value, name))
-                                
             # Refresh in database
             db = self.env.get_db_cnx()
             cursor = db.cursor()
@@ -651,10 +658,24 @@ class LoginModule(auth.LoginModule):
                 """, (int(time.time()), cookie.value))
             db.commit()
             
-            # Refresh session cookie
-            # TODO Change session id (cookie.value) now and then as it
-            #   otherwise never would change at all (i.e. stay the same
-            #   indefinitely and therefore is vulnerable to be hacked).
+            # Change session ID (cookie.value) now and then as it otherwise
+            #   never would change at all (i.e. stay the same indefinitely and
+            #   therefore is more vulnerable to be hacked).
+            if random.random() + self.cookie_refresh_pct / 100.0 > 1:
+                old_cookie = cookie.value
+                # Update auth cookie value
+                cookie.value = hex_entropy()
+                self.env.log.debug('Changing session id for user %s to %s'
+                                    % (name, cookie.value))
+                db = self.env.get_db_cnx()
+                cursor = db.cursor()
+                cursor.execute("""
+                    UPDATE  auth_cookie
+                        SET cookie=%s
+                    WHERE   cookie=%s
+                    """, (cookie.value, old_cookie))
+                db.commit()
+
             cookie_lifetime = self.cookie_lifetime
             cookie_path = self._get_cookie_path(req)
             req.outcookie['trac_auth'] = cookie.value
