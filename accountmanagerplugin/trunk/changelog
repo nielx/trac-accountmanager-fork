@@ -12,6 +12,7 @@ acct_mgr-0.4 (not yet released) - branch 0.11
  * #9079: PostgreSQL: Database error when creating new user with attributes
  * #9139: SvnServePasswordStore and case sensitivity
  * #9246: InternalError when refresh_passwd = true
+ * #9547: Option `persistent_sessions` is not working in `0.4dev-r10747`
 
  new features
  * 9618: HttpAuthStore authentication enhancement
@@ -20,6 +21,8 @@ acct_mgr-0.4 (not yet released) - branch 0.11
    available valid values for an `ExtensionOption` like `IPasswordHashMethod`
    by a select field (dropdown box) - or meaningful message on missing options
  * add cleanup page for purging `session_attribute` db table via admin web UI
+ * add randomized authentication cookie ID refreshment, average refresh rate
+   controlled by new option `cookie_refresh_pct`
 
 
 acct_mgr-0.3.2 (26-Aug-2011) - branch 0.11
