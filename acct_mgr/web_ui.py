@@ -22,14 +22,15 @@ from pkg_resources import resource_filename
 
 from trac import perm, util
 from trac.core import Component, TracError, implements
-from trac.config import Configuration, IntOption, BoolOption
+from trac.config import Configuration, BoolOption, IntOption, Option
+from trac.env import open_environment
 from trac.prefs import IPreferencePanelProvider
 from trac.util import hex_entropy
 from trac.util.presentation import separated
 from trac.util.text import to_unicode
 from trac.web import auth
 from trac.web.api import IAuthenticator
-from trac.web.main import IRequestHandler, IRequestFilter
+from trac.web.main import IRequestHandler, IRequestFilter, get_environments
 from trac.web import chrome
 from trac.web.chrome import INavigationContributor, ITemplateProvider, \
                             add_script, add_stylesheet
@@ -519,6 +520,7 @@ class LoginModule(auth.LoginModule):
             # Set the session to expire after some time and not
             #   when the browser is closed - what is Trac core default).
             self.cookie_lifetime = 86400 * 30   # AcctMgr default = 30 days
+        self.auth_share_participants = []
 
     def authenticate(self, req):
         if req.method == 'POST' and req.path_info.startswith('/login'):
@@ -657,7 +659,7 @@ class LoginModule(auth.LoginModule):
                 WHERE   cookie=%s
                 """, (int(time.time()), cookie.value))
             db.commit()
-            
+
             # Change session ID (cookie.value) now and then as it otherwise
             #   never would change at all (i.e. stay the same indefinitely and
             #   therefore is more vulnerable to be hacked).
@@ -675,6 +677,7 @@ class LoginModule(auth.LoginModule):
                     WHERE   cookie=%s
                     """, (cookie.value, old_cookie))
                 db.commit()
+                self._distribute_cookie(req, cookie.value)
 
             cookie_lifetime = self.cookie_lifetime
             cookie_path = self._get_cookie_path(req)
@@ -711,6 +714,11 @@ class LoginModule(auth.LoginModule):
                 req.redirect(referer)
             self._redirect_back(req)
         res = auth.LoginModule._do_login(self, req)
+        # Inspect current cookie and try auth data distribution for SSO.
+        cookie = req.outcookie.get('trac_auth')
+        if cookie:
+            self._distribute_cookie(req, cookie.value)
+
         if req.args.get('rememberme', '0') == '1':
             # Check for properties to be set in auth cookie.
             cookie_lifetime = self.cookie_lifetime
@@ -747,6 +755,44 @@ class LoginModule(auth.LoginModule):
                 self._expire_session_cookie(req)
         return res
 
+    def _distribute_cookie(self, req, trac_auth):
+        # Single Sign On authentication distribution between multiple
+        #   Trac environments managed by AccountManager.
+        all_envs = get_environments(req.environ)
+        local_environ = req.environ.get('SCRIPT_NAME', None)
+        self.auth_share_participants = []
+
+        for environ, path in all_envs.iteritems():
+            if not environ == local_environ.lstrip('/'):
+                env = open_environment(path)
+                # Consider only Trac environments with equal, non-default
+                #   'auth_cookie_path', which enables cookies to be shared.
+                if self.env.config.get('trac', 'auth_cookie_path') == \
+                        env.config.get('trac', 'auth_cookie_path'):
+                    db = env.get_db_cnx()
+                    cursor = db.cursor()
+                    # Authentication cookie values must be unique. Ensure,
+                    #   there is no other session (or worst: session ID)
+                    #   associated to it.
+                    cursor.execute("""
+                        DELETE FROM auth_cookie
+                        WHERE  cookie=%s
+                        """, (trac_auth,))
+                    cursor.execute("""
+                        INSERT INTO auth_cookie
+                               (name,cookie,ipnr,time)
+                        VALUES (%s,%s,%s,%s)
+                        """, (req.remote_user, trac_auth, req.remote_addr,
+                              int(time.time())))
+                    db.commit()
+                    env.log.debug('Auth data received from: ' + local_environ)
+                    env.shutdown()
+                    # Track env paths for easier auth revocation later on.
+                    self.auth_share_participants.append(path)
+                    self.log.debug('Auth distribution success: ' + environ)
+                else:
+                    self.log.debug('Auth distribution skipped: ' + environ)
+
     def _get_cookie_path(self, req):
         """Check request object for "path" cookie property.
 
@@ -770,8 +816,20 @@ class LoginModule(auth.LoginModule):
         # First of all expire trac_auth_session cookie, if it exists.
         if 'trac_auth_session' in req.incookie:
             self._expire_session_cookie(req)
-        # And then let auth.LoginModule expire all other cookies.
+        # Then let auth.LoginModule expire all other cookies.
         auth.LoginModule._expire_cookie(self, req)
+        # And finally revoke distributed authentication data too.
+        for path in self.auth_share_participants:
+            env = open_environment(path)
+            db = env.get_db_cnx()
+            cursor = db.cursor()
+            cursor.execute("""
+                DELETE FROM auth_cookie
+                WHERE  cookie=%s
+                """, (trac_auth,))
+            db.commit()
+            env.log.debug('Auth data revoked from: ' + local_environ)
+            env.shutdown()
 
     # Keep this code in a separate methode to be able to expire the session
     # cookie trac_auth_session independently of the trac_auth cookie.
