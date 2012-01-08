@@ -714,6 +714,10 @@ class LoginModule(auth.LoginModule):
                 req.redirect(referer)
             self._redirect_back(req)
         res = auth.LoginModule._do_login(self, req)
+
+        cookie_path = self._get_cookie_path(req)
+        # Fix for Trac 0.11, that always sets path to `req.href()`.
+        req.outcookie['trac_auth']['path'] = cookie_path
         # Inspect current cookie and try auth data distribution for SSO.
         cookie = req.outcookie.get('trac_auth')
         if cookie:
@@ -722,7 +726,6 @@ class LoginModule(auth.LoginModule):
         if req.args.get('rememberme', '0') == '1':
             # Check for properties to be set in auth cookie.
             cookie_lifetime = self.cookie_lifetime
-            cookie_path = self._get_cookie_path(req)
             req.outcookie['trac_auth']['expires'] = cookie_lifetime
             
             # This cookie is used to indicate that the user is actually using
@@ -767,8 +770,8 @@ class LoginModule(auth.LoginModule):
                 env = open_environment(path)
                 # Consider only Trac environments with equal, non-default
                 #   'auth_cookie_path', which enables cookies to be shared.
-                if self.env.config.get('trac', 'auth_cookie_path') == \
-                        env.config.get('trac', 'auth_cookie_path'):
+                if self._get_cookie_path(req) == env.config.get('trac',
+                                                     'auth_cookie_path'):
                     db = env.get_db_cnx()
                     cursor = db.cursor()
                     # Authentication cookie values must be unique. Ensure,
@@ -780,9 +783,9 @@ class LoginModule(auth.LoginModule):
                         """, (trac_auth,))
                     cursor.execute("""
                         INSERT INTO auth_cookie
-                               (name,cookie,ipnr,time)
+                               (cookie,name,ipnr,time)
                         VALUES (%s,%s,%s,%s)
-                        """, (req.remote_user, trac_auth, req.remote_addr,
+                        """, (trac_auth, req.remote_user, req.remote_addr,
                               int(time.time())))
                     db.commit()
                     env.log.debug('Auth data received from: ' + local_environ)
@@ -798,12 +801,8 @@ class LoginModule(auth.LoginModule):
 
         There is even a configuration option (since Trac 0.12).
         """
-        try:
-            cookie_path = self.auth_cookie_path or req.base_path or '/'
-        except AttributeError:
-            # Fallback for Trac 0.11 compatibility
-            cookie_path = req.base_path or '/'
-        return cookie_path
+        return self.env.config.get('trac', 'auth_cookie_path') or \
+                   req.base_path or '/'
 
     # overrides
     def _expire_cookie(self, req):
@@ -816,20 +815,28 @@ class LoginModule(auth.LoginModule):
         # First of all expire trac_auth_session cookie, if it exists.
         if 'trac_auth_session' in req.incookie:
             self._expire_session_cookie(req)
+        # Capture current cookie value.
+        cookie = req.incookie.get('trac_auth')
+        if cookie:
+            trac_auth = cookie.value
+        else:
+            trac_auth = None
         # Then let auth.LoginModule expire all other cookies.
         auth.LoginModule._expire_cookie(self, req)
         # And finally revoke distributed authentication data too.
-        for path in self.auth_share_participants:
-            env = open_environment(path)
-            db = env.get_db_cnx()
-            cursor = db.cursor()
-            cursor.execute("""
-                DELETE FROM auth_cookie
-                WHERE  cookie=%s
-                """, (trac_auth,))
-            db.commit()
-            env.log.debug('Auth data revoked from: ' + local_environ)
-            env.shutdown()
+        if trac_auth:
+            for path in self.auth_share_participants:
+                env = open_environment(path)
+                db = env.get_db_cnx()
+                cursor = db.cursor()
+                cursor.execute("""
+                    DELETE FROM auth_cookie
+                    WHERE  cookie=%s
+                    """, (trac_auth,))
+                db.commit()
+                env.log.debug('Auth data revoked from: ' + \
+                              req.environ.get('SCRIPT_NAME', 'unknown'))
+                env.shutdown()
 
     # Keep this code in a separate methode to be able to expire the session
     # cookie trac_auth_session independently of the trac_auth cookie.
