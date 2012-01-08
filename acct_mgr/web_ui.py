@@ -43,6 +43,8 @@ from acct_mgr.db import SessionStore
 from acct_mgr.guard import AccountGuard
 from acct_mgr.util import containsAny, is_enabled
 
+UPDATE_INTERVAL = 3600 # Update cookies for persistant sessions only 1/hour.
+
 
 def _create_user(req, env, check_permissions=True):
     acctmgr = AccountManager(env)
@@ -508,9 +510,9 @@ class LoginModule(auth.LoginModule):
         in a single listing together.""")
 
     cookie_refresh_pct = IntOption(
-        'account-manager', 'cookie_refresh_pct', 1,
+        'account-manager', 'cookie_refresh_pct', 10,
         """Persistent sessions randomly get a new session cookie ID with
-        likelihood in percent per request given here (zero equals to never)
+        likelihood in percent per work hour given here (zero equals to never)
         to decrease vulnerability of long-lasting sessions.""")
 
     def __init__(self):
@@ -639,7 +641,9 @@ class LoginModule(auth.LoginModule):
             self.env.config.set('trac', 'check_auth_ip', True)
         
         if acctmgr.persistent_sessions and name and \
-                'trac_auth_session' in req.incookie:
+                'trac_auth_session' in req.incookie and \
+                int(req.incookie['trac_auth_session'].value) < \
+                int(time.time()) - UPDATE_INTERVAL:
             # Persistent sessions enabled, the user is logged in
             # ('name' exists) and has actually decided to use this feature
             # (indicated by the 'trac_auth_session' cookie existing).
@@ -684,7 +688,7 @@ class LoginModule(auth.LoginModule):
             req.outcookie['trac_auth'] = cookie.value
             req.outcookie['trac_auth']['path'] = cookie_path
             req.outcookie['trac_auth']['expires'] = cookie_lifetime
-            req.outcookie['trac_auth_session'] = 1
+            req.outcookie['trac_auth_session'] = int(time.time())
             req.outcookie['trac_auth_session']['path'] = cookie_path
             req.outcookie['trac_auth_session']['expires'] = cookie_lifetime
             try:
