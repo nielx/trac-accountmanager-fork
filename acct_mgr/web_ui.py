@@ -793,12 +793,12 @@ class LoginModule(auth.LoginModule):
                               int(time.time())))
                     db.commit()
                     env.log.debug('Auth data received from: ' + local_environ)
-                    env.shutdown()
                     # Track env paths for easier auth revocation later on.
                     self.auth_share_participants.append(path)
                     self.log.debug('Auth distribution success: ' + environ)
                 else:
                     self.log.debug('Auth distribution skipped: ' + environ)
+                env.shutdown()
 
     def _get_cookie_path(self, req):
         """Check request object for "path" cookie property.
