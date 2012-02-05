@@ -315,7 +315,9 @@ class AccountManager(Component):
         user = self.handle_username_casing(user)
         # Delete from password store 
         store = self.find_user_store(user)
-        getattr(store, 'delete_user', lambda x: None)(user)
+        del_method = getattr(store, 'delete_user', None)
+        if callable(del_method):
+            del_method(user)
         # Delete session attributes, session and any custom permissions
         # set for the user.
         db = self.env.get_db_cnx()
