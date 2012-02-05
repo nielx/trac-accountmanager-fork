@@ -313,10 +313,13 @@ class AccountManager(Component):
 
     def delete_user(self, user):
         user = self.handle_username_casing(user)
-        db = self.env.get_db_cnx()
-        cursor = db.cursor()
+        # Delete from password store 
+        store = self.find_user_store(user)
+        getattr(store, 'delete_user', lambda x: None)(user)
         # Delete session attributes, session and any custom permissions
         # set for the user.
+        db = self.env.get_db_cnx()
+        cursor = db.cursor()
         for table in ['session_attribute', 'session', 'permission']:
             key = (table == 'permission') and 'username' or 'sid'
             # Preseed, since variable table and column names aren't allowed
@@ -329,12 +332,8 @@ class AccountManager(Component):
             cursor.execute(sql, (user,))
         db.commit()
         db.close()
-        # Delete from password store 
         self.log.debug('deleted user: %s' % user)
-        store = self.find_user_store(user)
-        if hasattr(store, 'delete_user'):
-            if store and store.delete_user(user):
-                self._notify('deleted', user)
+        self._notify('deleted', user)
 
     def supports(self, operation):
         try:
