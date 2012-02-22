@@ -431,7 +431,6 @@ class RegistrationModule(Component):
         return 'register'
 
     def get_navigation_items(self, req):
-        loginmod = LoginModule(self.env)
         if not self.enabled:
             return
         if req.authname == 'anonymous':
