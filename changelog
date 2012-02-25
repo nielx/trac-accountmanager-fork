@@ -16,9 +16,10 @@ acct_mgr-0.4 (not yet released) - branch 0.11
  * #9547: Option `persistent_sessions` is not working in `0.4dev-r10747`
 
  new features
- * 9618: HttpAuthStore authentication enhancement
+ * #9618: HttpAuthStore authentication enhancement
    by allowing a relative URL for `authentication_url` configuration option
- * 9676: Incorporate optional Single-Sign-On functionality
+ * #9676: Incorporate optional Single-Sign-On functionality
+ * #9852: Embed some user information in TracWiki
  * add recursion to option parser for configuration admin page and provide
    available valid values for an `ExtensionOption` like `IPasswordHashMethod`
    by a select field (dropdown box) - or meaningful message on missing options

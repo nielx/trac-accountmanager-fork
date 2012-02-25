@@ -55,6 +55,7 @@ setup(
             'acct_mgr.admin = acct_mgr.admin',
             'acct_mgr.api = acct_mgr.api',
             'acct_mgr.db = acct_mgr.db',
+            'acct_mgr.macros = acct_mgr.macros',
             'acct_mgr.htfile = acct_mgr.htfile',
             'acct_mgr.http = acct_mgr.http',
             'acct_mgr.pwhash = acct_mgr.pwhash',
