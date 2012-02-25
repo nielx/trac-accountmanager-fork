@@ -179,6 +179,12 @@ class AccountManager(Component):
     # Public API
 
     def get_users(self):
+        """Get usernames from all active stores.
+
+        Because we allow concurrent active stores, and some stores even don't
+        warrant uniqueness within itself, multiple usernames should be
+        expected.
+        """
         users = []
         for store in self._password_store:
             users.extend(store.get_users())
