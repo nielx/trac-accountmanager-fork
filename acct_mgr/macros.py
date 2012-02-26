@@ -49,13 +49,15 @@ This macro accepts a comma-separated list of keyed parameters, in the form
  * '''perm''' -- show only that users, a permission action given by ''value''
  has been granted to
  * '''locked''' -- retrieve users, who's account has/has not been locked
+ depending on boolean value
  * '''format''' -- output style: 'count', 'list' or comma-separated values
  (default)
  * '''nomatch''' -- replacement wiki markup that is displayed, if there's
  no match and output style isn't 'count' either
 
 'count' is also recognized without prepended key name. Other non-keyed
-parameters are: 
+parameters are:
+ * '''locked''' -- alias for 'locked=True'
  * '''name''' -- forces replacement of maching username with their
  corresponding full names, if available
  * '''email''' -- append email address to usernames, if available
@@ -77,13 +79,13 @@ parameters are:
             else:
                 acct_mgr = AccountManager(env)
                 users = list(set(acct_mgr.get_users()))
-            if 'locked' in kw.keys():
+            if 'locked' in kw.keys() or 'locked' in args:
                 guard = AccountGuard(env)
                 locked = []
                 for user in users:
                     if guard.user_locked(user):
                         locked.append(user)
-                if kw['locked'].lower() in ('true', 'yes', '1'):
+                if kw.get('locked', 'True').lower() in ('true', 'yes', '1'):
                     users = locked
                 else:
                     users = list(set(users) - set(locked))
