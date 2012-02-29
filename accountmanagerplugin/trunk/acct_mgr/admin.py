@@ -49,6 +49,37 @@ except ImportError:
             value = max
         return value
 
+def fetch_user_data(env, req):
+    acctmgr = AccountManager(env)
+    guard = AccountGuard(env)
+    accounts = {}
+    for username in acctmgr.get_users():
+        url = req.href.admin('accounts', 'users', user=username)
+        accounts[username] = {'username': username, 'review_url': url}
+        if guard.user_locked(username):
+            accounts[username]['locked'] = True
+            t_lock = guard.lock_time(username)
+            if t_lock > 0:
+                t_release = guard.pretty_release_time(req, username)
+                accounts[username]['release_hint'] = _(
+                        "Locked until %(t_release)s",
+                        t_release=t_release)
+    for acct, status in get_user_attribute(env, username=None,
+                                           authenticated=None).iteritems():
+        account = accounts.get(acct)
+        if account is not None and 1 in status:
+            # Only use attributes related to authenticated
+            # accounts.
+            account['name'] = status[1].get('name')
+            account['email'] = status[1].get('email')
+    ts_seen = acctmgr.last_seen()
+    if ts_seen is not None:
+        for username, last_visit in ts_seen:
+            account = accounts.get(username)
+            if account and last_visit:
+                account['last_visit'] = format_datetime(last_visit,
+                                                        tzinfo=req.tz)
+    return sorted(accounts.itervalues(), key=lambda acct: acct['username'])
 
 def _getoptions(cls):
     opt_cls = isinstance(cls, Component) and cls.__class__ or cls
@@ -374,38 +405,7 @@ class AccountManagerAdminPanels(Component):
                 return self._do_db_cleanup(req)
 
         if listing_enabled:
-            accounts = {}
-            for username in acctmgr.get_users():
-                url = req.href.admin('accounts', 'users', user=username)
-                accounts[username] = {'username': username,
-                                      'review_url': url}
-                if guard.user_locked(username):
-                    accounts[username]['locked'] = True
-                    t_lock = guard.lock_time(username)
-                    if t_lock > 0:
-                        t_release = guard.pretty_release_time(req, username)
-                        accounts[username]['release_hint'] = _(
-                            "Locked until %(t_release)s",
-                            t_release=t_release)
-
-            for acct, status in get_user_attribute(env, username=None,
-                                       authenticated=None).iteritems():
-                account = accounts.get(acct)
-                if account is not None and 1 in status:
-                    # Only use attributes related to authenticated
-                    # accounts.
-                    account['name'] = status[1].get('name')
-                    account['email'] = status[1].get('email')
-
-            ts_seen = acctmgr.last_seen()
-            if ts_seen is not None:
-                for username, last_visit in ts_seen:
-                    account = accounts.get(username)
-                    if account and last_visit:
-                        account['last_visit'] = format_datetime(last_visit,
-                                                                tzinfo=req.tz)
-            data['accounts'] = sorted(accounts.itervalues(),
-                                      key=lambda acct: acct['username'])
+            data['accounts'] = fetch_user_data(env, req)
         add_stylesheet(req, 'acct_mgr/acct_mgr.css')
         return 'admin_users.html', data
 

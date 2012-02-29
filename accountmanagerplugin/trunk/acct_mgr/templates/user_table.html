@@ -1,0 +1,45 @@
+<!--!
+Table style account/user list.
+
+Arguments:
+ - accounts:
+ - delete_enabled:
+-->
+<div xmlns="http://www.w3.org/1999/xhtml"
+     xmlns:xi="http://www.w3.org/2001/XInclude"
+     xmlns:py="http://genshi.edgewall.org/" 
+     xmlns:i18n="http://genshi.edgewall.org/i18n"
+     i18n:domain="acct_mgr"
+     id="accountlist">
+  <table class="listing" id="accountlist">
+    <thead>
+      <tr>
+        <th class="sel" py:if="delete_enabled">&nbsp;</th>
+        <th>Account</th><th>Name</th><th>Email</th><th>Last Login</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr py:for="acct in accounts">
+        <td py:if="delete_enabled">
+          <input type="checkbox" name="sel"
+                 value="${acct.username}" />
+        </td>
+        <td>
+          <a href="${acct.review_url}">${acct.username}</a>
+          <!--! Additional account status icons -->
+          <py:choose py:if="acct.locked">
+            <img src="${href.chrome('/acct_mgr/time-locked.png')}"
+                 py:when="acct.release_hint" alt="Account locked"
+                 title="${acct.release_hint}" />
+            <img src="${href.chrome('/acct_mgr/locked.png')}"
+                 py:otherwise="" alt="Permanently locked"
+                 title="${dgettext('acct_mgr', 'Permanently locked')}" />
+          </py:choose>
+        </td>
+        <td>${acct.name}</td>
+        <td>${acct.email}</td>
+        <td>${acct.last_visit}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
