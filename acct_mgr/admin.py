@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2005 Matthew Good <trac@matt-good.net>
-# Copyright (C) 2010,2011 Steffen Hoffmann <hoff.st@web.de>
+# Copyright (C) 2010-2012 Steffen Hoffmann <hoff.st@web.de>
 #
 # "THE BEER-WARE LICENSE" (Revision 42):
 # <trac@matt-good.net> wrote this file.  As long as you retain this notice you
@@ -31,7 +31,7 @@ from acct_mgr.api       import AccountManager, _, dgettext, gettext, \
 from acct_mgr.guard     import AccountGuard
 from acct_mgr.web_ui    import _create_user, AccountModule, \
                                EmailVerificationModule
-from acct_mgr.util      import is_enabled
+from acct_mgr.util      import is_enabled, get_pretty_dateinfo
 
 try:
     from trac.util  import as_int
@@ -83,8 +83,7 @@ def fetch_user_data(env, req):
         for username, last_visit in ts_seen:
             account = accounts.get(username)
             if account and last_visit:
-                account['last_visit'] = format_datetime(last_visit,
-                                                        tzinfo=req.tz)
+                account['last_visit'] = to_datetime(last_visit)
     return sorted(accounts.itervalues(), key=lambda acct: acct['username'])
 
 def _getoptions(cls):
@@ -414,6 +413,10 @@ class AccountManagerAdminPanels(Component):
             data['accounts'] = fetch_user_data(env, req)
             data['cls'] = 'listing'
             data['cols'] = ['email', 'name']
+            # Prevent IRequestFilter in trac.timeline.web_ui.TimelineModule
+            #   of Trac 0.13 and later from adding a link to timeline by
+            #   adding the function with a different key name here.
+            data['pretty_date'] = get_pretty_dateinfo(env, req)
         add_stylesheet(req, 'acct_mgr/acct_mgr.css')
         return 'admin_users.html', data
 

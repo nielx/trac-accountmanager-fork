@@ -43,7 +43,7 @@ Arguments:
         </td>
         <td py:if="'name' in cols">${acct.name}</td>
         <td py:if="'email' in cols">${acct.email}</td>
-        <td>${acct.last_visit}</td>
+        <td>${acct.last_visit and pretty_date(acct.last_visit) or ''}</td>
       </tr>
     </tbody>
   </table>
