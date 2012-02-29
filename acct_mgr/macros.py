@@ -71,9 +71,15 @@ This macro accepts a comma-separated list of keyed parameters, in the form
 'count' is also recognized without prepended key name. Other non-keyed
 parameters are:
  * '''locked''' -- alias for 'locked=True'
+ * '''visit''' -- show a list of accounts with last-login information, only
+ available in table format
  * '''name''' -- forces replacement of maching username with their
- corresponding full names, if available
+ corresponding full names, if available; adds a full names column if combined
+ with 'visit'
  * '''email''' -- append email address to usernames, if available
+
+Requires `USER_VIEW` permission for output in any format other then 'count'.
+A misc placeholder with this statement is presented to unprivileged users.
 """
 
     def expand_macro(self, formatter, name, content):
