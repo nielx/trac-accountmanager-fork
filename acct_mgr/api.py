@@ -12,9 +12,10 @@
 
 from pkg_resources  import resource_filename
 
-from trac.config    import  BoolOption, Configuration, ExtensionOption, \
-                    Option, OrderedExtensionsOption
-from trac.core      import *
+from trac.config    import BoolOption, Configuration, ExtensionOption, \
+                           Option, OrderedExtensionsOption
+from trac.core      import Component, ExtensionPoint, Interface, TracError, \
+                           implements
 
 # Import i18n methods.  Fallback modules maintain compatibility to Trac 0.11
 # by keeping Babel optional here.
