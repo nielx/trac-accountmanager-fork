@@ -15,7 +15,7 @@ from trac.wiki.formatter import format_to_oneliner
 from acct_mgr.admin import fetch_user_data
 from acct_mgr.api import AccountManager
 from acct_mgr.guard import AccountGuard
-
+from acct_mgr.util import get_pretty_dateinfo
 
 class AccountManagerWikiMacros(Component):
     """Provides wiki macros related to Trac accounts/authenticated users."""
@@ -99,6 +99,7 @@ parameters are:
                     if col in args:
                         cols.append(col)
                 data['cols'] = cols
+                data['pretty_date'] = get_pretty_dateinfo(env, req)
                 return Chrome(env).render_template(
                        req, 'user_table.html', data, 'text/html', True)
             if kw.get('format') == 'count' or 'count' in args:
