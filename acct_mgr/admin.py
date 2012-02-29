@@ -21,8 +21,8 @@ from trac.config        import Option
 from trac.perm          import IPermissionRequestor, PermissionSystem
 from trac.util.datefmt  import format_datetime, to_datetime
 from trac.util.presentation import Paginator
-from trac.web.chrome    import ITemplateProvider, add_link, add_notice, \
-                               add_stylesheet, add_warning
+from trac.web.chrome    import Chrome, ITemplateProvider, add_link, \
+                               add_notice, add_stylesheet, add_warning
 from trac.admin         import IAdminPanelProvider
 
 from acct_mgr.api       import AccountManager, _, dgettext, gettext, \
@@ -54,7 +54,10 @@ def fetch_user_data(env, req):
     guard = AccountGuard(env)
     accounts = {}
     for username in acctmgr.get_users():
-        url = req.href.admin('accounts', 'users', user=username)
+        if req.perm.has_permission('ACCTMGR_USER_ADMIN'):
+            url = req.href.admin('accounts', 'users', user=username)
+        else:
+            url = None
         accounts[username] = {'username': username, 'review_url': url}
         if guard.user_locked(username):
             accounts[username]['locked'] = True
@@ -72,6 +75,9 @@ def fetch_user_data(env, req):
             # accounts.
             account['name'] = status[1].get('name')
             account['email'] = status[1].get('email')
+            if account['email']:
+                account['email'] = Chrome(env).format_author(req,
+                                                             account['email'])
     ts_seen = acctmgr.last_seen()
     if ts_seen is not None:
         for username, last_visit in ts_seen:
@@ -406,6 +412,8 @@ class AccountManagerAdminPanels(Component):
 
         if listing_enabled:
             data['accounts'] = fetch_user_data(env, req)
+            data['cls'] = 'listing'
+            data['cols'] = ['email', 'name']
         add_stylesheet(req, 'acct_mgr/acct_mgr.css')
         return 'admin_users.html', data
 

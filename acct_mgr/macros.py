@@ -12,6 +12,7 @@ from trac.web.chrome import Chrome, ITemplateProvider
 from trac.wiki.api import IWikiMacroProvider, parse_args
 from trac.wiki.formatter import format_to_oneliner
 
+from acct_mgr.admin import fetch_user_data
 from acct_mgr.api import AccountManager
 from acct_mgr.guard import AccountGuard
 
@@ -89,6 +90,17 @@ parameters are:
                     users = locked
                 else:
                     users = list(set(users) - set(locked))
+            elif 'visit' in kw.keys() or 'visit' in args:
+                cols = []
+                data = {}
+                data['accounts'] = fetch_user_data(env, req)
+                data['cls'] = 'wiki'
+                for col in ('email', 'name'):
+                    if col in args:
+                        cols.append(col)
+                data['cols'] = cols
+                return Chrome(env).render_template(
+                       req, 'user_table.html', data, 'text/html', True)
             if kw.get('format') == 'count' or 'count' in args:
                 return tag(len(users))
             if 'email' in args or 'name' in args:
