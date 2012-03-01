@@ -64,7 +64,7 @@ def get_pretty_dateinfo(env, req):
     fn = Chrome(env).populate_data(req, {}).get('pretty_dateinfo')
     if not fn:
         def _pretty_dateinfo(date, format=None, dateonly=False):
-            absolute = user_time(req, format_datetime, date)
+            absolute = format_datetime(date, tzinfo=req.tz)
             relative = pretty_timedelta(date)
             if format == 'absolute':
                 label = absolute
