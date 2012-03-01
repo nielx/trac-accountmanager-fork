@@ -30,8 +30,8 @@ class AccountManagerWikiMacros(Component):
     # IPermissionRequestor methods
 
     def get_permission_actions(self):
-        action = 'USER_VIEW'
-        actions = [action, ('ACCTMGR_USER_ADMIN', action)]
+        action = ['USER_VIEW']
+        actions = [('ACCTMGR_USER_ADMIN', action), action[0],]
         return actions
 
     # ITemplateProvider methods

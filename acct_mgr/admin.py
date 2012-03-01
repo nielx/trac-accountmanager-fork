@@ -189,8 +189,9 @@ class AccountManagerAdminPanels(Component):
 
     # IPermissionRequestor
     def get_permission_actions(self):
-        action = ['ACCTMGR_CONFIG_ADMIN', 'ACCTMGR_USER_ADMIN']
-        actions = [('ACCTMGR_ADMIN', action), action[0], action[1],]
+        action = ['ACCTMGR_CONFIG_ADMIN', 'ACCTMGR_USER_ADMIN', 'EMAIL_VIEW']
+        actions = [('ACCTMGR_ADMIN', action), action[0], (action[1],
+                                                          action[2]),]
         return actions
 
     # IAdminPanelProvider
