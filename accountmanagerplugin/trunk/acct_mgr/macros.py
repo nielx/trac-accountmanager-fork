@@ -9,7 +9,7 @@ from trac.core import Component, implements
 from trac.perm import IPermissionRequestor, PermissionSystem
 from trac.util.compat import sorted
 from trac.web.chrome import Chrome, ITemplateProvider
-from trac.wiki.api import IWikiMacroProvider, parse_args
+from trac.wiki.api import IWikiMacroProvider, WikiSystem, parse_args
 from trac.wiki.formatter import format_to_oneliner
 
 from acct_mgr.admin import fetch_user_data
@@ -51,10 +51,24 @@ class AccountManagerWikiMacros(Component):
     # IWikiMacroProvider
 
     def get_macros(self):
+        yield 'Stats'
         yield 'UserQuery'
 
     def get_macro_description(self, name):
-        if name == 'UserQuery':
+        if name == 'Stats':
+            return """Wiki macro listing some generic Trac statistics.
+
+This macro accepts a comma-separated list of keyed parameters, in the form
+"key=value". Valid keys:
+ * '''wiki''' -- statistics for TracWiki, values:
+  * ''count'' -- show wiki page count
+ * '''prefix''' -- use with ''wiki'' key: only names that start with that
+ prefix are included
+
+'count' is also recognized without prepended key name.
+"""
+
+        elif name == 'UserQuery':
             return """Wiki macro listing users that match certain criteria.
 
 This macro accepts a comma-separated list of keyed parameters, in the form
@@ -90,8 +104,14 @@ A misc placeholder with this statement is presented to unprivileged users.
             kw = {}
         else:
             args, kw = parse_args(content)
-        users = []
-        if name == 'UserQuery':
+        if name == 'Stats':
+            if 'wiki' in kw.keys():
+                prefix = 'prefix' in kw.keys() and kw['prefix'] or None
+                wiki = WikiSystem(env)
+                if kw['wiki'] == 'count' or 'count' in args:
+                    return tag(sum(1 for page in wiki.get_pages(prefix)))
+        elif name == 'UserQuery':
+            users = []
             if 'perm' in kw.keys():
                 perm_sys = PermissionSystem(self.env)
                 users = perm_sys.get_users_with_permission(kw['perm'].upper())
