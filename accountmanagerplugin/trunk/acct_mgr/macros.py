@@ -51,11 +51,11 @@ class AccountManagerWikiMacros(Component):
     # IWikiMacroProvider
 
     def get_macros(self):
-        yield 'Stats'
+        yield 'ProjectStats'
         yield 'UserQuery'
 
     def get_macro_description(self, name):
-        if name == 'Stats':
+        if name == 'ProjectStats':
             return """Wiki macro listing some generic Trac statistics.
 
 This macro accepts a comma-separated list of keyed parameters, in the form
@@ -104,7 +104,7 @@ A misc placeholder with this statement is presented to unprivileged users.
             kw = {}
         else:
             args, kw = parse_args(content)
-        if name == 'Stats':
+        if name == 'ProjectStats':
             if 'wiki' in kw.keys():
                 prefix = 'prefix' in kw.keys() and kw['prefix'] or None
                 wiki = WikiSystem(env)
