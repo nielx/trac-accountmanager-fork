@@ -277,8 +277,10 @@ class AccountManager(Component):
              WHERE authenticated=1
             """
         if user:
-            sql = "%s AND sid='%s'" % (sql, user)
-        cursor.execute(sql)
+            sql += " AND sid=%s"
+            cursor.execute(sql, (user,))
+        else:
+            cursor.execute(sql)
         # Don't pass over the cursor (outside of scope), only it's content.
         res = []
         for row in cursor:
