@@ -14,6 +14,7 @@ acct_mgr-0.4 (not yet released) - branch 0.11
  * #9139: SvnServePasswordStore and case sensitivity
  * #9246: InternalError when refresh_passwd = true
  * #9547: Option `persistent_sessions` is not working in `0.4dev-r10747`
+ * #10023: SQL Injection in acct_mgr.api.AccountManager.lastseen()
 
  new features
  * #9618: HttpAuthStore authentication enhancement
