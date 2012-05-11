@@ -49,6 +49,12 @@ except ImportError:
 from acct_mgr.hashlib_compat  import md5
 
 
+_user_keys = {
+    'auth_cookie': 'name',
+    'permission': 'username',
+    }
+
+
 class IPasswordStore(Interface):
     """An interface for Components that provide a storage method for users and
     passwords.
@@ -331,15 +337,15 @@ class AccountManager(Component):
         # set for the user.
         db = self.env.get_db_cnx()
         cursor = db.cursor()
-        for table in ['session_attribute', 'session', 'permission']:
-            key = (table == 'permission') and 'username' or 'sid'
+        for table in ['auth_cookie', 'session_attribute', 'session',
+                      'permission']:
             # Preseed, since variable table and column names aren't allowed
             # as SQL arguments (security measure agains SQL injections).
             sql = """
                 DELETE
                 FROM   %s
                 WHERE  %s=%%s
-                """ % (table, key)
+                """ % (table, _user_keys.get(table, 'sid'))
             cursor.execute(sql, (user,))
         db.commit()
         db.close()

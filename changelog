@@ -15,6 +15,7 @@ acct_mgr-0.4 (not yet released) - branch 0.11
  * #9246: InternalError when refresh_passwd = true
  * #9547: Option `persistent_sessions` is not working in `0.4dev-r10747`
  * #10023: SQL Injection in acct_mgr.api.AccountManager.lastseen()
+ * #10028: Account delete does not purge user's auth cookie
 
  new features
  * #9618: HttpAuthStore authentication enhancement
