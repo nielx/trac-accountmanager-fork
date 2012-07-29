@@ -13,6 +13,7 @@ acct_mgr-0.4 (not yet released) - branch 0.11
  * #9079: PostgreSQL: Database error when creating new user with attributes
  * #9139: SvnServePasswordStore and case sensitivity
  * #9246: InternalError when refresh_passwd = true
+ * #9252: All session attributes are deleted when user logs in first time
  * #9547: Option `persistent_sessions` is not working in `0.4dev-r10747`
  * #10023: SQL Injection in acct_mgr.api.AccountManager.lastseen()
  * #10028: Account delete does not purge user's auth cookie

@@ -27,7 +27,7 @@ New configuration options to supersed 'password_file' for affected stores:
 {{{
 #!diff
  [account-manager]
- password_store = HtPasswdStore
+ password_store = HtDigestStore
 -password_file = <abs_path>/.htdigest
 +htdigest_file = <abs_path>/.htdigest
 }}}
