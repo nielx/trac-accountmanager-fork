@@ -65,7 +65,8 @@ def _create_user(req, env, check_permissions=True):
 
     # Prohibit some user names that are important for Trac and therefor
     # reserved, even if they're not in the permission store for some reason.
-    if username in ['authenticated', 'anonymous']:
+    if (acctmgr.username_dup_case and username.lower() or username) \
+            in ['anonymous', 'authenticated']:
         error.message = _("Username %s is not allowed.") % username
         raise error
 
@@ -75,7 +76,16 @@ def _create_user(req, env, check_permissions=True):
     #   and cannot just check for the user being in the permission store.
     #   And obfuscate whether an existing user or group name
     #   was responsible for rejection of this user name.
-    if acctmgr.has_user(username):
+    if acctmgr.username_dup_case:
+        # Need to do it more carefully by disregarding case.
+        for store_user in acctmgr.get_users():
+            if store_user.lower == username.lower():
+                error.message = _("""
+                    Another account or group already exists, who's name
+                    differs from %s only by case or is identical.
+                    """) % username
+                raise error
+    elif acctmgr.has_user(username):
         error.message = _(
             "Another account or group named %s already exists.") % username
         raise error
@@ -95,7 +105,14 @@ def _create_user(req, env, check_permissions=True):
         #   was responsible for rejection of this username.
         for (perm_user, perm_action) in \
                 perm.PermissionSystem(env).get_all_permissions():
-            if perm_user == username:
+            if acctmgr.username_dup_case and \
+                    perm_user.lower() == username.lower():
+                error.message = _("""
+                    Another account or group already exists, who's name
+                    differs from %s only by case or is identical.
+                    """) % username
+                raise error
+            elif not acctmgr.username_dup_case and perm_user == username:
                 error.message = _(
                     "Another account or group named %s already exists.") \
                     % username
