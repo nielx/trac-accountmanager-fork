@@ -12,22 +12,25 @@ A user account management plugin for Trac.
 Add one of the following sections to trac.ini to get started.  See even 
 more configuration examples for supported backends at
  http://trac-hacks.org/wiki/AccountManagerPlugin/AuthStores
+or in the configuraition cookbook page at
+ http://trac-hacks.org/wiki/CookBook/AccountManagerPluginConfiguration
 
 === Htpasswd ===
 {{{
 [account-manager]
 ; use an Apache htpasswd file
-password_format = htpasswd
-password_file = /path/to/trac.htpasswd
+htpasswd_hash_type = md5
+htpasswd_file = /path/to/trac.htpasswd
+password_store = HtPasswdStore
 }}}
 
 === Htdigest ===
 {{{
 [account-manager]
 ; use an Apache htdigest file
-password_format = htdigest
-password_file = /path/to/trac.htdigest
+htdigest_file = /path/to/trac.htdigest
 htdigest_realm = TracDigestRealm
+password_store = HtDigestStore
 }}}
 
 === HttpAuth ===

@@ -165,7 +165,7 @@ def _create_user(req, env, check_permissions=True):
         cursor.execute("""
             INSERT INTO session
                     (sid,authenticated,last_visit)
-            VALUES  (%s,0,0)
+            VALUES  (%s,1,0)
             """, (username,))
 
     for attribute in ('name', 'email'):
