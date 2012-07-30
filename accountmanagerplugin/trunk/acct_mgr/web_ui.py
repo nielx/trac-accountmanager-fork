@@ -20,6 +20,8 @@ from datetime import timedelta
 from os import urandom
 from pkg_resources import resource_filename
 
+from genshi.core import Markup
+from genshi.builder import tag
 from trac import perm, util
 from trac.core import Component, TracError, implements
 from trac.config import Configuration, BoolOption, IntOption, Option
@@ -34,8 +36,6 @@ from trac.web.main import IRequestHandler, IRequestFilter, get_environments
 from trac.web import chrome
 from trac.web.chrome import INavigationContributor, ITemplateProvider, \
                             add_script, add_stylesheet
-from genshi.core import Markup
-from genshi.builder import tag
 
 from acct_mgr.api import AccountManager, _, dgettext, ngettext, tag_, \
                          set_user_attribute
@@ -48,14 +48,14 @@ UPDATE_INTERVAL = 3600 # Update cookies for persistant sessions only 1/hour.
 
 def _create_user(req, env, check_permissions=True):
     acctmgr = AccountManager(env)
-    username = acctmgr.handle_username_casing(
-                        req.args.get('username').strip())
-    name = req.args.get('name')
+    username = acctmgr.handle_username_casing(req.args.get('username').strip())
+    name = req.args.get('name').strip()
     email = req.args.get('email').strip()
-    account = {'username' : username,
-               'name' : name,
-               'email' : email,
-              }
+    account = {
+        'username': username,
+        'name': name,
+        'email': email,
+    }
     error = TracError('')
     error.account = account
 
@@ -452,21 +452,32 @@ class RegistrationModule(Component):
         if req.authname != 'anonymous':
             req.redirect(req.href.prefs('account'))
         action = req.args.get('action')
-        data = {'acctmgr' : { 'username' : None,
-                              'name' : None,
-                              'email' : None,
-                            },
-                '_dgettext': dgettext,
-               }
-        data['verify_account_enabled'] = is_enabled(
-            self.env, EmailVerificationModule) and self.acctmgr.verify_email
+        data = {
+            '_dgettext': dgettext,
+            'acctmgr': {
+                'username': None,
+                'name': None,
+                'email': None,
+            },
+            'ignore_auth_case': self.config.getbool('trac', 'ignore_auth_case')
+        }
+        verify_enabled = is_enabled(self.env, EmailVerificationModule) and \
+                         self.acctmgr.verify_email
+        data['verify_account_enabled'] = verify_enabled
         if req.method == 'POST' and action == 'create':
             try:
                 _create_user(req, self.env)
             except TracError, e:
                 data['registration_error'] = e.message
-                data['acctmgr'] = getattr(e, 'acctmgr', '')
+                data['acctmgr'].update(getattr(e, 'account', ''))
             else:
+                if verify_enabled:
+                    chrome.add_notice(req, Markup(tag.span(Markup(_(
+                        """Your username has been successfully registered but
+                        your account still requires activation. Please login
+                        as user %(user)s, and follow the instructions.
+                        """, user=tag.b(req.args.get('username')))))))
+                    req.redirect(req.href.login())
                 chrome.add_notice(req, Markup(tag.span(Markup(_(
                      """Registration has been finished successfully.
                      You may log in as user %(user)s now.""",

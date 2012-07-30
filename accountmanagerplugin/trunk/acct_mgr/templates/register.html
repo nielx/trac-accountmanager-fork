@@ -37,6 +37,9 @@
               <input type="text" name="username" class="textwidget"
                      size="20" value="${acctmgr.username}" />
             </label>
+            <p class="hint" py:if="ignore_auth_case">
+              Only lowercase usernames are allowed.
+            </p>
           </div>
           <div>
             <label>Password:
