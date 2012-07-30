@@ -29,6 +29,7 @@ acct_mgr-0.4 (not yet released) - branch 0.11
  * add cleanup page for purging `session_attribute` db table via admin web UI
  * add randomized authentication cookie ID refreshment, average refresh rate
    controlled by new option `cookie_refresh_pct`
+ * switch to case-less username duplicate checking
 
 
 acct_mgr-0.3.2 (26-Aug-2011) - branch 0.11
