@@ -177,10 +177,6 @@ class AccountManager(Component):
         'account-manager', 'username_char_blacklist', ':[]',
         doc="""Always exclude some special characters from usernames.
             This is enforced upon new user registration.""")
-    username_dup_case = BoolOption(
-        'account-manager', 'username_dup_case', False,
-        doc="""Whether to ignore case while searching for an existing username
-            duplicate.""")
 
     def __init__(self):
         # bind the 'acct_mgr' catalog to the specified locale directory
