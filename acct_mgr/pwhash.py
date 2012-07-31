@@ -2,11 +2,10 @@
 #
 # Copyright (C) 2007 Matthew Good <trac@matt-good.net>
 # Copyright (C) 2011 Steffen Hoffmann <hoff.st@web.de>
+# All rights reserved.
 #
-# "THE BEER-WARE LICENSE" (Revision 42):
-# <trac@matt-good.net> wrote this file.  As long as you retain this notice you
-# can do whatever you want with this stuff. If we meet some day, and you think
-# this stuff is worth it, you can buy me a beer in return.   Matthew Good
+# This software is licensed as described in the file COPYING, which
+# you should have received as part of this distribution.
 #
 # Author: Matthew Good <trac@matt-good.net>
 
@@ -144,4 +143,3 @@ def mkhtpasswd(password, hash_type=''):
 def htdigest(user, realm, password):
     p = ':'.join([user, realm, password])
     return md5(p).hexdigest()
-

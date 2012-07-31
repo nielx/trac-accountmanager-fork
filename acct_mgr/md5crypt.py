@@ -1,15 +1,11 @@
 # -*- coding: utf-8 -*-
 #
 # Based on FreeBSD src/lib/libcrypt/crypt.c 1.2
-# http://www.freebsd.org/cgi/cvsweb.cgi/~checkout~/src/lib/libcrypt/crypt.c?rev=1.2&content-type=text/plain
-
-# Original license:
-# * "THE BEER-WARE LICENSE" (Revision 42):
-# * <phk@login.dknet.dk> wrote this file.  As long as you retain this notice you
-# * can do whatever you want with this stuff. If we meet some day, and you think
-# * this stuff is worth it, you can buy me a beer in return.   Poul-Henning Kamp
-
-# This port adds no further stipulations.  I forfeit any copyright interest.
+#
+# This software is licensed as described in the file COPYING, which
+# you should have received as part of this distribution.
+#
+# Author: Matthew Good <trac@matt-good.net>
 
 from acct_mgr.hashlib_compat import md5
 
