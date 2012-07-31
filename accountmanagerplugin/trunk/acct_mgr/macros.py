@@ -1,6 +1,12 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2012 Steffen Hoffmann <hoff.st@web.de>
+# All rights reserved.
+#
+# This software is licensed as described in the file COPYING, which
+# you should have received as part of this distribution.
+#
+# Author: Steffen Hoffmann <hoff.st@web.de>
 
 from genshi.builder import Markup, tag
 from pkg_resources import resource_filename
@@ -169,4 +175,3 @@ A misc placeholder with this statement is presented to unprivileged users.
                 # Default output format: comma-separated list.
                 return tag(', '.join([Chrome(env).format_author(req, user)
                                       for user in users]))
-
