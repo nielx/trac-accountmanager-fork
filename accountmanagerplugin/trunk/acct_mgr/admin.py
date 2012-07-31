@@ -25,9 +25,11 @@ from trac.web.chrome    import Chrome, ITemplateProvider, add_link, \
 from trac.admin         import IAdminPanelProvider
 
 from acct_mgr.api       import AccountManager, _, dgettext, gettext, \
-                               ngettext, tag_, del_user_attribute, \
-                               get_user_attribute, set_user_attribute
+                               ngettext, tag_
 from acct_mgr.guard     import AccountGuard
+from acct_mgr.model     import del_user_attribute, email_verified, \
+                               get_user_attribute, last_seen, \
+                               set_user_attribute
 from acct_mgr.web_ui    import _create_user, AccountModule, \
                                EmailVerificationModule
 from acct_mgr.util      import is_enabled, get_pretty_dateinfo
@@ -37,7 +39,8 @@ try:
 except ImportError:
     def as_int(s, default, min=None, max=None):
         """Convert s to an int and limit it to the given range, or
-        return default if unsuccessful (copied verbatim from Trac0.12dev)."""
+        return default if unsuccessful (copied verbatim from Trac0.12dev).
+        """
         try:
             value = int(s)
         except (TypeError, ValueError):
@@ -77,7 +80,7 @@ def fetch_user_data(env, req):
             if account['email']:
                 account['email'] = Chrome(env).format_author(req,
                                                              account['email'])
-    ts_seen = acctmgr.last_seen()
+    ts_seen = last_seen(env)
     if ts_seen is not None:
         for username, last_visit in ts_seen:
             account = accounts.get(username)
@@ -464,7 +467,7 @@ class AccountManagerAdminPanels(Component):
                 if email:
                     data['email'] = email
                 break
-        ts_seen = acctmgr.last_seen(username)
+        ts_seen = last_seen(self.env, username)
         if ts_seen is not None:
             data['last_visit'] = format_datetime(ts_seen[0][1], tzinfo=req.tz)
 
@@ -486,7 +489,7 @@ class AccountManagerAdminPanels(Component):
         if is_enabled(self.env, EmailVerificationModule) and \
                 acctmgr.verify_email is True:
             data['verification'] = 'enabled'
-            data['email_verified'] = acctmgr.email_verified(username, email)
+            data['email_verified'] = email_verified(self.env, username, email)
             self.log.debug('AcctMgr:admin:_do_acct_details for user \"' + \
                 username + '\", email \"' + str(email) + '\": ' + \
                 str(data['email_verified']))
