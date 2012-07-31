@@ -18,6 +18,7 @@ acct_mgr-0.4 (not yet released) - branch 0.11
  * #10023: SQL Injection in acct_mgr.api.AccountManager.lastseen()
  * #10028: Account delete does not purge user's auth cookie
  * #10123: Registration with EmailVerification should instruct more clearly
+ * do AccountManager class API cleanup by moving db access to model layer
 
  new features
  * #9618: HttpAuthStore authentication enhancement

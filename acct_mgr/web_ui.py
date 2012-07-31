@@ -36,10 +36,10 @@ from trac.web import chrome
 from trac.web.chrome import INavigationContributor, ITemplateProvider, \
                             add_script, add_stylesheet
 
-from acct_mgr.api import AccountManager, _, dgettext, ngettext, tag_, \
-                         set_user_attribute
+from acct_mgr.api import AccountManager, _, dgettext, ngettext, tag_
 from acct_mgr.db import SessionStore
 from acct_mgr.guard import AccountGuard
+from acct_mgr.model import email_associated, set_user_attribute, user_known
 from acct_mgr.util import containsAny, is_enabled
 
 UPDATE_INTERVAL = 3600 # Update cookies for persistant sessions only 1/hour.
@@ -146,7 +146,7 @@ def _create_user(req, env, check_permissions=True):
                               invalid. Please specify a valid email address.
                               """)
             raise error
-        elif acctmgr.has_email(email):
+        elif email_associated(self.env, email):
             error.message = _("""The email address specified is already in
                               use. Please specify a different one.
                               """)
@@ -550,7 +550,7 @@ class LoginModule(auth.LoginModule):
                         # get user for failed authentication attempt
                         f_user = req.args.get('user')
                         req.args['user_locked'] = False
-                        if acctmgr.user_known(f_user) is True:
+                        if user_known(self.env, f_user):
                             if guard.user_locked(f_user) is False:
                                 # log current failed login attempt
                                 guard.failed_count(f_user, req.remote_addr)
