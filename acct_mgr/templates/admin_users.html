@@ -33,6 +33,9 @@
           <label>Username:<br />
             <input type="text" name="username" id="username"
                    class="textwidget" value="${account.username}" /></label>
+          <p class="hint" py:if="ignore_auth_case"> 
+            Only lowercase usernames allowed. 
+          </p> 
         </div>
         <div class="field">
           <label py:choose="">Password:<br />

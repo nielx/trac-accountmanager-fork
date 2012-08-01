@@ -321,6 +321,7 @@ class AccountManagerAdminPanels(Component):
             'listing_enabled': listing_enabled,
             'create_enabled': create_enabled,
             'delete_enabled': delete_enabled,
+            'ignore_auth_case': self.config.getbool('trac', 'ignore_auth_case'),
             'password_change_enabled': password_change_enabled,
             'password_reset_enabled': password_reset_enabled,
             'account' : { 'username' : None,
