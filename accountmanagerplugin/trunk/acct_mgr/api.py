@@ -45,7 +45,7 @@ except ImportError:
                 pass
         return string
 
-from model import delete_user, get_user_attribute, set_user_attribute
+from acct_mgr.model import delete_user, get_user_attribute, set_user_attribute
 
 
 class IPasswordStore(Interface):
