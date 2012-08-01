@@ -53,84 +53,82 @@ class IPasswordStore(Interface):
     passwords.
     """
 
-    def config_key(self):
-        """
-        '''Deprecated''': new implementations of this interface are not required
-        to implement this method, since the prefered way to configure the
-        `IPasswordStore` implemenation is by using its class name in
-        the `password_store` option.
+    def config_key():
+        """'''Deprecated''': New implementations should not use this method.
+
+        The prefered way to configure an `IPasswordStore` implemenation is by
+        using its class name in the `password_store` option.
 
         Returns a string used to identify this implementation in the config.
-        This password storage implementation will be used if the value of
-        the config property "account-manager.password_format" matches.
+        This password storage implementation will be used, if the value of
+        config property "account-manager.password_format" matches.
         """
 
-    def get_users(self):
-        """Returns an iterable of the known usernames.
+    def get_users():
+        """Returns an iterable of the known usernames."""
+
+    def has_user(user):
+        """Returns whether the user account exists."""
+
+    def set_password(user, password, old_password = None):
+        """Sets the password for the user.
+
+        This should create the user account, if it doesn't already exist.
+        Returns True, if a new account was created, False if an existing
+        account was updated.
         """
 
-    def has_user(self, user):
-        """Returns whether the user account exists.
-        """
-
-    def set_password(self, user, password, old_password = None):
-        """Sets the password for the user.  This should create the user account
-        if it doesn't already exist.
-        Returns True if a new account was created, False if an existing account
-        was updated.
-        """
-
-    def check_password(self, user, password):
+    def check_password(user, password):
         """Checks if the password is valid for the user.
     
-        Returns True if the correct user and password are specfied.  Returns
-        False if the incorrect password was specified.  Returns None if the
-        user doesn't exist in this password store.
+        Returns True, if the correct user and password are specfied.
+        Returns False, if the incorrect password was specified.
+        Returns None, if the user doesn't exist in this password store.
 
         Note: Returing `False` is an active rejection of the login attempt.
-        Return None to let the auth fall through to the next store in the
-        chain.
+        Return None to let the authentication eventually fall through to
+        next store in a chain.
         """
 
-    def delete_user(self, user):
+    def delete_user(user):
         """Deletes the user account.
-        Returns True if the account existed and was deleted, False otherwise.
+
+        Returns True, if the account existed and was deleted, False otherwise.
         """
+
 
 class IAccountChangeListener(Interface):
-    """An interface for receiving account change events.
-    """
+    """An interface for receiving account change events."""
 
-    def user_created(self, user, password):
-        """New user
+    def user_created(user, password):
+        """New user (account) created."""
+
+    def user_password_changed(user, password):
+        """Password changed."""
+
+    def user_deleted(user):
+        """User and related account information have been deleted."""
+
+    def user_password_reset(user, email, password):
+        """User password has been reset.
+
+        Note, that this is no longer final, and the old password could still
+        be recovered before first successful login with the new password.
         """
 
-    def user_password_changed(self, user, password):
-        """Password changed
-        """
+    def user_email_verification_requested(user, token):
+        """User verification has been requested."""
 
-    def user_deleted(self, user):
-        """User deleted
-        """
-
-    def user_password_reset(self, user, email, password):
-        """User password reset
-        """
-
-    def user_email_verification_requested(self, user, token):
-        """User verification requested
-        """
 
 class AccountManager(Component):
     """The AccountManager component handles all user account management methods
     provided by the IPasswordStore interface.
 
-    The methods will be handled by the underlying password storage
-    implementation set in trac.ini with the "account-manager.password_format"
-    setting.
+    The methods will be handled by underlying password storage implementations
+    set in trac.ini with the "account-manager.password_store" option.
 
     The "account-manager.password_store" may be an ordered list of password
-    stores.  If it is a list, then each password store is queried in turn.
+    stores, and if so, then each password store is queried in turn.
     """
 
     implements(IAccountChangeListener)
@@ -168,7 +166,7 @@ class AccountManager(Component):
             This is enforced upon new user registration.""")
 
     def __init__(self):
-        # bind the 'acct_mgr' catalog to the specified locale directory
+        # Bind the 'acct_mgr' catalog to the specified locale directory.
         locale_dir = resource_filename(__name__, 'locale')
         add_domain(self.env.path, locale_dir)
 
@@ -298,7 +296,6 @@ class AccountManager(Component):
         If the user isn't found in any IPasswordStore in the chain, None is
         returned.
         """
-        ignore_auth_case = self.config.getbool('trac', 'ignore_auth_case')
         user_stores = []
         for store in self._password_store:
             userlist = store.get_users()
@@ -322,34 +319,34 @@ class AccountManager(Component):
 
     def _maybe_update_hash(self, user, password):
         if not get_user_attribute(self.env, 1, user, 'password_refreshed', 1):
-            self.log.debug('refresh password for user: %s' % user)
+            self.log.debug("Refresh password for user: %s" % user)
             store = self.find_user_store(user)
             pwstore = self.get_supporting_store('set_password')
             if pwstore.set_password(user, password) == True:
                 # Account re-created according to current settings.
                 if store and not (store.delete_user(user) == True):
                     self.log.warn(
-                        "Failed to remove old entry for user '%s'" % user)
+                        "Failed to remove old entry for user: %s" % user)
             set_user_attribute(self.env, user, 'password_refreshed', 1)
 
-    def _notify(self, func, *args):
-        func = 'user_' + func
-        for l in self.change_listeners:
-            getattr(l, func)(*args)
+    def _notify(self, mod, *args):
+        mod = '_'.join(['user', mod])
+        for listener in self.change_listeners:
+            getattr(listener, mod)(*args)
 
     # IAccountChangeListener methods
 
     def user_created(self, user, password):
-        self.log.info('Created new user: %s' % user)
+        self.log.info("Created new user: %s" % user)
 
     def user_password_changed(self, user, password):
-        self.log.info('Updated password for user: %s' % user)
+        self.log.info("Updated password for user: %s" % user)
 
     def user_deleted(self, user):
-        self.log.info('Deleted user: %s' % user)
+        self.log.info("Deleted user: %s" % user)
 
     def user_password_reset(self, user, email, password):
-        self.log.info('Password reset user: %s, %s'%(user, email))
+        self.log.info("Password reset for user: %s, %s" % (user, email))
         
     def user_email_verification_requested(self, user, token):
-        self.log.info('Email verification requested user: %s' % user)
+        self.log.info("Email verification requested for user: %s" % user)
