@@ -10,15 +10,19 @@
 
 from acct_mgr.hashlib_compat  import md5
 
+_USER_KEYS = {
+    'auth_cookie': 'name',
+    'permission': 'username',
+    }
+
 
 # Public functions
 
-def email_associated(env, email):
+def email_associated(env, email, db=None):
     """Returns whether an authenticated user account with that email address
     exists.
     """
-    exists = False
-    db = env.get_db_cnx()
+    db = _get_db(env, db)
     cursor = db.cursor()
     cursor.execute("""
         SELECT value
@@ -26,11 +30,10 @@ def email_associated(env, email):
          WHERE authenticated=1 AND name='email' AND value=%s
         """, (email,))
     for row in cursor:
-        exists = True
-        break
-    return exists
+        return True
+    return False
 
-def email_verified(env, user, email):
+def email_verified(env, user, email, db=None):
     """Returns whether the account and email has been verified.
 
     Use with care, as it returns the private token string,
@@ -39,7 +42,7 @@ def email_verified(env, user, email):
     if not user_known(env, user) or not email:
         # Nothing more to check here.
         return None
-    db = env.get_db_cnx()
+    db = _get_db(env, db)
     cursor = db.cursor()
     cursor.execute("""
         SELECT value
@@ -64,9 +67,9 @@ def email_verified(env, user, email):
         return row[0]
     return True
 
-def user_known(env, user):
+def user_known(env, user, db=None):
     """Returns whether the user has ever been authenticated before."""
-    db = env.get_db_cnx()
+    db = _get_db(env, db)
     cursor = db.cursor()
     cursor.execute("""
         SELECT 1
@@ -220,8 +223,27 @@ def del_user_attribute(env, username=None, authenticated=1, attribute=None,
     cursor.execute(sql, sql_args)
     db.commit()
 
-def last_seen(env, user=None):
-    db = env.get_db_cnx()
+def delete_user(env, user, db=None):
+    # Delete session attributes, session and any custom permissions
+    # set for the user.
+    db = _get_db(env, db)
+    cursor = db.cursor()
+    for table in ['auth_cookie', 'session_attribute', 'session', 'permission']:
+        # Preseed, since variable table and column names aren't allowed
+        # as SQL arguments (security measure agains SQL injections).
+        sql = """
+            DELETE
+              FROM %s
+             WHERE %s=%%s
+            """ % (table, _USER_KEYS.get(table, 'sid'))
+        cursor.execute(sql, (user,))
+    db.commit()
+    # DEVEL: Is this really needed?
+    db.close()
+    env.log.debug("Purged session data and permissions for user '%s'" % user)
+
+def last_seen(env, user=None, db=None):
+    db = _get_db(env, db)
     cursor = db.cursor()
     sql = """
         SELECT sid,last_visit

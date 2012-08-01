@@ -45,10 +45,7 @@ except ImportError:
                 pass
         return string
 
-_user_keys = {
-    'auth_cookie': 'name',
-    'permission': 'username',
-    }
+from model import delete_user, get_user_attribute, set_user_attribute
 
 
 class IPasswordStore(Interface):
@@ -241,21 +238,7 @@ class AccountManager(Component):
             del_method(user)
         # Delete session attributes, session and any custom permissions
         # set for the user.
-        db = self.env.get_db_cnx()
-        cursor = db.cursor()
-        for table in ['auth_cookie', 'session_attribute', 'session',
-                      'permission']:
-            # Preseed, since variable table and column names aren't allowed
-            # as SQL arguments (security measure agains SQL injections).
-            sql = """
-                DELETE
-                FROM   %s
-                WHERE  %s=%%s
-                """ % (table, _user_keys.get(table, 'sid'))
-            cursor.execute(sql, (user,))
-        db.commit()
-        db.close()
-        self.log.debug('deleted user: %s' % user)
+        delete_user(self.env, user)
         self._notify('deleted', user)
 
     def supports(self, operation):
@@ -338,39 +321,16 @@ class AccountManager(Component):
         return ignore_auth_case and user.lower() or user
 
     def _maybe_update_hash(self, user, password):
-        db = self.env.get_db_cnx()
-        cursor = db.cursor()
-        sql = """
-            SELECT  sid
-              FROM  session_attribute
-            WHERE   sid=%s
-                AND name='password_refreshed'
-                AND value='1'
-            """
-        cursor.execute(sql, (user,))
-        if cursor.fetchone() is None:
+        if not get_user_attribute(self.env, 1, user, 'password_refreshed', 1):
             self.log.debug('refresh password for user: %s' % user)
             store = self.find_user_store(user)
             pwstore = self.get_supporting_store('set_password')
             if pwstore.set_password(user, password) == True:
-                # Account re-created according to current settings
+                # Account re-created according to current settings.
                 if store and not (store.delete_user(user) == True):
                     self.log.warn(
-                        "failed to remove old entry for user '%s'" % user)
-            cursor.execute("""
-                UPDATE  session_attribute
-                    SET value='1'
-                WHERE   sid=%s
-                    AND name='password_refreshed'
-                """, (user,))
-            cursor.execute(sql, (user,))
-            if cursor.fetchone() is None:
-                cursor.execute("""
-                    INSERT INTO session_attribute
-                            (sid,authenticated,name,value)
-                    VALUES  (%s,1,'password_refreshed',1)
-                    """, (user,))
-            db.commit()
+                        "Failed to remove old entry for user '%s'" % user)
+            set_user_attribute(self.env, user, 'password_refreshed', 1)
 
     def _notify(self, func, *args):
         func = 'user_' + func
