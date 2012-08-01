@@ -146,7 +146,7 @@ def _create_user(req, env, check_permissions=True):
                               invalid. Please specify a valid email address.
                               """)
             raise error
-        elif email_associated(self.env, email):
+        elif email_associated(env, email):
             error.message = _("""The email address specified is already in
                               use. Please specify a different one.
                               """)
