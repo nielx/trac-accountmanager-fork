@@ -14,6 +14,7 @@ import time
 
 from genshi.core import Markup
 from genshi.builder import tag
+
 from trac import perm, util
 from trac.core import Component, TracError, implements
 from trac.config import Configuration, BoolOption, IntOption, Option, \
@@ -23,7 +24,7 @@ from trac.web import auth, chrome
 from trac.web.main import IRequestHandler, IRequestFilter
 
 from acct_mgr.api import AccountManager, CommonTemplateProvider, \
-                         _, dgettext, ngettext, tag_
+                         IAccountRegistrationInspector, _, N_, dgettext, tag_
 from acct_mgr.model import email_associated, set_user_attribute
 from acct_mgr.util import containsAny, if_enabled, is_enabled
 
@@ -163,6 +164,47 @@ def _create_user(req, env, check_permissions=True):
         set_user_attribute(env, username, attribute, value)
 
 
+class RegistrationError(TracError):
+    """Exception raised when a registration check fails."""
+
+    title = N_("Registration Error")
+
+
+class GenericRegistrationInspector(Component):
+    """Generic check class definitions.
+
+    'type' is a class property that matches registration form's fieldset name,
+    where field(s) should get inserted.
+    """
+
+    implements(IAccountRegistrationInspector)
+
+    abstract = True
+
+    def render_registration_fields(self, req):
+        """Emit one or multiple additional fields for registration form built.
+
+        Returns a dict containing a 'required' and/or 'optional' tuple of 
+         * Genshi Fragment or valid XHTML markup for registration form
+         * template data object with default values or empty dict
+        If the return value is just a single tuple, its fragment or markup
+        will be inserted into the 'required' section.
+        """
+        data = {}
+        template = ''
+        return template, data
+
+    def validate_registration(self, req):
+        """Check registration form input.
+
+        Returns a RegistrationError with error message, or None on success.
+        """
+        # Nicer than a plain NotImplementedError.
+        raise NotImplementedError, _(
+            "No check method 'validate_registration' defined in %(module)s",
+            module=self.__class__.__name__)
+
+
 class RegistrationModule(CommonTemplateProvider):
     """Provides users the ability to register a new account.
 
@@ -170,6 +212,12 @@ class RegistrationModule(CommonTemplateProvider):
     """
 
     implements(chrome.INavigationContributor, IRequestHandler)
+
+    _register_check = OrderedExtensionsOption(
+        'account-manager', 'register_check', IAccountRegistrationInspector,
+        include_missing=False,
+        doc="""Ordered list of IAccountRegistrationInspector's to use for
+        registration checks.""")
 
     def __init__(self):
         self.acctmgr = AccountManager(self.env)
@@ -227,7 +275,11 @@ class RegistrationModule(CommonTemplateProvider):
         data['verify_account_enabled'] = verify_enabled
         if req.method == 'POST' and action == 'create':
             try:
+                for inspector in self._register_check:
+                    inspector.validate_registration(req)
                 _create_user(req, self.env)
+            except RegistrationError, e:
+                chrome.add_warning(req, e.message)
             except TracError, e:
                 data['registration_error'] = e.message
                 data['acctmgr'].update(getattr(e, 'account', ''))
@@ -244,6 +296,24 @@ class RegistrationModule(CommonTemplateProvider):
                      You may log in as user %(user)s now.""",
                      user=tag.b(req.args.get('username')))))))
                 req.redirect(req.href.login())
+        # Collect additional fields from IAccountRegistrationInspector's.
+        fragments = dict(required=[], optional=[])
+        for inspector in self._register_check:
+            fragment, f_data = inspector.render_registration_fields(req)
+            if fragment:
+                try:
+                    if 'optional' in fragment.keys():
+                        fragments['optional'].append(fragment['optional'])
+                except AttributeError:
+                    # Not a dict, just append Genshi Fragment or str/unicode. 
+                    fragments['required'].append(fragment)
+                else:
+                    fragments['required'].append(fragment.get('required', ''))
+                finally:
+                    data.update(f_data)
+        data['required_fields'] = fragments['required']
+        data['optional_fields'] = fragments['optional']
+        # Deferred import required to aviod circular import dependencies.
         from acct_mgr.web_ui import AccountModule
         data['reset_password_enabled'] = AccountModule(self.env
                                                       ).reset_password_enabled

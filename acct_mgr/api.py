@@ -121,6 +121,31 @@ class IAccountChangeListener(Interface):
         """User verification has been requested."""
 
 
+class IAccountRegistrationInspector(Interface):
+    """An interface for Components, that wish to participate in examining
+    requests for account creation.
+
+    The check method is called not only by RegistrationModule but when adding
+    new users from the user editor in AccountManagerAdminPanels too.
+    """
+
+    def render_registration_fields(req):
+        """Emit one or multiple additional fields for registration form built.
+
+        Returns a dict containing a 'required' and/or 'optional' tuple of
+         * Genshi Fragment or valid XHTML markup for registration form
+         * template data object with default values or empty dict
+        If the return value is just a single tuple, its fragment or markup
+        will be inserted into the 'required' section.
+        """
+
+    def validate_registration(req):
+        """Check registration form input.
+
+        Returns a RegistrationError with error message, or None on success.
+        """
+
+
 class AccountManager(Component):
     """The AccountManager component handles all user account management methods
     provided by the IPasswordStore interface.

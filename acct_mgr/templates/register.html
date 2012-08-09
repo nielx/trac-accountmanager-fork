@@ -58,12 +58,17 @@
               <input type="text" name="email" class="textwidget" size="20"
                 value="${acctmgr.email}" />
             </label>
-            <p>The email address is required for Trac to send you a
-              verification token.
+            <p class="hint">The email address is required for Trac to send
+              you a verification token.
             </p>
-            <p py:if="reset_password_enabled">Entering your email address will
-              also enable you to reset your password if you ever forget it.
+            <p class="hint" py:if="reset_password_enabled">
+              Entering your email address will also enable you to reset your
+              password if you ever forget it.
             </p>
+          </div>
+          <div py:for="field in required_fields">
+            <!--! Additional required fields can be included below. -->
+            ${field}
           </div>
         </fieldset>
 
@@ -80,9 +85,14 @@
               <input type="text" name="email" class="textwidget" size="20"
                 value="${acctmgr.email}"/>
             </label>
-            <p py:if="reset_password_enabled">Entering your email address
-              will enable you to reset your password if you ever forget it.
+            <p class="hint" py:if="reset_password_enabled">
+              Entering your email address will enable you to reset your
+              password if you ever forget it.
             </p>
+          </div>
+          <div py:for="field in optional_fields">
+            <!--! Additional optional fields can be included below. -->
+            ${field}
           </div>
         </fieldset>
         <input type="submit"
