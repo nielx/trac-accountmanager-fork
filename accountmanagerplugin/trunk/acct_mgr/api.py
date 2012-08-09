@@ -11,22 +11,23 @@
 
 from pkg_resources  import resource_filename
 
-from trac.config    import BoolOption, Configuration, ExtensionOption, \
-                           Option, OrderedExtensionsOption
-from trac.core      import Component, ExtensionPoint, Interface, TracError, \
-                           implements
+from trac.config  import BoolOption, Configuration, ExtensionOption, \
+                         Option, OrderedExtensionsOption
+from trac.core  import Component, ExtensionPoint, Interface, TracError, \
+                       implements
+from trac.web.chrome  import ITemplateProvider
 
 # Import i18n methods.  Fallback modules maintain compatibility to Trac 0.11
 # by keeping Babel optional here.
 try:
-    from  trac.util.translation  import  domain_functions
+    from trac.util.translation  import domain_functions
     add_domain, _, N_, gettext, ngettext, tag_ = \
         domain_functions('acct_mgr', ('add_domain', '_', 'N_', 'gettext',
                                       'ngettext', 'tag_'))
     dgettext = None
 except ImportError:
-    from  genshi.builder         import  tag as tag_
-    from  trac.util.translation  import  gettext
+    from genshi.builder  import tag as tag_
+    from trac.util.translation  import gettext
     _ = gettext
     N_ = lambda text: text
     def add_domain(a,b,c=None):
@@ -350,3 +351,25 @@ class AccountManager(Component):
         
     def user_email_verification_requested(self, user, token):
         self.log.info("Email verification requested for user: %s" % user)
+
+
+class CommonTemplateProvider(Component):
+    """Generic template provider."""
+
+    implements(ITemplateProvider)
+
+    abstract = True
+
+    # ITemplateProvider methods
+
+    def get_htdocs_dirs(self):
+        """Return the absolute path of a directory containing additional
+        static resources (such as images, style sheets, etc).
+        """
+        return [('acct_mgr', resource_filename(__name__, 'htdocs'))]
+
+    def get_templates_dirs(self):
+        """Return the absolute path of the directory containing the provided
+        Genshi templates.
+        """
+        return [resource_filename(__name__, 'templates')]
