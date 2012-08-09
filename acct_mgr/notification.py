@@ -11,18 +11,17 @@
 import re
 
 from trac import __version__
-from trac.core import *
+from trac.core import Component, implements
 from trac.admin import IAdminPanelProvider
 from trac.config import Option, ListOption
-from trac.web.chrome import ITemplateProvider
 from trac.notification import NotifyEmail
 
+from acct_mgr.api import IAccountChangeListener, CommonTemplateProvider, \
+                         _, dgettext
 
-from pkg_resources import resource_filename
-
-from acct_mgr.api import IAccountChangeListener, _, dgettext
 
 class AccountChangeListener(Component):
+
     implements(IAccountChangeListener)
 
     _notify_actions = ListOption(
@@ -161,10 +160,12 @@ class EmailVerificationNotification(SingleUserNotification):
         SingleUserNotification.notify(self, username, subject)
 
 
-class AccountChangeNotificationAdminPanel(Component):
-    implements(IAdminPanelProvider, ITemplateProvider)
+class AccountChangeNotificationAdminPanel(CommonTemplateProvider):
 
-    # IAdminPageProvider
+    implements(IAdminPanelProvider)
+
+    # IAdminPageProvider methods
+
     def get_admin_panels(self, req):
         if req.perm.has_permission('ACCTMGR_CONFIG_ADMIN'):
             yield ('accounts', _("Accounts"), 'notification', _("Notification"))
@@ -192,10 +193,3 @@ class AccountChangeNotificationAdminPanel(Component):
                 'notify_addresses': notify_addresses
                }
         return 'admin_accountsnotification.html', data
-
-    # ITemplateProvider methods
-    def get_htdocs_dirs(self):
-        return []
-
-    def get_templates_dirs(self):
-        return [resource_filename(__name__, 'templates')]

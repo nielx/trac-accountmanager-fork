@@ -9,17 +9,16 @@
 # Author: Steffen Hoffmann <hoff.st@web.de>
 
 from genshi.builder import Markup, tag
-from pkg_resources import resource_filename
 
 from trac.core import Component, implements
 from trac.perm import IPermissionRequestor, PermissionSystem
 from trac.util.compat import sorted
-from trac.web.chrome import Chrome, ITemplateProvider
+from trac.web.chrome import Chrome
 from trac.wiki.api import IWikiMacroProvider, WikiSystem, parse_args
 from trac.wiki.formatter import format_to_oneliner
 
 from acct_mgr.admin import fetch_user_data
-from acct_mgr.api import AccountManager, _
+from acct_mgr.api import AccountManager, CommonTemplateProvider, _
 from acct_mgr.guard import AccountGuard
 from acct_mgr.util import get_pretty_dateinfo
 
@@ -28,10 +27,10 @@ MSG_NO_PERM = tag.p(Markup(_("(required %(perm)s missing)",
                              perm=tag.strong('USER_VIEW'))), class_='hint')
 
 
-class AccountManagerWikiMacros(Component):
+class AccountManagerWikiMacros(CommonTemplateProvider):
     """Provides wiki macros related to Trac accounts/authenticated users."""
 
-    implements(IPermissionRequestor, ITemplateProvider, IWikiMacroProvider)
+    implements(IPermissionRequestor, IWikiMacroProvider)
 
     # IPermissionRequestor methods
 
@@ -39,20 +38,6 @@ class AccountManagerWikiMacros(Component):
         action = ['USER_VIEW']
         actions = [('ACCTMGR_USER_ADMIN', action), action[0],]
         return actions
-
-    # ITemplateProvider methods
-
-    def get_htdocs_dirs(self):
-        """Return the absolute path of a directory containing additional
-        static resources (such as images, style sheets, etc).
-        """
-        return []
-
-    def get_templates_dirs(self):
-        """Return the absolute path of the directory containing the provided
-        Genshi templates.
-        """
-        return [resource_filename(__name__, 'templates')]
 
     # IWikiMacroProvider
 

@@ -13,25 +13,24 @@ import inspect
 
 from genshi.builder     import tag
 from genshi.core        import Markup
-from pkg_resources      import resource_filename
 
 from trac.core          import *
 from trac.config        import Option
 from trac.perm          import IPermissionRequestor, PermissionSystem
 from trac.util.datefmt  import format_datetime, to_datetime
 from trac.util.presentation import Paginator
-from trac.web.chrome    import Chrome, ITemplateProvider, add_link, \
-                               add_notice, add_stylesheet, add_warning
+from trac.web.chrome    import Chrome, add_link, add_notice, add_stylesheet, \
+                               add_warning
 from trac.admin         import IAdminPanelProvider
 
-from acct_mgr.api       import AccountManager, _, dgettext, gettext, \
-                               ngettext, tag_
+from acct_mgr.api       import AccountManager, CommonTemplateProvider, \
+                               _, dgettext, gettext, ngettext, tag_
 from acct_mgr.guard     import AccountGuard
 from acct_mgr.model     import del_user_attribute, email_verified, \
                                get_user_attribute, last_seen, \
                                set_user_attribute
-from acct_mgr.web_ui    import _create_user, AccountModule, \
-                               EmailVerificationModule
+from acct_mgr.register  import _create_user, EmailVerificationModule
+from acct_mgr.web_ui    import AccountModule
 from acct_mgr.util      import is_enabled, get_pretty_dateinfo
 
 try:
@@ -179,9 +178,9 @@ class StoreOrder(dict):
         return len(self.get_all_stores())
 
 
-class AccountManagerAdminPanels(Component):
+class AccountManagerAdminPanels(CommonTemplateProvider):
 
-    implements(IAdminPanelProvider, IPermissionRequestor, ITemplateProvider)
+    implements(IAdminPanelProvider, IPermissionRequestor)
 
     ACCTS_PER_PAGE = 5
 
@@ -623,17 +622,3 @@ class AccountManagerAdminPanels(Component):
             add_link(req, 'prev', prev_href, _('Previous Page'))
         page_href = req.href.admin('accounts', 'cleanup')
         return {'attr': attr, 'page_href': page_href}
-
-    # ITemplateProvider methods
-
-    def get_htdocs_dirs(self):
-        """Return the absolute path of a directory containing additional
-        static resources (such as images, style sheets, etc).
-        """
-        return [('acct_mgr', resource_filename(__name__, 'htdocs'))]
-
-    def get_templates_dirs(self):
-        """Return the absolute path of the directory containing the provided
-        Genshi templates.
-        """
-        return [resource_filename(__name__, 'templates')]

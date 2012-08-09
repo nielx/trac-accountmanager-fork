@@ -38,6 +38,13 @@ def containsAny(str, set):
             return True
     return False
 
+def if_enabled(func):
+    def wrap(self, *args, **kwds):
+        if not self.enabled:
+            return None
+        return func(self, *args, **kwds)
+    return wrap
+
 # Compatibility code for `ComponentManager.is_enabled`
 # (available since Trac 0.12)
 def is_enabled(env, cls):
