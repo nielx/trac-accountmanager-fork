@@ -46,7 +46,8 @@ except ImportError:
                 pass
         return string
 
-from acct_mgr.model import delete_user, get_user_attribute, set_user_attribute
+from acct_mgr.model import delete_user, get_user_attribute, \
+                           prime_auth_session, set_user_attribute
 
 
 class IPasswordStore(Interface):
@@ -163,6 +164,12 @@ class AccountManager(Component):
         'account-manager', 'password_store', IPasswordStore,
         include_missing=False)
     _password_format = Option('account-manager', 'password_format')
+    _register_check = OrderedExtensionsOption(
+        'account-manager', 'register_check', IAccountRegistrationInspector,
+        default='BasicCheck, EmailCheck, UsernamePermCheck',
+        include_missing=False,
+        doc="""Ordered list of IAccountRegistrationInspector's to use for
+        registration checks.""")
     stores = ExtensionPoint(IPasswordStore)
     change_listeners = ExtensionPoint(IAccountChangeListener)
     allow_delete_account = BoolOption(
@@ -342,6 +349,27 @@ class AccountManager(Component):
         """
         ignore_auth_case = self.config.getbool('trac', 'ignore_auth_case')
         return ignore_auth_case and user.lower() or user
+
+    def validate_registration(self, req):
+        """Run configured registration checks and prime account on success."""
+        for inspector in self._register_check:
+            inspector.validate_registration(req)
+
+        username = self.handle_username_casing(
+            req.args.get('username').strip())
+        name = req.args.get('name').strip()
+        email = req.args.get('email').strip()
+        # Create the user in the configured (primary) password store.
+        self.set_password(username, req.args.get('password'))
+        # Output of a successful account creation request is a made-up
+        # authenticated session, that a new user can refer to later on.
+        prime_auth_session(self.env, username)
+        # Save attributes for the user with reference to that session ID.
+        for attribute in ('name', 'email'):
+            value = req.args.get(attribute)
+            if not value:
+                continue
+            set_user_attribute(self.env, username, attribute, value)
 
     def _maybe_update_hash(self, user, password):
         if not get_user_attribute(self.env, 1, user, 'password_refreshed', 1):
