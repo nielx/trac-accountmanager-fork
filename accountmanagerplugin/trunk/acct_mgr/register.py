@@ -19,8 +19,7 @@ from os import urandom
 
 from trac import perm, util
 from trac.core import Component, TracError, implements
-from trac.config import Configuration, BoolOption, IntOption, Option, \
-                        OrderedExtensionsOption
+from trac.config import Configuration, BoolOption, IntOption, Option
 from trac.env import open_environment
 from trac.web import auth, chrome
 from trac.web.main import IRequestHandler, IRequestFilter
@@ -29,37 +28,6 @@ from acct_mgr.api import AccountManager, CommonTemplateProvider, \
                          IAccountRegistrationInspector, _, N_, dgettext, tag_
 from acct_mgr.model import email_associated, set_user_attribute
 from acct_mgr.util import containsAny, is_enabled
-
-
-def _create_user(req, env, check_permissions=True):
-    acctmgr = AccountManager(env)
-    username = acctmgr.handle_username_casing(req.args.get('username').strip())
-    name = req.args.get('name').strip()
-    email = req.args.get('email').strip()
-    acctmgr.set_password(username, req.args.get('password'))
-
-    # INSERT new sid, needed as foreign key in some db schemata later on,
-    # at least for PostgreSQL.
-    db = env.get_db_cnx()
-    cursor = db.cursor()
-    cursor.execute("""
-        SELECT  COUNT(*)
-        FROM    session
-        WHERE   sid=%s
-        """, (username,))
-    exists = cursor.fetchone()
-    if not exists[0]:
-        cursor.execute("""
-            INSERT INTO session
-                    (sid,authenticated,last_visit)
-            VALUES  (%s,1,0)
-            """, (username,))
-
-    for attribute in ('name', 'email'):
-        value = req.args.get(attribute)
-        if not value:
-            continue
-        set_user_attribute(env, username, attribute, value)
 
 
 class RegistrationError(TracError):
@@ -133,15 +101,15 @@ class BasicCheck(GenericRegistrationInspector):
                 else:
                     pretty_blacklist = tag(pretty_blacklist,
                                            ', \'', tag.b(c), '\'')
-            raise RegistrationError(Markup(tag(_(
+            raise RegistrationError(tag(_(
                 "The username must not contain any of these characters:"),
-                pretty_blacklist)))
+                pretty_blacklist))
 
         # Prohibit some user names, that are important for Trac and therefor
         # reserved, even if not in the permission store for some reason.
         if username.lower() in ['anonymous', 'authenticated']:
-            raise RegistrationError(Markup(_("Username %s is not allowed.")
-                                           % tag.b(username)))
+            raise RegistrationError(_("Username %s is not allowed.")
+                                    % tag.b(username))
 
         # NOTE: A user may exist in a password store but not in the permission
         #   store.  I.e. this happens, when the user (from the password store)
@@ -152,10 +120,10 @@ class BasicCheck(GenericRegistrationInspector):
         for store_user in acctmgr.get_users():
             # Do it carefully by disregarding case.
             if store_user.lower() == username.lower():
-                raise RegistrationError(Markup(_("""
+                raise RegistrationError(_("""
                     Another account or group already exists, who's name
                     differs from %s only by case or is identical.
-                    """) % tag.b(username)))
+                    """) % tag.b(username))
 
         # Password consistency checks follow.
         password = req.args.get('password')
@@ -252,10 +220,10 @@ class UsernamePermCheck(GenericRegistrationInspector):
         for (perm_user, perm_action) in \
                 perm.PermissionSystem(self.env).get_all_permissions():
             if perm_user.lower() == username.lower():
-                raise RegistrationError(Markup(_("""
+                raise RegistrationError(_("""
                     Another account or group already exists, who's name
                     differs from %s only by case or is identical.
-                    """) % tag.b(username)))
+                    """) % tag.b(username))
 
 
 class RegistrationModule(CommonTemplateProvider):
@@ -265,13 +233,6 @@ class RegistrationModule(CommonTemplateProvider):
     """
 
     implements(chrome.INavigationContributor, IRequestHandler)
-
-    _register_check = OrderedExtensionsOption(
-        'account-manager', 'register_check', IAccountRegistrationInspector,
-        default='BasicCheck, EmailCheck, UsernamePermCheck',
-        include_missing=False,
-        doc="""Ordered list of IAccountRegistrationInspector's to use for
-        registration checks.""")
 
     def __init__(self):
         self.acctmgr = AccountManager(self.env)
@@ -325,11 +286,10 @@ class RegistrationModule(CommonTemplateProvider):
         data['verify_account_enabled'] = verify_enabled
         if req.method == 'POST' and action == 'create':
             try:
-                for inspector in self._register_check:
-                    inspector.validate_registration(req)
-                _create_user(req, self.env)
+                # Check request and prime account on success.
+                self.acctmgr.validate_registration(req)
             except RegistrationError, e:
-                chrome.add_warning(req, e.message)
+                chrome.add_warning(req, Markup(e.message))
                 account = {
                     'username': self.acctmgr.handle_username_casing(
                                     req.args.get('username').strip()),
@@ -351,7 +311,7 @@ class RegistrationModule(CommonTemplateProvider):
                 req.redirect(req.href.login())
         # Collect additional fields from IAccountRegistrationInspector's.
         fragments = dict(required=[], optional=[])
-        for inspector in self._register_check:
+        for inspector in self.acctmgr._register_check:
             try:
                 fragment, f_data = inspector.render_registration_fields(req)
             except TypeError, e:

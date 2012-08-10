@@ -168,6 +168,30 @@ def get_user_attribute(env, username=None, authenticated=1, attribute=None,
                             'id': {authenticated: m.hexdigest()}}
     return res
 
+def prime_auth_session(env, username, db=None):
+    """Prime session for registered users before initial login.
+
+    These days there's no distinct user object in Trac, but users consist
+    in terms of anonymous or authenticated sessions and related session
+    attributes.  So INSERT new sid, needed as foreign key in some db schemata
+    later on, at least for PostgreSQL.
+    """
+    db = _get_db(env, db)
+    cursor = db.cursor()
+    cursor.execute("""
+        SELECT COUNT(*)
+          FROM session
+         WHERE sid=%s
+        """, (username,))
+    exists = cursor.fetchone()
+    if not exists[0]:
+        cursor.execute("""
+            INSERT INTO session
+                    (sid,authenticated,last_visit)
+            VALUES  (%s,1,0)
+            """, (username,))
+        db.commit()
+
 def set_user_attribute(env, username, attribute, value, db=None):
     """Set or update a Trac user attribute within an atomic db transaction."""
     db = _get_db(env, db)

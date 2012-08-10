@@ -29,7 +29,7 @@ from acct_mgr.guard     import AccountGuard
 from acct_mgr.model     import del_user_attribute, email_verified, \
                                get_user_attribute, last_seen, \
                                set_user_attribute
-from acct_mgr.register  import _create_user, EmailVerificationModule
+from acct_mgr.register  import EmailVerificationModule, RegistrationError
 from acct_mgr.web_ui    import AccountModule
 from acct_mgr.util      import is_enabled, get_pretty_dateinfo
 
@@ -337,11 +337,20 @@ class AccountManagerAdminPanels(CommonTemplateProvider):
         if req.method == 'POST':
             if req.args.get('add'):
                 if create_enabled:
+                    # Check request and prime account on success.
                     try:
-                        _create_user(req, env, check_permissions=False)
-                    except TracError, e:
-                        data['editor_error'] = e.message
-                        data['account'] = getattr(e, 'account', '')
+                        acctmgr.validate_registration(req)
+                        # User editor form clean-up.
+                        data['account'] = {}
+                    except RegistrationError, e:
+                        data['editor_error'] = Markup(e.message)
+                        account = {
+                            'username': acctmgr.handle_username_casing(
+                                            req.args.get('username').strip()),
+                                'name': req.args.get('name').strip(),
+                               'email': req.args.get('email').strip()
+                        }
+                        data['account'].update(account)
                 else:
                     data['editor_error'] = _(
                         "The password store does not support creating users.")
