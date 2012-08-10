@@ -9,16 +9,14 @@
 #
 # Author: Matthew Good <trac@matt-good.net>
 
-import base64
 import random
 import string
 import time
 
 from datetime import timedelta
-from os import urandom
-
 from genshi.core import Markup
 from genshi.builder import tag
+
 from trac import perm, util
 from trac.core import Component, implements
 from trac.config import Configuration, BoolOption, IntOption, Option
