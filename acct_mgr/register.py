@@ -9,11 +9,13 @@
 #
 # Author: Matthew Good <trac@matt-good.net>
 
+import base64
 import re
 import time
 
 from genshi.core import Markup
 from genshi.builder import tag
+from os import urandom
 
 from trac import perm, util
 from trac.core import Component, TracError, implements
