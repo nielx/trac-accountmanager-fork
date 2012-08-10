@@ -44,32 +44,6 @@ def _create_user(req, env, check_permissions=True):
     error = TracError('')
     error.account = account
 
-    if not username:
-        error.message = _("Username cannot be empty.")
-        raise error
-
-    # Prohibit some user names that are important for Trac and therefor
-    # reserved, even if they're not in the permission store for some reason.
-    if username.lower() in ['anonymous', 'authenticated']:
-        error.message = Markup(_("Username %s is not allowed.")
-                               % tag.b(username))
-        raise error
-
-    # NOTE: A user may exist in the password store but not in the permission
-    #   store. I.e. this happens, when the user (from the password store)
-    #   never logged in into Trac. So we have to perform this test here
-    #   and cannot just check for the user being in the permission store.
-    #   And obfuscate whether an existing user or group name
-    #   was responsible for rejection of this user name.
-    for store_user in acctmgr.get_users():
-        # Do it carefully by disregarding case.
-        if store_user.lower() == username.lower():
-            error.message = Markup(_("""
-                Another account or group already exists, who's name
-                differs from %s only by case or is identical.
-                """) % tag.b(username))
-            raise error
-
     # Check whether there is also a user or a group with that name.
     if check_permissions:
         # NOTE: We can't use 'get_user_permissions(username)' here
@@ -91,23 +65,6 @@ def _create_user(req, env, check_permissions=True):
                     differs from %s only by case or is identical.
                     """) % tag.b(username))
                 raise error
-
-    # Always exclude some special characters, i.e. 
-    #   ':' can't be used in HtPasswdStore
-    #   '[' and ']' can't be used in SvnServePasswordStore
-    blacklist = acctmgr.username_char_blacklist
-    if containsAny(username, blacklist):
-        pretty_blacklist = ''
-        for c in blacklist:
-            if pretty_blacklist == '':
-                pretty_blacklist = tag(' \'', tag.b(c), '\'')
-            else:
-                pretty_blacklist = tag(pretty_blacklist,
-                                       ', \'', tag.b(c), '\'')
-        error.message = tag(_(
-            "The username must not contain any of these characters:"),
-            pretty_blacklist)
-        raise error
 
     # Validation of username passed.
 
@@ -207,6 +164,93 @@ class GenericRegistrationInspector(Component):
             module=self.__class__.__name__)
 
 
+class UsernameBasicCheck(GenericRegistrationInspector):
+    """A collection of basic username checks.
+
+    This includes checking for
+     * emptiness (no user input for username)
+     * some blacklisted characters
+     * some reserved usernames
+     * a duplicate in configured password stores
+    """
+
+    def validate_registration(self, req):
+        acctmgr = AccountManager(self.env)
+        username = acctmgr.handle_username_casing(
+            req.args.get('username').strip())
+
+        if not username:
+            raise RegistrationError(_("Username cannot be empty."))
+
+        # Always exclude some special characters, i.e. 
+        #   ':' can't be used in HtPasswdStore
+        #   '[' and ']' can't be used in SvnServePasswordStore
+        blacklist = acctmgr.username_char_blacklist
+        if containsAny(username, blacklist):
+            pretty_blacklist = ''
+            for c in blacklist:
+                if pretty_blacklist == '':
+                    pretty_blacklist = tag(' \'', tag.b(c), '\'')
+                else:
+                    pretty_blacklist = tag(pretty_blacklist,
+                                           ', \'', tag.b(c), '\'')
+            raise RegistrationError(Markup(tag(_(
+                "The username must not contain any of these characters:"),
+                pretty_blacklist)))
+
+        # Prohibit some user names, that are important for Trac and therefor
+        # reserved, even if not in the permission store for some reason.
+        if username.lower() in ['anonymous', 'authenticated']:
+            raise RegistrationError(Markup(_("Username %s is not allowed.")
+                                           % tag.b(username)))
+
+        # NOTE: A user may exist in a password store but not in the permission
+        #   store.  I.e. this happens, when the user (from the password store)
+        #   never logged in into Trac.  So we have to perform this test here
+        #   and cannot just check for the user being in the permission store.
+        #   And better obfuscate whether an existing user or group name
+        #   was responsible for rejection of this user name.
+        for store_user in acctmgr.get_users():
+            # Do it carefully by disregarding case.
+            if store_user.lower() == username.lower():
+                raise RegistrationError(Markup(_("""
+                    Another account or group already exists, who's name
+                    differs from %s only by case or is identical.
+                    """) % tag.b(username)))
+
+
+class UsernamePermCheck(GenericRegistrationInspector):
+    """Check for usernames referenced in the permission system.
+
+    This check is bypassed for requests by an admin user.
+    """
+
+    def validate_registration(self, req):
+        if req.perm.has_permission('ACCTMGR_USER_ADMIN'):
+            return
+        username = AccountManager(self.env).handle_username_casing(
+            req.args.get('username').strip())
+
+        # NOTE: We can't use 'get_user_permissions(username)' here
+        #   as this always returns a list - even if the user doesn't exist.
+        #   In this case the permissions of "anonymous" are returned.
+        #
+        #   Also note that we can't simply compare the result of
+        #   'get_user_permissions(username)' to some known set of permission,
+        #   i.e. "get_user_permissions('authenticated') as this is always
+        #   false when 'username' is the name of an existing permission group.
+        #
+        #   And again obfuscate whether an existing user or group name
+        #   was responsible for rejection of this username.
+        for (perm_user, perm_action) in \
+                perm.PermissionSystem(self.env).get_all_permissions():
+            if perm_user.lower() == username.lower():
+                raise RegistrationError(Markup(_("""
+                    Another account or group already exists, who's name
+                    differs from %s only by case or is identical.
+                    """) % tag.b(username)))
+
+
 class RegistrationModule(CommonTemplateProvider):
     """Provides users the ability to register a new account.
 
@@ -217,6 +261,7 @@ class RegistrationModule(CommonTemplateProvider):
 
     _register_check = OrderedExtensionsOption(
         'account-manager', 'register_check', IAccountRegistrationInspector,
+        default='UsernameBasicCheck, UsernamePermCheck',
         include_missing=False,
         doc="""Ordered list of IAccountRegistrationInspector's to use for
         registration checks.""")
