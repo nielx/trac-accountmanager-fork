@@ -53,19 +53,6 @@
                      class="textwidget" size="20" />
             </label>
           </div>
-          <div py:if="verify_account_enabled">
-            <label>Email:
-              <input type="text" name="email" class="textwidget" size="20"
-                value="${acctmgr.email}" />
-            </label>
-            <p class="hint">The email address is required for Trac to send
-              you a verification token.
-            </p>
-            <p class="hint" py:if="reset_password_enabled">
-              Entering your email address will also enable you to reset your
-              password if you ever forget it.
-            </p>
-          </div>
           <div py:for="field in required_fields">
             <!--! Additional required fields can be included below. -->
             ${field}
@@ -79,16 +66,6 @@
               <input type="text" name="name" class="textwidget" size="20"
                 value="${acctmgr.name}"/>
             </label>
-          </div>
-          <div py:if="not verify_account_enabled">
-            <label>Email:
-              <input type="text" name="email" class="textwidget" size="20"
-                value="${acctmgr.email}"/>
-            </label>
-            <p class="hint" py:if="reset_password_enabled">
-              Entering your email address will enable you to reset your
-              password if you ever forget it.
-            </p>
           </div>
           <div py:for="field in optional_fields">
             <!--! Additional optional fields can be included below. -->

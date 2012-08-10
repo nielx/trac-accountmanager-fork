@@ -28,7 +28,7 @@ from trac.web.main import IRequestHandler, IRequestFilter
 from acct_mgr.api import AccountManager, CommonTemplateProvider, \
                          IAccountRegistrationInspector, _, N_, dgettext, tag_
 from acct_mgr.model import email_associated, set_user_attribute
-from acct_mgr.util import containsAny, if_enabled, is_enabled
+from acct_mgr.util import containsAny, is_enabled
 
 
 def _create_user(req, env, check_permissions=True):
@@ -36,68 +36,7 @@ def _create_user(req, env, check_permissions=True):
     username = acctmgr.handle_username_casing(req.args.get('username').strip())
     name = req.args.get('name').strip()
     email = req.args.get('email').strip()
-    account = {
-        'username': username,
-        'name': name,
-        'email': email,
-    }
-    error = TracError('')
-    error.account = account
-
-    # Check whether there is also a user or a group with that name.
-    if check_permissions:
-        # NOTE: We can't use 'get_user_permissions(username)' here
-        #   as this always returns a list - even if the user doesn't exist.
-        #   In this case the permissions of "anonymous" are returned.
-        #
-        #   Also note that we can't simply compare the result of
-        #   'get_user_permissions(username)' to some known set of permission,
-        #   i.e. "get_user_permissions('authenticated') as this is always
-        #   false when 'username' is the name of an existing permission group.
-        #
-        #   And again obfuscate whether an existing user or group name
-        #   was responsible for rejection of this username.
-        for (perm_user, perm_action) in \
-                perm.PermissionSystem(env).get_all_permissions():
-            if perm_user.lower() == username.lower():
-                error.message = Markup(_("""
-                    Another account or group already exists, who's name
-                    differs from %s only by case or is identical.
-                    """) % tag.b(username))
-                raise error
-
-    # Validation of username passed.
-
-    password = req.args.get('password')
-    if not password:
-        error.message = _("Password cannot be empty.")
-        raise error
-
-    if password != req.args.get('password_confirm'):
-        error.message = _("The passwords must match.")
-        raise error
-
-    # Validation of password passed.
-
-    if if_enabled(EmailVerificationModule) and acctmgr.verify_email:
-        if not email:
-            error.message = _("You must specify a valid email address.")
-            raise error
-        elif not re.match('^[A-Z0-9._%+-]+@(?:[A-Z0-9-]+\.)+[A-Z]{2,6}$',
-                          email, re.IGNORECASE):
-            error.message = _("""The email address specified appears to be
-                              invalid. Please specify a valid email address.
-                              """)
-            raise error
-        elif email_associated(env, email):
-            error.message = _("""The email address specified is already in
-                              use. Please specify a different one.
-                              """)
-            raise error
-
-    # Validation of email address passed.
-
-    acctmgr.set_password(username, password)
+    acctmgr.set_password(username, req.args.get('password'))
 
     # INSERT new sid, needed as foreign key in some db schemata later on,
     # at least for PostgreSQL.
@@ -164,14 +103,14 @@ class GenericRegistrationInspector(Component):
             module=self.__class__.__name__)
 
 
-class UsernameBasicCheck(GenericRegistrationInspector):
-    """A collection of basic username checks.
+class BasicCheck(GenericRegistrationInspector):
+    """A collection of basic checks.
 
     This includes checking for
-     * emptiness (no user input for username)
-     * some blacklisted characters
+     * emptiness (no user input for username and/or password)
+     * some blacklisted username characters
      * some reserved usernames
-     * a duplicate in configured password stores
+     * a username duplicate in configured password stores
     """
 
     def validate_registration(self, req):
@@ -218,6 +157,74 @@ class UsernameBasicCheck(GenericRegistrationInspector):
                     differs from %s only by case or is identical.
                     """) % tag.b(username)))
 
+        # Password consistency checks follow.
+        password = req.args.get('password')
+        if not password:
+            raise RegistrationError(_("Password cannot be empty."))
+        elif password != req.args.get('password_confirm'):
+            raise RegistrationError(_("The passwords must match."))
+
+
+class EmailCheck(GenericRegistrationInspector):
+    """A collection of checks for email addresses.
+
+    This check is bypassed, if account verification is disabled.
+    """
+
+    def render_registration_fields(self, req):
+        """Add an email address text input field to the registration form."""
+        # Preserve last input for editing on failure instead of typing
+        # everything again.
+        old_value = req.args.get('email', '').strip()
+        insert = tag.label("Email:", tag.input(type='text', name='email',
+                                               class_='textwidget', size=20,
+                                               value=old_value))
+        # Deferred import required to aviod circular import dependencies.
+        from acct_mgr.web_ui import AccountModule
+        reset_password = AccountModule(self.env).reset_password_enabled
+        verify_account = is_enabled(self.env, EmailVerificationModule) and \
+                         AccountManager(self.env).verify_email
+        if verify_account:
+            # TRANSLATOR: Registration form hints for a mandatory input field.
+            hint = tag.p(_("""The email address is required for Trac to send
+                           you a verification token."""), class_='hint')
+            if reset_password:
+                hint = tag(hint, tag.p(_("""
+                           Entering your email address will also enable you
+                           to reset your password if you ever forget it.
+                           """), class_='hint'))
+            return tag(insert, hint), {}
+        elif reset_password:
+            # TRANSLATOR: Registration form hint, if email input is optional.
+            hint = tag.p(_("""Entering your email address will enable you to
+                           reset your password if you ever forget it. """),
+                         class_='hint')
+            return dict(optional=tag(insert, hint)), {}
+        else:
+            # Always return the email text input itself as optional field.
+            return dict(optional=insert), {}
+
+    def validate_registration(self, req):
+        acctmgr = AccountManager(self.env)
+        email = req.args.get('email').strip()
+
+        if is_enabled(self.env, EmailVerificationModule) and \
+                acctmgr.verify_email:
+            if not email:
+                raise RegistrationError(_(
+                    "You must specify a valid email address."))
+            elif not re.match('^[A-Z0-9._%+-]+@(?:[A-Z0-9-]+\.)+[A-Z]{2,6}$',
+                              email, re.IGNORECASE):
+                raise RegistrationError(_("""
+                    The email address specified appears to be invalid.
+                    Please specify a valid email address.
+                    """))
+            elif email_associated(self.env, email):
+                raise RegistrationError(_("""
+                    The email address specified is already in use.
+                    Please specify a different one.
+                    """))
+
 
 class UsernamePermCheck(GenericRegistrationInspector):
     """Check for usernames referenced in the permission system.
@@ -261,7 +268,7 @@ class RegistrationModule(CommonTemplateProvider):
 
     _register_check = OrderedExtensionsOption(
         'account-manager', 'register_check', IAccountRegistrationInspector,
-        default='UsernameBasicCheck, UsernamePermCheck',
+        default='BasicCheck, EmailCheck, UsernamePermCheck',
         include_missing=False,
         doc="""Ordered list of IAccountRegistrationInspector's to use for
         registration checks.""")
@@ -309,13 +316,9 @@ class RegistrationModule(CommonTemplateProvider):
             req.redirect(req.href.prefs('account'))
         action = req.args.get('action')
         data = {
-            '_dgettext': dgettext,
-            'acctmgr': {
-                'username': None,
-                'name': None,
-                'email': None,
-            },
-            'ignore_auth_case': self.config.getbool('trac', 'ignore_auth_case')
+                '_dgettext': dgettext,
+                  'acctmgr': dict(username=None, name=None),
+         'ignore_auth_case': self.config.getbool('trac', 'ignore_auth_case')
         }
         verify_enabled = is_enabled(self.env, EmailVerificationModule) and \
                          self.acctmgr.verify_email
@@ -327,9 +330,12 @@ class RegistrationModule(CommonTemplateProvider):
                 _create_user(req, self.env)
             except RegistrationError, e:
                 chrome.add_warning(req, e.message)
-            except TracError, e:
-                data['registration_error'] = e.message
-                data['acctmgr'].update(getattr(e, 'account', ''))
+                account = {
+                    'username': self.acctmgr.handle_username_casing(
+                                    req.args.get('username').strip()),
+                        'name': req.args.get('name').strip(),
+                }
+                data['acctmgr'].update(account)
             else:
                 if verify_enabled:
                     chrome.add_notice(req, Markup(tag.span(Markup(_(
@@ -346,7 +352,13 @@ class RegistrationModule(CommonTemplateProvider):
         # Collect additional fields from IAccountRegistrationInspector's.
         fragments = dict(required=[], optional=[])
         for inspector in self._register_check:
-            fragment, f_data = inspector.render_registration_fields(req)
+            try:
+                fragment, f_data = inspector.render_registration_fields(req)
+            except TypeError, e:
+                # Add some robustness by logging the most likely errors.
+                self.env.log.warn("%s.render_registration_fields failed: %s"
+                                  % (inspector.__class__.__name__, e))
+                fragment = None
             if fragment:
                 try:
                     if 'optional' in fragment.keys():
@@ -360,10 +372,6 @@ class RegistrationModule(CommonTemplateProvider):
                     data.update(f_data)
         data['required_fields'] = fragments['required']
         data['optional_fields'] = fragments['optional']
-        # Deferred import required to aviod circular import dependencies.
-        from acct_mgr.web_ui import AccountModule
-        data['reset_password_enabled'] = AccountModule(self.env
-                                                      ).reset_password_enabled
         return 'register.html', data, None
 
 
