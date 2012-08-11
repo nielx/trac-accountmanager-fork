@@ -47,16 +47,15 @@ class GenericRegistrationInspector(Component):
 
     abstract = True
 
-    def render_registration_fields(self, req):
+    def render_registration_fields(self, req, data):
         """Emit one or multiple additional fields for registration form built.
 
         Returns a dict containing a 'required' and/or 'optional' tuple of 
          * Genshi Fragment or valid XHTML markup for registration form
-         * template data object with default values or empty dict
+         * modified or unchanged data object (used to render `register.html`)
         If the return value is just a single tuple, its fragment or markup
         will be inserted into the 'required' section.
         """
-        data = {}
         template = ''
         return template, data
 
@@ -139,7 +138,7 @@ class EmailCheck(GenericRegistrationInspector):
     This check is bypassed, if account verification is disabled.
     """
 
-    def render_registration_fields(self, req):
+    def render_registration_fields(self, req, data):
         """Add an email address text input field to the registration form."""
         # Preserve last input for editing on failure instead of typing
         # everything again.
@@ -161,16 +160,16 @@ class EmailCheck(GenericRegistrationInspector):
                            Entering your email address will also enable you
                            to reset your password if you ever forget it.
                            """), class_='hint'))
-            return tag(insert, hint), {}
+            return tag(insert, hint), data
         elif reset_password:
             # TRANSLATOR: Registration form hint, if email input is optional.
             hint = tag.p(_("""Entering your email address will enable you to
                            reset your password if you ever forget it. """),
                          class_='hint')
-            return dict(optional=tag(insert, hint)), {}
+            return dict(optional=tag(insert, hint)), data
         else:
             # Always return the email text input itself as optional field.
-            return dict(optional=insert), {}
+            return dict(optional=insert), data
 
     def validate_registration(self, req):
         acctmgr = AccountManager(self.env)
@@ -313,7 +312,8 @@ class RegistrationModule(CommonTemplateProvider):
         fragments = dict(required=[], optional=[])
         for inspector in self.acctmgr._register_check:
             try:
-                fragment, f_data = inspector.render_registration_fields(req)
+                fragment, f_data = inspector.render_registration_fields(req,
+                                                                        data)
             except TypeError, e:
                 # Add some robustness by logging the most likely errors.
                 self.env.log.warn("%s.render_registration_fields failed: %s"

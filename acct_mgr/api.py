@@ -130,12 +130,12 @@ class IAccountRegistrationInspector(Interface):
     new users from the user editor in AccountManagerAdminPanels too.
     """
 
-    def render_registration_fields(req):
+    def render_registration_fields(req, data):
         """Emit one or multiple additional fields for registration form built.
 
         Returns a dict containing a 'required' and/or 'optional' tuple of
          * Genshi Fragment or valid XHTML markup for registration form
-         * template data object with default values or empty dict
+         * modified or unchanged data object (used to render `register.html`)
         If the return value is just a single tuple, its fragment or markup
         will be inserted into the 'required' section.
         """

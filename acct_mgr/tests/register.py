@@ -69,7 +69,7 @@ class DummyRegInspectorTestCase(_BaseTestCase):
 
         check = BadRegistrationInspector(self.env)
         # Default (empty) response for providing additional fields is safe.
-        field_res = check.render_registration_fields(self.req)
+        field_res = check.render_registration_fields(self.req, {})
         self.assertEqual(len(field_res), 2)
         self.assertEqual((Markup(field_res[0]), field_res[1]),
                          (Markup(''), {}))
@@ -109,7 +109,7 @@ class BasicCheckTestCase(_BaseTestCase):
         check = BasicCheck(self.env)
         req = self.req
         # Inspector doesn't provide additional fields.
-        field_res = check.render_registration_fields(req)
+        field_res = check.render_registration_fields(req, {})
         self.assertEqual(len(field_res), 2)
         self.assertEqual((Markup(field_res[0]), field_res[1]),
                          (Markup(''), {}))
@@ -173,13 +173,15 @@ class EmailCheckTestCase(_BaseTestCase):
 
         # Inspector provides the email text input field.
         old_email_input = 'email@foo.bar'
-        req.args.update(dict(email=old_email_input))
-        field_res = check.render_registration_fields(req)
+        acct = dict(username='user', email=old_email_input, name='User')
+        req.args.update(acct)
+        field_res = check.render_registration_fields(req, acct)
         self.assertEqual(len(field_res), 2)
         self.assertTrue(Markup(field_res[0]).startswith('<label>Email:'))
-        # Make sure, that old input is preserved on failure.
+        # Ensure, that old input is restored on failure.
         self.assertTrue(old_email_input in Markup(field_res[0]))
-        self.assertEqual(field_res[1], {})
+        # Ensure, that template data dict is passed unchanged.
+        self.assertEqual(field_res[1], acct)
         req.args.update(dict(email=''))
 
         # 1st: Initially try with account verification disabled by setting.
@@ -207,7 +209,7 @@ class UsernamePermCheckTestCase(_BaseTestCase):
         check = UsernamePermCheck(self.env)
         req = self.req
         # Inspector doesn't provide additional fields.
-        field_res = check.render_registration_fields(req)
+        field_res = check.render_registration_fields(req, {})
         self.assertEqual(len(field_res), 2)
         self.assertEqual((Markup(field_res[0]), field_res[1]),
                          (Markup(''), {}))
@@ -227,10 +229,25 @@ class UsernamePermCheckTestCase(_BaseTestCase):
 
 class RegistrationModuleTestCase(_BaseTestCase):
     def setUp(self):
+        class DataChangeRegistrationInspector(GenericRegistrationInspector):
+            def render_registration_fields(self, req, data):
+                data['acctmgr']['email'] = 'default-user@foo.bar'
+                data.update(dict(acctmgr=dict(
+                    username=data['acctmgr'].get('username').upper())))
+                if 'name' in data['acctmgr']:
+                    del data['acctmgr']['name']
+                return '', data
+
+            def validate_registration(self, req):
+                # Don't check.
+                return
+
         _BaseTestCase.setUp(self)
         self.rmod = RegistrationModule(self.env)
         self.reg_template = 'register.html'
         self.req.method = 'POST'
+
+        self.check = DataChangeRegistrationInspector(self.env)
 
     def test_check(self):
         # Default configuration: All provided checks enabled.
@@ -248,6 +265,22 @@ class RegistrationModuleTestCase(_BaseTestCase):
                             '')
         response = self.rmod.process_request(self.req)
         self.assertEqual(response[0], self.reg_template)
+
+    def test_data_update(self):
+        self.req.args['username'] = 'UseR'
+        self.req.args['email'] = 'user@foo.bar'
+        self.env.config.set('account-manager', 'register_check',
+                            'DataChangeRegistrationInspector')
+        response = self.rmod.process_request(self.req)
+        print(response)
+        print(AccountManager(self.env)._register_check)
+        # Added content.
+        self.assertEqual(response[1]['acctmgr']['email'],
+                         'default-user@foo.bar')
+        # Updated content.
+        self.assertEqual(response[1]['acctmgr']['username'], 'USER')
+        # Deleted content.
+        self.assertFalse('name' in response[1]['acctmgr'])
 
 
 def suite():
