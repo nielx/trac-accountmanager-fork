@@ -15,6 +15,7 @@ from trac.config  import BoolOption, Configuration, ExtensionOption, \
                          Option, OrderedExtensionsOption
 from trac.core  import Component, ExtensionPoint, Interface, TracError, \
                        implements
+from trac.perm import IPermissionRequestor
 from trac.web.chrome  import ITemplateProvider
 
 # Import i18n methods.  Fallback modules maintain compatibility to Trac 0.11
@@ -158,7 +159,7 @@ class AccountManager(Component):
     stores, and if so, then each password store is queried in turn.
     """
 
-    implements(IAccountChangeListener)
+    implements(IAccountChangeListener, IPermissionRequestor)
 
     _password_store = OrderedExtensionsOption(
         'account-manager', 'password_store', IPasswordStore,
@@ -404,6 +405,15 @@ class AccountManager(Component):
         
     def user_email_verification_requested(self, user, token):
         self.log.info("Email verification requested for user: %s" % user)
+
+    # IPermissionRequestor methods
+
+    def get_permission_actions(self):
+        action = ['ACCTMGR_CONFIG_ADMIN', 'ACCTMGR_USER_ADMIN', 'EMAIL_VIEW',
+                  'USER_VIEW']
+        actions = [('ACCTMGR_ADMIN', action), action[0],
+                   (action[1], action[2:]), action[3]]
+        return actions
 
 
 class CommonTemplateProvider(Component):

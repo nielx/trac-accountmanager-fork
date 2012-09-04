@@ -19,6 +19,9 @@ acct_mgr-0.4 (not yet released) - branch 0.11
  * #10028: Account delete does not purge user's auth cookie
  * #10123: Registration with EmailVerification should instruct more clearly
  * do AccountManager class API cleanup by moving db access to model layer
+ * prevent duplicate action entries in Trac core permission select box
+ * add unit tests i.e. for hash creation and re-written registration checks
+   to significantly extend code coverage
 
  new features
  * #874: Add new fields to register form and a registration validation system

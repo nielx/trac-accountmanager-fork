@@ -16,7 +16,7 @@ from genshi.core        import Markup
 
 from trac.core          import *
 from trac.config        import Option
-from trac.perm          import IPermissionRequestor, PermissionSystem
+from trac.perm          import PermissionSystem
 from trac.util.datefmt  import format_datetime, to_datetime
 from trac.util.presentation import Paginator
 from trac.web.chrome    import Chrome, add_link, add_notice, add_stylesheet, \
@@ -180,7 +180,7 @@ class StoreOrder(dict):
 
 class AccountManagerAdminPanels(CommonTemplateProvider):
 
-    implements(IAdminPanelProvider, IPermissionRequestor)
+    implements(IAdminPanelProvider)
 
     ACCTS_PER_PAGE = 5
 
@@ -188,14 +188,8 @@ class AccountManagerAdminPanels(CommonTemplateProvider):
         self.acctmgr = AccountManager(self.env)
         self.guard = AccountGuard(self.env)
 
-    # IPermissionRequestor
-    def get_permission_actions(self):
-        action = ['ACCTMGR_CONFIG_ADMIN', 'ACCTMGR_USER_ADMIN', 'EMAIL_VIEW']
-        actions = [('ACCTMGR_ADMIN', action), action[0], (action[1],
-                                                          action[2]),]
-        return actions
+    # IAdminPanelProvider methods
 
-    # IAdminPanelProvider
     def get_admin_panels(self, req):
         if req.perm.has_permission('ACCTMGR_CONFIG_ADMIN'):
             yield ('accounts', _("Accounts"), 'config', _("Configuration"))

@@ -17,7 +17,6 @@ from genshi.core  import Markup
 from trac.perm  import PermissionCache, PermissionSystem
 from trac.test  import EnvironmentStub, Mock
 
-from acct_mgr.admin  import AccountManagerAdminPanels
 from acct_mgr.api  import AccountManager, IAccountRegistrationInspector
 from acct_mgr.db  import SessionStore
 from acct_mgr.model  import set_user_attribute
@@ -30,12 +29,10 @@ from acct_mgr.register  import BasicCheck, EmailCheck, \
 class _BaseTestCase(unittest.TestCase):
     def setUp(self):
         self.env = EnvironmentStub(
-                enable=['trac.*', 'acct_mgr.admin.*'])
+                enable=['trac.*', 'acct_mgr.api.*'])
         self.env.path = tempfile.mkdtemp()
         self.perm = PermissionSystem(self.env)
 
-        # Register AccountManager actions.
-        self.ap = AccountManagerAdminPanels(self.env)
         # Create a user reference in the permission system.
         self.perm.grant_permission('admin', 'ACCTMGR_USER_ADMIN')
         # Prepare a generic registration request.
@@ -229,30 +226,22 @@ class UsernamePermCheckTestCase(_BaseTestCase):
 
 class RegistrationModuleTestCase(_BaseTestCase):
     def setUp(self):
-        class DataChangeRegistrationInspector(GenericRegistrationInspector):
-            def render_registration_fields(self, req, data):
-                data['acctmgr']['email'] = 'default-user@foo.bar'
-                data.update(dict(acctmgr=dict(
-                    username=data['acctmgr'].get('username').upper())))
-                if 'name' in data['acctmgr']:
-                    del data['acctmgr']['name']
-                return '', data
-
-            def validate_registration(self, req):
-                # Don't check.
-                return
-
         _BaseTestCase.setUp(self)
-        self.rmod = RegistrationModule(self.env)
+        self.env = EnvironmentStub(
+                enable=['trac.*', 'acct_mgr.api.*', 'acct_mgr.register.*'])
+        self.env.path = tempfile.mkdtemp()
         self.reg_template = 'register.html'
         self.req.method = 'POST'
 
-        self.check = DataChangeRegistrationInspector(self.env)
+        self.acctmgr = AccountManager(self.env)
+        self.check = BasicCheck(self.env)
+        self.rmod = RegistrationModule(self.env)
 
     def test_check(self):
-        # Default configuration: All provided checks enabled.
+        # Default configuration: All default checks enabled.
         response = self.rmod.process_request(self.req)
         self.assertEqual(response[0], self.reg_template)
+
         # Custom configuration: Do basic username checks only.
         self.req.args['username'] = 'admin'
         self.req.args['email'] = 'admin@foo.bar'
@@ -260,27 +249,12 @@ class RegistrationModuleTestCase(_BaseTestCase):
                             'BasicCheck')
         response = self.rmod.process_request(self.req)
         self.assertEqual(response[0], self.reg_template)
+
         # Custom configuration: No check at all, if you insist.
-        self.env.config.set('account-manager', 'register_check',
-                            '')
+        self.env.config.set('account-manager', 'register_check', '')
+        self.assertFalse(self.acctmgr._register_check)
         response = self.rmod.process_request(self.req)
         self.assertEqual(response[0], self.reg_template)
-
-    def test_data_update(self):
-        self.req.args['username'] = 'UseR'
-        self.req.args['email'] = 'user@foo.bar'
-        self.env.config.set('account-manager', 'register_check',
-                            'DataChangeRegistrationInspector')
-        response = self.rmod.process_request(self.req)
-        print(response)
-        print(AccountManager(self.env)._register_check)
-        # Added content.
-        self.assertEqual(response[1]['acctmgr']['email'],
-                         'default-user@foo.bar')
-        # Updated content.
-        self.assertEqual(response[1]['acctmgr']['username'], 'USER')
-        # Deleted content.
-        self.assertFalse('name' in response[1]['acctmgr'])
 
 
 def suite():

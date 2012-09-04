@@ -11,7 +11,7 @@
 from genshi.builder import Markup, tag
 
 from trac.core import Component, implements
-from trac.perm import IPermissionRequestor, PermissionSystem
+from trac.perm import PermissionSystem
 from trac.util.compat import sorted
 from trac.web.chrome import Chrome
 from trac.wiki.api import IWikiMacroProvider, WikiSystem, parse_args
@@ -30,15 +30,8 @@ MSG_NO_PERM = tag.p(Markup(_("(required %(perm)s missing)",
 class AccountManagerWikiMacros(CommonTemplateProvider):
     """Provides wiki macros related to Trac accounts/authenticated users."""
 
-    implements(IPermissionRequestor, IWikiMacroProvider)
-
-    # IPermissionRequestor methods
-
-    def get_permission_actions(self):
-        action = ['USER_VIEW']
-        actions = [('ACCTMGR_USER_ADMIN', action), action[0],]
-        return actions
-
+    implements(IWikiMacroProvider)
+	
     # IWikiMacroProvider
 
     def get_macros(self):
