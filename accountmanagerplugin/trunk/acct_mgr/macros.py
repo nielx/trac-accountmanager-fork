@@ -23,10 +23,6 @@ from acct_mgr.guard import AccountGuard
 from acct_mgr.util import get_pretty_dateinfo
 
 
-MSG_NO_PERM = tag.p(Markup(_("(required %(perm)s missing)",
-                             perm=tag.strong('USER_VIEW'))), class_='hint')
-
-
 class AccountManagerWikiMacros(CommonTemplateProvider):
     """Provides wiki macros related to Trac accounts/authenticated users."""
 
@@ -95,6 +91,9 @@ A misc placeholder with this statement is presented to unprivileged users.
                 if kw['wiki'] == 'count' or 'count' in args:
                     return tag(sum(1 for page in wiki.get_pages(prefix)))
         elif name == 'UserQuery':
+            msg_no_perm = tag.p(Markup(_("(required %(perm)s missing)",
+                                         perm=tag.strong('USER_VIEW'))),
+                                class_='hint')
             users = []
             if 'perm' in kw.keys():
                 perm_sys = PermissionSystem(self.env)
@@ -114,7 +113,7 @@ A misc placeholder with this statement is presented to unprivileged users.
                     users = list(set(users) - set(locked))
             elif 'visit' in kw.keys() or 'visit' in args:
                 if not 'USER_VIEW' in req.perm:
-                    return MSG_NO_PERM
+                    return msg_no_perm
                 cols = []
                 data = {}
                 data['accounts'] = fetch_user_data(env, req)
@@ -129,7 +128,7 @@ A misc placeholder with this statement is presented to unprivileged users.
             if kw.get('format') == 'count' or 'count' in args:
                 return tag(len(users))
             if not 'USER_VIEW' in req.perm:
-                return MSG_NO_PERM
+                return msg_no_perm
             if 'email' in args or 'name' in args:
                 # Replace username with full name, add email if available.
                 for username, name, email in self.env.get_known_users():
