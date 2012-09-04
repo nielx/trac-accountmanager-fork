@@ -309,18 +309,20 @@ class AccountManagerAdminPanels(CommonTemplateProvider):
         password_reset_enabled = acctmod.reset_password_enabled
         delete_enabled = acctmgr.supports('delete_user')
 
+        account = dict(email=req.args.get('email', '').strip(),
+                       name=req.args.get('name', '').strip(),
+                       username=acctmgr.handle_username_casing(
+                                    req.args.get('username', '').strip()))
         data = {
             '_dgettext': dgettext,
+            'acctmgr': account,
             'listing_enabled': listing_enabled,
             'create_enabled': create_enabled,
             'delete_enabled': delete_enabled,
-            'ignore_auth_case': self.config.getbool('trac', 'ignore_auth_case'),
+            'ignore_auth_case': self.config.getbool('trac',
+                                                    'ignore_auth_case'),
             'password_change_enabled': password_change_enabled,
-            'password_reset_enabled': password_reset_enabled,
-            'account' : { 'username' : None,
-                          'name' : None,
-                          'email' : None,
-                        }
+            'password_reset_enabled': password_reset_enabled
         }
         if req.method == 'GET':
             if 'user' in req.args.iterkeys():
@@ -329,25 +331,20 @@ class AccountManagerAdminPanels(CommonTemplateProvider):
                 return self._do_db_cleanup(req)
 
         if req.method == 'POST':
+            # Add new user account.
             if req.args.get('add'):
                 if create_enabled:
                     # Check request and prime account on success.
                     try:
                         acctmgr.validate_registration(req)
                         # User editor form clean-up.
-                        data['account'] = {}
+                        data['acctmgr'] = {}
                     except RegistrationError, e:
                         data['editor_error'] = Markup(e.message)
-                        account = {
-                            'username': acctmgr.handle_username_casing(
-                                            req.args.get('username').strip()),
-                                'name': req.args.get('name').strip(),
-                               'email': req.args.get('email').strip()
-                        }
-                        data['account'].update(account)
                 else:
                     data['editor_error'] = _(
                         "The password store does not support creating users.")
+            # Password reset for one or more accounts.
             elif req.args.get('reset') and req.args.get('sel'):
                 if password_reset_enabled:
                     sel = req.args.get('sel')
@@ -358,6 +355,7 @@ class AccountManagerAdminPanels(CommonTemplateProvider):
                 else:
                     data['deletion_error'] = _(
                         "The password reset procedure is not enabled.")
+            # Delete one or more accounts.
             elif req.args.get('remove') and req.args.get('sel'):
                 if delete_enabled:
                     sel = req.args.get('sel')
@@ -367,6 +365,7 @@ class AccountManagerAdminPanels(CommonTemplateProvider):
                 else:
                     data['deletion_error'] = _(
                         "The password store does not support deleting users.")
+            # Change attributes and or password of an existing user account.
             elif req.args.get('change'):
                 attributes = {
                     'email': _("Email Address"),
@@ -410,7 +409,7 @@ class AccountManagerAdminPanels(CommonTemplateProvider):
                             data['success'].append(attributes.get(attribute))
                 except TracError, e:
                     data['editor_error'] = e.message
-                    data['account'] = getattr(e, 'account', '')
+                    data['acctmgr'] = getattr(e, 'account', '')
             elif len([action for action in req.args.iterkeys() \
                       if action in ('cleanup' 'purge' 'unselect')]) > 0:
                 return self._do_db_cleanup(req)
