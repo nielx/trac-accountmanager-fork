@@ -37,11 +37,7 @@ class RegistrationError(TracError):
 
 
 class GenericRegistrationInspector(Component):
-    """Generic check class definitions.
-
-    'type' is a class property that matches registration form's fieldset name,
-    where field(s) should get inserted.
-    """
+    """Generic check class, great for creating simple checks quickly."""
 
     implements(IAccountRegistrationInspector)
 
@@ -83,7 +79,7 @@ class BasicCheck(GenericRegistrationInspector):
     def validate_registration(self, req):
         acctmgr = AccountManager(self.env)
         username = acctmgr.handle_username_casing(
-            req.args.get('username').strip())
+            req.args.get('username', '').strip())
 
         if not username:
             raise RegistrationError(_("Username cannot be empty."))
@@ -173,7 +169,7 @@ class EmailCheck(GenericRegistrationInspector):
 
     def validate_registration(self, req):
         acctmgr = AccountManager(self.env)
-        email = req.args.get('email').strip()
+        email = req.args.get('email', '').strip()
 
         if is_enabled(self.env, EmailVerificationModule) and \
                 acctmgr.verify_email:
@@ -203,7 +199,7 @@ class UsernamePermCheck(GenericRegistrationInspector):
         if req.perm.has_permission('ACCTMGR_USER_ADMIN'):
             return
         username = AccountManager(self.env).handle_username_casing(
-            req.args.get('username').strip())
+            req.args.get('username', '').strip())
 
         # NOTE: We can't use 'get_user_permissions(username)' here
         #   as this always returns a list - even if the user doesn't exist.
@@ -272,45 +268,43 @@ class RegistrationModule(CommonTemplateProvider):
         return req.path_info == '/register' and self._enable_check(log=True)
 
     def process_request(self, req):
+        acctmgr = self.acctmgr
         if req.authname != 'anonymous':
             req.redirect(req.href.prefs('account'))
         action = req.args.get('action')
+        name = req.args.get('name', '').strip()
+        username = acctmgr.handle_username_casing(req.args.get('username',
+                                                                    '').strip())
         data = {
                 '_dgettext': dgettext,
-                  'acctmgr': dict(username=None, name=None),
+                  'acctmgr': dict(name=name, username=username),
          'ignore_auth_case': self.config.getbool('trac', 'ignore_auth_case')
         }
         verify_enabled = is_enabled(self.env, EmailVerificationModule) and \
-                         self.acctmgr.verify_email
+                         acctmgr.verify_email
         data['verify_account_enabled'] = verify_enabled
         if req.method == 'POST' and action == 'create':
             try:
                 # Check request and prime account on success.
-                self.acctmgr.validate_registration(req)
+                acctmgr.validate_registration(req)
             except RegistrationError, e:
                 chrome.add_warning(req, Markup(e.message))
-                account = {
-                    'username': self.acctmgr.handle_username_casing(
-                                    req.args.get('username').strip()),
-                        'name': req.args.get('name').strip(),
-                }
-                data['acctmgr'].update(account)
             else:
                 if verify_enabled:
                     chrome.add_notice(req, Markup(tag.span(Markup(_(
                         """Your username has been successfully registered but
                         your account still requires activation. Please login
                         as user %(user)s, and follow the instructions.
-                        """, user=tag.b(req.args.get('username')))))))
+                        """, user=tag.b(username))))))
                     req.redirect(req.href.login())
                 chrome.add_notice(req, Markup(tag.span(Markup(_(
                      """Registration has been finished successfully.
                      You may log in as user %(user)s now.""",
-                     user=tag.b(req.args.get('username')))))))
+                     user=tag.b(username))))))
                 req.redirect(req.href.login())
         # Collect additional fields from IAccountRegistrationInspector's.
         fragments = dict(required=[], optional=[])
-        for inspector in self.acctmgr._register_check:
+        for inspector in acctmgr._register_check:
             try:
                 fragment, f_data = inspector.render_registration_fields(req,
                                                                         data)

@@ -32,7 +32,7 @@
         <div class="field">
           <label>Username:<br />
             <input type="text" name="username" id="username"
-                   class="textwidget" value="${account.username}" /></label>
+                   class="textwidget" value="${acctmgr.username}" /></label>
           <p class="hint" py:if="ignore_auth_case"> 
             Only lowercase usernames allowed. 
           </p> 
@@ -56,12 +56,12 @@
         <div class="field">
           <label>Pre-/Surname (Nickname):<br />
             <input type="text" name="name" class="textwidget"
-                   value="${account.name}" /></label>
+                   value="${acctmgr.name}" /></label>
         </div>
         <div class="field">
           <label>Email Address:<br />
             <input type="text" name="email" class="textwidget"
-                   value="${account.email}" /></label>
+                   value="${acctmgr.email}" /></label>
         </div>
         <p class="help">Add a new user account or edit an existing one.</p>
         <div class="buttons">
