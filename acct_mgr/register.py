@@ -357,6 +357,16 @@ class EmailVerificationModule(CommonTemplateProvider):
         if not req.session.authenticated:
             # Permissions for anonymous users remain unchanged.
             return handler
+        elif req.path_info == '/prefs' and req.method == 'POST' and \
+                not 'restore' in req.args:
+            try:
+                EmailCheck(self.env).validate_registration(req)
+                # Check passed without error: New email address seems good.
+            except RegistrationError, e:
+                # Attempt to change email to an empty or invalid
+                # address detected, resetting to previously stored value.
+                chrome.add_warning(req, Markup(e.message))
+                req.redirect(req.href.prefs(None))
         if AccountManager(self.env).verify_email and handler is not self and \
                 'email_verification_token' in req.session and \
                 not req.perm.has_permission('ACCTMGR_ADMIN'):
@@ -372,7 +382,7 @@ class EmailVerificationModule(CommonTemplateProvider):
 
     def post_process_request(self, req, template, data, content_type):
         if not req.session.authenticated:
-            # Don't start the email verification precedure on anonymous users.
+            # Don't start the email verification procedure on anonymous users.
             return template, data, content_type
 
         email = req.session.get('email')

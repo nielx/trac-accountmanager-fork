@@ -9,18 +9,22 @@
 # Author: Steffen Hoffmann <hoff.st@web.de>
 
 import shutil
+import string
 import tempfile
 import unittest
 
+from Cookie  import SimpleCookie as Cookie
 from genshi.core  import Markup
 
 from trac.perm  import PermissionCache, PermissionSystem
 from trac.test  import EnvironmentStub, Mock
+from trac.web.session  import Session
 
 from acct_mgr.api  import AccountManager, IAccountRegistrationInspector
 from acct_mgr.db  import SessionStore
 from acct_mgr.model  import set_user_attribute
 from acct_mgr.register  import BasicCheck, EmailCheck, \
+                               EmailVerificationModule, \
                                GenericRegistrationInspector, \
                                RegistrationError, RegistrationModule, \
                                UsernamePermCheck
@@ -257,6 +261,50 @@ class RegistrationModuleTestCase(_BaseTestCase):
         self.assertEqual(response[0], self.reg_template)
 
 
+class EmailVerificationModuleTestCase(_BaseTestCase):
+    """Verify email address validation when running account verification."""
+    def setUp(self):
+        _BaseTestCase.setUp(self)
+        self.env = EnvironmentStub(
+                enable=['trac.*', 'acct_mgr.api.*', 'acct_mgr.register.*'])
+        self.env.path = tempfile.mkdtemp()
+
+        args = dict(username='user', name='', email='')
+        incookie = Cookie()
+        incookie['trac_session'] = '123456'
+        self.req = Mock(authname='user', args=args, base_path='/',
+                        chrome=dict(warnings=list()),
+                        href=Mock(prefs=lambda x: None),
+                        incookie=incookie, outcookie=Cookie(),
+                        redirect=lambda x: None)
+        self.req.method = 'POST'
+        self.req.path_info = '/prefs'
+        self.req.session = Session(self.env, self.req)
+        self.req.session['email'] = 'email@foo.bar'
+        self.req.session.save()
+        self.vmod = EmailVerificationModule(self.env)
+
+    def test_check_email_used(self):
+        set_user_attribute(self.env, 'admin', 'email', 'admin@foo.bar')
+        # Try email, that is already associated to another user.
+        self.req.args['email'] = 'admin@foo.bar'
+        self.vmod.pre_process_request(self.req, None)
+        warnings = self.req.chrome.get('warnings')
+        self.assertTrue(string.find(str(warnings and warnings[0] or ''),
+                                    'already in use') > 0)
+
+    def test_check_no_email(self):
+        self.vmod.pre_process_request(self.req, None)
+        warnings = self.req.chrome.get('warnings')
+        self.assertNotEqual(str(warnings and warnings[0] or ''), '')
+
+    def test_check(self):
+        self.req.args['email'] = 'user@foo.bar'
+        self.vmod.pre_process_request(self.req, None)
+        warnings = self.req.chrome.get('warnings')
+        self.assertEqual(str(warnings and warnings[0] or ''), '')
+
+
 def suite():
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(DummyRegInspectorTestCase, 'test'))
@@ -264,6 +312,7 @@ def suite():
     suite.addTest(unittest.makeSuite(EmailCheckTestCase, 'test'))
     suite.addTest(unittest.makeSuite(UsernamePermCheckTestCase, 'test'))
     suite.addTest(unittest.makeSuite(RegistrationModuleTestCase, 'test'))
+    suite.addTest(unittest.makeSuite(EmailVerificationModuleTestCase, 'test'))
     return suite
 
 if __name__ == '__main__':
