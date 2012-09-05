@@ -109,6 +109,12 @@ class AccountModule(CommonTemplateProvider):
     # IRequestFilter methods
 
     def pre_process_request(self, req, handler):
+        if req.path_info == '/prefs/account' and \
+                not (req.authname and req.authname != 'anonymous'):
+            # An anonymous session has no account associated with it, and
+            # no account properies too, but general session preferences should
+            # always be available.
+            req.redirect(req.href.prefs())
         return handler
 
     def post_process_request(self, req, template, data, content_type):
@@ -138,9 +144,7 @@ class AccountModule(CommonTemplateProvider):
     reset_password_enabled = property(_reset_password_enabled)
 
     def _do_account(self, req):
-        if not req.authname or req.authname == 'anonymous':
-            # DEVEL: Shouldn't this be a more generic URL?
-            req.redirect(req.href.wiki())
+        assert(req.authname and req.authname != 'anonymous')
         action = req.args.get('action')
         delete_enabled = self.acctmgr.supports('delete_user') and \
                              self.acctmgr.allow_delete_account
