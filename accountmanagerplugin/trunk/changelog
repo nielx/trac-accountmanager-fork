@@ -3,6 +3,7 @@ Maintainer: Steffen Hoffmann <hoff.st@web.de>
 
 acct_mgr-0.4 (not yet released) - branch 0.11
  resolved issues
+ * #3459: Authentication information not available
  * #4677: Admin based chaining HtDigestStore & HtPasswdStore breaks config
    by adding dedicated options 'htdigest_file' and 'htpasswd_file'
  * #8685: User deletion ordering breaks 'deleted' notification for SessionStore

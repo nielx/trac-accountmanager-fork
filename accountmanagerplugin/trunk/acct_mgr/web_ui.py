@@ -269,8 +269,18 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
         to decrease vulnerability of long-lasting sessions.""")
 
     def __init__(self):
-        self.cookie_lifetime = self.env.config.getint(
-                                   'trac', 'auth_cookie_lifetime', 0)
+        c = self.config
+        if is_enabled(self.env, self.__class__) and \
+                is_enabled(self.env, auth.LoginModule):
+            # Disable auth.LoginModule to handle login requests alone.
+            self.env.log.info("""Concurrent enabled login modules found,
+                              fixing configuration ...""")
+            c.set('components', 'trac.web.auth.loginmodule', 'disabled')
+            c.save()
+            self.env.log.info("""auth.LoginModule disabled, giving preference
+                              to %s now.""" % self.__class__)
+
+        self.cookie_lifetime = c.getint('trac', 'auth_cookie_lifetime', 0)
         if not self.cookie_lifetime > 0:
             # Set the session to expire after some time and not
             #   when the browser is closed - what is Trac core default).
@@ -663,7 +673,8 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
         return list(separated(items, '|'))
 
     def enabled(self):
-        # Admin must disable the built-in authentication to use this one.
-        return not is_enabled(self.env, auth.LoginModule)
+        # Trac built-in authentication must be disabled to use this one.
+        return is_enabled(self.env, self.__class__) and \
+                not is_enabled(self.env, auth.LoginModule)
 
     enabled = property(enabled)
