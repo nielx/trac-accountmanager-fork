@@ -68,6 +68,7 @@ class AbstractPasswordFileStore(Component):
         user = user.encode('utf-8')
         password = password.encode('utf-8')
         prefix = self.prefix(user)
+        f = None
         try:
             f = open(filename, 'rU')
             for line in f:
@@ -79,7 +80,6 @@ class AbstractPasswordFileStore(Component):
         except:
             self.log.error('acct_mgr: check_password() -- '
                            'Can\'t read password file "%s"' % filename)
-            pass
         if isinstance(f, file):
             f.close()
         return None
