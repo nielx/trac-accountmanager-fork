@@ -178,7 +178,7 @@ class StoreOrder(dict):
         return len(self.get_all_stores())
 
 
-class AccountManagerAdminPanels(CommonTemplateProvider):
+class AccountManagerAdminPanel(CommonTemplateProvider):
 
     implements(IAdminPanelProvider)
 

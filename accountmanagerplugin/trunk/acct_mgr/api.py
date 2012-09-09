@@ -128,7 +128,7 @@ class IAccountRegistrationInspector(Interface):
     requests for account creation.
 
     The check method is called not only by RegistrationModule but when adding
-    new users from the user editor in AccountManagerAdminPanels too.
+    new users from the user editor in AccountManagerAdminPanel too.
     """
 
     def render_registration_fields(req, data):
