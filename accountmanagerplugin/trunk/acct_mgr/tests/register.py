@@ -25,7 +25,7 @@ from acct_mgr.db  import SessionStore
 from acct_mgr.model  import set_user_attribute
 from acct_mgr.register  import BasicCheck, EmailCheck, \
                                EmailVerificationModule, \
-                               GenericRegistrationInspector, \
+                               GenericRegistrationInspector, RegExpCheck, \
                                RegistrationError, RegistrationModule, \
                                UsernamePermCheck
 
@@ -192,16 +192,58 @@ class EmailCheckTestCase(_BaseTestCase):
         self.env.config.set('account-manager', 'verify_email', True)
         self.assertRaises(RegistrationError, check.validate_registration,
                           req)
-        # 3rd attempt: Malformed email address.
-        req.args['email'] = 'email'
-        self.assertRaises(RegistrationError, check.validate_registration,
-                          req)
-        # 4th attempt: Valid email, but already registered with a username.
+        # 3th attempt: Valid email, but already registered with a username.
         req.args['email'] = 'admin@foo.bar'
         self.assertRaises(RegistrationError, check.validate_registration,
                           req)
-        # 5th attempt: Finally some valid input.
+        # 4th attempt: Finally some valid input.
         req.args['email'] = 'email@foo.bar'
+        self.assertEqual(check.validate_registration(req), None)
+
+
+class RegExpCheckTestCase(_BaseTestCase):
+    def test_check(self):
+        self.env = EnvironmentStub(
+                enable=['trac.*', 'acct_mgr.admin.*', 'acct_mgr.register.*'])
+        self.env.path = tempfile.mkdtemp()
+
+        check = RegExpCheck(self.env)
+        req = self.req
+        # Inspector doesn't provide additional fields.
+        field_res = check.render_registration_fields(req, {})
+        self.assertEqual(len(field_res), 2)
+        self.assertEqual((Markup(field_res[0]), field_res[1]),
+                         (Markup(''), {}))
+        # Empty input is invalid with default regular expressions.
+        self.assertRaises(RegistrationError, check.validate_registration,
+                          req)
+        # 1st attempt: Malformed email address.
+        req.args['username'] = 'username'
+        req.args['email'] = 'email'
+        self.assertRaises(RegistrationError, check.validate_registration,
+                          req)
+        # 2nd attempt: Same as before, but with email verification disabled.
+        self.env.config.set('account-manager', 'verify_email', False)
+        self.assertEqual(check.validate_registration(req), None)
+        # 3rd attempt: Now with email verification enabled, but valid email.
+        self.env.config.set('account-manager', 'verify_email', True)
+        req.args['email'] = 'email@foo.bar'
+        self.assertEqual(check.validate_registration(req), None)
+        # 4th attempt: Now with too short username.
+        req.args['username'] = 'user'
+        self.assertRaises(RegistrationError, check.validate_registration,
+                          req)
+        # 5th attempt: Allow short username by custom regular expression.
+        self.env.config.set('account-manager', 'username_regexp',
+                            r'(?i)^[A-Z.\-_]{4,}$')
+        self.assertEqual(check.validate_registration(req), None)
+        # 6th attempt: Now with username containing single quote.
+        req.args['username'] = 'user\'name'
+        self.assertRaises(RegistrationError, check.validate_registration,
+                          req)
+        # 7th attempt: Alter config to allow username containing single quote.
+        self.env.config.set('account-manager', 'username_regexp',
+                            r'(?i)^[A-Z.\-\'_]{4,}$')
         self.assertEqual(check.validate_registration(req), None)
 
 
@@ -310,6 +352,7 @@ def suite():
     suite.addTest(unittest.makeSuite(DummyRegInspectorTestCase, 'test'))
     suite.addTest(unittest.makeSuite(BasicCheckTestCase, 'test'))
     suite.addTest(unittest.makeSuite(EmailCheckTestCase, 'test'))
+    suite.addTest(unittest.makeSuite(RegExpCheckTestCase, 'test'))
     suite.addTest(unittest.makeSuite(UsernamePermCheckTestCase, 'test'))
     suite.addTest(unittest.makeSuite(RegistrationModuleTestCase, 'test'))
     suite.addTest(unittest.makeSuite(EmailVerificationModuleTestCase, 'test'))

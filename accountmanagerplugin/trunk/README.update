@@ -13,16 +13,6 @@ Upgrading acct_mgr-0.3.2 -> 0.4
 'password_file' is depreciated and no longer used by any authentication store
 provided by AccountManagerPlugin itself.
 
-Component rename:
-{{{
-#!diff
- [components]
--acct_mgr.admin.accountmanageradminpages
-+acct_mgr.admin.accountmanageradminpanels
--acct_mgr.admin.accountchangenotificationadminpage
-+acct_mgr.admin.accountchangenotificationadminpanel
-}}}
-
 New configuration options to supersed 'password_file' for affected stores:
 {{{
 #!diff
@@ -50,6 +40,45 @@ password succeeds first, any cached new password is discharged.
 while a new password will get overwritten in any subsequent password reset, it
 replaces the old password only after being used for a successful login,
 and before it possibly gets overwritten itself by a newer one of course.
+
+Component rename:
+{{{
+#!diff
+ [components]
+-acct_mgr.admin.accountmanageradminpages
++acct_mgr.admin.accountmanageradminpanel
+-acct_mgr.admin.accountchangenotificationadminpage
++acct_mgr.admin.accountchangenotificationadminpanel
+}}}
+
+New user account registration has been restructured, moved to a separate
+place and even partly rewritten from scratch.
+
+Component move:
+{{{
+#!diff
+ [components]
+-acct_mgr.web_ui.emailverificationmodule
++acct_mgr.register.emailverificationmodule
+-acct_mgr.web_ui.registrationmodule
++acct_mgr.register.registrationmodule
+}}}
+
+`IAccountRegistrationInspector` is the interface, that allows for flexibility
+in registration form design as well as in registration request checks.
+
+Note: You'll certaily want to enable some/all of the new check classes in
+`acct_mgr.register`, if you want to use RegistrationModule at all.
+Don't forget to add all checks to the registration configuration too
+to actually apply them on subsequent requests (showing default value here):
+{{{
+#!ini
+[account-manager]
+register_check = BasicCheck, EmailCheck, UsernamePermCheck, RegExpCheck
+}}}
+
+Note: Email has been validated against a hard-coded regular expression before.
+Now the expression is configurable and this check moved into the RegExpCheck.
 
 
 Upgrading acct_mgr-0.3.1 -> 0.3.2

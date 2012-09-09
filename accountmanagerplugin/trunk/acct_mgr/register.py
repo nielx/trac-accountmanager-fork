@@ -19,7 +19,7 @@ from os import urandom
 
 from trac import perm, util
 from trac.core import Component, TracError, implements
-from trac.config import Configuration, BoolOption, IntOption, Option
+from trac.config import Option
 from trac.env import open_environment
 from trac.web import auth, chrome
 from trac.web.main import IRequestHandler, IRequestFilter
@@ -176,16 +176,46 @@ class EmailCheck(GenericRegistrationInspector):
             if not email:
                 raise RegistrationError(_(
                     "You must specify a valid email address."))
-            elif not re.match('^[A-Z0-9._%+-]+@(?:[A-Z0-9-]+\.)+[A-Z]{2,6}$',
-                              email, re.IGNORECASE):
-                raise RegistrationError(_("""
-                    The email address specified appears to be invalid.
-                    Please specify a valid email address.
-                    """))
             elif email_associated(self.env, email):
                 raise RegistrationError(_("""
                     The email address specified is already in use.
                     Please specify a different one.
+                    """))
+
+
+class RegExpCheck(GenericRegistrationInspector):
+    """A collection of checks based on regular expressions.
+
+    It depends on EmailCheck being enabled too for using it's input field.
+    Likewise email checking is bypassed, if account verification is disabled.
+    """
+
+    username_regexp = Option('account-manager', 'username_regexp',
+        r'(?i)^[A-Z0-9.\-_]{5,}$',
+        doc="A validation regular expression describing new usernames.")
+    email_regexp = Option('account-manager', 'email_regexp',
+        r'(?i)^[A-Z0-9._%+-]+@(?:[A-Z0-9-]+\.)+[A-Z]{2,6}$',
+        doc="A validation regular expression describing new account emails.")
+
+    def validate_registration(self, req):
+        acctmgr = AccountManager(self.env)
+
+        username = acctmgr.handle_username_casing(
+            req.args.get('username', '').strip())
+        if self.username_regexp != "" and \
+                not re.match(self.username_regexp.strip(), username):
+            raise RegistrationError(_("""
+                Username %s doesn't match local naming policy.""")
+                % tag.b(username))
+
+        email = req.args.get('email', '').strip()
+        if acctmgr.verify_email and is_enabled(self.env, EmailCheck) and \
+                is_enabled(self.env, EmailVerificationModule):
+            if self.email_regexp.strip() != "" and \
+                    not re.match(self.email_regexp.strip(), email):
+                raise RegistrationError(_("""
+                    The email address specified appears to be invalid.
+                    Please specify a valid email address.
                     """))
 
 
