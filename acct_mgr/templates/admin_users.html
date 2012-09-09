@@ -61,7 +61,11 @@
         <div class="field">
           <label>Email Address:<br />
             <input type="text" name="email" class="textwidget"
-                   value="${acctmgr.email}" /></label>
+                   value="${acctmgr.email}" /></label><br />
+            <label py:if="verify_enabled">
+              <input type="checkbox" name="email_approved" value="true"
+                     checked="${email_approved and 'checked' or None}" />
+              Skip new email verification</label>
         </div>
         <p class="help">Add a new user account or edit an existing one.</p>
         <div class="buttons">
@@ -86,6 +90,7 @@
       <div class="buttons">
         <input type="submit" name="reset"
                py:if="password_reset_enabled"
+               title="Sent another random password"
                value="${dgettext('acct_mgr', 'Reset passwords')}" />
         <input type="submit" name="remove"
                py:if="delete_enabled"

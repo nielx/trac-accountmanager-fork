@@ -308,6 +308,8 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
         password_change_enabled = acctmgr.supports('set_password')
         password_reset_enabled = acctmod.reset_password_enabled
         delete_enabled = acctmgr.supports('delete_user')
+        verify_enabled = acctmgr.verify_email and \
+                         EmailVerificationModule(env).email_enabled
 
         account = dict(email=req.args.get('email', '').strip(),
                        name=req.args.get('name', '').strip(),
@@ -316,9 +318,11 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
         data = {
             '_dgettext': dgettext,
             'acctmgr': account,
+            'email_approved': True,
             'listing_enabled': listing_enabled,
             'create_enabled': create_enabled,
             'delete_enabled': delete_enabled,
+            'verify_enabled': verify_enabled,
             'ignore_auth_case': self.config.getbool('trac',
                                                     'ignore_auth_case'),
             'password_change_enabled': password_change_enabled,
@@ -331,12 +335,21 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                 return self._do_db_cleanup(req)
 
         if req.method == 'POST':
-            # Add new user account.
+            email_approved = req.args.get('email_approved')
+            # Preserve selection during a series of requests.
+            data['email_approved'] = email_approved
+
             if req.args.get('add'):
+                # Add new user account.
                 if create_enabled:
                     # Check request and prime account on success.
                     try:
                         acctmgr.validate_registration(req)
+                        # Account email approval for authoritative action.
+                        if verify_enabled and email_approved:
+                            email = req.args.get('email', '').strip()
+                            set_user_attribute(env, username,
+                                'email_verification_sent_to', email)
                         # User editor form clean-up.
                         data['acctmgr'] = {}
                     except RegistrationError, e:
@@ -344,8 +357,8 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                 else:
                     data['editor_error'] = _(
                         "The password store does not support creating users.")
-            # Password reset for one or more accounts.
             elif req.args.get('reset') and req.args.get('sel'):
+                # Password reset for one or more accounts.
                 if password_reset_enabled:
                     sel = req.args.get('sel')
                     sel = isinstance(sel, list) and sel or [sel]
@@ -355,8 +368,8 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                 else:
                     data['deletion_error'] = _(
                         "The password reset procedure is not enabled.")
-            # Delete one or more accounts.
             elif req.args.get('remove') and req.args.get('sel'):
+                # Delete one or more accounts.
                 if delete_enabled:
                     sel = req.args.get('sel')
                     sel = isinstance(sel, list) and sel or [sel]
@@ -365,8 +378,8 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                 else:
                     data['deletion_error'] = _(
                         "The password store does not support deleting users.")
-            # Change attributes and or password of an existing user account.
             elif req.args.get('change'):
+                # Change attributes and or password of existing user account.
                 attributes = {
                     'email': _("Email Address"),
                     'name': _("Pre-/Surname (Nickname)"),
@@ -402,11 +415,18 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                                 changing passwords.
                                 """)
                     for attribute in ('name', 'email'):
-                        value = req.args.get(attribute).strip()
+                        value = req.args.get(attribute, '').strip()
                         if value:
                             set_user_attribute(env, username,
                                                attribute, value)
                             data['success'].append(attributes.get(attribute))
+                            # Account email approval for authoritative action.
+                            if attribute == 'email' and verify_enabled and \
+                                    email_approved:
+                                set_user_attribute(env, username,
+                                    'email_verification_sent_to', value)
+                    # User editor form clean-up on success.
+                    data['acctmgr'] = {}
                 except TracError, e:
                     data['editor_error'] = e.message
                     data['acctmgr'] = getattr(e, 'account', '')
@@ -414,6 +434,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                       if action in ('cleanup' 'purge' 'unselect')]) > 0:
                 return self._do_db_cleanup(req)
 
+        # (Re-)Build current user list.
         if listing_enabled:
             data['accounts'] = fetch_user_data(env, req)
             data['cls'] = 'listing'
