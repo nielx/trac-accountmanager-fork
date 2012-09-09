@@ -6,6 +6,8 @@ acct_mgr-0.4 (not yet released) - branch 0.11
  * #3459: Authentication information not available
  * #4677: Admin based chaining HtDigestStore & HtPasswdStore breaks config
    by adding dedicated options 'htdigest_file' and 'htpasswd_file'
+ * #5295: Add optional username regexp to registration checks
+ * #8076: Add optional account email regexp to registration checks
  * #8685: User deletion ordering breaks 'deleted' notification for SessionStore
  * #8791: Obsolete patch needed for authentication against Jira
    by adding sha256/sha512 hash support (needs `passlib` or extended `crypt`)
