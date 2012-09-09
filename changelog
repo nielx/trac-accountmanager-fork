@@ -25,8 +25,6 @@ acct_mgr-0.4 (not yet released) - branch 0.11
  * #10276: "Unknown preference panel" when logging out from account tab
  * do AccountManager class API cleanup by moving db access to model layer
  * prevent duplicate action entries in Trac core permission select box
- * add unit tests i.e. for hash creation and re-written registration checks
-   to significantly extend code coverage
 
  new features
  * #874: Add new fields to register form and a registration validation system
@@ -41,6 +39,9 @@ acct_mgr-0.4 (not yet released) - branch 0.11
  * add randomized authentication cookie ID refreshment, average refresh rate
    controlled by new option `cookie_refresh_pct`
  * switch to case-less username duplicate checking
+ * add unit tests i.e. for hash creation and re-written registration checks
+   to significantly extend code coverage
+ * add Trac style shading of odd/even rows to user lists
 
 
 acct_mgr-0.3.2 (26-Aug-2011) - branch 0.11
