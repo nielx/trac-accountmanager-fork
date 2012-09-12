@@ -15,7 +15,7 @@ import os # to get not only os.path method but os.linesep too
 #   taking care of Python 2.5, but not needed for Python >= 2.6
 #from __future__ import with_statement
 
-from trac.core import *
+from trac.core import Component, TracError, implements
 from trac.config import Option
 
 from acct_mgr.api import IPasswordStore, _, N_

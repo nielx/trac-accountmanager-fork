@@ -14,7 +14,7 @@ import inspect
 from genshi.builder     import tag
 from genshi.core        import Markup
 
-from trac.core          import *
+from trac.core          import Component, TracError, implements
 from trac.config        import Option
 from trac.perm          import PermissionSystem
 from trac.util.datefmt  import format_datetime, to_datetime
@@ -346,10 +346,10 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                     try:
                         acctmgr.validate_registration(req)
                         # Account email approval for authoritative action.
-                        if verify_enabled and email_approved:
-                            email = req.args.get('email', '').strip()
-                            set_user_attribute(env, username,
-                                'email_verification_sent_to', email)
+                        if verify_enabled and email_approved and \
+                                account['email']:
+                            set_user_attribute(env, account['username'],
+                                'email_verification_sent_to', account['email'])
                         # User editor form clean-up.
                         data['acctmgr'] = {}
                     except RegistrationError, e:

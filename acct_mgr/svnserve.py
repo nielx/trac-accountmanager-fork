@@ -10,7 +10,7 @@
 
 import os
 
-from trac.core import *
+from trac.core import Component, implements
 from trac.config import Configuration
 from trac.versioncontrol import RepositoryManager
 
