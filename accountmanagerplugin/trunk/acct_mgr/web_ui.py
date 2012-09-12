@@ -268,6 +268,9 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
         likelihood in percent per work hour given here (zero equals to never)
         to decrease vulnerability of long-lasting sessions.""")
 
+    # Update cookies for persistant sessions only 1/hour.
+    UPDATE_INTERVAL = 3600
+
     def __init__(self):
         c = self.config
         if is_enabled(self.env, self.__class__) and \
@@ -406,7 +409,7 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
         if acctmgr.persistent_sessions and name and \
                 'trac_auth_session' in req.incookie and \
                 int(req.incookie['trac_auth_session'].value) < \
-                int(time.time()) - UPDATE_INTERVAL:
+                int(time.time()) - self.UPDATE_INTERVAL:
             # Persistent sessions enabled, the user is logged in
             # ('name' exists) and has actually decided to use this feature
             # (indicated by the 'trac_auth_session' cookie existing).
