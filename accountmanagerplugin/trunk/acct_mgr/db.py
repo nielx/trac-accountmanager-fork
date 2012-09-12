@@ -8,7 +8,7 @@
 #
 # Author: Matthew Good <trac@matt-good.net>
 
-from trac.core import *
+from trac.core import Component, implements
 from trac.config import ExtensionOption
 
 from acct_mgr.api import IPasswordStore, _, N_

@@ -12,7 +12,7 @@
 from binascii import hexlify
 from os import urandom
 
-from trac.core import *
+from trac.core import Component, Interface, implements
 from trac.config import Option
 
 from acct_mgr.api import AccountManager, _, N_
