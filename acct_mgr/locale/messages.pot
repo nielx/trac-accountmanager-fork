@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: TracAccountManager 0.4\n"
 "Report-Msgid-Bugs-To: hoff.st@shaas.net\n"
-"POT-Creation-Date: 2012-09-10 00:55+0200\n"
+"POT-Creation-Date: 2012-09-16 22:15+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -450,11 +450,11 @@ msgid "Password is incorrect."
 msgstr ""
 
 #. TRANSLATOR: Intentionally obfuscated login error
-#: acct_mgr/web_ui.py:360
+#: acct_mgr/web_ui.py:363
 msgid "Invalid username or password"
 msgstr ""
 
-#: acct_mgr/web_ui.py:365
+#: acct_mgr/web_ui.py:368
 #, python-format
 msgid ""
 "Account locked, please try again after\n"
@@ -462,11 +462,11 @@ msgid ""
 "                            "
 msgstr ""
 
-#: acct_mgr/web_ui.py:370 acct_mgr/templates/user_table.html:38
+#: acct_mgr/web_ui.py:373 acct_mgr/templates/user_table.html:38
 msgid "Account locked"
 msgstr ""
 
-#: acct_mgr/web_ui.py:375
+#: acct_mgr/web_ui.py:378
 #, python-format
 msgid "Login after %(attempts)s failed attempt"
 msgid_plural "Login after %(attempts)s failed attempts"

@@ -1,17 +1,18 @@
 # German (Germany) translations for TracAccountManager.
-# Copyright (C) 2010-2012
+# Copyright (C) 2012
 # This file is distributed under the same license as the
 # TracAccountManager project.
 #
-# Steffen Hoffmann <hoff.st@web.de>, 2012.
+# Translators:
+# Steffen Hoffmann <hoff.st@web.de>, 2011-2012.
 msgid ""
 msgstr ""
 "Project-Id-Version: TracAccountManager 0.4\n"
 "Report-Msgid-Bugs-To: hoff.st@shaas.net\n"
-"POT-Creation-Date: 2012-09-10 00:55+0200\n"
-"PO-Revision-Date: 2010-09-25 00:04+0200\n"
+"POT-Creation-Date: 2012-09-16 22:15+0200\n"
+"PO-Revision-Date: 2012-09-16 19:07+0000\n"
 "Last-Translator: Steffen Hoffmann <hoff.st@web.de>\n"
-"Language-Team: German de_DE <trac-dev@googlegroups.com>\n"
+"Language-Team: German <trac-dev@googlegroups.com>\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
@@ -497,11 +498,11 @@ msgid "Password is incorrect."
 msgstr "Das Kennwort is ungültig."
 
 #. TRANSLATOR: Intentionally obfuscated login error
-#: acct_mgr/web_ui.py:360
+#: acct_mgr/web_ui.py:363
 msgid "Invalid username or password"
 msgstr "Nutzername oder Kennwort ungültig"
 
-#: acct_mgr/web_ui.py:365
+#: acct_mgr/web_ui.py:368
 #, python-format
 msgid ""
 "Account locked, please try again after\n"
@@ -509,11 +510,11 @@ msgid ""
 "                            "
 msgstr "Nutzerkonto gesperrt, bitte nach %(release_time)s nochmals versuchen"
 
-#: acct_mgr/web_ui.py:370 acct_mgr/templates/user_table.html:38
+#: acct_mgr/web_ui.py:373 acct_mgr/templates/user_table.html:38
 msgid "Account locked"
 msgstr "Nutzerkonto gesperrt"
 
-#: acct_mgr/web_ui.py:375
+#: acct_mgr/web_ui.py:378
 #, python-format
 msgid "Login after %(attempts)s failed attempt"
 msgid_plural "Login after %(attempts)s failed attempts"

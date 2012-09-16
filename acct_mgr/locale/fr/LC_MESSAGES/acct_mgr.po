@@ -1,15 +1,16 @@
 # French (France) translations for TracAccountManager.
-# Copyright (C) 2011
+# Copyright (C) 2012
 # This file is distributed under the same license as the
 # TracAccountManager project.
-# Sukender (Benoit NEIL) <sukender at free dot fr>
 #
+# Translators:
+# Sukender (Benoit NEIL) <sukender at free dot fr>
 msgid ""
 msgstr ""
-"Project-Id-Version: TracAccountManager 0.3\n"
+"Project-Id-Version: TracAccountManager 0.4\n"
 "Report-Msgid-Bugs-To: hoff.st@shaas.net\n"
-"POT-Creation-Date: 2012-09-10 00:55+0200\n"
-"PO-Revision-Date: 2011-03-01 14:23+0100\n"
+"POT-Creation-Date: 2012-09-16 22:15+0200\n"
+"PO-Revision-Date: 2012-09-16 19:02+0000\n"
 "Last-Translator: Sukender (Benoit NEIL) <sukender at free dot fr>\n"
 "Language-Team: French <trac-dev@googlegroups.com>\n"
 "Plural-Forms: nplurals=2; plural=(n > 1)\n"
@@ -119,9 +120,8 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: acct_mgr/admin.py:609
-#, fuzzy
 msgid "Successfully deleted:"
-msgstr "Mot de passe mis à jour."
+msgstr ""
 
 #: acct_mgr/admin.py:629
 #, python-format
@@ -288,15 +288,12 @@ msgid "You must specify a valid email address."
 msgstr "Vous devez spécifier une adresse email valide."
 
 #: acct_mgr/register.py:180
-#, fuzzy
 msgid ""
 "\n"
 "                    The email address specified is already in use.\n"
 "                    Please specify a different one.\n"
 "                    "
 msgstr ""
-"L'addresse email indiquée est déjà utilisée. Veuillez en fournir une "
-"autre."
 
 #: acct_mgr/register.py:207
 #, python-format
@@ -306,15 +303,12 @@ msgid ""
 msgstr ""
 
 #: acct_mgr/register.py:216
-#, fuzzy
 msgid ""
 "\n"
 "                    The email address specified appears to be invalid.\n"
 "                    Please specify a valid email address.\n"
 "                    "
 msgstr ""
-"L'addresse email indiquée semble invalide. Veuillez fournir une adresse "
-"valide."
 
 #: acct_mgr/register.py:292 acct_mgr/templates/login.html:58
 #: acct_mgr/templates/login.html:61 acct_mgr/templates/register.html:14
@@ -434,9 +428,8 @@ msgid "Email is required"
 msgstr "L'adresse email doit être renseignée."
 
 #: acct_mgr/web_ui.py:193
-#, fuzzy
 msgid "The email and username must match a known account."
-msgstr "L'email et/ou le nom d'utilisateur sont inconnus."
+msgstr ""
 
 #: acct_mgr/web_ui.py:217
 msgid "Old Password cannot be empty."
@@ -455,11 +448,11 @@ msgid "Password is incorrect."
 msgstr "Mot de passe incorrect."
 
 #. TRANSLATOR: Intentionally obfuscated login error
-#: acct_mgr/web_ui.py:360
+#: acct_mgr/web_ui.py:363
 msgid "Invalid username or password"
 msgstr "Utilisateur ou mot de passe incorrect."
 
-#: acct_mgr/web_ui.py:365
+#: acct_mgr/web_ui.py:368
 #, python-format
 msgid ""
 "Account locked, please try again after\n"
@@ -470,11 +463,11 @@ msgstr ""
 "%(release_time) sec.\n"
 " "
 
-#: acct_mgr/web_ui.py:370 acct_mgr/templates/user_table.html:38
+#: acct_mgr/web_ui.py:373 acct_mgr/templates/user_table.html:38
 msgid "Account locked"
 msgstr "Compte bloqué"
 
-#: acct_mgr/web_ui.py:375
+#: acct_mgr/web_ui.py:378
 #, python-format
 msgid "Login after %(attempts)s failed attempt"
 msgid_plural "Login after %(attempts)s failed attempts"
@@ -644,9 +637,8 @@ msgstr ""
 
 #: acct_mgr/templates/account_details.html:182
 #: acct_mgr/templates/db_cleanup.html:125
-#, fuzzy
 msgid "Back to accounts"
-msgstr "Créer compte"
+msgstr ""
 
 #: acct_mgr/templates/account_details.html:184
 #: acct_mgr/templates/db_cleanup.html:37
@@ -659,9 +651,8 @@ msgid "Accounts: Configuration"
 msgstr ""
 
 #: acct_mgr/templates/admin_accountsconfig.html:62
-#, fuzzy
 msgid "Password Refresh"
-msgstr "Réinitialisation du mot de passe"
+msgstr ""
 
 #: acct_mgr/templates/admin_accountsconfig.html:65
 msgid "Silently update password hashes on next successful login."
@@ -763,14 +754,13 @@ msgid "Manage User Accounts"
 msgstr "Gestion des comptes utilisateurs"
 
 #: acct_mgr/templates/admin_users.html:26
-#, fuzzy, python-format
+#, python-format
 msgid "Successfully updated: %(success)s"
-msgstr "Mot de passe mis à jour."
+msgstr ""
 
 #: acct_mgr/templates/admin_users.html:31
-#, fuzzy
 msgid "Add/Edit Account:"
-msgstr "Ajouter un compte :"
+msgstr ""
 
 #: acct_mgr/templates/admin_users.html:33 acct_mgr/templates/login.html:33
 #: acct_mgr/templates/register.html:36
@@ -806,9 +796,8 @@ msgid "Skip new email verification"
 msgstr ""
 
 #: acct_mgr/templates/admin_users.html:70
-#, fuzzy
 msgid "Add a new user account or edit an existing one."
-msgstr "Ajouter un nouveau compte utilisateur."
+msgstr ""
 
 #: acct_mgr/templates/admin_users.html:72
 msgid " Add "
@@ -823,14 +812,12 @@ msgid "This password store does not support listing users."
 msgstr ""
 
 #: acct_mgr/templates/admin_users.html:91
-#, fuzzy
-msgid "Sent another random password"
-msgstr "Être notifié de la réinitialisation de mot de passe"
+msgid "Send another random password"
+msgstr ""
 
 #: acct_mgr/templates/admin_users.html:91
-#, fuzzy
 msgid "Reset passwords"
-msgstr "Réinitialiser le mot de passe"
+msgstr ""
 
 #: acct_mgr/templates/admin_users.html:95
 msgid "Remove selected accounts"
@@ -864,19 +851,16 @@ msgid "Value"
 msgstr ""
 
 #: acct_mgr/templates/db_cleanup.html:63
-#, fuzzy
 msgid "Not Authenticated Accounts"
-msgstr "Créer compte"
+msgstr ""
 
 #: acct_mgr/templates/db_cleanup.html:90
-#, fuzzy
 msgid "Authenticated Accounts"
-msgstr "Créer compte"
+msgstr ""
 
 #: acct_mgr/templates/db_cleanup.html:121
-#, fuzzy
 msgid "Remove selected entries"
-msgstr "Supprimer les comptes sélectionnés"
+msgstr ""
 
 #: acct_mgr/templates/db_cleanup.html:123
 msgid "Undo selection"
@@ -1028,4 +1012,3 @@ msgstr "Renvoyer email"
 
 #~ msgid "Email:"
 #~ msgstr "Adresse email :"
-

@@ -1,15 +1,16 @@
 # Dutch translations for TracAccountManagerPlugin.
-# Copyright (C) 2011
+# Copyright (C) 2012
 # This file is distributed under the same license as the
 # TracAccountManager project.
 #
+# Translators:
 # Pander <pander@users.sourceforge.net>, 2011.
 msgid ""
 msgstr ""
-"Project-Id-Version: TracAccountManager 0.3\n"
+"Project-Id-Version: TracAccountManager 0.4\n"
 "Report-Msgid-Bugs-To: hoff.st@shaas.net\n"
-"POT-Creation-Date: 2012-09-10 00:55+0200\n"
-"PO-Revision-Date: 2011-06-23 00:39+0000\n"
+"POT-Creation-Date: 2012-09-16 22:15+0200\n"
+"PO-Revision-Date: 2012-09-16 19:02+0000\n"
 "Last-Translator: Pander <pander@users.sourceforge.net>\n"
 "Language-Team: Dutch <trac-dev@googlegroups.com>\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
@@ -119,9 +120,8 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: acct_mgr/admin.py:609
-#, fuzzy
 msgid "Successfully deleted:"
-msgstr "Wachtwoord is succesvol gewijzigd."
+msgstr ""
 
 #: acct_mgr/admin.py:629
 #, python-format
@@ -268,16 +268,12 @@ msgstr "Wachtwoord mag niet leeg gelaten worden."
 
 #. TRANSLATOR: Registration form hints for a mandatory input field.
 #: acct_mgr/register.py:152
-#, fuzzy
 msgid ""
 "The email address is required for Trac to send\n"
 "                           you a verification token."
 msgstr ""
-"Het e-mailadres is verplicht om u een\n"
-"              verificatietoken te versturen."
 
 #: acct_mgr/register.py:155
-#, fuzzy
 msgid ""
 "\n"
 "                           Entering your email address will also enable "
@@ -285,36 +281,25 @@ msgid ""
 "                           to reset your password if you ever forget it.\n"
 "                           "
 msgstr ""
-"Invoeren van uw e-mailadres maakt het\n"
-"              ook mogelijk dat u uw wachtwoord kan resetten als u die "
-"bent vergeten."
 
 #. TRANSLATOR: Registration form hint, if email input is optional.
 #: acct_mgr/register.py:162
-#, fuzzy
 msgid ""
 "Entering your email address will enable you to\n"
 "                           reset your password if you ever forget it. "
 msgstr ""
-"Invoeren van uw e-mailadres maakt het\n"
-"              ook mogelijk dat u uw wachtwoord kan resetten als u die "
-"bent vergeten."
 
 #: acct_mgr/register.py:177
 msgid "You must specify a valid email address."
 msgstr "U moet een geldig e-mailadres invoeren."
 
 #: acct_mgr/register.py:180
-#, fuzzy
 msgid ""
 "\n"
 "                    The email address specified is already in use.\n"
 "                    Please specify a different one.\n"
 "                    "
 msgstr ""
-"Het ingevoerde e-mailadres is al in\n"
-"                              gebruik. Voer een e-mailadres ander in.\n"
-"                              "
 
 #: acct_mgr/register.py:207
 #, python-format
@@ -324,16 +309,12 @@ msgid ""
 msgstr ""
 
 #: acct_mgr/register.py:216
-#, fuzzy
 msgid ""
 "\n"
 "                    The email address specified appears to be invalid.\n"
 "                    Please specify a valid email address.\n"
 "                    "
 msgstr ""
-"Het ingevoerde e-mailadres blijkt ongeldig\n"
-"                              te zijn. Voer een ander e-mailadres in."
-"              "
 
 #: acct_mgr/register.py:292 acct_mgr/templates/login.html:58
 #: acct_mgr/templates/login.html:61 acct_mgr/templates/register.html:14
@@ -351,13 +332,11 @@ msgid ""
 msgstr ""
 
 #: acct_mgr/register.py:333
-#, fuzzy, python-format
+#, python-format
 msgid ""
 "Registration has been finished successfully.\n"
 "                     You may log in as user %(user)s now."
 msgstr ""
-"Registratie is succesvol afgerond..\n"
-"                     U kan nu aanmelden als gebruiker %(user)s."
 
 #. TRANSLATOR: Your permissions have been limited until you ...
 #: acct_mgr/register.py:404
@@ -479,11 +458,11 @@ msgid "Password is incorrect."
 msgstr "Wachtwoord in incorrect."
 
 #. TRANSLATOR: Intentionally obfuscated login error
-#: acct_mgr/web_ui.py:360
+#: acct_mgr/web_ui.py:363
 msgid "Invalid username or password"
 msgstr "Ongeldige gebruikersnaam of wachtwoord"
 
-#: acct_mgr/web_ui.py:365
+#: acct_mgr/web_ui.py:368
 #, python-format
 msgid ""
 "Account locked, please try again after\n"
@@ -491,11 +470,11 @@ msgid ""
 "                            "
 msgstr ""
 
-#: acct_mgr/web_ui.py:370 acct_mgr/templates/user_table.html:38
+#: acct_mgr/web_ui.py:373 acct_mgr/templates/user_table.html:38
 msgid "Account locked"
 msgstr ""
 
-#: acct_mgr/web_ui.py:375
+#: acct_mgr/web_ui.py:378
 #, python-format
 msgid "Login after %(attempts)s failed attempt"
 msgid_plural "Login after %(attempts)s failed attempts"
@@ -665,9 +644,8 @@ msgstr ""
 
 #: acct_mgr/templates/account_details.html:182
 #: acct_mgr/templates/db_cleanup.html:125
-#, fuzzy
 msgid "Back to accounts"
-msgstr "Aanmaken account"
+msgstr ""
 
 #: acct_mgr/templates/account_details.html:184
 #: acct_mgr/templates/db_cleanup.html:37
@@ -705,15 +683,11 @@ msgstr ""
 "          herauthenticatie."
 
 #: acct_mgr/templates/admin_accountsconfig.html:81
-#, fuzzy
 msgid ""
 "This is, user checks a \"Remember Me\"\n"
 "          [1:checkbox] and, next time he visits the site within\n"
 "          30 days, he'll be remembered and automatically authenticated."
 msgstr ""
-"Indien gebruik een vinkje zet in de \"Onthoud Mij\"\n"
-"          [1:checkbox], dan zal bij een volgend bezoek aan de website,\n"
-"          zijn onthouden en automatisch worden geauthenticeert."
 
 #: acct_mgr/templates/admin_accountsconfig.html:88
 msgid "Password Reset"
@@ -834,9 +808,8 @@ msgid "Email Address:"
 msgstr "E-mailadres:"
 
 #: acct_mgr/templates/admin_users.html:67
-#, fuzzy
 msgid "Skip new email verification"
-msgstr "Incorrect validatietoken"
+msgstr ""
 
 #: acct_mgr/templates/admin_users.html:70
 msgid "Add a new user account or edit an existing one."
@@ -855,9 +828,8 @@ msgid "This password store does not support listing users."
 msgstr "De wachtwoordopslag ondersteunt geen overzichten van gebruikers."
 
 #: acct_mgr/templates/admin_users.html:91
-#, fuzzy
 msgid "Send another random password"
-msgstr "Ontvang notificaties van resetten van wachtwoorden"
+msgstr ""
 
 #: acct_mgr/templates/admin_users.html:91
 msgid "Reset passwords"
@@ -895,19 +867,16 @@ msgid "Value"
 msgstr ""
 
 #: acct_mgr/templates/db_cleanup.html:63
-#, fuzzy
 msgid "Not Authenticated Accounts"
-msgstr "Aanmaken account"
+msgstr ""
 
 #: acct_mgr/templates/db_cleanup.html:90
-#, fuzzy
 msgid "Authenticated Accounts"
-msgstr "Aanmaken account"
+msgstr ""
 
 #: acct_mgr/templates/db_cleanup.html:121
-#, fuzzy
 msgid "Remove selected entries"
-msgstr "Verwijderen geselecteerde gebruikersaccounts"
+msgstr ""
 
 #: acct_mgr/templates/db_cleanup.html:123
 msgid "Undo selection"
@@ -1077,4 +1046,3 @@ msgstr "Nogmaals versturen e-mail"
 #~ "              mogelijk dat u uw "
 #~ "wachtwoord kan resetten als u die "
 #~ "bent vergeten."
-

@@ -1,17 +1,19 @@
 # Russian translations for TracAccountManager.
-# Copyright (C) 2010-2011
+# Copyright (C) 2012
 # This file is distributed under the same license as the
 # TracAccountManager project.
 #
-# Dmitri Bogomolov <4glitch@gmail.com>, 2010-2011.
+# Translators:
+# Dmitri Bogomolov <4glitch@gmail.com>, 2010.
+# Евгений Ковыряшкин <seventhstar@mail.ru>, 2011.
 msgid ""
 msgstr ""
-"Project-Id-Version: TracAccountManager 0.3\n"
+"Project-Id-Version: TracAccountManager 0.4\n"
 "Report-Msgid-Bugs-To: hoff.st@shaas.net\n"
-"POT-Creation-Date: 2012-09-10 00:55+0200\n"
-"PO-Revision-Date: 2011-06-29 23:21+0300\n"
-"Last-Translator: Dmitri Bogomolov <4glitch@gmail.com>\n"
-"Language-Team: ru <LL@li.org>\n"
+"POT-Creation-Date: 2012-09-16 22:15+0200\n"
+"PO-Revision-Date: 2012-09-16 19:02+0000\n"
+"Last-Translator: Евгений Ковыряшкин <seventhstar@mail.ru>\n"
+"Language-Team: Russian <trac-dev@googlegroups.com>\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2)\n"
 "MIME-Version: 1.0\n"
@@ -49,9 +51,8 @@ msgid ""
 msgstr ""
 
 #: acct_mgr/admin.py:297
-#, fuzzy
 msgid "Password hash refresh procedure restarted."
-msgstr "Процедура сброса пароля не разрешена."
+msgstr ""
 
 #: acct_mgr/admin.py:358
 msgid "The password store does not support creating users."
@@ -123,9 +124,8 @@ msgstr[1] ""
 msgstr[2] ""
 
 #: acct_mgr/admin.py:609
-#, fuzzy
 msgid "Successfully deleted:"
-msgstr "Пароль удачно изменен."
+msgstr ""
 
 #: acct_mgr/admin.py:629
 #, python-format
@@ -159,19 +159,15 @@ msgstr ""
 "trac.ini, не поддерживает установку пароля или создание пользователей."
 
 #: acct_mgr/db.py:23
-#, fuzzy
 msgid "IPasswordHashMethod used to create new/updated passwords"
-msgstr "Тип хэша поп умолчанию для новых/обновленных паролей"
+msgstr ""
 
 #: acct_mgr/htfile.py:37
-#, fuzzy
 msgid ""
 "Path relative to Trac environment or full host machine\n"
 "                path to password file - depreciated in favor of similar,\n"
 "                but store-specific options"
 msgstr ""
-"Путь к файлу паролей относительно окружения Trac или полный путь на "
-"сервере"
 
 #: acct_mgr/htfile.py:145
 msgid ""
@@ -274,14 +270,12 @@ msgstr "Пароль не может быть пустым."
 
 #. TRANSLATOR: Registration form hints for a mandatory input field.
 #: acct_mgr/register.py:152
-#, fuzzy
 msgid ""
 "The email address is required for Trac to send\n"
 "                           you a verification token."
-msgstr "Trac необходим электронный адрес, для отправки кода подтверждения."
+msgstr ""
 
 #: acct_mgr/register.py:155
-#, fuzzy
 msgid ""
 "\n"
 "                           Entering your email address will also enable "
@@ -289,33 +283,25 @@ msgid ""
 "                           to reset your password if you ever forget it.\n"
 "                           "
 msgstr ""
-"Ввод электронного адреса также позволит осуществить сброс пароля, если вы"
-" когда-нибудь его забудете."
 
 #. TRANSLATOR: Registration form hint, if email input is optional.
 #: acct_mgr/register.py:162
-#, fuzzy
 msgid ""
 "Entering your email address will enable you to\n"
 "                           reset your password if you ever forget it. "
 msgstr ""
-"Ввод электронного адреса также позволит осуществить сброс пароля, если вы"
-" когда-нибудь его забудете."
 
 #: acct_mgr/register.py:177
 msgid "You must specify a valid email address."
 msgstr "Нужно указать существующий электронный адрес."
 
 #: acct_mgr/register.py:180
-#, fuzzy
 msgid ""
 "\n"
 "                    The email address specified is already in use.\n"
 "                    Please specify a different one.\n"
 "                    "
 msgstr ""
-"Указанный электронный адрес уже используется. Пожалуйста, укажите другой "
-"адрес."
 
 #: acct_mgr/register.py:207
 #, python-format
@@ -325,15 +311,12 @@ msgid ""
 msgstr ""
 
 #: acct_mgr/register.py:216
-#, fuzzy
 msgid ""
 "\n"
 "                    The email address specified appears to be invalid.\n"
 "                    Please specify a valid email address.\n"
 "                    "
 msgstr ""
-"Указан недопустимый электронный адрес. Пожалуйста, укажите правильный "
-"адрес."
 
 #: acct_mgr/register.py:292 acct_mgr/templates/login.html:58
 #: acct_mgr/templates/login.html:61 acct_mgr/templates/register.html:14
@@ -351,11 +334,11 @@ msgid ""
 msgstr ""
 
 #: acct_mgr/register.py:333
-#, fuzzy, python-format
+#, python-format
 msgid ""
 "Registration has been finished successfully.\n"
 "                     You may log in as user %(user)s now."
-msgstr "Регистрация успешно завершена. Вы можете войти как пользователь %(user)s."
+msgstr ""
 
 #. TRANSLATOR: Your permissions have been limited until you ...
 #: acct_mgr/register.py:404
@@ -477,11 +460,11 @@ msgid "Password is incorrect."
 msgstr "Неправильный пароль."
 
 #. TRANSLATOR: Intentionally obfuscated login error
-#: acct_mgr/web_ui.py:360
+#: acct_mgr/web_ui.py:363
 msgid "Invalid username or password"
 msgstr "Неправильное имя или пароль"
 
-#: acct_mgr/web_ui.py:365
+#: acct_mgr/web_ui.py:368
 #, python-format
 msgid ""
 "Account locked, please try again after\n"
@@ -491,11 +474,11 @@ msgstr ""
 "Учетная запись заблокирована, пожалуйста повторите попытку через "
 "%(release_time)s"
 
-#: acct_mgr/web_ui.py:370 acct_mgr/templates/user_table.html:38
+#: acct_mgr/web_ui.py:373 acct_mgr/templates/user_table.html:38
 msgid "Account locked"
 msgstr "Учетная запись заблокирована"
 
-#: acct_mgr/web_ui.py:375
+#: acct_mgr/web_ui.py:378
 #, python-format
 msgid "Login after %(attempts)s failed attempt"
 msgid_plural "Login after %(attempts)s failed attempts"
@@ -680,9 +663,8 @@ msgstr "В данный момент нет записей о неудачных
 
 #: acct_mgr/templates/account_details.html:182
 #: acct_mgr/templates/db_cleanup.html:125
-#, fuzzy
 msgid "Back to accounts"
-msgstr "Создать учетную запись"
+msgstr ""
 
 #: acct_mgr/templates/account_details.html:184
 #: acct_mgr/templates/db_cleanup.html:37
@@ -719,14 +701,11 @@ msgstr ""
 "без повторной аутентификации?"
 
 #: acct_mgr/templates/admin_accountsconfig.html:81
-#, fuzzy
 msgid ""
 "This is, user checks a \"Remember Me\"\n"
 "          [1:checkbox] and, next time he visits the site within\n"
 "          30 days, he'll be remembered and automatically authenticated."
 msgstr ""
-"Пользователь ставит [1:флажок] \"Запомнить меня\", и в следующий раз, "
-"когда он открывает сайт, его сеанс будет возобновлен автоматически."
 
 #: acct_mgr/templates/admin_accountsconfig.html:88
 msgid "Password Reset"
@@ -845,9 +824,8 @@ msgid "Email Address:"
 msgstr "Электронный адрес:"
 
 #: acct_mgr/templates/admin_users.html:67
-#, fuzzy
 msgid "Skip new email verification"
-msgstr "Неправильное проверочное слово"
+msgstr ""
 
 #: acct_mgr/templates/admin_users.html:70
 msgid "Add a new user account or edit an existing one."
@@ -866,9 +844,8 @@ msgid "This password store does not support listing users."
 msgstr "Это хранилище паролей не поддерживает перечисление пользователей."
 
 #: acct_mgr/templates/admin_users.html:91
-#, fuzzy
 msgid "Send another random password"
-msgstr "Уведомлять о сбросе паролей"
+msgstr ""
 
 #: acct_mgr/templates/admin_users.html:91
 msgid "Reset passwords"
@@ -906,19 +883,16 @@ msgid "Value"
 msgstr ""
 
 #: acct_mgr/templates/db_cleanup.html:63
-#, fuzzy
 msgid "Not Authenticated Accounts"
-msgstr "Создать учетную запись"
+msgstr ""
 
 #: acct_mgr/templates/db_cleanup.html:90
-#, fuzzy
 msgid "Authenticated Accounts"
-msgstr "Создать учетную запись"
+msgstr ""
 
 #: acct_mgr/templates/db_cleanup.html:121
-#, fuzzy
 msgid "Remove selected entries"
-msgstr "Удалить выбранных"
+msgstr ""
 
 #: acct_mgr/templates/db_cleanup.html:123
 msgid "Undo selection"
@@ -1085,4 +1059,3 @@ msgstr "Послать снова"
 #~ "Ввод электронного адреса позволит осуществить"
 #~ " сброс пароля, если вы когда-нибудь "
 #~ "его забудете."
-
