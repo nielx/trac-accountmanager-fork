@@ -265,6 +265,10 @@ msgstr ""
 msgid "Password cannot be empty."
 msgstr "La contraseña no puede estar vacía."
 
+#: acct_mgr/register.py:185
+msgid "Email:"
+msgstr "Correo electrónico:"
+
 #. TRANSLATOR: Registration form hints for a mandatory input field.
 #: acct_mgr/register.py:152
 msgid ""
@@ -1027,9 +1031,6 @@ msgstr "Reenviar correo electrónico"
 
 #~ msgid "Another account or group named %s already exists."
 #~ msgstr "Ya existe otra cuenta o grupo llamado %s."
-
-#~ msgid "Email:"
-#~ msgstr "Correo electrónico:"
 
 #~ msgid ""
 #~ "Entering your email address\n"

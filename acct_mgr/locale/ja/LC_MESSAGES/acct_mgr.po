@@ -263,6 +263,10 @@ msgstr ""
 msgid "Password cannot be empty."
 msgstr "パスワードは空にできません。"
 
+#: acct_mgr/register.py:185
+msgid "Email:"
+msgstr "メールアドレス:"
+
 #. TRANSLATOR: Registration form hints for a mandatory input field.
 #: acct_mgr/register.py:152
 #, fuzzy
@@ -1026,9 +1030,6 @@ msgstr "メール再送信"
 
 #~ msgid "Another account or group named %s already exists."
 #~ msgstr "%s という名前のアカウント、もしくはグループはすでに使われています。"
-
-#~ msgid "Email:"
-#~ msgstr "メールアドレス:"
 
 #~ msgid ""
 #~ "Entering your email address\n"

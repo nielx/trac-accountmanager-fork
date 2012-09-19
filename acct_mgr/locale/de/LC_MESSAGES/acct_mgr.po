@@ -280,6 +280,10 @@ msgstr ""
 msgid "Password cannot be empty."
 msgstr "Kennwort darf nicht leer sein."
 
+#: acct_mgr/register.py:185
+msgid "Email:"
+msgstr "E-Mail:"
+
 #. TRANSLATOR: Registration form hints for a mandatory input field.
 #: acct_mgr/register.py:152
 msgid ""
