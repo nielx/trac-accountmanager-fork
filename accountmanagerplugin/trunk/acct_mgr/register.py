@@ -139,7 +139,7 @@ class EmailCheck(GenericRegistrationInspector):
         # Preserve last input for editing on failure instead of typing
         # everything again.
         old_value = req.args.get('email', '').strip()
-        insert = tag.label("Email:", tag.input(type='text', name='email',
+        insert = tag.label(_("Email:"), tag.input(type='text', name='email',
                                                class_='textwidget', size=20,
                                                value=old_value))
         # Deferred import required to aviod circular import dependencies.

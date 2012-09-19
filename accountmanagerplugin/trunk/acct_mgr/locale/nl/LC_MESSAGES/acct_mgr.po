@@ -266,6 +266,10 @@ msgstr ""
 msgid "Password cannot be empty."
 msgstr "Wachtwoord mag niet leeg gelaten worden."
 
+#: acct_mgr/register.py:185
+msgid "Email:"
+msgstr "E-mailadres:"
+
 #. TRANSLATOR: Registration form hints for a mandatory input field.
 #: acct_mgr/register.py:152
 msgid ""
@@ -1032,9 +1036,6 @@ msgstr "Nogmaals versturen e-mail"
 
 #~ msgid "Another account or group named %s already exists."
 #~ msgstr "Een ander gebruikersaccount of groep met naam %s bestaat al."
-
-#~ msgid "Email:"
-#~ msgstr "E-mailadres:"
 
 #~ msgid ""
 #~ "Entering your email address\n"

@@ -265,6 +265,10 @@ msgstr ""
 msgid "Password cannot be empty."
 msgstr "Lösenordet får ej vara tomt."
 
+#: acct_mgr/register.py:185
+#~ msgid "Email:"
+#~ msgstr "E-post:"
+
 #. TRANSLATOR: Registration form hints for a mandatory input field.
 #: acct_mgr/register.py:152
 msgid ""
@@ -1035,9 +1039,6 @@ msgstr "Skicka om e-post"
 
 #~ msgid "Another account or group named %s already exists."
 #~ msgstr "Konto eller grupp %s existerar redan."
-
-#~ msgid "Email:"
-#~ msgstr "E-post:"
 
 #~ msgid ""
 #~ "Entering your email address\n"
