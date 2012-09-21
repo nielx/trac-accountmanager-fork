@@ -6,11 +6,7 @@ acct_mgr-0.4 (not yet released) - branch 0.11
  * #3459: Authentication information not available
  * #4677: Admin based chaining HtDigestStore & HtPasswdStore breaks config
    by adding dedicated options 'htdigest_file' and 'htpasswd_file'
- * #5295: Add optional username regexp to registration checks
- * #8076: Add optional account email regexp to registration checks
  * #8685: User deletion ordering breaks 'deleted' notification for SessionStore
- * #8791: Obsolete patch needed for authentication against Jira
-   by adding sha256/sha512 hash support (needs `passlib` or extended `crypt`)
  * #8990: HtPasswdStore and SessionStore with HtPasswdHashMethod share option
    by adding dedicated options 'db_htpasswd_hash_type' and 'db_htdigest_realm'
  * #9079: PostgreSQL: Database error when creating new user with attributes
@@ -28,10 +24,16 @@ acct_mgr-0.4 (not yet released) - branch 0.11
 
  new features
  * #874: Add new fields to register form and a registration validation system
+ * #5295: Add optional username regexp to registration checks
+ * #7577: Prevent spammers from registering
+ * #8076: Add optional account email regexp to registration checks
+ * #8791: Obsolete patch needed for authentication against Jira
+   by adding sha256/sha512 hash support (needs `passlib` or extended `crypt`)
  * #9618: HttpAuthStore authentication enhancement
    by allowing a relative URL for `authentication_url` configuration option
  * #9676: Incorporate optional Single-Sign-On functionality
  * #9852: Embed some user information in TracWiki
+   by introducing WikiMacros `ProjectStats` and `UserQuery`
  * add recursion to option parser for configuration admin page and provide
    available valid values for an `ExtensionOption` like `IPasswordHashMethod`
    by a select field (dropdown box) - or meaningful message on missing options

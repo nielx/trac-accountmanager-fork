@@ -167,7 +167,8 @@ class AccountManager(Component):
     _password_format = Option('account-manager', 'password_format')
     _register_check = OrderedExtensionsOption(
         'account-manager', 'register_check', IAccountRegistrationInspector,
-        default='BasicCheck, EmailCheck, RegExpCheck, UsernamePermCheck',
+        default="""BasicCheck, EmailCheck, BotTrapCheck, RegExpCheck,
+                 UsernamePermCheck""",
         include_missing=False,
         doc="""Ordered list of IAccountRegistrationInspector's to use for
         registration checks.""")
