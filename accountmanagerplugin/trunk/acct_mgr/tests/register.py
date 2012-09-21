@@ -23,7 +23,7 @@ from trac.web.session  import Session
 from acct_mgr.api  import AccountManager, IAccountRegistrationInspector
 from acct_mgr.db  import SessionStore
 from acct_mgr.model  import set_user_attribute
-from acct_mgr.register  import BasicCheck, EmailCheck, \
+from acct_mgr.register  import BasicCheck, BotTrapCheck, EmailCheck, \
                                EmailVerificationModule, \
                                GenericRegistrationInspector, RegExpCheck, \
                                RegistrationError, RegistrationModule, \
@@ -140,6 +140,47 @@ class BasicCheckTestCase(_BaseTestCase):
         # 7th attempt: Finally some valid input.
         req.args['password_confirm'] = 'password'
         self.assertEqual(check.validate_registration(req), None)
+
+
+class BotTrapCheckTestCase(_BaseTestCase):
+    def setUp(self):
+        _BaseTestCase.setUp(self)
+        self.basic_token = "Yes, I'm human"
+        self.env.config.set('account-manager', 'register_basic_token',
+                            self.basic_token)
+
+    def test_check(self):
+        check = BotTrapCheck(self.env)
+        req = self.req
+
+        # Inspector provides the email text input field.
+        wrong_input = "Hey, I'm a bot."
+        data = dict(basic_token=wrong_input)
+        req.args.update(data)
+        field_res = check.render_registration_fields(req, data)
+        self.assertEqual(len(field_res), 2)
+        self.assertTrue(Markup(field_res[0]).startswith('<label>Parole:'))
+
+        # 1st attempt: Wrong input.
+        self.assertRaises(RegistrationError, check.validate_registration,
+                          req)
+        # Ensure, that old input is restored on failure.
+        self.assertTrue(wrong_input in Markup(field_res[0]))
+        # Ensure, that template data dict is passed unchanged.
+        self.assertEqual(field_res[1], data)
+
+        # 2nd attempt: No input.
+        req.args['basic_token'] = ''
+        self.assertRaises(RegistrationError, check.validate_registration,
+                          req)
+        # 3th attempt: Finally valid input.
+        req.args['basic_token'] = self.basic_token
+        self.assertEqual(check.validate_registration(req), None)
+
+        # 4rd attempt: Fill the hidden field too.
+        req.args['sentinel'] = "Humans can't see this? Crap - I'm superior!"
+        self.assertRaises(RegistrationError, check.validate_registration,
+                          req)
 
 
 class EmailCheckTestCase(_BaseTestCase):
@@ -351,6 +392,7 @@ def suite():
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(DummyRegInspectorTestCase, 'test'))
     suite.addTest(unittest.makeSuite(BasicCheckTestCase, 'test'))
+    suite.addTest(unittest.makeSuite(BotTrapCheckTestCase, 'test'))
     suite.addTest(unittest.makeSuite(EmailCheckTestCase, 'test'))
     suite.addTest(unittest.makeSuite(RegExpCheckTestCase, 'test'))
     suite.addTest(unittest.makeSuite(UsernamePermCheckTestCase, 'test'))

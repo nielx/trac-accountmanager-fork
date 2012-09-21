@@ -128,6 +128,49 @@ class BasicCheck(GenericRegistrationInspector):
             raise RegistrationError(_("The passwords must match."))
 
 
+class BotTrapCheck(GenericRegistrationInspector):
+    """A collection of simple bot checks."""
+
+    reg_basic_token = Option('account-manager', 'register_basic_token', '',
+        doc="A string required as input to pass verification.")
+
+    def render_registration_fields(self, req, data):
+        """Add a hidden text input field to the registration form, and
+        a visible one with mandatory input as well, if token is configured.
+        """
+        if self.reg_basic_token:
+            # Preserve last input for editing on failure instead of typing
+            # everything again.
+            old_value = req.args.get('basic_token', '')
+
+            # TRANSLATOR: Hint for visible bot trap registration input field.
+            hint = tag.p(Markup(_("""
+                Please type [%(token)s] as verification token,
+                exactly replicating everything within the braces.""",
+                token=tag.b(self.reg_basic_token))), class_='hint')
+            insert = tag(tag.label(_("Parole:"),
+                                   tag.input(type='text', name='basic_token',
+                                             class_='textwidget', size=20,
+                                             value=old_value)),
+                         hint)
+        else:
+            insert = None
+        # TRANSLATOR: Registration form hint for hidden bot trap input field.
+        insert = tag(insert,
+                     tag.input(type='hidden', name='sentinel',
+                               title=_("Better do not fill this field.")))
+        return insert, data
+
+    def validate_registration(self, req):
+        # Input must be an exact replication of the required token.
+        basic_token = req.args.get('basic_token', '')
+        # Unlike the former, the hidden bot-trap input field must stay empty.
+        keep_empty = req.args.get('sentinel', '')
+        if keep_empty or self.reg_basic_token and \
+                self.reg_basic_token != basic_token:
+            raise RegistrationError(_("Are you human? If so, try harder!"))
+
+
 class EmailCheck(GenericRegistrationInspector):
     """A collection of checks for email addresses.
 
