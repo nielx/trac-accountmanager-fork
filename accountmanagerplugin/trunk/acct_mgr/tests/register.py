@@ -115,29 +115,26 @@ class BasicCheckTestCase(_BaseTestCase):
         self.assertEqual((Markup(field_res[0]), field_res[1]),
                          (Markup(''), {}))
         # 1st attempt: No input.
-        self.assertRaises(RegistrationError, check.validate_registration,
-                          req)
+        self.assertRaises(RegistrationError, check.validate_registration, req)
         # 2nd attempt: Illegal character.
         req.args['username'] = 'user:name'
-        self.assertRaises(RegistrationError, check.validate_registration,
-                          req)
-        # 3rd attempt: Reserved word.
+        self.assertRaises(RegistrationError, check.validate_registration, req)
+        # 3rd attempt: All upper-case word.
+        req.args['username'] = 'UPPER-CASE_USER'
+        self.assertRaises(RegistrationError, check.validate_registration, req)
+        # 4th attempt: Reserved word.
         req.args['username'] = 'Anonymous'
-        self.assertRaises(RegistrationError, check.validate_registration,
-                          req)
-        # 4th attempt: Existing user.
+        self.assertRaises(RegistrationError, check.validate_registration, req)
+        # 5th attempt: Existing user.
         req.args['username'] = 'registered_user'
-        self.assertRaises(RegistrationError, check.validate_registration,
-                          req)
-        # 5th attempt: Valid username, but no password.
+        self.assertRaises(RegistrationError, check.validate_registration, req)
+        # 6th attempt: Valid username, but no password.
         req.args['username'] = 'user'
-        self.assertRaises(RegistrationError, check.validate_registration,
-                          req)
-        # 6th attempt: Valid username, no matching passwords.
+        self.assertRaises(RegistrationError, check.validate_registration, req)
+        # 7th attempt: Valid username, no matching passwords.
         req.args['password'] = 'password'
-        self.assertRaises(RegistrationError, check.validate_registration,
-                          req)
-        # 7th attempt: Finally some valid input.
+        self.assertRaises(RegistrationError, check.validate_registration, req)
+        # 8th attempt: Finally some valid input.
         req.args['password_confirm'] = 'password'
         self.assertEqual(check.validate_registration(req), None)
 
@@ -162,8 +159,7 @@ class BotTrapCheckTestCase(_BaseTestCase):
         self.assertTrue(Markup(field_res[0]).startswith('<label>Parole:'))
 
         # 1st attempt: Wrong input.
-        self.assertRaises(RegistrationError, check.validate_registration,
-                          req)
+        self.assertRaises(RegistrationError, check.validate_registration, req)
         # Ensure, that old input is restored on failure.
         self.assertTrue(wrong_input in Markup(field_res[0]))
         # Ensure, that template data dict is passed unchanged.
@@ -171,16 +167,13 @@ class BotTrapCheckTestCase(_BaseTestCase):
 
         # 2nd attempt: No input.
         req.args['basic_token'] = ''
-        self.assertRaises(RegistrationError, check.validate_registration,
-                          req)
+        self.assertRaises(RegistrationError, check.validate_registration, req)
         # 3th attempt: Finally valid input.
         req.args['basic_token'] = self.basic_token
         self.assertEqual(check.validate_registration(req), None)
-
         # 4rd attempt: Fill the hidden field too.
         req.args['sentinel'] = "Humans can't see this? Crap - I'm superior!"
-        self.assertRaises(RegistrationError, check.validate_registration,
-                          req)
+        self.assertRaises(RegistrationError, check.validate_registration, req)
 
 
 class EmailCheckTestCase(_BaseTestCase):
@@ -231,12 +224,10 @@ class EmailCheckTestCase(_BaseTestCase):
         self.assertEqual(check.validate_registration(req), None)
         # 2nd: Again no email, but now with account verification enabled. 
         self.env.config.set('account-manager', 'verify_email', True)
-        self.assertRaises(RegistrationError, check.validate_registration,
-                          req)
+        self.assertRaises(RegistrationError, check.validate_registration, req)
         # 3th attempt: Valid email, but already registered with a username.
         req.args['email'] = 'admin@foo.bar'
-        self.assertRaises(RegistrationError, check.validate_registration,
-                          req)
+        self.assertRaises(RegistrationError, check.validate_registration, req)
         # 4th attempt: Finally some valid input.
         req.args['email'] = 'email@foo.bar'
         self.assertEqual(check.validate_registration(req), None)
@@ -256,8 +247,7 @@ class RegExpCheckTestCase(_BaseTestCase):
         self.assertEqual((Markup(field_res[0]), field_res[1]),
                          (Markup(''), {}))
         # Empty input is invalid with default regular expressions.
-        self.assertRaises(RegistrationError, check.validate_registration,
-                          req)
+        self.assertRaises(RegistrationError, check.validate_registration, req)
         # 1st attempt: Malformed email address.
         req.args['username'] = 'username'
         req.args['email'] = 'email'
@@ -272,16 +262,14 @@ class RegExpCheckTestCase(_BaseTestCase):
         self.assertEqual(check.validate_registration(req), None)
         # 4th attempt: Now with too short username.
         req.args['username'] = 'user'
-        self.assertRaises(RegistrationError, check.validate_registration,
-                          req)
+        self.assertRaises(RegistrationError, check.validate_registration, req)
         # 5th attempt: Allow short username by custom regular expression.
         self.env.config.set('account-manager', 'username_regexp',
                             r'(?i)^[A-Z.\-_]{4,}$')
         self.assertEqual(check.validate_registration(req), None)
         # 6th attempt: Now with username containing single quote.
         req.args['username'] = 'user\'name'
-        self.assertRaises(RegistrationError, check.validate_registration,
-                          req)
+        self.assertRaises(RegistrationError, check.validate_registration, req)
         # 7th attempt: Alter config to allow username containing single quote.
         self.env.config.set('account-manager', 'username_regexp',
                             r'(?i)^[A-Z.\-\'_]{4,}$')
@@ -304,8 +292,7 @@ class UsernamePermCheckTestCase(_BaseTestCase):
         self.assertEqual(check.validate_registration(req), None)
         # 3rd attempt: Explicite permission assigned for that username.
         req.args['username'] = 'admin'
-        self.assertRaises(RegistrationError, check.validate_registration,
-                          req)
+        self.assertRaises(RegistrationError, check.validate_registration, req)
         # 4th attempt: As before, but request done by admin user.
         req.perm = PermissionCache(self.env, 'admin')
         self.assertEqual(check.validate_registration(req), None)
