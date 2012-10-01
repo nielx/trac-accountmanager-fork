@@ -72,6 +72,7 @@ class BasicCheck(GenericRegistrationInspector):
     This includes checking for
      * emptiness (no user input for username and/or password)
      * some blacklisted username characters
+     * upper-cased usernames (reserved for Trac permission actions)
      * some reserved usernames
      * a username duplicate in configured password stores
     """
@@ -100,6 +101,11 @@ class BasicCheck(GenericRegistrationInspector):
                 "The username must not contain any of these characters:"),
                 pretty_blacklist))
 
+        # All upper-cased names are reserved for permission action names.
+        if username.isupper():
+            raise RegistrationError(_(
+                "A username with only upper-cased characters is not allowed."))
+ 
         # Prohibit some user names, that are important for Trac and therefor
         # reserved, even if not in the permission store for some reason.
         if username.lower() in ['anonymous', 'authenticated']:
