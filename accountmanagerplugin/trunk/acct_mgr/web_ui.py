@@ -198,10 +198,10 @@ class AccountModule(CommonTemplateProvider):
         acctmgr = self.acctmgr
         new_password = self._random_password()
         try:
+            self.store.set_password(username, new_password)
             acctmgr._notify('password_reset', username, email, new_password)
         except Exception, e:
             return {'error': ','.join(map(to_unicode, e.args))}
-        self.store.set_password(username, new_password)
         if acctmgr.force_passwd_change:
             set_user_attribute(self.env, username, 'force_change_passwd', 1)
 
