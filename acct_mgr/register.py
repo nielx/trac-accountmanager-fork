@@ -394,13 +394,17 @@ class RegistrationModule(CommonTemplateProvider):
                 fragment = None
             if fragment:
                 try:
-                    if 'optional' in fragment.keys():
-                        fragments['optional'].append(fragment['optional'])
-                except AttributeError:
-                    # Not a dict, just append Genshi Fragment or str/unicode. 
-                    fragments['required'].append(fragment)
-                else:
-                    fragments['required'].append(fragment.get('required', ''))
+                    # Python<2.5: Can't have 'except' and 'finally' in same
+                    #   'try' statement together.
+                    try:
+                        if 'optional' in fragment.keys():
+                            fragments['optional'].append(fragment['optional'])
+                    except AttributeError:
+                        # No dict, just append Genshi Fragment or str/unicode.
+                        fragments['required'].append(fragment)
+                    else:
+                        fragments['required'].append(fragment.get('required',
+                                                                  ''))
                 finally:
                     data.update(f_data)
         data['required_fields'] = fragments['required']

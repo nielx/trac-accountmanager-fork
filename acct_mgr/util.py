@@ -77,8 +77,10 @@ def get_pretty_dateinfo(env, req):
                 # TRANSLATOR: Sync with same msgid in Trac 0.13, please.
                 title = _("%(relativetime)s ago", relativetime=relative)
             else:
-                label = _("%(relativetime)s ago", relativetime=relative) \
-                        if not dateonly else relative
+                if dateonly:
+                    label = relative
+                else:
+                    label = _("%(relativetime)s ago", relativetime=relative)
                 title = absolute
             return tag.span(label, title=title)
     return fn and fn or _pretty_dateinfo
