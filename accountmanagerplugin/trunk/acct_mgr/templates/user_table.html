@@ -25,7 +25,7 @@ Arguments:
     </thead>
     <tbody>
       <py:for each="idx, acct in enumerate(accounts)">
-        <py:with vars="odd_even = 'odd' if idx % 2 else 'even'">
+        <py:with vars="odd_even = ('even', 'odd')[idx % 2]">
           <tr class="$odd_even">
             <td py:if="delete_enabled">
               <input type="checkbox" name="sel"
