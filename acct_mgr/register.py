@@ -25,7 +25,8 @@ from trac.web import auth, chrome
 from trac.web.main import IRequestHandler, IRequestFilter
 
 from acct_mgr.api import AccountManager, CommonTemplateProvider, \
-                         IAccountRegistrationInspector, _, N_, dgettext, tag_
+                         IAccountRegistrationInspector, \
+                         _, N_, dgettext, gettext, tag_
 from acct_mgr.model import email_associated, set_user_attribute
 from acct_mgr.util import containsAny, is_enabled
 
@@ -83,7 +84,7 @@ class BasicCheck(GenericRegistrationInspector):
             req.args.get('username', '').strip())
 
         if not username:
-            raise RegistrationError(_("Username cannot be empty."))
+            raise RegistrationError(N_("Username cannot be empty."))
 
         # Always exclude some special characters, i.e. 
         #   ':' can't be used in HtPasswdStore
@@ -97,20 +98,23 @@ class BasicCheck(GenericRegistrationInspector):
                 else:
                     pretty_blacklist = tag(pretty_blacklist,
                                            ', \'', tag.b(c), '\'')
-            raise RegistrationError(tag(_(
+            raise RegistrationError(tag(N_(
                 "The username must not contain any of these characters:"),
-                pretty_blacklist))
+                pretty_blacklist)
+            )
 
         # All upper-cased names are reserved for permission action names.
         if username.isupper():
-            raise RegistrationError(_(
-                "A username with only upper-cased characters is not allowed."))
+            raise RegistrationError(N_(
+                "A username with only upper-cased characters is not allowed.")
+            )
  
         # Prohibit some user names, that are important for Trac and therefor
         # reserved, even if not in the permission store for some reason.
         if username.lower() in ['anonymous', 'authenticated']:
-            raise RegistrationError(_("Username %s is not allowed.")
-                                    % tag.b(username))
+            raise RegistrationError(N_("Username %s is not allowed.")
+                                    % tag.b(username)
+            )
 
         # NOTE: A user may exist in a password store but not in the permission
         #   store.  I.e. this happens, when the user (from the password store)
@@ -121,17 +125,18 @@ class BasicCheck(GenericRegistrationInspector):
         for store_user in acctmgr.get_users():
             # Do it carefully by disregarding case.
             if store_user.lower() == username.lower():
-                raise RegistrationError(_("""
-                    Another account or group already exists, who's name
-                    differs from %s only by case or is identical.
-                    """) % tag.b(username))
+                raise RegistrationError(N_(
+                    "Another account or group already exists, who's name "
+                    "differs from %s only by case or is identical.")
+                    % tag.b(username)
+                )
 
         # Password consistency checks follow.
         password = req.args.get('password')
         if not password:
-            raise RegistrationError(_("Password cannot be empty."))
+            raise RegistrationError(N_("Password cannot be empty."))
         elif password != req.args.get('password_confirm'):
-            raise RegistrationError(_("The passwords must match."))
+            raise RegistrationError(N_("The passwords must match."))
 
 
 class BotTrapCheck(GenericRegistrationInspector):
@@ -150,21 +155,23 @@ class BotTrapCheck(GenericRegistrationInspector):
             old_value = req.args.get('basic_token', '')
 
             # TRANSLATOR: Hint for visible bot trap registration input field.
-            hint = tag.p(Markup(_("""
-                Please type [%(token)s] as verification token,
+            hint = tag.p(Markup(_(
+                """Please type [%(token)s] as verification token,
                 exactly replicating everything within the braces.""",
                 token=tag.b(self.reg_basic_token))), class_='hint')
-            insert = tag(tag.label(_("Parole:"),
-                                   tag.input(type='text', name='basic_token',
-                                             class_='textwidget', size=20,
-                                             value=old_value)),
-                         hint)
+            insert = tag(
+                tag.label(_("Parole:"),
+                          tag.input(type='text', name='basic_token', size=20,
+                                    class_='textwidget', value=old_value)),
+                          hint
+                )
         else:
             insert = None
         # TRANSLATOR: Registration form hint for hidden bot trap input field.
         insert = tag(insert,
                      tag.input(type='hidden', name='sentinel',
-                               title=_("Better do not fill this field.")))
+                               title=_("Better do not fill this field."))
+                 )
         return insert, data
 
     def validate_registration(self, req):
@@ -174,7 +181,7 @@ class BotTrapCheck(GenericRegistrationInspector):
         keep_empty = req.args.get('sentinel', '')
         if keep_empty or self.reg_basic_token and \
                 self.reg_basic_token != basic_token:
-            raise RegistrationError(_("Are you human? If so, try harder!"))
+            raise RegistrationError(N_("Are you human? If so, try harder!"))
 
 
 class EmailCheck(GenericRegistrationInspector):
@@ -188,9 +195,10 @@ class EmailCheck(GenericRegistrationInspector):
         # Preserve last input for editing on failure instead of typing
         # everything again.
         old_value = req.args.get('email', '').strip()
-        insert = tag.label(_("Email:"), tag.input(type='text', name='email',
-                                               class_='textwidget', size=20,
-                                               value=old_value))
+        insert = tag.label(_("Email:"),
+                           tag.input(type='text', name='email', size=20,
+                                     class_='textwidget', value=old_value)
+                 )
         # Deferred import required to aviod circular import dependencies.
         from acct_mgr.web_ui import AccountModule
         reset_password = AccountModule(self.env).reset_password_enabled
@@ -201,15 +209,16 @@ class EmailCheck(GenericRegistrationInspector):
             hint = tag.p(_("""The email address is required for Trac to send
                            you a verification token."""), class_='hint')
             if reset_password:
-                hint = tag(hint, tag.p(_("""
-                           Entering your email address will also enable you
-                           to reset your password if you ever forget it.
-                           """), class_='hint'))
+                hint = tag(hint, tag.p(_(
+                           """Entering your email address will also enable you
+                           to reset your password if you ever forget it."""),
+                           class_='hint')
+                       )
             return tag(insert, hint), data
         elif reset_password:
             # TRANSLATOR: Registration form hint, if email input is optional.
             hint = tag.p(_("""Entering your email address will enable you to
-                           reset your password if you ever forget it. """),
+                           reset your password if you ever forget it."""),
                          class_='hint')
             return dict(optional=tag(insert, hint)), data
         else:
@@ -223,13 +232,14 @@ class EmailCheck(GenericRegistrationInspector):
         if is_enabled(self.env, EmailVerificationModule) and \
                 acctmgr.verify_email:
             if not email:
-                raise RegistrationError(_(
-                    "You must specify a valid email address."))
+                raise RegistrationError(N_(
+                    "You must specify a valid email address.")
+                )
             elif email_associated(self.env, email):
-                raise RegistrationError(_("""
-                    The email address specified is already in use.
-                    Please specify a different one.
-                    """))
+                raise RegistrationError(N_(
+                    "The email address specified is already in use. "
+                    "Please specify a different one.")
+                )
 
 
 class RegExpCheck(GenericRegistrationInspector):
@@ -253,19 +263,20 @@ class RegExpCheck(GenericRegistrationInspector):
             req.args.get('username', '').strip())
         if self.username_regexp != "" and \
                 not re.match(self.username_regexp.strip(), username):
-            raise RegistrationError(_("""
-                Username %s doesn't match local naming policy.""")
-                % tag.b(username))
+            raise RegistrationError(N_(
+                "Username %s doesn't match local naming policy.")
+                % tag.b(username)
+            )
 
         email = req.args.get('email', '').strip()
         if acctmgr.verify_email and is_enabled(self.env, EmailCheck) and \
                 is_enabled(self.env, EmailVerificationModule):
             if self.email_regexp.strip() != "" and \
                     not re.match(self.email_regexp.strip(), email):
-                raise RegistrationError(_("""
-                    The email address specified appears to be invalid.
-                    Please specify a valid email address.
-                    """))
+                raise RegistrationError(N_(
+                    "The email address specified appears to be invalid. "
+                    "Please specify a valid email address.")
+                )
 
 
 class UsernamePermCheck(GenericRegistrationInspector):
@@ -294,10 +305,11 @@ class UsernamePermCheck(GenericRegistrationInspector):
         for (perm_user, perm_action) in \
                 perm.PermissionSystem(self.env).get_all_permissions():
             if perm_user.lower() == username.lower():
-                raise RegistrationError(_("""
-                    Another account or group already exists, who's name
-                    differs from %s only by case or is identical.
-                    """) % tag.b(username))
+                raise RegistrationError(N_(
+                    "Another account or group already exists, who's name "
+                    "differs from %s only by case or is identical.")
+                    % tag.b(username)
+                )
 
 
 class RegistrationModule(CommonTemplateProvider):
@@ -353,7 +365,7 @@ class RegistrationModule(CommonTemplateProvider):
         action = req.args.get('action')
         name = req.args.get('name', '').strip()
         username = acctmgr.handle_username_casing(req.args.get('username',
-                                                                    '').strip())
+                                                               '').strip())
         data = {
                 '_dgettext': dgettext,
                   'acctmgr': dict(name=name, username=username),
@@ -367,19 +379,21 @@ class RegistrationModule(CommonTemplateProvider):
                 # Check request and prime account on success.
                 acctmgr.validate_registration(req)
             except RegistrationError, e:
-                chrome.add_warning(req, Markup(e.message))
+                chrome.add_warning(req, Markup(gettext(e.message)))
             else:
                 if verify_enabled:
                     chrome.add_notice(req, Markup(tag.span(Markup(_(
                         """Your username has been successfully registered but
                         your account still requires activation. Please login
-                        as user %(user)s, and follow the instructions.
-                        """, user=tag.b(username))))))
+                        as user %(user)s, and follow the instructions.""",
+                        user=tag.b(username)))))
+                    )
                     req.redirect(req.href.login())
                 chrome.add_notice(req, Markup(tag.span(Markup(_(
                      """Registration has been finished successfully.
                      You may log in as user %(user)s now.""",
-                     user=tag.b(username))))))
+                     user=tag.b(username)))))
+                )
                 req.redirect(req.href.login())
         # Collect additional fields from IAccountRegistrationInspector's.
         fragments = dict(required=[], optional=[])
@@ -431,8 +445,10 @@ class EmailVerificationModule(CommonTemplateProvider):
                 self.config.getbool('notification', 'smtp_enabled') != True:
             self.email_enabled = False
             if is_enabled(self.env, self.__class__) == True:
-                self.env.log.warn(self.__class__.__name__ + \
-                    ' can\'t work because of missing email setup.')
+                self.env.log.warn(
+                    ' '.join([self.__class__.__name__, 
+                              "can't work because of missing email setup."])
+                )
 
     # IRequestFilter methods
 
@@ -448,18 +464,21 @@ class EmailVerificationModule(CommonTemplateProvider):
             except RegistrationError, e:
                 # Attempt to change email to an empty or invalid
                 # address detected, resetting to previously stored value.
-                chrome.add_warning(req, Markup(e.message))
+                chrome.add_warning(
+                    req, Markup(gettext(e.message)))
                 req.redirect(req.href.prefs(None))
         if AccountManager(self.env).verify_email and handler is not self and \
                 'email_verification_token' in req.session and \
                 not req.perm.has_permission('ACCTMGR_ADMIN'):
             # TRANSLATOR: Your permissions have been limited until you ...
             link = tag.a(_("verify your email address"),
-                         href=req.href.verify_email())
+                         href=req.href.verify_email()
+                   )
             # TRANSLATOR: ... verify your email address
             chrome.add_warning(req, Markup(tag.span(Markup(_(
                 "Your permissions have been limited until you %(link)s.",
-                link=link)))))
+                link=link))))
+            )
             req.perm = perm.PermissionCache(self.env, 'anonymous')
         return handler
 
@@ -481,15 +500,16 @@ class EmailVerificationModule(CommonTemplateProvider):
                 req.authname, 
                 req.session['email_verification_token']
             )
-            # TRANSLATOR: An email has been sent to %(email)s
+            # TRANSLATOR: An email has been sent to <%(email)s>
             # with a token to ... (the link label for following message)
             link = tag.a(_("verify your new email address"),
-                         href=req.href.verify_email())
+                         href=req.href.verify_email()
+                   )
             # TRANSLATOR: ... verify your new email address
             chrome.add_notice(req, Markup(tag.span(Markup(_(
-                """An email has been sent to %(email)s with a token to
-                %(link)s.""",
-                email=email, link=link)))))
+                """An email has been sent to <%(email)s> with a token to
+                %(link)s.""", email=email, link=link))))
+            )
         return template, data, content_type
 
     # IRequestHandler methods
@@ -500,7 +520,8 @@ class EmailVerificationModule(CommonTemplateProvider):
     def process_request(self, req):
         if not req.session.authenticated:
             chrome.add_warning(req, Markup(tag.span(tag_(
-                "Please log in to finish email verification procedure."))))
+                "Please log in to finish email verification procedure.")))
+            )
             req.redirect(req.href.login())
         if 'email_verification_token' not in req.session:
             chrome.add_notice(req, _("Your email is already verified."))
@@ -512,13 +533,15 @@ class EmailVerificationModule(CommonTemplateProvider):
             )
             chrome.add_notice(req,
                     _("A notification email has been resent to <%s>."),
-                    req.session.get('email'))
+                    req.session.get('email')
+            )
         elif 'verify' in req.args:
             # allow via POST or GET (the latter for email links)
             if req.args['token'] == req.session['email_verification_token']:
                 del req.session['email_verification_token']
                 chrome.add_notice(
-                    req, _("Thank you for verifying your email address."))
+                    req, _("Thank you for verifying your email address.")
+                )
                 req.redirect(req.href.prefs())
             else:
                 chrome.add_warning(req, _("Invalid verification token"))
