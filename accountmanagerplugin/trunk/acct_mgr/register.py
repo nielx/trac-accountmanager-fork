@@ -98,9 +98,9 @@ class BasicCheck(GenericRegistrationInspector):
                 else:
                     pretty_blacklist = tag(pretty_blacklist,
                                            ', \'', tag.b(c), '\'')
-            raise RegistrationError(tag(N_(
+            raise RegistrationError(tag(_(
                 "The username must not contain any of these characters:"),
-                pretty_blacklist)
+                tag.p(pretty_blacklist))
             )
 
         # All upper-cased names are reserved for permission action names.
