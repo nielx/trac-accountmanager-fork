@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+#
 # Copyright (C) 2005 Matthew Good <trac@matt-good.net>
 # All rights reserved.
 #
