@@ -268,8 +268,13 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
         likelihood in percent per work hour given here (zero equals to never)
         to decrease vulnerability of long-lasting sessions.""")
 
-    # Update cookies for persistant sessions only 1/hour.
-    UPDATE_INTERVAL = 3600
+    # Update cookies for persistant sessions only 1/day.
+    #   hex_entropy returns 32 chars per call equal to 128 bit of entropy,
+    #   so it should be technically impossible to explore the hash even within
+    #   a year by just throwing forged HTTP requests at the server.
+    #   I.e. it would require 1.000.000 machines, each at 5*10^24 requests/s,
+    #   equal to a full-scale DDoS attack - an entirely different issue.
+    UPDATE_INTERVAL = 86400
 
     def __init__(self):
         c = self.config
@@ -537,7 +542,8 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
 
         for environ, path in all_envs.iteritems():
             if not environ == local_environ.lstrip('/'):
-                env = open_environment(path)
+                # Cache environment for subsequent invocations.
+                env = open_environment(path, use_cache=True)
                 # Consider only Trac environments with equal, non-default
                 #   'auth_cookie_path', which enables cookies to be shared.
                 if self._get_cookie_path(req) == env.config.get('trac',
@@ -564,7 +570,6 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
                     self.log.debug('Auth distribution success: ' + environ)
                 else:
                     self.log.debug('Auth distribution skipped: ' + environ)
-                env.shutdown()
 
     def _get_cookie_path(self, req):
         """Check request object for "path" cookie property.

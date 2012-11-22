@@ -22,6 +22,7 @@ acct_mgr-0.4 (not yet released) - branch 0.11
  * #10276: "Unknown preference panel" when logging out from account tab
  * #10397: Don't allow username with all capital letters
  * #10412: acct_mgr-0.4dev breaking 2.4 compatibility
+ * #10625: AssertionError in trac.db.pool.PooledConnection.__del__
  * do AccountManager class API cleanup by moving db access to model layer
  * prevent duplicate action entries in Trac core permission select box
 
