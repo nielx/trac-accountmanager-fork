@@ -237,7 +237,7 @@ msgid "No check method 'validate_registration' defined in %(module)s"
 msgstr ""
 
 #: acct_mgr/register.py:101
-msgid "The username must not contain any of these characters:"
+msgid "The username must not contain any of these characters: %s"
 msgstr ""
 
 #: acct_mgr/register.py:108

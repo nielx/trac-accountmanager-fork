@@ -353,7 +353,16 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                         # User editor form clean-up.
                         data['acctmgr'] = {}
                     except RegistrationError, e:
-                        data['editor_error'] = Markup(e.message)
+
+                        # Attempt deferred translation.
+                        message = gettext(e.message)
+                        # Check for (matching number of) message arguments
+                        #   before attempting string substitution.
+                        if e.msg_args and \
+                                len(e.msg_args) == len(re.findall('%s',
+                                                                  message)):
+                            message = message % e.msg_args
+                        data['editor_error'] = Markup(message)
                 else:
                     data['editor_error'] = _(
                         "The password store does not support creating users.")

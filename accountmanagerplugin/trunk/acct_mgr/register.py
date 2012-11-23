@@ -34,7 +34,18 @@ from acct_mgr.util import containsAny, is_enabled
 class RegistrationError(TracError):
     """Exception raised when a registration check fails."""
 
-    title = N_("Registration Error")
+    def __init__(self, message, *args, **kwargs):
+        """TracError sub-class with extended i18n support.
+
+        It eases error initialization with messages optionally including
+        arguments meant for string substitution after deferred translation.
+        """
+        title = N_("Registration Error")
+        tb = 'show_traceback'
+        # Care for the 2nd TracError standard keyword argument only.
+        show_traceback = tb in kwargs and kwargs.pop(tb, False)
+        super(RegistrationError, self).__init__(message, title, show_traceback)
+        self.msg_args = args
 
 
 class GenericRegistrationInspector(Component):
@@ -98,9 +109,9 @@ class BasicCheck(GenericRegistrationInspector):
                 else:
                     pretty_blacklist = tag(pretty_blacklist,
                                            ', \'', tag.b(c), '\'')
-            raise RegistrationError(tag(_(
-                "The username must not contain any of these characters:"),
-                tag.p(pretty_blacklist))
+            raise RegistrationError(N_(
+                "The username must not contain any of these characters: %s"),
+                tag.b(pretty_blacklist)
             )
 
         # All upper-cased names are reserved for permission action names.
@@ -112,8 +123,8 @@ class BasicCheck(GenericRegistrationInspector):
         # Prohibit some user names, that are important for Trac and therefor
         # reserved, even if not in the permission store for some reason.
         if username.lower() in ['anonymous', 'authenticated']:
-            raise RegistrationError(N_("Username %s is not allowed.")
-                                    % tag.b(username)
+            raise RegistrationError(N_("Username %s is not allowed."),
+                                    tag.b(username)
             )
 
         # NOTE: A user may exist in a password store but not in the permission
@@ -127,8 +138,8 @@ class BasicCheck(GenericRegistrationInspector):
             if store_user.lower() == username.lower():
                 raise RegistrationError(N_(
                     "Another account or group already exists, who's name "
-                    "differs from %s only by case or is identical.")
-                    % tag.b(username)
+                    "differs from %s only by case or is identical."),
+                    tag.b(username)
                 )
 
         # Password consistency checks follow.
@@ -264,8 +275,8 @@ class RegExpCheck(GenericRegistrationInspector):
         if self.username_regexp != "" and \
                 not re.match(self.username_regexp.strip(), username):
             raise RegistrationError(N_(
-                "Username %s doesn't match local naming policy.")
-                % tag.b(username)
+                "Username %s doesn't match local naming policy."),
+                tag.b(username)
             )
 
         email = req.args.get('email', '').strip()
@@ -307,8 +318,8 @@ class UsernamePermCheck(GenericRegistrationInspector):
             if perm_user.lower() == username.lower():
                 raise RegistrationError(N_(
                     "Another account or group already exists, who's name "
-                    "differs from %s only by case or is identical.")
-                    % tag.b(username)
+                    "differs from %s only by case or is identical."),
+                    tag.b(username)
                 )
 
 
@@ -379,7 +390,14 @@ class RegistrationModule(CommonTemplateProvider):
                 # Check request and prime account on success.
                 acctmgr.validate_registration(req)
             except RegistrationError, e:
-                chrome.add_warning(req, Markup(gettext(e.message)))
+                # Attempt deferred translation.
+                message = gettext(e.message)
+                # Check for (matching number of) message arguments before
+                #   attempting string substitution.
+                if e.msg_args and \
+                        len(e.msg_args) == len(re.findall('%s', message)):
+                    message = message % e.msg_args
+                chrome.add_warning(req, Markup(message))
             else:
                 if verify_enabled:
                     chrome.add_notice(req, Markup(tag.span(Markup(_(
