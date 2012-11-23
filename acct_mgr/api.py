@@ -163,8 +163,10 @@ class AccountManager(Component):
 
     _password_store = OrderedExtensionsOption(
         'account-manager', 'password_store', IPasswordStore,
-        include_missing=False)
-    _password_format = Option('account-manager', 'password_format')
+        include_missing=False,
+        doc = N_("Ordered list of password stores, queried in turn."))
+    _password_format = Option('account-manager', 'password_format',
+        doc="Legacy option, deprecated since acct_mgr-0.1.2")
     _register_check = OrderedExtensionsOption(
         'account-manager', 'register_check', IAccountRegistrationInspector,
         default="""BasicCheck, EmailCheck, BotTrapCheck, RegExpCheck,

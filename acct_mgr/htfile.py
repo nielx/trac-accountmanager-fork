@@ -34,9 +34,8 @@ class AbstractPasswordFileStore(Component):
 
     # DEVEL: This option is subject to removal after next major release.
     filename = EnvRelativePathOption('account-manager', 'password_file', '',
-        doc = N_("""Path relative to Trac environment or full host machine
-                path to password file - depreciated in favor of similar,
-                but store-specific options"""))
+        doc = """Path to password file - depreciated in favor of other, more
+              store-specific options""")
 
     def has_user(self, user):
         return user in self.get_users()
