@@ -10,7 +10,9 @@ acct_mgr-0.4 (not yet released) - branch 0.11
  * #8770: AttributeError: Cannot find implementation of "IPasswordHashMethod"
  * #8990: HtPasswdStore and SessionStore with HtPasswdHashMethod share option
    by adding dedicated options 'db_htpasswd_hash_type' and 'db_htdigest_realm'
+ * #9052: acct_mgr.web_ui.emailverificationmodule - Doesn't send email
  * #9079: PostgreSQL: Database error when creating new user with attributes
+ * #9090: AccountManager plugin does not email after user registration
  * #9139: SvnServePasswordStore and case sensitivity
  * #9246: InternalError when refresh_passwd = true
  * #9252: All session attributes are deleted when user logs in first time
