@@ -10,6 +10,7 @@
 # Author: Matthew Good <trac@matt-good.net>
 
 import inspect
+import re
 
 from genshi.builder     import tag
 from genshi.core        import Markup

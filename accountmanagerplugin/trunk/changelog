@@ -6,6 +6,9 @@ acct_mgr-0.4 (not yet released) - branch 0.11
  * #3459: Authentication information not available
  * #4677: Admin based chaining HtDigestStore & HtPasswdStore breaks config
    by adding dedicated options 'htdigest_file' and 'htpasswd_file'
+ * #5691: No cookie warning shown when trying to log in with Konqueror
+ * #6616: Invalid entries for usernames in table
+   by adding a cleaner macro implementation outside of `UserStatsMacro`
  * #8685: User deletion ordering breaks 'deleted' notification for SessionStore
  * #8770: AttributeError: Cannot find implementation of "IPasswordHashMethod"
  * #8990: HtPasswdStore and SessionStore with HtPasswdHashMethod share option
@@ -17,6 +20,8 @@ acct_mgr-0.4 (not yet released) - branch 0.11
  * #9246: InternalError when refresh_passwd = true
  * #9252: All session attributes are deleted when user logs in first time
  * #9547: Option `persistent_sessions` is not working in `0.4dev-r10747`
+ * #9843: New user missing in 'session' table.
+ * #9940: Admin unable to reset password
  * #10023: SQL Injection in acct_mgr.api.AccountManager.lastseen()
  * #10028: Account delete does not purge user's auth cookie
  * #10123: Registration with EmailVerification should instruct more clearly
@@ -40,6 +45,7 @@ acct_mgr-0.4 (not yet released) - branch 0.11
  * #9676: Incorporate optional Single-Sign-On functionality
  * #9852: Embed some user information in TracWiki
    by introducing WikiMacros `ProjectStats` and `UserQuery`
+ * #10142: Allow admin to override verification status
  * add recursion to option parser for configuration admin page and provide
    available valid values for an `ExtensionOption` like `IPasswordHashMethod`
    by a select field (dropdown box) - or meaningful message on missing options
