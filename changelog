@@ -31,6 +31,7 @@ acct_mgr-0.4 (not yet released) - branch 0.11
  * #10412: acct_mgr-0.4dev breaking 2.4 compatibility
  * #10594: Some options' docs are missing
  * #10625: AssertionError in trac.db.pool.PooledConnection.__del__
+ * #10644: Add a real license
  * do AccountManager class API cleanup by moving db access to model layer
  * prevent duplicate action entries in Trac core permission select box
 
