@@ -36,7 +36,7 @@ setup(
     url = 'http://trac-hacks.org/wiki/AccountManagerPlugin',
     description = 'User account management plugin for Trac',
 
-    license = 'THE BEER-WARE LICENSE',
+    license = 'BSD',
 
     packages=['acct_mgr'],
     package_data={
