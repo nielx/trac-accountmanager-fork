@@ -28,7 +28,7 @@ except ImportError:
 
 setup(
     name = 'TracAccountManager',
-    version = '0.4',
+    version = '0.5',
     author = 'Matthew Good',
     author_email = 'trac@matt-good.net',
     maintainer = 'Steffen Hoffmann',
