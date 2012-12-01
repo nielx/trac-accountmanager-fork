@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: TracAccountManager 0.4\n"
 "Report-Msgid-Bugs-To: hoff.st@shaas.net\n"
 "POT-Creation-Date: 2012-11-30 22:50+0100\n"
-"PO-Revision-Date: 2011-06-21 17:44+0900\n"
+"PO-Revision-Date: 2012-12-01 09:00+0000\n"
 "Last-Translator: Jun Omae <jun66j5@gmail.com>\n"
 "Language-Team: Japanese <trac-dev@googlegroups.com>\n"
 "Plural-Forms: nplurals=1; plural=0\n"
@@ -49,7 +49,6 @@ msgid ""
 msgstr "設定の読込中にエラー - ヒント: 必要なコンポーネントを有効/インストールしてください。"
 
 #: acct_mgr/admin.py:298
-#, fuzzy
 msgid "Password hash refresh procedure restarted."
 msgstr "パスワードリセットを実行しました。"
 
@@ -116,10 +115,9 @@ msgstr[0] "%(count)sアカウント"
 #, python-format
 msgid "%(count)s account attribute"
 msgid_plural "%(count)s account attributes"
-msgstr[0] "%(count)sアカウント属性"
+msgstr[0] "アカウント属性%(count)s件"
 
 #: acct_mgr/admin.py:619
-#, fuzzy
 msgid "Successfully deleted:"
 msgstr "正常に削除しました。"
 
@@ -138,7 +136,7 @@ msgstr "前のページ"
 
 #: acct_mgr/api.py:167
 msgid "Ordered list of password stores, queried in turn."
-msgstr ""
+msgstr "パスワードストアを指定します。この順に問い合わせを行います。"
 
 #: acct_mgr/api.py:238
 #, python-format
@@ -157,7 +155,6 @@ msgid ""
 msgstr "パスワードの設定やユーザ作成をサポートする IPasswordStore コンポーネントを trac.ini に指定していません。"
 
 #: acct_mgr/db.py:23
-#, fuzzy
 msgid "IPasswordHashMethod used to create new/updated passwords"
 msgstr "パスワードの作成と更新を行うのに IPasswordHashMethod を使います"
 
@@ -183,7 +180,7 @@ msgstr ""
 msgid ""
 "Path relative to Trac environment or full host machine\n"
 "                path to password file"
-msgstr "パスワードファイルへのパスを Trac Environment からの相対パス、もしくはフルパスで指定します"
+msgstr "パスワードファイルへのパスを Trac 環境からの相対パス、もしくはフルパスで指定します"
 
 #: acct_mgr/htfile.py:201 acct_mgr/pwhash.py:42
 msgid "Default hash type of new/updated passwords"
@@ -211,7 +208,6 @@ msgid "Notification"
 msgstr "通知機能"
 
 #: acct_mgr/pwhash.py:58
-#, fuzzy
 msgid "Realm to select relevant htdigest db entries"
 msgstr "htdigest エントリに関連付けるレルムを指定します"
 
@@ -246,7 +242,7 @@ msgstr "ユーザ名にはこれらの文字は使えません: %s"
 
 #: acct_mgr/register.py:119
 msgid "A username with only upper-cased characters is not allowed."
-msgstr ""
+msgstr "大文字のみのユーザ名は許可していません。"
 
 #: acct_mgr/register.py:126
 #, python-format
@@ -258,9 +254,7 @@ msgstr "ユーザ名 %s は使用できません。"
 msgid ""
 "Another account or group already exists, who's name differs from %s only "
 "by case or is identical."
-msgstr ""
-"\n"
-"名前が %s と大文字小文字だけが違うか一致しているアカウントまたはグループが存在します。"
+msgstr "名前が %s と大文字小文字だけが違うか一致しているアカウントまたはグループが存在します。"
 
 #: acct_mgr/register.py:148 acct_mgr/web_ui.py:223 acct_mgr/web_ui.py:240
 msgid "Password cannot be empty."
@@ -271,19 +265,19 @@ msgstr "パスワードは空にできません。"
 msgid ""
 "Please type [%(token)s] as verification token,\n"
 "                exactly replicating everything within the braces."
-msgstr ""
+msgstr "確認コードに [%(token)s] の括弧の内側にあるものすべて正確に入力してください。"
 
 #: acct_mgr/register.py:174
 msgid "Parole:"
-msgstr ""
+msgstr "合言葉:"
 
 #: acct_mgr/register.py:184
 msgid "Better do not fill this field."
-msgstr ""
+msgstr "この項目に入力しないようにしてください。"
 
 #: acct_mgr/register.py:195
 msgid "Are you human? If so, try harder!"
-msgstr ""
+msgstr "人間さんですか? もうちょっとやってみて!"
 
 #: acct_mgr/register.py:209
 msgid "Email:"
@@ -291,7 +285,6 @@ msgstr "メールアドレス:"
 
 #. TRANSLATOR: Registration form hints for a mandatory input field.
 #: acct_mgr/register.py:220
-#, fuzzy
 msgid ""
 "The email address is required for Trac to send\n"
 "                           you a verification token."
@@ -301,7 +294,7 @@ msgstr "確認用コードを送信するためにメールアドレスが必要
 msgid ""
 "Entering your email address will also enable you\n"
 "                           to reset your password if you ever forget it."
-msgstr "パスワードを忘れてしまっても、メールアドレスを入力しておくとパスワードをリセットすることができます。"
+msgstr "パスワードを忘れてしまっても、メールアドレスも入力しておくとパスワードをリセットすることができます。"
 
 #. TRANSLATOR: Registration form hint, if email input is optional.
 #: acct_mgr/register.py:231
@@ -315,29 +308,21 @@ msgid "You must specify a valid email address."
 msgstr "有効なメールアドレスを指定してください。"
 
 #: acct_mgr/register.py:250
-#, fuzzy
 msgid ""
 "The email address specified is already in use. Please specify a different"
 " one."
-msgstr ""
-"このメールアドレスはすでに使用しています。\n"
-"別のメールアドレスを指定してください。"
+msgstr "このメールアドレスはすでに使用されています。別のメールアドレスを指定してください。"
 
 #: acct_mgr/register.py:277
 #, python-format
 msgid "Username %s doesn't match local naming policy."
-msgstr ""
-"\n"
-"ユーザ名 %s がローカルの名前付けポリシーに合っていません。"
+msgstr "ユーザ名 %s がローカルの名前付けポリシーに合っていません。"
 
 #: acct_mgr/register.py:287
-#, fuzzy
 msgid ""
 "The email address specified appears to be invalid. Please specify a valid"
 " email address."
-msgstr ""
-"正しくないメールアドレスを指定しています。\n"
-"正しいメールアドレスを指定してください。"
+msgstr "正しくないメールアドレスを指定しています。正しいメールアドレスを指定してください。"
 
 #: acct_mgr/register.py:364 acct_mgr/templates/login.html:58
 #: acct_mgr/templates/login.html:61 acct_mgr/templates/register.html:14
@@ -354,7 +339,7 @@ msgid ""
 msgstr "ユーザ名を正常に登録しましたがまだアクティベーションが必要です。ユーザ %(user)s でログインを行って指示に従ってください。"
 
 #: acct_mgr/register.py:413
-#, fuzzy, python-format
+#, python-format
 msgid ""
 "Registration has been finished successfully.\n"
 "                     You may log in as user %(user)s now."
@@ -587,7 +572,7 @@ msgstr "したがって、このアカウントに対するログイン試行は
 
 #: acct_mgr/templates/account_details.html:101
 msgid "Lock condition has not been met yet."
-msgstr "まだロック条件を満たしたことがありません。"
+msgstr "まだロック条件を満たしたことはありません。"
 
 #: acct_mgr/templates/account_details.html:107
 msgid "No constraints are set for this account."
@@ -665,7 +650,6 @@ msgstr "現在、ログがのこっている失敗ログインはありません
 
 #: acct_mgr/templates/account_details.html:182
 #: acct_mgr/templates/db_cleanup.html:125
-#, fuzzy
 msgid "Back to accounts"
 msgstr "アカウントページに戻る"
 
@@ -702,7 +686,6 @@ msgid ""
 msgstr "「ログインを記憶する」機能を使えるようにする。"
 
 #: acct_mgr/templates/admin_accountsconfig.html:81
-#, fuzzy
 msgid ""
 "This is, user checks a \"Remember Me\"\n"
 "          [1:checkbox] and, next time he visits the site within\n"
@@ -820,7 +803,6 @@ msgid "Email Address:"
 msgstr "メールアドレス:"
 
 #: acct_mgr/templates/admin_users.html:67
-#, fuzzy
 msgid "Skip new email verification"
 msgstr "メールアドレスの確認を省略する"
 
@@ -841,7 +823,6 @@ msgid "This password store does not support listing users."
 msgstr "パスワードストアはユーザの列挙をサポートしていません。"
 
 #: acct_mgr/templates/admin_users.html:91
-#, fuzzy
 msgid "Send another random password"
 msgstr "別のランダムなパスワードを送信"
 
@@ -881,17 +862,14 @@ msgid "Value"
 msgstr "値"
 
 #: acct_mgr/templates/db_cleanup.html:63
-#, fuzzy
 msgid "Not Authenticated Accounts"
 msgstr "非認証アカウント"
 
 #: acct_mgr/templates/db_cleanup.html:90
-#, fuzzy
 msgid "Authenticated Accounts"
 msgstr "認証済みアカウント"
 
 #: acct_mgr/templates/db_cleanup.html:121
-#, fuzzy
 msgid "Remove selected entries"
 msgstr "選択した項目を削除"
 
