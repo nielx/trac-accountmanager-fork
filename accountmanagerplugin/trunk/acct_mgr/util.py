@@ -2,6 +2,7 @@
 #
 # Copyright (C) 2005 Matthew Good <trac@matt-good.net>
 # Copyright (C) 2010-2012 Steffen Hoffmann <hoff.st@web.de>
+# Copyright (C) 2011 Edgewall Software
 # All rights reserved.
 #
 # This software is licensed as described in the file COPYING, which
@@ -10,6 +11,7 @@
 # Author: Matthew Good <trac@matt-good.net>
 
 import os
+import sys
 
 from genshi.builder import tag
 
@@ -18,6 +20,41 @@ from trac.util.datefmt import format_datetime, pretty_timedelta
 from trac.web.chrome import Chrome
 
 from acct_mgr.api import _
+
+
+# Fix for issue http://bugs.python.org/issue8797 in Python 2.6
+# following Bitten changeset 974.
+if sys.version_info[:2] == (2, 6):
+    import urllib2
+    import base64
+
+    class HTTPBasicAuthHandler(urllib2.HTTPBasicAuthHandler):
+        """Patched version of Python 2.6's HTTPBasicAuthHandler.
+        
+        The fix for [1]_ introduced an infinite recursion bug [2]_ into
+        Python 2.6.x that is triggered by attempting to connect using
+        Basic authentication with a bad username and/or password. This
+        class fixes the problem using the simple solution outlined in [3]_.
+        
+        .. [1] http://bugs.python.org/issue3819
+        .. [2] http://bugs.python.org/issue8797
+        .. [3] http://bugs.python.org/issue8797#msg126657
+        """
+
+        def retry_http_basic_auth(self, host, req, realm):
+            user, pw = self.passwd.find_user_password(realm, host)
+            if pw is not None:
+                raw = "%s:%s" % (user, pw)
+                auth = 'Basic %s' % base64.b64encode(raw).strip()
+                if req.get_header(self.auth_header, None) == auth:
+                    return None
+                req.add_unredirected_header(self.auth_header, auth)
+                return self.parent.open(req, timeout=req.timeout)
+            else:
+                return None
+
+else:
+    from urllib2 import HTTPBasicAuthHandler
 
 
 class EnvRelativePathOption(Option):

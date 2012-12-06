@@ -9,8 +9,8 @@
 #
 # Author: Matthew Good <trac@matt-good.net>
 
-from urllib2 import build_opener, HTTPBasicAuthHandler, \
-                    HTTPDigestAuthHandler, HTTPPasswordMgrWithDefaultRealm
+from urllib2 import build_opener, HTTPDigestAuthHandler, \
+                    HTTPPasswordMgrWithDefaultRealm
 from urlparse import urlparse
 
 from trac.core import Component, implements
@@ -18,6 +18,7 @@ from trac.config import Option
 from trac.web.href import Href
 
 from acct_mgr.api import IPasswordStore, _, N_
+from acct_mgr.util import HTTPBasicAuthHandler
 
 
 class HttpAuthStore(Component):
