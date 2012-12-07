@@ -81,11 +81,10 @@ def fetch_user_data(env, req):
                 account['email'] = Chrome(env).format_author(req,
                                                              account['email'])
     ts_seen = last_seen(env)
-    if ts_seen is not None:
-        for username, last_visit in ts_seen:
-            account = accounts.get(username)
-            if account and last_visit:
-                account['last_visit'] = to_datetime(last_visit)
+    for username, last_visit in ts_seen:
+        account = accounts.get(username)
+        if account and last_visit:
+            account['last_visit'] = to_datetime(last_visit)
     return sorted(accounts.itervalues(), key=lambda acct: acct['username'])
 
 def _getoptions(cls):
@@ -501,7 +500,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                     data['email'] = email
                 break
         ts_seen = last_seen(self.env, username)
-        if ts_seen is not None:
+        if ts_seen:
             data['last_visit'] = format_datetime(ts_seen[0][1], tzinfo=req.tz)
 
         attempts = []
