@@ -101,6 +101,58 @@
           Force users to verify their email addresses.</label>
       </fieldset>
 
+      <fieldset>
+        <legend>Account guard</legend>
+        <p>
+          <label>
+            Failed login attempt count max:
+            <input class="textwidget" type="text"
+                   name="login_attempt_max_count"
+                   value="$login_attempt_max_count" />
+            <p class="help">
+              Lock user account after specified number of failed attempts.
+              Value zero means no limit.
+            </p>
+          </label>
+        </p>
+        <p py:if="login_attempt_max_count">
+          <label i18n:msg="">
+            Drop lock after
+            <input class="textwidget" type="text" name="user_lock_time"
+                   value="$user_lock_time" />
+            seconds (0 = unlimited lock time)
+          </label>
+        </p>
+        <p py:if="login_attempt_max_count and user_lock_time">
+          <label>
+            Lock time progression factor:
+            <input class="textwidget" type="text"
+                   name="user_lock_time_progression"
+                   value="$user_lock_time_progression" />
+            <p class="help">
+              Extend user account lock time incrementally. This is
+              based on logarithmic calculation and decimal numbers accepted:
+              Value '1' means constant lock time per failed login attempt.
+              Value '2' means double locktime after 2nd lock activation,
+              four times the initial locktime after 3rd, and so on.
+            </p>
+          </label>
+          <p>
+            <label i18n:msg="">
+              Upper lock time limit:
+              <input class="textwidget" type="text" name="user_lock_max_time"
+                     value="$user_lock_max_time"
+                     disabled="${float(user_lock_time_progression) == 1 and
+                                 'disabled' or None}"/>
+              seconds
+              <p class="help">
+                This is relevant only with a lock time progression factor > 1.
+              </p>
+            </label>
+          </p>
+        </p>
+      </fieldset>
+
       <div class="buttons">
         <input type="submit" name="save"
           value="${dgettext('acct_mgr', 'Save')}" />

@@ -229,6 +229,28 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                             req.args.get('verify_email', False))
             self.config.set('account-manager', 'refresh_passwd',
                             req.args.get('refresh_passwd', False))
+            self.config.set('account-manager', 'login_attempt_max_count',
+                            as_int(req.args.get('login_attempt_max_count'),
+                            self.guard.login_attempt_max_count, min=0))
+            user_lock_time = as_int(req.args.get('user_lock_time'),
+                                    self.guard.user_lock_time, min=0)
+            progress_factor = req.args.get('user_lock_time_progression')
+            try:
+                progress_factor = float(progress_factor)
+                if progress_factor == int(progress_factor):
+                    progress_factor = int(progress_factor)
+                # Prevent unintended decreasing lock time.
+                if progress_factor < 1:
+                    progress_factor = 1
+            except (TypeError, ValueError):
+                progress_factor = self.guard.user_lock_time_progression
+            self.config.set('account-manager', 'user_lock_time',
+                            user_lock_time)
+            self.config.set('account-manager', 'user_lock_time_progression',
+                            progress_factor)
+            self.config.set('account-manager', 'user_lock_max_time',
+                            as_int(req.args.get('user_lock_max_time'),
+                            self.guard.user_lock_max_time, min=user_lock_time))
             self.config.save()
         sections = []
         for store in self.acctmgr.stores:
@@ -291,6 +313,10 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
             'persistent_sessions': self.acctmgr.persistent_sessions,
             'verify_email': self.acctmgr.verify_email,
             'refresh_passwd': self.acctmgr.refresh_passwd,
+            'login_attempt_max_count': self.guard.login_attempt_max_count,
+            'user_lock_time': self.guard.user_lock_time,
+            'user_lock_max_time': self.guard.user_lock_max_time,
+            'user_lock_time_progression': self.guard.user_lock_time_progression
             }
         result = req.args.get('done')
         if result == 'restart':
