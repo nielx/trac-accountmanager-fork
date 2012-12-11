@@ -37,7 +37,7 @@ class _BaseTestCase(unittest.TestCase):
                        [('a', 'a'),
                         ('b', 'b'),
                         ('c', 'c')])
-        self.assertEqual(['a', 'b', 'c'], list(self.store.get_users()))
+        self.assertEqual(set(['a', 'b', 'c']), set(self.store.get_users()))
 
     def test_has_user(self):
         db = self.env.get_db_cnx()
