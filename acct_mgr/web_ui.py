@@ -601,7 +601,7 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
         # And finally revoke distributed authentication data too.
         if trac_auth:
             for path in self.auth_share_participants:
-                env = open_environment(path)
+                env = open_environment(path, use_cache=True)
                 db = env.get_db_cnx()
                 cursor = db.cursor()
                 cursor.execute("""
@@ -611,7 +611,6 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
                 db.commit()
                 env.log.debug('Auth data revoked from: ' + \
                               req.environ.get('SCRIPT_NAME', 'unknown'))
-                env.shutdown()
 
     # Keep this code in a separate methode to be able to expire the session
     # cookie trac_auth_session independently of the trac_auth cookie.
