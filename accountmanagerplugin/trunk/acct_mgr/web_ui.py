@@ -187,12 +187,10 @@ class AccountModule(CommonTemplateProvider):
             return {'error': _("Email is required")}
         for username_, name, email_ in self.env.get_known_users():
             if username_ == username and email_ == email:
-                self._reset_password(username, email)
-                break
-        else:
-            return {'error': _(
-                "The email and username must match a known account.")}
-        return {'sent_to_email': email}
+                error = self._reset_password(username, email)
+                return error and error or {'sent_to_email': email}
+        return {'error': _(
+            "The email and username must match a known account.")}
 
     def _reset_password(self, username, email):
         acctmgr = self.acctmgr

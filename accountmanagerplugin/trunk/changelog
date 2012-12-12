@@ -13,6 +13,7 @@ acct_mgr-0.4.1 (not yet released) - branch 0.11
  resolved issues
  * #10134: HttpAuth login throws traceback
  * #10625: AssertionError in trac.db.pool.PooledConnection.__del__
+ * #10700: AccountModule._do_reset_password discards error from _reset_password
 
 
 acct_mgr-0.4 (01-Dec-2012) - branch 0.11
