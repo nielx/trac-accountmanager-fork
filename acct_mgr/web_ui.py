@@ -50,6 +50,8 @@ class AccountModule(CommonTemplateProvider):
     Allows users to change their password, reset their password, if they've
     forgotten it, even delete their account.  The settings for the
     AccountManager module must be set in trac.ini in order to use this.
+    Password reset procedure depends on both, ResetPwStore and an
+    IPasswordHashMethod implementation being enabled as well.
     """
 
     implements(IPreferencePanelProvider, IRequestHandler,
@@ -73,8 +75,8 @@ class AccountModule(CommonTemplateProvider):
     def _write_check(self, log=False):
         writable = self.acctmgr.get_all_supporting_stores('set_password')
         if not writable and log:
-            self.log.warn('AccountModule is disabled because the password '
-                          'store does not support writing.')
+            self.log.warn("AccountModule is disabled because the password "
+                          "store does not support writing.")
         return writable
 
     # IPreferencePanelProvider methods
@@ -139,7 +141,9 @@ class AccountModule(CommonTemplateProvider):
 
     def _reset_password_enabled(self, log=False):
         return is_enabled(self.env, self.__class__) and \
-               self.reset_password and (self._write_check(log) != [])
+               self.reset_password and (self._write_check(log) != []) and \
+               is_enabled(self.env, self.store.__class__) and \
+               self.store.hash_method
 
     reset_password_enabled = property(_reset_password_enabled)
 
