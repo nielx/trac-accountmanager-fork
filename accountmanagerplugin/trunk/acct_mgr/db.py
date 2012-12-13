@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2007 Matthew Good <trac@matt-good.net>
+# Copyright (C) 2010-2012 Steffen Hoffmann <hoff.st@web.de>
 # All rights reserved.
 #
 # This software is licensed as described in the file COPYING, which
@@ -24,6 +25,8 @@ class SessionStore(Component):
 
     def __init__(self):
         self.key = 'password'
+        # Check for valid hash method configuration.
+        self.hash_method_enabled
 
     def get_users(self):
         """Returns an iterable of the known usernames."""
@@ -59,6 +62,8 @@ class SessionStore(Component):
         Returns True, if a new account was created, and False,
         if an existing account was updated.
         """
+        if not self.hash_method_enabled:
+            return
         hash = self.hash_method.generate_hash(user, password)
         db = self.env.get_db_cnx()
         cursor = db.cursor()
@@ -87,6 +92,8 @@ class SessionStore(Component):
 
     def check_password(self, user, password):
         """Checks if the password is valid for the user."""
+        if not self.hash_method_enabled:
+            return
         db = self.env.get_db_cnx()
         cursor = db.cursor()
         cursor.execute("""
@@ -98,7 +105,8 @@ class SessionStore(Component):
             """, (self.key, user))
         for hash, in cursor:
             return self.hash_method.check_hash(user, password, hash)
-        return None
+        # Return value 'None' allows to proceed with another, chained store.
+        return
 
     def delete_user(self, user):
         """Deletes the user account.
@@ -125,3 +133,13 @@ class SessionStore(Component):
                 """ + sql, (self.key, user))
             db.commit()
         return exists
+
+    @property
+    def hash_method_enabled(self):
+        try:
+            hash_method = self.hash_method
+        except AttributeError:
+            self.env.log.error("%s: no IPasswordHashMethod enabled "
+                               "- fatal, can't work" % self.__class__)
+            return
+        return True
