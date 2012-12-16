@@ -270,6 +270,11 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
         likelihood in percent per work hour given here (zero equals to never)
         to decrease vulnerability of long-lasting sessions.""")
 
+    environ_auth_overwrite = BoolOption(
+        'account-manager', 'environ_auth_overwrite', True,
+        """Whether environment variable REMOTE_USER should get overwritten after processing login
+        form input. Otherwise it will only be set, if unset at the time of authentication.""")
+
     # Update cookies for persistant sessions only 1/day.
     #   hex_entropy returns 32 chars per call equal to 128 bit of entropy,
     #   so it should be technically impossible to explore the hash even within
@@ -298,40 +303,40 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
         self.auth_share_participants = []
 
     def authenticate(self, req):
-        if req.method == 'POST' and req.path_info.startswith('/login'):
+        if req.method == 'POST' and req.path_info.startswith('/login') and \
+                req.args.get('user_locked') is None:
             user = self._remote_user(req)
             acctmgr = AccountManager(self.env)
             guard = AccountGuard(self.env)
             if guard.login_attempt_max_count > 0:
                 if user is None:
-                    if req.args.get('user_locked') is None:
-                        # get user for failed authentication attempt
-                        f_user = req.args.get('user')
-                        req.args['user_locked'] = False
-                        if user_known(self.env, f_user):
-                            if guard.user_locked(f_user) is False:
-                                # log current failed login attempt
-                                guard.failed_count(f_user, req.remote_addr)
-                                if guard.user_locked(f_user) is True:
-                                    # step up lock time prolongation
-                                    # only when just triggering the lock
-                                    guard.lock_count(f_user, 'up')
-                                    req.args['user_locked'] = True
-                            else:
-                                # enforce lock
-                                req.args['user_locked'] = True
-                else:
-                    if guard.user_locked(user) is not False:
+                    # Get user for failed authentication attempt.
+                    f_user = req.args.get('user')
+                    req.args['user_locked'] = False
+                    # Log current failed login attempt.
+                    guard.failed_count(f_user, req.remote_addr)
+                    if guard.user_locked(f_user):
+                        # Step up lock time prolongation only while locked.
+                        guard.lock_count(f_user, 'up')
                         req.args['user_locked'] = True
-                        # void successful login as long as user is locked
-                        user = None
-                    else:
-                        req.args['user_locked'] = False
-                        if req.args.get('failed_logins') is None:
-                            # Reset failed login attempts counter
-                            req.args['failed_logins'] = guard.failed_count(
-                                                         user, reset = True)
-            if 'REMOTE_USER' not in req.environ:
+                elif guard.user_locked(user):
+                    req.args['user_locked'] = True
+                    # Void successful login as long as user is locked.
+                    user = None
+                else:
+                    req.args['user_locked'] = False
+                    if req.args.get('failed_logins') is None:
+                        # Reset failed login attempts counter.
+                        req.args['failed_logins'] = guard.failed_count(user,
+                                                                 reset=True)
+            else:
+                req.args['user_locked'] = False
+            if not 'REMOTE_USER' in req.environ or self.environ_auth_overwrite:
+                if 'REMOTE_USER' in req.environ:
+                    # Complain about another component setting authenticated user.
+                    self.env.log.warn("LoginModule.authenticate: 'REMOTE_USER' was set to '%s'"
+                                      % req.environ['REMOTE_USER'])
+                self.env.log.debug("LoginModule.authenticate: Setting 'REMOTE_USER' to '%s'" % user)
                 req.environ['REMOTE_USER'] = user
         return auth.LoginModule.authenticate(self, req)
 
@@ -638,6 +643,7 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
     def _remote_user(self, req):
         """The real authentication using configured providers and stores."""
         user = req.args.get('user')
+        self.env.log.debug("LoginModule._remote_user: Authentication attempted for '%s'" % user)
         password = req.args.get('password')
         if not user or not password:
             return None
