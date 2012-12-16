@@ -11,6 +11,11 @@ acct_mgr-0.5 (not yet released) - branch 0.11
 
 acct_mgr-0.4.1 (not yet released) - branch 0.11
  resolved issues
+ * #5964: Prevent multiple calls to LoginModule._remote_user()
+   by re-using a flag introduced for account locking
+ * #8545: Authentication always fails
+   by introducing authentication attempt debug logging and a new option
+   'environ_auth_overwrite' for additional control over REMOTE_USER's value
  * #10134: HttpAuth login throws traceback
  * #10625: AssertionError in trac.db.pool.PooledConnection.__del__
  * #10700: AccountModule._do_reset_password discards error from _reset_password
@@ -114,7 +119,6 @@ acct_mgr-0.3 (07-Jul-2011) - branch 0.11
  * #4040: TracError instance has no attribute 'acctmgr' on new user creation
  * #4160: Password reset oddness with multiple projects config
  * #5247: Stack trace escapes to user when htdigest file is not writeable
- * #5964: Prevent multiple calls to LoginModule._remote_user()
  * #6821: Register and 'Forgot your password?' links can no longer be enabled
  * #7850: Error after upgrade from 0.11 to trunk version
  * #7863: Syntax error found when building egg
