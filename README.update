@@ -4,8 +4,16 @@ reminding of changes with potentially disruptive effect to existing
 installations.
 
 It goes back as far as release acct_mgr-0.2.  If you are upgrading from an
-even earlier release, it is most probably best to start again from a default
-configuration.
+even earlier release, start from a default configuration, please.
+Many valuable hints on AccountManager configuration are compiled into
+http://trac-hacks.org/wiki/CookBook/AccountManagerPluginConfiguration
+
+
+Upgrading acct_mgr-0.4 -> 0.4.1
+-------------------------------
+Run `python ./contrib/fix-session_attribute-failed_logins.py <env>` on any
+Trac environment, that had account locking enabled with time constraints
+before.  This is a one-time task, but running it multiple times does no harm.
 
 
 Upgrading acct_mgr-0.3.2 -> 0.4

@@ -82,8 +82,7 @@ class AccountGuardTestCase(unittest.TestCase):
         ipnr = '127.0.0.1'
 
         # Won't track anonymous sessions and unknown accounts/users.
-        # DEVEL: Not implemented yet.
-        #self.assertEqual(self.guard.failed_count(None, ipnr), 0)
+        self.assertEqual(self.guard.failed_count(None, ipnr), 0)
 
         # Regular account without failed attempts logged.
         user = self.user
@@ -119,15 +118,15 @@ class AccountGuardTestCase(unittest.TestCase):
         self.assertEqual(self.guard.lock_time(user), 0)
         self._mock_failed_attempt(5)
         # Fixed lock time, no progression, with default configuration values.
-        self.assertEqual(self.guard.lock_time(user), 30 * 1000000)
+        self.assertEqual(self.guard.lock_time(user), 30)
 
         # Preview calculation.
-        self.assertEqual(self.guard.lock_time(user, True), 30000000)
+        self.assertEqual(self.guard.lock_time(user, True), 30)
         # Progression with base 3.
         self.env.config.set('account-manager', 'user_lock_time_progression', 3)
-        self.assertEqual(self.guard.lock_time(user, True), 30000000 * 3 ** 5)
+        self.assertEqual(self.guard.lock_time(user, True), 30 * 3 ** 5)
         self.env.config.set('account-manager', 'user_lock_max_time', 1800)
-        self.assertEqual(self.guard.lock_time(user, True), 1800 * 1000000)
+        self.assertEqual(self.guard.lock_time(user, True), 1800)
 
     def test_release_time(self):
         lock_time = 30
@@ -141,32 +140,32 @@ class AccountGuardTestCase(unittest.TestCase):
         user = self.user
         self.assertEqual(self.guard.release_time(user), None)
         # Account with failed attempts logged.
-        release_ts = self._mock_failed_attempt() + lock_time * 1000000
+        release_ts = self._mock_failed_attempt() + lock_time
         self.assertEqual(self.guard.release_time(user), release_ts)
-        release_ts = self._mock_failed_attempt() + lock_time * 1000000
+        release_ts = self._mock_failed_attempt() + lock_time
         self.assertEqual(self.guard.release_time(user), release_ts)
 
         # Permanently locked account.
         self.env.config.set('account-manager', 'user_lock_time', 0)
-        # DEVEL: Not implemented yet.
-        #self.assertEqual(self.guard.release_time(user), None)
+        self.assertEqual(self.guard.release_time(user), 0)
 
         # Result with locking disabled.
         self.env.config.set('account-manager', 'login_attempt_max_count', 0)
         self.env.config.set('account-manager', 'user_lock_time', 30)
-        # DEVEL: Not implemented yet.
-        #self.assertEqual(self.guard.release_time(user), None)
+        self.assertEqual(self.guard.release_time(user), None)
 
     def test_user_locked(self):
         # Won't track anonymous sessions and unknown accounts/users.
         for user in [None, 'anonymous']:
-            self.assertEqual(self.guard.user_locked(user), False)
+            self.assertEqual(self.guard.user_locked(user), None)
         # Regular account without failed attempts logged.
         user = self.user
         self.assertEqual(self.guard.user_locked(user), False)
 
         # Permanently locked account.
         self._mock_failed_attempt()
+        print self.env.config.getint('account-manager', 'user_lock_time')
+        print self.guard.release_time(user)
         self.assertEqual(self.guard.user_locked(user), True)
         # Result with locking disabled.
         self.env.config.set('account-manager', 'login_attempt_max_count', 0)

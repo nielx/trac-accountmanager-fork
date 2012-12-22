@@ -161,6 +161,6 @@ def pretty_precise_timedelta(time1, time2=None, resolution=None, diff=0):
         t = format_datetime(age_s - age_d * 86400, format='%X', tzinfo=utc)
         if age_d == 0:
             return t
-    t = t and " %s" % t or ''
     # TRANSLATOR: Pretty datetime representation, time part provided by string substitution.
-    return ngettext("%%(num)i day%s" % t, "%%(num)i days%s" % t, age_d)
+    return (ngettext("%(num)i day %%s", "%(num)i days %%s", age_d)
+            % (str(t) != '0' and t or '')).rstrip()

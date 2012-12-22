@@ -111,7 +111,7 @@
                    value="$login_attempt_max_count" />
             <p class="help">
               Lock user account after specified number of failed attempts.
-              Value zero means no limit.
+              Value zero means 'no limit'.
             </p>
           </label>
         </p>
@@ -144,7 +144,7 @@
                      value="$user_lock_max_time"
                      title="${pretty_precise_timedelta(None,
                                                    diff=user_lock_max_time)}"
-                     disabled="${float(user_lock_time_progression) == 1 and
+                     disabled="${user_lock_time_progression == 1 and
                                  'disabled' or None}"/>
               seconds
               <p class="help">

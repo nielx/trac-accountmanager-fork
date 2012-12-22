@@ -235,20 +235,12 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                             self.guard.login_attempt_max_count, min=0))
             user_lock_time = as_int(req.args.get('user_lock_time'),
                                     self.guard.user_lock_time, min=0)
-            progress_factor = req.args.get('user_lock_time_progression')
-            try:
-                progress_factor = float(progress_factor)
-                if progress_factor == int(progress_factor):
-                    progress_factor = int(progress_factor)
-                # Prevent unintended decreasing lock time.
-                if progress_factor < 1:
-                    progress_factor = 1
-            except (TypeError, ValueError):
-                progress_factor = self.guard.user_lock_time_progression
             self.config.set('account-manager', 'user_lock_time',
                             user_lock_time)
+            # Hint: AccountGuard.lock_time_progression has the sanitized value.
             self.config.set('account-manager', 'user_lock_time_progression',
-                            progress_factor)
+                            req.args.get('user_lock_time_progression') or \
+                            self.guard.lock_time_progression)
             self.config.set('account-manager', 'user_lock_max_time',
                             as_int(req.args.get('user_lock_max_time'),
                             self.guard.user_lock_max_time, min=user_lock_time))
@@ -318,7 +310,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
             'login_attempt_max_count': self.guard.login_attempt_max_count,
             'user_lock_time': self.guard.user_lock_time,
             'user_lock_max_time': self.guard.user_lock_max_time,
-            'user_lock_time_progression': self.guard.user_lock_time_progression
+            'user_lock_time_progression': self.guard.lock_time_progression
             }
         result = req.args.get('done')
         if result == 'restart':
