@@ -17,10 +17,11 @@ except ImportError:
     INCLUDE_FUNCTIONAL_TESTS = False
 
 def suite():
-    from acct_mgr.tests import api, db, htfile, model, register, util
+    from acct_mgr.tests import api, db, guard, htfile, model, register, util
     suite = unittest.TestSuite()
     suite.addTest(api.suite())
     suite.addTest(db.suite())
+    suite.addTest(guard.suite())
     suite.addTest(htfile.suite())
     suite.addTest(model.suite())
     suite.addTest(register.suite())
