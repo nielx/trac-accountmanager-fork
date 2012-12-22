@@ -17,9 +17,10 @@ from genshi.builder import tag
 
 from trac.config import Option
 from trac.util.datefmt import format_datetime, pretty_timedelta
+from trac.util.datefmt import to_datetime, utc
 from trac.web.chrome import Chrome
 
-from acct_mgr.api import _
+from acct_mgr.api import _, ngettext
 
 
 # Fix for issue http://bugs.python.org/issue8797 in Python 2.6
@@ -121,3 +122,45 @@ def get_pretty_dateinfo(env, req):
                 title = absolute
             return tag.span(label, title=title)
     return fn and fn or _pretty_dateinfo
+
+def pretty_precise_timedelta(time1, time2=None, resolution=None, diff=0):
+    """Calculate time delta between two `datetime` objects and format
+    for prettyprinting.
+
+    If either `time1` or `time2` is None, the current time will be used
+    instead.  Extending the signature of trac.util.datefmt.pretty_timedelta
+    pre-calculated timedeltas may be specified by the alternative `diff`
+    keyword argument that takes precedence if used.
+    """
+    if diff:
+        age_s = diff
+    else:
+        time1 = to_datetime(time1)
+        time2 = to_datetime(time2)
+        if time1 > time2:
+            time2, time1 = time1, time2
+        diff = time2 - time1
+        age_s = int(diff.days * 86400 + diff.seconds)
+    age_d = age_s // 86400
+
+    # DEVEL: Always reduce resolution as required by `resolution` argument.
+    if resolution:
+        if age_s < resolution:
+            return _("less than %s"
+                     % pretty_precise_timedelta(None, diff=resolution))
+    # Get a compact string by stripping non-significant parts.
+    if age_s == 0:
+        return ''
+    # Show seconds for small time values, even in timedeltas > 1 day.
+    t = age_s - age_d * 86400
+    if t > 0 and t < 120:
+        t = ngettext('%(num)i second', '%(num)i seconds', t)
+        if age_d == 0:
+            return t
+    elif age_d != age_s / 86400.0:
+        t = format_datetime(age_s - age_d * 86400, format='%X', tzinfo=utc)
+        if age_d == 0:
+            return t
+    t = t and " %s" % t or ''
+    # TRANSLATOR: Pretty datetime representation, time part provided by string substitution.
+    return ngettext("%%(num)i day%s" % t, "%%(num)i days%s" % t, age_d)

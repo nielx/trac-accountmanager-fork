@@ -32,7 +32,8 @@ from acct_mgr.model     import del_user_attribute, email_verified, \
                                set_user_attribute
 from acct_mgr.register  import EmailVerificationModule, RegistrationError
 from acct_mgr.web_ui    import AccountModule
-from acct_mgr.util      import is_enabled, get_pretty_dateinfo
+from acct_mgr.util      import is_enabled, get_pretty_dateinfo, \
+                               pretty_precise_timedelta
 
 try:
     from trac.util  import as_int
@@ -307,6 +308,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
         numstores = range(0, stores.numstores() + 1)
         data = {
             '_dgettext': dgettext,
+            'pretty_precise_timedelta': pretty_precise_timedelta,
             'sections': sections,
             'numstores': numstores,
             'force_passwd_change': self.acctmgr.force_passwd_change,
