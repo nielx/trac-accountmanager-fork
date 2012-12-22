@@ -142,6 +142,8 @@
               Upper lock time limit:
               <input class="textwidget" type="text" name="user_lock_max_time"
                      value="$user_lock_max_time"
+                     title="${pretty_precise_timedelta(None,
+                                                   diff=user_lock_max_time)}"
                      disabled="${float(user_lock_time_progression) == 1 and
                                  'disabled' or None}"/>
               seconds
