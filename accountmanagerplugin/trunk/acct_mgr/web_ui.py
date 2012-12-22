@@ -288,12 +288,12 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
         if is_enabled(self.env, self.__class__) and \
                 is_enabled(self.env, auth.LoginModule):
             # Disable auth.LoginModule to handle login requests alone.
-            self.env.log.info("""Concurrent enabled login modules found,
-                              fixing configuration ...""")
+            self.env.log.info("Concurrent enabled login modules found, "
+                              "fixing configuration ...")
             c.set('components', 'trac.web.auth.loginmodule', 'disabled')
             c.save()
-            self.env.log.info("""auth.LoginModule disabled, giving preference
-                              to %s now.""" % self.__class__)
+            self.env.log.info("trac.web.auth.LoginModule disabled, "
+                              "giving preference to %s." % self.__class__)
 
         self.cookie_lifetime = c.getint('trac', 'auth_cookie_lifetime', 0)
         if not self.cookie_lifetime > 0:
@@ -333,10 +333,13 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
                 req.args['user_locked'] = False
             if not 'REMOTE_USER' in req.environ or self.environ_auth_overwrite:
                 if 'REMOTE_USER' in req.environ:
-                    # Complain about another component setting authenticated user.
-                    self.env.log.warn("LoginModule.authenticate: 'REMOTE_USER' was set to '%s'"
+                    # Complain about another component setting environment
+                    # variable for authenticated user.
+                    self.env.log.warn("LoginModule.authenticate: "
+                                      "'REMOTE_USER' was set to '%s'"
                                       % req.environ['REMOTE_USER'])
-                self.env.log.debug("LoginModule.authenticate: Setting 'REMOTE_USER' to '%s'" % user)
+                self.env.log.debug("LoginModule.authenticate: Set "
+                                   "'REMOTE_USER' = '%s'" % user)
                 req.environ['REMOTE_USER'] = user
         return auth.LoginModule.authenticate(self, req)
 
@@ -345,37 +348,37 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
     match_request = if_enabled(auth.LoginModule.match_request)
 
     def process_request(self, req):
-        env = self.env
         if req.path_info.startswith('/login') and req.authname == 'anonymous':
-            guard = AccountGuard(env)
             try:
                 referer = self._referer(req)
             except AttributeError:
                 # Fallback for Trac 0.11 compatibility.
                 referer = req.get_header('Referer')
-            # Steer clear of requests going nowhere or loop to self
+            # Steer clear of requests going nowhere or loop to self.
             if referer is None or \
                     referer.startswith(str(req.abs_href()) + '/login'):
                 referer = req.abs_href()
             data = {
                 '_dgettext': dgettext,
-                'login_opt_list': self.login_opt_list == True,
-                'persistent_sessions': AccountManager(env
+                'login_opt_list': self.login_opt_list,
+                'persistent_sessions': AccountManager(self.env
                                        ).persistent_sessions,
                 'referer': referer,
-                'registration_enabled': RegistrationModule(env).enabled,
-                'reset_password_enabled': AccountModule(env
+                'registration_enabled': RegistrationModule(self.env).enabled,
+                'reset_password_enabled': AccountModule(self.env
                                           ).reset_password_enabled
             }
             if req.method == 'POST':
-                self.log.debug('user_locked: ' + \
-                               str(req.args.get('user_locked', False)))
-                if not req.args.get('user_locked') is True:
+                self.log.debug(
+                    "LoginModule.process_request: 'user_locked' = %s"
+                    % req.args.get('user_locked'))
+                if not req.args.get('user_locked'):
                     # TRANSLATOR: Intentionally obfuscated login error
                     data['login_error'] = _("Invalid username or password")
                 else:
                     f_user = req.args.get('user')
-                    release_time = guard.pretty_release_time(req, f_user)
+                    release_time = AccountGuard(self.env
+                                   ).pretty_release_time(req, f_user)
                     if not release_time is None:
                         data['login_error'] = _(
                             """Account locked, please try again after

@@ -20,6 +20,7 @@ acct_mgr-0.4.1 (not yet released) - branch 0.11
  * #10625: AssertionError in trac.db.pool.PooledConnection.__del__
  * #10700: AccountModule._do_reset_password discards error from _reset_password
  * #10701: Reset password reports `Cannot find ... "IPasswordHashMethod"`
+ * several fixes for unreported account guard issues
 
 
 acct_mgr-0.4 (01-Dec-2012) - branch 0.11

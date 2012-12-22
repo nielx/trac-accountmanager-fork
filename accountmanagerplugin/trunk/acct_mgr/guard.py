@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2011 Steffen Hoffmann <hoff.st@web.de>
+# Copyright (C) 2011,2012 Steffen Hoffmann <hoff.st@web.de>
 # All rights reserved.
 #
 # This software is licensed as described in the file COPYING, which
@@ -8,21 +8,16 @@
 #
 # Author: Steffen Hoffmann <hoff.st@web.de>
 
-from datetime           import timedelta
+from datetime import timedelta
 
-from trac.config        import Configuration, IntOption, Option
-from trac.core          import Component
-from trac.util.datefmt  import format_datetime, pretty_timedelta, \
-                               to_datetime
-try:
-    from trac.util.datefmt  import to_utimestamp
-except ImportError:
-    # Fallback for Trac 0.11 compatibility
-    from trac.util.datefmt  import to_timestamp as to_utimestamp
+from trac.config import IntOption, Option
+from trac.core import Component
+from trac.util.datefmt import format_datetime, pretty_timedelta
+from trac.util.datefmt import to_datetime, to_timestamp
 
-from acct_mgr.api       import AccountManager
-from acct_mgr.model     import del_user_attribute, get_user_attribute, \
-                               set_user_attribute
+from acct_mgr.api import AccountManager
+from acct_mgr.model import del_user_attribute, get_user_attribute
+from acct_mgr.model import set_user_attribute, user_known
 
 
 class AccountGuard(Component):
@@ -41,11 +36,11 @@ class AccountGuard(Component):
         doc="""Lock user account after specified number of login attempts.
             Value zero means no limit.""")
     user_lock_time = IntOption(
-        'account-manager', 'user_lock_time', '0',
+        'account-manager', 'user_lock_time', 0,
         doc="""Drop user account lock after specified time (seconds).
             Value zero means unlimited lock time.""")
     user_lock_max_time = IntOption(
-        'account-manager', 'user_lock_max_time', '86400',
+        'account-manager', 'user_lock_max_time', 86400,
         doc="""Limit user account lock time to specified time (seconds).
             This is relevant only with user_lock_time_progression > 1.""")
     user_lock_time_progression = Option(
@@ -57,15 +52,25 @@ class AccountGuard(Component):
             four times the initial locktime after 3rd, and so on.""")
 
     def __init__(self):
-        self.mgr = AccountManager(self.env)
-
-        # Adjust related value to promote sane configurations, because the
+        # Adjust related values to promote a sane configuration, because the
         # combination of some default values is not meaningful.
-        if not self.login_attempt_max_count > 0 and \
+        cfg = self.env.config
+        if self.login_attempt_max_count < 1 and \
                 self.user_lock_max_time != 0:
-            self.config.set('account-manager', 'user_lock_max_time', '0')
-            # Write change back to file to make it permanent.
-            self.config.save()
+            cfg.set('account-manager', 'login_attempt_max_count', 0)
+            options = ['user_lock_time', 'user_lock_max_time',
+                       'user_lock_time_progression']
+            for option in options:
+                cfg.remove('account-manager', option)
+        elif self.user_lock_max_time < 1:
+            cfg.set('account-manager', 'user_lock_max_time',
+                    self.env.config.defaults().get(
+                    'account-manager')['user_lock_max_time'])
+        else:
+            return
+        # Write changes back to file to make them permanent, what causes
+        # the environment to reload on next request as well.
+        cfg.save()
 
     def failed_count(self, user, ipnr=None, reset=False):
         """Report number of previously logged failed login attempts.
@@ -76,8 +81,11 @@ class AccountGuard(Component):
         `None` value for reset just reads failed login attempts count.
         `True` value for reset triggers final log deletion.
         """
-        value = get_user_attribute(self.env, user, 1, 'failed_logins_count')
-        count = value and int(value[user][1].get('failed_logins_count')) or 0
+        if not user or not user_known(self.env, user):
+            return 0
+        key = 'failed_logins_count'
+        value = get_user_attribute(self.env, user, 1, key)
+        count = value and user in value and int(value[user][1].get(key)) or 0
         if reset is None:
             # Report failed attempts count only.
             return count
@@ -89,16 +97,17 @@ class AccountGuard(Component):
                 # Truncate attempts list preserving most recent events.
                 del attempts[:(log_length - self.login_attempt_max_count)]
             attempts.append({'ipnr': ipnr,
-                             'time': to_utimestamp(to_datetime(None))})
+                             'time': to_timestamp(to_datetime(None))})
             count += 1
             # Update or create attempts counter and list.
             set_user_attribute(self.env, user, 'failed_logins', str(attempts))
-            set_user_attribute(self.env, user, 'failed_logins_count', count)
-            self.log.debug("AcctMgr:failed_count(%s): %s" % (user, count))
+            set_user_attribute(self.env, user, key, count)
+            self.log.debug(
+                "AccountGuard.failed_count(%s) = %s" % (user, count))
         else:
             # Delete existing attempts counter and list.
             del_user_attribute(self.env, user, 1, 'failed_logins')
-            del_user_attribute(self.env, user, 1, 'failed_logins_count')
+            del_user_attribute(self.env, user, 1, key)
             # Delete the lock count too.
             self.lock_count(user, 'reset')
         return count
@@ -111,6 +120,8 @@ class AccountGuard(Component):
         The time stamp format depends on Trac support for POSIX seconds
         (before 0.12) or POSIX microseconds in more recent Trac versions.
         """
+        if not user:
+            return []
         attempts = get_user_attribute(self.env, user, 1, 'failed_logins')
         return attempts and eval(attempts[user][1].get('failed_logins')) or []
 
@@ -121,10 +132,11 @@ class AccountGuard(Component):
         This is the exponent for lock time prolongation calculation too.
         """
         key = 'lock_count'
-        if not action == 'reset':
+        if action != 'reset':
             value = get_user_attribute(self.env, user, 1, key)
-            count = value and int(value[user][1].get(key)) or 0
-            if not action == 'get':
+            count = value and user in value and \
+                    int(value[user][1].get(key)) or 0
+            if action != 'get':
                 # Push and create or update cached count.
                 count += 1
                 set_user_attribute(self.env, user, key, count)
@@ -134,30 +146,47 @@ class AccountGuard(Component):
             count = 0
         return count
 
-    def lock_time(self, user, next = False):
+    def lock_time(self, user, next=False):
         """Calculate current time-lock length for user account."""
-        base = float(self.user_lock_time_progression)
+        base = self.lock_time_progression
         lock_count = self.lock_count(user)
-        if not lock_count > 0:
+        if lock_count < 1:
             return 0
         else:
-            if next is False:
-                exponent = lock_count - 1
-            else:
+            if next:
+                # Preview calculation.
                 exponent = lock_count
-        t_lock = self.user_lock_time * 1000000 * base ** exponent
+            else:
+                exponent = lock_count - 1
+        t_lock = self.user_lock_time * base ** exponent
         # Limit maximum lock time.
-        t_lock_max = self.user_lock_max_time * 1000000
-        if t_lock > t_lock_max:
-            t_lock = t_lock_max
-        self.log.debug("AcctMgr:lock_time(%s): %s" % (user, t_lock))
+        if t_lock > self.user_lock_max_time:
+            t_lock = self.user_lock_max_time
+        self.log.debug("AccountGuard.lock_time(%s) = %s%s"
+                       % (user, t_lock, next and ' (preview)' or ''))
         return t_lock
 
-    def pretty_lock_time(self, user, next = False):
+    @property
+    def lock_time_progression(self):
+        try:
+            progression = float(self.env.config.get('account-manager',
+                                         'user_lock_time_progression'))
+            if progression == int(progression):
+                progression = int(progression)
+            # Prevent unintended decreasing lock time.
+            if progression < 1:
+                progression = 1
+        except (TypeError, ValueError):
+            progression = float(self.env.config.defaults().get(
+                          'account-manager')['user_lock_time_progression'])
+        return progression
+
+    def pretty_lock_time(self, user, next=False):
         """Convenience method for formatting lock time to string."""
         t_lock = self.lock_time(user, next)
-        return (t_lock > 0) and pretty_timedelta(to_datetime(None) - \
-            timedelta(microseconds = t_lock)) or None
+        return (t_lock > 0) and \
+            (pretty_timedelta(to_datetime(None) - \
+             timedelta(seconds = t_lock))) or None
 
     def pretty_release_time(self, req, user):
         """Convenience method for formatting lock time to string."""
@@ -168,36 +197,41 @@ class AccountGuard(Component):
             self.release_time(user)), tzinfo=req.tz)
 
     def release_time(self, user):
-        # Logged attempts required for further checking.
-        attempts = self.get_failed_log(user)
-        if len(attempts) > 0:
-            t_lock = self.lock_time(user)
-            if t_lock == 0:
-                return None
-            return (attempts[-1]['time'] + t_lock)
+        if self.login_attempt_max_count > 0:
+            if self.user_lock_time == 0:
+                return 0
+            # Logged attempts required for further checking.
+            attempts = self.get_failed_log(user)
+            if attempts:
+                return (attempts[-1]['time'] + self.lock_time(user))
 
     def user_locked(self, user):
         """Returns whether the user account is currently locked.
 
         Expect True, if locked, False, if not and None otherwise.
         """
-        if not self.login_attempt_max_count > 0:
-            # Account locking turned off by configuration.
+        if self.login_attempt_max_count < 1 or not user or \
+                not user_known(self.env, user):
+            self.log.debug(
+                "AccountGuard.user_locked(%s) = None (%s)"
+                % (user, self.login_attempt_max_count < 1 and \
+                   'disabled by configuration' or 'anonymous user'))
             return None
         count = self.failed_count(user, reset=None)
-        ts_release = self.release_time(user)
         if count < self.login_attempt_max_count:
             self.log.debug(
-                "AcctMgr:user_locked(%s): False (try left)" % user)
+                "AccountGuard.user_locked(%s) = False (try left)" % user)
             return False
-        else:
-            if ts_release is None:
-                # Account locked permanently.
-                self.log.debug(
-                    "AcctMgr:user_locked(%s): True (permanently)" % user)
-                return True
+        ts_release = self.release_time(user)
+        if ts_release == 0:
+            # Account locked permanently.
+            self.log.debug(
+                "AccountGuard.user_locked(%s) = True (permanently)" % user)
+            return True
         # Time-locked or time-lock expired.
-        ts_now = to_utimestamp(to_datetime(None))
+        ts_now = to_timestamp(to_datetime(None))
+        locked = ts_release - ts_now > 0
         self.log.debug(
-            "AcctMgr:user_locked(%s): %s" % (user, (ts_release - ts_now > 0)))
-        return (ts_release - ts_now > 0)
+            "AccountGuard.user_locked(%s) = %s (%s)"
+            % (user, locked, locked and 'time-lock' or 'lock expired'))
+        return locked
