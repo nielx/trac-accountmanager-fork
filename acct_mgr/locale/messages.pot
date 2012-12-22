@@ -7,9 +7,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: TracAccountManager 0.4\n"
+"Project-Id-Version: TracAccountManager 0.5\n"
 "Report-Msgid-Bugs-To: hoff.st@shaas.net\n"
-"POT-Creation-Date: 2012-11-30 22:50+0100\n"
+"POT-Creation-Date: 2012-12-22 23:08+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 1.0dev-r482\n"
 
-#: acct_mgr/admin.py:69
+#: acct_mgr/admin.py:70
 #, python-format
 msgid "Locked until %(t_release)s"
 msgstr ""
@@ -41,98 +41,98 @@ msgstr ""
 msgid "Users"
 msgstr ""
 
-#: acct_mgr/admin.py:249
+#: acct_mgr/admin.py:263
 msgid ""
 "Error while reading configuration -\n"
 "                              Hint: Enable/install the required "
 "component."
 msgstr ""
 
-#: acct_mgr/admin.py:298
+#: acct_mgr/admin.py:317
 msgid "Password hash refresh procedure restarted."
 msgstr ""
 
-#: acct_mgr/admin.py:368
+#: acct_mgr/admin.py:387
 msgid "The password store does not support creating users."
 msgstr ""
 
-#: acct_mgr/admin.py:379
+#: acct_mgr/admin.py:398
 msgid "The password reset procedure is not enabled."
 msgstr ""
 
-#: acct_mgr/admin.py:389
+#: acct_mgr/admin.py:408
 msgid "The password store does not support deleting users."
 msgstr ""
 
-#: acct_mgr/admin.py:394
+#: acct_mgr/admin.py:413
 msgid "Email Address"
 msgstr ""
 
-#: acct_mgr/admin.py:395
+#: acct_mgr/admin.py:414
 msgid "Pre-/Surname (Nickname)"
 msgstr ""
 
-#: acct_mgr/admin.py:396
+#: acct_mgr/admin.py:415
 msgid "Password"
 msgstr ""
 
-#: acct_mgr/admin.py:405 acct_mgr/register.py:98
+#: acct_mgr/admin.py:424 acct_mgr/register.py:98
 msgid "Username cannot be empty."
 msgstr ""
 
-#: acct_mgr/admin.py:410
+#: acct_mgr/admin.py:429
 #, python-format
 msgid "Unknown user %(user)s."
 msgstr ""
 
-#: acct_mgr/admin.py:418 acct_mgr/register.py:150 acct_mgr/web_ui.py:226
+#: acct_mgr/admin.py:437 acct_mgr/register.py:150 acct_mgr/web_ui.py:228
 msgid "The passwords must match."
 msgstr ""
 
-#: acct_mgr/admin.py:423
+#: acct_mgr/admin.py:442
 msgid ""
 "The password store does not support\n"
 "                                changing passwords.\n"
 "                                "
 msgstr ""
 
-#: acct_mgr/admin.py:464
+#: acct_mgr/admin.py:483
 msgid "Please choose account by username from list to proceed."
 msgstr ""
 
-#: acct_mgr/admin.py:480
+#: acct_mgr/admin.py:499
 #, python-format
 msgid "Failed login attempts for user %(user)s deleted"
 msgstr ""
 
-#: acct_mgr/admin.py:607
+#: acct_mgr/admin.py:626
 #, python-format
 msgid "%(count)s account"
 msgid_plural "%(count)s accounts"
 msgstr[0] ""
 msgstr[1] ""
 
-#: acct_mgr/admin.py:614
+#: acct_mgr/admin.py:633
 #, python-format
 msgid "%(count)s account attribute"
 msgid_plural "%(count)s account attributes"
 msgstr[0] ""
 msgstr[1] ""
 
-#: acct_mgr/admin.py:619
+#: acct_mgr/admin.py:638
 msgid "Successfully deleted:"
 msgstr ""
 
-#: acct_mgr/admin.py:639
+#: acct_mgr/admin.py:658
 #, python-format
 msgid "page %(num)s"
 msgstr ""
 
-#: acct_mgr/admin.py:650
+#: acct_mgr/admin.py:669
 msgid "Next Page"
 msgstr ""
 
-#: acct_mgr/admin.py:655
+#: acct_mgr/admin.py:674
 msgid "Previous Page"
 msgstr ""
 
@@ -156,7 +156,7 @@ msgid ""
 "                "
 msgstr ""
 
-#: acct_mgr/db.py:23
+#: acct_mgr/db.py:24
 msgid "IPasswordHashMethod used to create new/updated passwords"
 msgstr ""
 
@@ -188,7 +188,7 @@ msgstr ""
 msgid "Realm to select relevant htdigest file entries"
 msgstr ""
 
-#: acct_mgr/http.py:27
+#: acct_mgr/http.py:28
 msgid "URL of the HTTP authentication service"
 msgstr ""
 
@@ -253,7 +253,7 @@ msgid ""
 "only by case or is identical."
 msgstr ""
 
-#: acct_mgr/register.py:148 acct_mgr/web_ui.py:223 acct_mgr/web_ui.py:240
+#: acct_mgr/register.py:148 acct_mgr/web_ui.py:225 acct_mgr/web_ui.py:242
 msgid "Password cannot be empty."
 msgstr ""
 
@@ -396,74 +396,95 @@ msgid ""
 msgstr ""
 
 #. TRANSLATOR: Sync with same msgid in Trac 0.13, please.
-#: acct_mgr/util.py:78 acct_mgr/util.py:83
+#: acct_mgr/util.py:116 acct_mgr/util.py:121
 #, python-format
 msgid "%(relativetime)s ago"
 msgstr ""
 
-#: acct_mgr/web_ui.py:89 acct_mgr/templates/db_cleanup.html:52
+#: acct_mgr/util.py:150
+#, python-format
+msgid "less than %s"
+msgstr ""
+
+#: acct_mgr/util.py:157
+#, python-format
+msgid "%(num)i second"
+msgid_plural "%(num)i seconds"
+msgstr[0] ""
+msgstr[1] ""
+
+#. TRANSLATOR: Pretty datetime representation, time part provided by string
+#. substitution.
+#: acct_mgr/util.py:165
+#, python-format
+msgid "%(num)i day %%s"
+msgid_plural "%(num)i days %%s"
+msgstr[0] ""
+msgstr[1] ""
+
+#: acct_mgr/web_ui.py:91 acct_mgr/templates/db_cleanup.html:52
 #: acct_mgr/templates/prefs_account.html:45
 #: acct_mgr/templates/user_table.html:20
 msgid "Account"
 msgstr ""
 
-#: acct_mgr/web_ui.py:138 acct_mgr/templates/login.html:45
+#: acct_mgr/web_ui.py:140 acct_mgr/templates/login.html:45
 #: acct_mgr/templates/login.html:66 acct_mgr/templates/login.html:69
 msgid "Forgot your password?"
 msgstr ""
 
-#: acct_mgr/web_ui.py:152
+#: acct_mgr/web_ui.py:156
 msgid "Are you sure you want to delete your account?"
 msgstr ""
 
-#: acct_mgr/web_ui.py:162
+#: acct_mgr/web_ui.py:166
 msgid "Thank you for taking the time to update your password."
 msgstr ""
 
-#: acct_mgr/web_ui.py:171
+#: acct_mgr/web_ui.py:175
 msgid ""
 "You are required to change password because of a recent password "
 "change request. "
 msgstr ""
 
-#: acct_mgr/web_ui.py:174
+#: acct_mgr/web_ui.py:178
 msgid "Please change your password now."
 msgstr ""
 
-#: acct_mgr/web_ui.py:185
+#: acct_mgr/web_ui.py:189
 msgid "Username is required"
 msgstr ""
 
-#: acct_mgr/web_ui.py:187
+#: acct_mgr/web_ui.py:191
 msgid "Email is required"
 msgstr ""
 
-#: acct_mgr/web_ui.py:193
+#: acct_mgr/web_ui.py:196
 msgid "The email and username must match a known account."
 msgstr ""
 
-#: acct_mgr/web_ui.py:217
+#: acct_mgr/web_ui.py:219
 msgid "Old Password cannot be empty."
 msgstr ""
 
-#: acct_mgr/web_ui.py:219
+#: acct_mgr/web_ui.py:221
 msgid "Old Password is incorrect."
 msgstr ""
 
-#: acct_mgr/web_ui.py:233
+#: acct_mgr/web_ui.py:235
 msgid "Password successfully updated."
 msgstr ""
 
-#: acct_mgr/web_ui.py:242
+#: acct_mgr/web_ui.py:244
 msgid "Password is incorrect."
 msgstr ""
 
 #. TRANSLATOR: Intentionally obfuscated login error
-#: acct_mgr/web_ui.py:368
+#: acct_mgr/web_ui.py:377
 msgid "Invalid username or password"
 msgstr ""
 
-#: acct_mgr/web_ui.py:373
+#: acct_mgr/web_ui.py:383
 #, python-format
 msgid ""
 "Account locked, please try again after\n"
@@ -471,11 +492,11 @@ msgid ""
 "                            "
 msgstr ""
 
-#: acct_mgr/web_ui.py:378 acct_mgr/templates/user_table.html:38
+#: acct_mgr/web_ui.py:388 acct_mgr/templates/user_table.html:38
 msgid "Account locked"
 msgstr ""
 
-#: acct_mgr/web_ui.py:383
+#: acct_mgr/web_ui.py:393
 #, python-format
 msgid "Login after %(attempts)s failed attempt"
 msgid_plural "Login after %(attempts)s failed attempts"
@@ -705,6 +726,54 @@ msgid "Force users to verify their email addresses."
 msgstr ""
 
 #: acct_mgr/templates/admin_accountsconfig.html:105
+msgid "Account guard"
+msgstr ""
+
+#: acct_mgr/templates/admin_accountsconfig.html:107
+msgid "Failed login attempt count max:"
+msgstr ""
+
+#: acct_mgr/templates/admin_accountsconfig.html:112
+msgid ""
+"Lock user account after specified number of failed attempts.\n"
+"              Value zero means 'no limit'."
+msgstr ""
+
+#: acct_mgr/templates/admin_accountsconfig.html:119
+msgid ""
+"Drop lock after\n"
+"            [1:]\n"
+"            seconds (0 = unlimited lock time)"
+msgstr ""
+
+#: acct_mgr/templates/admin_accountsconfig.html:127
+msgid "Lock time progression factor:"
+msgstr ""
+
+#: acct_mgr/templates/admin_accountsconfig.html:132
+msgid ""
+"Extend user account lock time incrementally. This is\n"
+"              based on logarithmic calculation and decimal numbers "
+"accepted:\n"
+"              Value '1' means constant lock time per failed login "
+"attempt.\n"
+"              Value '2' means double locktime after 2nd lock "
+"activation,\n"
+"              four times the initial locktime after 3rd, and so on."
+msgstr ""
+
+#: acct_mgr/templates/admin_accountsconfig.html:141
+msgid ""
+"Upper lock time limit:\n"
+"              [1:]\n"
+"              seconds\n"
+"              [2:\n"
+"                This is relevant only with a lock time progression "
+"factor > 1.\n"
+"              ]"
+msgstr ""
+
+#: acct_mgr/templates/admin_accountsconfig.html:159
 #: acct_mgr/templates/admin_accountsnotification.html:51
 msgid "Save"
 msgstr ""
