@@ -12,13 +12,14 @@ import shutil
 import tempfile
 import unittest
 
-from Cookie  import SimpleCookie as Cookie
+from Cookie import SimpleCookie as Cookie
+from time import sleep
 
-from trac.test  import EnvironmentStub, Mock
+from trac.test import EnvironmentStub, Mock
 from trac.util.datefmt import to_datetime, to_timestamp
-from trac.web.session  import Session
+from trac.web.session import Session
 
-from acct_mgr.guard  import AccountGuard
+from acct_mgr.guard import AccountGuard
 
 
 class AccountGuardTestCase(unittest.TestCase):
@@ -95,6 +96,41 @@ class AccountGuardTestCase(unittest.TestCase):
         self.assertEqual(self.guard.failed_count(user, reset=True), 2)
         self.assertEqual(self.guard.failed_count(user, reset=None), 0)
 
+    def test_functional(self):
+        ipnr = '127.0.0.1'
+        user = self.user
+
+        # Regular account without failed attempts logged.
+        self.assertEqual(self.guard.lock_count(user), 0)
+        self.assertEqual(self.guard.lock_time(user), 0)
+        self.assertEqual(self.guard.release_time(user), 0)
+        self.assertEqual(self.guard.user_locked(user), False)
+
+        # Log failed attempt - this time with the real method.
+        self.assertEqual(self.guard.failed_count(user, ipnr), 1)
+        # Mock acct_mgr.LoginModule.authenticate behavior.
+        if self.guard.user_locked(user):
+            self.guard.lock_count(user, 'up')
+
+        self.assertEqual(self.guard.lock_count(user), 1)
+        self.assertEqual(self.guard.lock_time(user), 0)
+        self.assertEqual(self.guard.release_time(user), 0)
+        self.assertEqual(self.guard.user_locked(user), True)
+        # Switch to time lock.
+        self.env.config.set('account-manager', 'user_lock_time', 2)
+        self.assertTrue(self.guard.release_time(user) > 0)
+        self.assertEqual(self.guard.user_locked(user), True)
+        sleep(2)
+        self.assertEqual(self.guard.user_locked(user), False)
+
+        self.assertEqual(self.guard.lock_time(user), 2)
+        self.assertEqual(self.guard.lock_time(user, True), 2)
+        self.env.config.set('account-manager', 'user_lock_time_progression', 3)
+        self.assertEqual(self.guard.lock_time(user, True), 6)
+        # Switch-back to permanent locking.
+        self.env.config.set('account-manager', 'user_lock_time', 0)
+        self.assertEqual(self.guard.user_locked(user), True)
+
     def test_lock_count(self):
         user = self.user
         self.assertEqual(self.guard.lock_count(user), 0)
@@ -115,7 +151,7 @@ class AccountGuardTestCase(unittest.TestCase):
 
         # Regular account without failed attempts logged.
         user = self.user
-        self.assertEqual(self.guard.lock_time(user), 0)
+        self.assertEqual(self.guard.lock_time(user), 30)
         self._mock_failed_attempt(5)
         # Fixed lock time, no progression, with default configuration values.
         self.assertEqual(self.guard.lock_time(user), 30)
@@ -164,8 +200,6 @@ class AccountGuardTestCase(unittest.TestCase):
 
         # Permanently locked account.
         self._mock_failed_attempt()
-        print self.env.config.getint('account-manager', 'user_lock_time')
-        print self.guard.release_time(user)
         self.assertEqual(self.guard.user_locked(user), True)
         # Result with locking disabled.
         self.env.config.set('account-manager', 'login_attempt_max_count', 0)
