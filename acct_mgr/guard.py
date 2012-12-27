@@ -150,7 +150,7 @@ class AccountGuard(Component):
         """Calculate current time-lock length for user account."""
         base = self.lock_time_progression
         lock_count = self.lock_count(user)
-        if lock_count < 1:
+        if not user or not user_known(self.env, user):
             return 0
         else:
             if next:
