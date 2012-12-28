@@ -151,7 +151,10 @@ class BasicCheck(GenericRegistrationInspector):
 
 
 class BotTrapCheck(GenericRegistrationInspector):
-    """A collection of simple bot checks."""
+    """A collection of simple bot checks.
+
+    This check is bypassed for requests by an admin user.
+    """
 
     reg_basic_token = Option('account-manager', 'register_basic_token', '',
         doc="A string required as input to pass verification.")
@@ -186,6 +189,8 @@ class BotTrapCheck(GenericRegistrationInspector):
         return insert, data
 
     def validate_registration(self, req):
+        if req.perm.has_permission('ACCTMGR_USER_ADMIN'):
+            return
         # Input must be an exact replication of the required token.
         basic_token = req.args.get('basic_token', '')
         # Unlike the former, the hidden bot-trap input field must stay empty.
