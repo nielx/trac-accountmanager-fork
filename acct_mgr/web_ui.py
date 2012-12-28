@@ -160,7 +160,7 @@ class AccountModule(CommonTemplateProvider):
         if req.method == 'POST':
             if action == 'save':
                 data.update(self._do_change_password(req))
-                if force_change_password:
+                if 'message' in data and force_change_password:
                     del(req.session['force_change_passwd'])
                     req.session.save()
                     chrome.add_notice(req, Markup(tag.span(tag_(
@@ -194,7 +194,7 @@ class AccountModule(CommonTemplateProvider):
                 error = self._reset_password(username, email)
                 return error and error or {'sent_to_email': email}
         return {'error': _(
-            "The email and username must match a known account.")}
+            "Email and username must match a known account.")}
 
     def _reset_password(self, username, email):
         acctmgr = self.acctmgr
@@ -215,17 +215,18 @@ class AccountModule(CommonTemplateProvider):
         user = req.authname
 
         old_password = req.args.get('old_password')
-        if not old_password:
-            return {'save_error': _("Old Password cannot be empty.")}
         if not self.acctmgr.check_password(user, old_password):
-            return {'save_error': _("Old Password is incorrect.")}
+            if not old_password:
+                return {'save_error': _("Old password cannot be empty.")}
+            return {'save_error': _("Old password is incorrect.")}
 
         password = req.args.get('password')
         if not password:
             return {'save_error': _("Password cannot be empty.")}
-
         if password != req.args.get('password_confirm'):
             return {'save_error': _("The passwords must match.")}
+        if password == old_password:
+            return {'save_error': _("Password must not match old password.")}
 
         self.acctmgr.set_password(user, password, old_password)
         if req.session.get('password') is not None:
@@ -648,7 +649,7 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
         user = req.args.get('user')
         self.env.log.debug("LoginModule._remote_user: Authentication attempted for '%s'" % user)
         password = req.args.get('password')
-        if not user or not password:
+        if not user:
             return None
         acctmgr = AccountManager(self.env)
         acctmod = AccountModule(self.env)
