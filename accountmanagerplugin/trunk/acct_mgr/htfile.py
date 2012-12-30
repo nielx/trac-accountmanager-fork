@@ -32,10 +32,7 @@ class AbstractPasswordFileStore(Component):
     """
     abstract = True
 
-    # DEVEL: This option is subject to removal after next major release.
-    filename = EnvRelativePathOption('account-manager', 'password_file', '',
-        doc = """Path to password file - depreciated in favor of other, more
-              store-specific options""")
+    # Note: 'filename' is a required, store-specific option.
 
     def has_user(self, user):
         return user in self.get_users()
@@ -69,18 +66,21 @@ class AbstractPasswordFileStore(Component):
         prefix = self.prefix(user)
         f = None
         try:
-            f = open(filename, 'rU')
-            for line in f:
-                if line.startswith(prefix):
-                    return self._check_userline(user, password,
-                            line[len(prefix):].rstrip('\n'))
-        # DEVEL: Better use new 'finally' statement here, but
-        #   still need to care for Python 2.4 (RHEL5.x) for now
-        except:
-            self.log.error('acct_mgr: check_password() -- '
-                           'Can\'t read password file "%s"' % filename)
-        if isinstance(f, file):
-            f.close()
+            # Python<2.5: Can't have 'except' and 'finally' in same 'try'
+            #   statement together, but we still need to care for Python 2.4
+            #   (RHEL5.x) for now.
+            try:
+                f = open(filename, 'rU')
+                for line in f:
+                    if line.startswith(prefix):
+                        return self._check_userline(user, password,
+                               line[len(prefix):].rstrip('\n'))
+            except:
+                self.log.error('acct_mgr: check_password() -- '
+                               'Can\'t read password file "%s"' % filename)
+        finally:
+            if f:
+                f.close()
         return None
 
     def _update_file(self, prefix, userline):
@@ -94,6 +94,7 @@ class AbstractPasswordFileStore(Component):
         Returns `True` if a line matching `prefix` was updated,
         `False` otherwise.
         """
+        f = None
         filename = str(self.filename)
         matched = False
         new_lines = []
@@ -165,9 +166,7 @@ class AbstractPasswordFileStore(Component):
                     and its parent directory."""))
             else:
                 raise
-        # DEVEL: Better use new 'finally' statement here, but
-        #   still need to care for Python 2.4 (RHEL5.x) for now
-        if isinstance(f, file):
+        if f:
             # Close open file now, even after exception raised.
             f.close()
             if not f.closed:

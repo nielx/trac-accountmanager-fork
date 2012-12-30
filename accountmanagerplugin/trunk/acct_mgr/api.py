@@ -165,8 +165,6 @@ class AccountManager(Component):
         'account-manager', 'password_store', IPasswordStore,
         include_missing=False,
         doc = N_("Ordered list of password stores, queried in turn."))
-    _password_format = Option('account-manager', 'password_format',
-        doc="Legacy option, deprecated since acct_mgr-0.1.2")
     _register_check = OrderedExtensionsOption(
         'account-manager', 'register_check', IAccountRegistrationInspector,
         default="""BasicCheck, EmailCheck, BotTrapCheck, RegExpCheck,
@@ -266,7 +264,7 @@ class AccountManager(Component):
 
     def delete_user(self, user):
         user = self.handle_username_casing(user)
-        # Delete from password store 
+        # Delete credentials from password store.
         store = self.find_user_store(user)
         del_method = getattr(store, 'delete_user', None)
         if callable(del_method):
@@ -275,6 +273,11 @@ class AccountManager(Component):
         # set for the user.
         delete_user(self.env, user)
         self._notify('deleted', user)
+
+    @property
+    def password_store(self):
+        # Legacy option 'password_format' is not supported anymore.
+        return self._password_store
 
     def supports(self, operation):
         try:
@@ -286,23 +289,6 @@ class AccountManager(Component):
                 return True
             else:
                 return False
-
-    def password_store(self):
-        try:
-            return self._password_store
-        except AttributeError:
-            # fall back on old "password_format" option
-            fmt = self._password_format
-            for store in self.stores:
-                config_key = getattr(store, 'config_key', None)
-                if config_key is None:
-                    continue
-                if config_key() == fmt:
-                    return [store]
-            # if the "password_format" is not set re-raise the AttributeError
-            raise
-
-    password_store = property(password_store)
 
     def get_supporting_store(self, operation):
         """Returns the IPasswordStore that implements the specified operation.
