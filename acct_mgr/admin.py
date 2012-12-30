@@ -12,31 +12,31 @@
 import inspect
 import re
 
-from genshi.builder     import tag
-from genshi.core        import Markup
+from genshi.builder import tag
+from genshi.core import Markup
 
-from trac.core          import Component, TracError, implements
-from trac.config        import Option
-from trac.perm          import PermissionSystem
-from trac.util.datefmt  import format_datetime, to_datetime
+from trac.core import Component, TracError, implements
+from trac.config import Option
+from trac.perm import PermissionSystem
+from trac.util.datefmt import format_datetime, to_datetime
 from trac.util.presentation import Paginator
-from trac.web.chrome    import Chrome, add_link, add_notice, add_stylesheet, \
-                               add_warning
-from trac.admin         import IAdminPanelProvider
+from trac.web.chrome import Chrome, add_ctxtnav, add_link, add_notice
+from trac.web.chrome import add_stylesheet, add_warning
+from trac.admin import IAdminPanelProvider
 
-from acct_mgr.api       import AccountManager, CommonTemplateProvider, \
-                               _, dgettext, gettext, ngettext, tag_
-from acct_mgr.guard     import AccountGuard
-from acct_mgr.model     import del_user_attribute, email_verified, \
-                               get_user_attribute, last_seen, \
-                               set_user_attribute
-from acct_mgr.register  import EmailVerificationModule, RegistrationError
-from acct_mgr.web_ui    import AccountModule
-from acct_mgr.util      import is_enabled, get_pretty_dateinfo, \
-                               pretty_precise_timedelta
+from acct_mgr.api import AccountManager, CommonTemplateProvider
+from acct_mgr.api import _, dgettext, gettext, ngettext, tag_
+from acct_mgr.guard import AccountGuard
+from acct_mgr.model import del_user_attribute, email_verified
+from acct_mgr.model import get_user_attribute, last_seen
+from acct_mgr.model import set_user_attribute
+from acct_mgr.register import EmailVerificationModule, RegistrationError
+from acct_mgr.web_ui import AccountModule
+from acct_mgr.util import is_enabled, get_pretty_dateinfo
+from acct_mgr.util import pretty_precise_timedelta
 
 try:
-    from trac.util  import as_int
+    from trac.util import as_int
 except ImportError:
     def as_int(s, default, min=None, max=None):
         """Convert s to an int and limit it to the given range, or
@@ -498,8 +498,6 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                     "Failed login attempts for user %(user)s deleted",
                     user=tag.b(username)
                     )))))
-        elif req.args.get('list'):
-            req.redirect(req.href.admin('accounts', 'users'))
 
         data = {'_dgettext': dgettext,
                 'user': username,
@@ -547,6 +545,8 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                 str(data['email_verified']))
 
         add_stylesheet(req, 'acct_mgr/acct_mgr.css')
+        add_ctxtnav(req, _("Back to Accounts"),
+                    href=req.href.admin('accounts', 'users'))
         data['url'] = req.href.admin('accounts', 'users', user=username)
         return 'account_details.html', data
 
@@ -609,8 +609,6 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                                                    attribute)
                                 del_count['attr'] += 1
                     changed = True
-            elif req.args.get('list'):
-                req.redirect(req.href.admin('accounts', 'users'))
 
             if changed == True:
                 # Update the dict after changes.
@@ -637,6 +635,8 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                 ))))
                 data['result'] = tag(_("Successfully deleted:"),
                                      tag.ul(accounts, attributes))
+            add_ctxtnav(req, _("Back to Accounts"),
+                        href=req.href.admin('accounts', 'users'))
             add_stylesheet(req, 'acct_mgr/acct_mgr.css')
             return 'db_cleanup.html', data
 
