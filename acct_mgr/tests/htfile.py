@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2005 Matthew Good <trac@matt-good.net>
-# Copyright (C) 2011 Steffen Hoffmann <hoff.st@web.de>
+# Copyright (C) 2011,2012 Steffen Hoffmann <hoff.st@web.de>
 # All rights reserved.
 #
 # This software is licensed as described in the file COPYING, which
@@ -18,6 +18,7 @@ from trac.test import EnvironmentStub, Mock
 
 from acct_mgr.htfile import HtDigestStore, HtPasswdStore
 
+
 class _BaseTestCase(unittest.TestCase):
     def setUp(self):
         self.basedir = os.path.realpath(tempfile.mkdtemp())
@@ -27,6 +28,8 @@ class _BaseTestCase(unittest.TestCase):
 
     def tearDown(self):
         shutil.rmtree(self.basedir)
+
+    # Helpers
 
     def _create_file(self, *path, **kw):
         filename = os.path.join(self.basedir, *path)
@@ -40,7 +43,7 @@ class _BaseTestCase(unittest.TestCase):
         fd.close()
         return filename
 
-    def _init_password_file(self, flavor, filename, content):
+    def _init_password_file(self, flavor, filename, content=''):
         filename = self._create_file(filename, content=content)
         self.env.config.set('account-manager', flavor + '_file', filename)
 
@@ -48,8 +51,36 @@ class _BaseTestCase(unittest.TestCase):
         self._init_password_file(flavor, filename, content)
         self.assertTrue(self.store.check_password('user', 'password'))
 
+    # Tests
+
+    def test_overwrite(self):
+        self._init_password_file(self.flavor, 'test_overwrite_%s'
+                                 % self.flavor)
+        self.assertTrue(self.store.set_password('user1', 'password1'))
+        self.assertFalse(self.store.set_password('user1', 'password2',
+                                                 overwrite=False))
+        self.assertTrue(self.store.check_password('user1', 'password1'))
+        self.assertTrue(self.store.set_password('user2', 'password',
+                                                 overwrite=False))
+
+    def test_unicode(self):
+        self.env.config.set('account-manager', 'htdigest_realm',
+                            u'UnicodeRealm\u4e60')
+        user = u'\u4e61'
+        password = u'\u4e62'
+        self._init_password_file(self.flavor, 'test_unicode_%s'
+                                 % self.flavor)
+        self.store.set_password(user, password)
+        self.assertEqual(list(self.store.get_users()), [user])
+        self.assertTrue(self.store.check_password(user, password))
+        self.assertTrue(self.store.delete_user(user))
+        self.assertEqual(list(self.store.get_users()), [])
+
 
 class HtDigestTestCase(_BaseTestCase):
+
+    flavor = 'htdigest'
+
     def setUp(self):
         _BaseTestCase.setUp(self)
         self.env.config.set('account-manager', 'digest_password_store',
@@ -63,23 +94,11 @@ class HtDigestTestCase(_BaseTestCase):
                          'user:TestRealm:752b304cc7cf011d69ee9b79e2cd0866')
 
     def test_file(self):
-        self._do_password_test('htdigest', 'test_file', 
+        self._do_password_test(self.flavor, 'test_file', 
                          'user:TestRealm:752b304cc7cf011d69ee9b79e2cd0866')
 
-    def test_unicode(self):
-        self.env.config.set('account-manager', 'htdigest_realm',
-                            u'UnicodeRealm\u4e60')
-        user = u'\u4e61'
-        password = u'\u4e62'
-        self._init_password_file('htdigest', 'test_unicode', '')
-        self.store.set_password(user, password)
-        self.assertEqual([user], list(self.store.get_users()))
-        self.assertTrue(self.store.check_password(user, password))
-        self.assertTrue(self.store.delete_user(user))
-        self.assertEqual([], list(self.store.get_users()))
-
     def test_update_password(self):
-        self._init_password_file('htdigest', 'test_passwdupd', '')
+        self._init_password_file(self.flavor, 'test_passwdupd')
         self.store.set_password('foo', 'pass1')
         self.assertFalse(self.store.check_password('foo', 'pass2'))
         self.store.set_password('foo', 'pass2')
@@ -89,6 +108,9 @@ class HtDigestTestCase(_BaseTestCase):
 
 
 class HtPasswdTestCase(_BaseTestCase):
+
+    flavor = 'htpasswd'
+
     def setUp(self):
         _BaseTestCase.setUp(self)
         self.env.config.set('account-manager', 'htpasswd_store',
@@ -96,30 +118,30 @@ class HtPasswdTestCase(_BaseTestCase):
         self.store = HtPasswdStore(self.env)
 
     def test_md5(self):
-        self._do_password_test('htpasswd', 'test_md5',
+        self._do_password_test(self.flavor, 'test_md5',
                                'user:$apr1$xW/09...$fb150dT95SoL1HwXtHS/I0\n')
 
     def test_crypt(self):
-        self._do_password_test('htpasswd', 'test_crypt',
+        self._do_password_test(self.flavor, 'test_crypt',
                                'user:QdQ/xnl2v877c\n')
 
     def test_sha(self):
-        self._do_password_test('htpasswd', 'test_sha',
+        self._do_password_test(self.flavor, 'test_sha',
                                'user:{SHA}W6ph5Mm5Pz8GgiULbPgzG37mj9g=\n')
 
     def test_sha256(self):
-        self._do_password_test('htpasswd', 'test_sha256',
+        self._do_password_test(self.flavor, 'test_sha256',
                                'user:$5$saltsaltsaltsalt$'
                                'WsFBeg1qQ90JL3VkUTuM7xVV/5njhLngIVm6ftSnBR2\n')
 
     def test_sha512(self):
-        self._do_password_test('htpasswd', 'test_sha512',
+        self._do_password_test(self.flavor, 'test_sha512',
                                'user:$6$saltsaltsaltsalt$'
                                'bcXJ8qxwY5sQ4v8MTl.0B1jeZ0z0JlA9jjmbUoCJZ.1'
                                'wYXiLTU.q2ILyrDJLm890lyfuF7sWAeli0yjOyFPkf0\n')
 
     def test_no_trailing_newline(self):
-        self._do_password_test('htpasswd', 'test_no_trailing_newline',
+        self._do_password_test(self.flavor, 'test_no_trailing_newline',
                                'user:$apr1$xW/09...$fb150dT95SoL1HwXtHS/I0')
 
     def test_add_with_no_trailing_newline(self):
@@ -132,18 +154,8 @@ class HtPasswdTestCase(_BaseTestCase):
         self.assertTrue(self.store.check_password('user', 'password'))
         self.assertTrue(self.store.check_password('user2', 'password2'))
 
-    def test_unicode(self):
-        user = u'\u4e61'
-        password = u'\u4e62'
-        self._init_password_file('htpasswd', 'test_unicode', '')
-        self.store.set_password(user, password)
-        self.assertEqual([user], list(self.store.get_users()))
-        self.assertTrue(self.store.check_password(user, password))
-        self.assertTrue(self.store.delete_user(user))
-        self.assertEqual([], list(self.store.get_users()))
-
     def test_update_password(self):
-        self._init_password_file('htpasswd', 'test_passwdupd', '')
+        self._init_password_file(self.flavor, 'test_passwdupd')
         self.store.set_password('foo', 'pass1')
         self.assertFalse(self.store.check_password('foo', 'pass2'))
         self.store.set_password('foo', 'pass2')
@@ -152,7 +164,7 @@ class HtPasswdTestCase(_BaseTestCase):
         self.assertTrue(self.store.check_password('foo', 'pass3'))
 
     def test_create_hash(self):
-        self._init_password_file('htpasswd', 'test_hash', '')
+        self._init_password_file(self.flavor, 'test_hash')
         self.env.config.set('account-manager', 'htpasswd_hash_type', 'bad')
         self.assertTrue(self.store.userline('user',
                                             'password').startswith('user:'))
@@ -182,6 +194,7 @@ class HtPasswdTestCase(_BaseTestCase):
                                            ).startswith('user:$6$'))
         self.store.set_password('user', 'password')
         self.assertTrue(self.store.check_password('user', 'password'))
+
 
 def suite():
     suite = unittest.TestSuite()

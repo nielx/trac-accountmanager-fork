@@ -55,7 +55,7 @@ class SessionStore(Component):
             return True
         return False
 
-    def set_password(self, user, password, old_password=None):
+    def set_password(self, user, password, old_password=None, overwrite=True):
         """Sets the password for the user.
 
         This should create the user account, if it doesn't already exist.
@@ -72,23 +72,24 @@ class SessionStore(Component):
                 AND name=%s
                 AND sid=%s
             """
-        cursor.execute("""
-            UPDATE  session_attribute
-                SET value=%s
-            """ + sql, (hash, self.key, user))
+        if overwrite:
+            cursor.execute("""
+                UPDATE  session_attribute
+                    SET value=%s
+                """ + sql, (hash, self.key, user))
         cursor.execute("""
             SELECT  value
             FROM    session_attribute
             """ + sql, (self.key, user))
-        not_exists = cursor.fetchone() is None
-        if not_exists:
+        exists = cursor.fetchone()
+        if not exists:
             cursor.execute("""
                 INSERT INTO session_attribute
                         (sid,authenticated,name,value)
                 VALUES  (%s,1,%s,%s)
                 """, (user, self.key, hash))
         db.commit()
-        return not_exists
+        return not exists
 
     def check_password(self, user, password):
         """Checks if the password is valid for the user."""

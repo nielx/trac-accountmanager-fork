@@ -73,7 +73,7 @@ class IPasswordStore(Interface):
     def has_user(user):
         """Returns whether the user account exists."""
 
-    def set_password(user, password, old_password = None):
+    def set_password(user, password, old_password=None, overwrite=True):
         """Sets the password for the user.
 
         This should create the user account, if it doesn't already exist.
@@ -229,7 +229,7 @@ class AccountManager(Component):
             continue
         return exists
 
-    def set_password(self, user, password, old_password = None):
+    def set_password(self, user, password, old_password=None, overwrite=True):
         user = self.handle_username_casing(user)
         store = self.find_user_store(user)
         if store and not hasattr(store, 'set_password'):
@@ -240,8 +240,19 @@ class AccountManager(Component):
         elif not store:
             store = self.get_supporting_store('set_password')
         if store:
-            if store.set_password(user, password, old_password):
+            try:
+                res = store.set_password(user, password, old_password,
+                                         overwrite)
+            except TypeError:
+                # Support former method signature - overwrite unconditionally.
+                res = None
+                if overwrite or not store.has_user(user):
+                    res = store.set_password(user, password, old_password)
+            if res:
                 self._notify('created', user, password)
+            elif not overwrite:
+                raise TracError(_(
+                    "Password for user %s existed, couldn't create." % user))
             else:
                 self._notify('password_changed', user, password)
         else:
@@ -249,6 +260,7 @@ class AccountManager(Component):
                 """None of the IPasswordStore components listed in the
                 trac.ini supports setting the password or creating users.
                 """))
+        return res
 
     def check_password(self, user, password):
         valid = False
@@ -350,16 +362,16 @@ class AccountManager(Component):
         name = req.args.get('name').strip()
         email = req.args.get('email').strip()
         # Create the user in the configured (primary) password store.
-        self.set_password(username, req.args.get('password'))
-        # Output of a successful account creation request is a made-up
-        # authenticated session, that a new user can refer to later on.
-        prime_auth_session(self.env, username)
-        # Save attributes for the user with reference to that session ID.
-        for attribute in ('name', 'email'):
-            value = req.args.get(attribute)
-            if not value:
-                continue
-            set_user_attribute(self.env, username, attribute, value)
+        if self.set_password(username, req.args.get('password'), None, False):
+            # Result of a successful account creation request is a made-up
+            # authenticated session, that a new user can refer to later on.
+            prime_auth_session(self.env, username)
+            # Save attributes for the user with reference to that session ID.
+            for attribute in ('name', 'email'):
+                value = req.args.get(attribute)
+                if not value:
+                    continue
+                set_user_attribute(self.env, username, attribute, value)
 
     def _maybe_update_hash(self, user, password):
         if not get_user_attribute(self.env, 1, user, 'password_refreshed', 1):

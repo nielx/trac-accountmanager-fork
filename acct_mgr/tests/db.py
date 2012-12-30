@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2007 Matthew Good <trac@matt-good.net>
-# Copyright (C) 2011 Steffen Hoffmann <hoff.st@web.de>
+# Copyright (C) 2011,2012 Steffen Hoffmann <hoff.st@web.de>
 # All rights reserved.
 #
 # This software is licensed as described in the file COPYING, which
@@ -54,7 +54,15 @@ class _BaseTestCase(unittest.TestCase):
         self.assertFalse(self.store.has_user('foo'))
         self.store.set_password('foo', 'password')
         self.assertTrue(self.store.has_user('foo'))
- 
+
+    def test_overwrite(self):
+        self.assertTrue(self.store.set_password('foo', 'pass1'))
+        self.assertFalse(self.store.set_password('foo', 'pass2',
+                                                 overwrite=False))
+        self.assertTrue(self.store.check_password('foo', 'pass1'))
+        self.assertTrue(self.store.set_password('bar', 'pass',
+                                                overwrite=False))
+
     def test_update_password(self):
         self.store.set_password('foo', 'pass1')
         self.assertFalse(self.store.check_password('foo', 'pass2'))
