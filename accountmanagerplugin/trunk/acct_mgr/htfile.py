@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2005-2007 Matthew Good <trac@matt-good.net>
-# Copyright (C) 2011 Steffen Hoffmann <hoff.st@web.de>
+# Copyright (C) 2011,2012 Steffen Hoffmann <hoff.st@web.de>
 # All rights reserved.
 #
 # This software is licensed as described in the file COPYING, which
@@ -45,11 +45,12 @@ class AbstractPasswordFileStore(Component):
             return []
         return self._get_users(filename)
 
-    def set_password(self, user, password, old_password = None):
+    def set_password(self, user, password, old_password=None, overwrite=True):
         user = user.encode('utf-8')
         password = password.encode('utf-8')
         return not self._update_file(self.prefix(user),
-                                     self.userline(user, password))
+                                     self.userline(user, password),
+                                     overwrite)
 
     def delete_user(self, user):
         user = user.encode('utf-8')
@@ -83,7 +84,7 @@ class AbstractPasswordFileStore(Component):
                 f.close()
         return None
 
-    def _update_file(self, prefix, userline):
+    def _update_file(self, prefix, userline, overwrite=True):
         """Add or remove user and change password.
 
         If `userline` is empty, the line starting with `prefix` is removed
@@ -111,8 +112,6 @@ class AbstractPasswordFileStore(Component):
             #   are currently not detected and will get overwritten.
             #   This could be fixed by file locking, but a cross-platform
             #   implementation is certainly non-trivial.
-            # DEVEL: I've seen the AtomicFile object in trac.util lately,
-            #   that may be worth a try.
             if len(lines) > 0:
                 # predict eol style for lines without eol characters
                 if not os.linesep == '\n':
@@ -127,7 +126,10 @@ class AbstractPasswordFileStore(Component):
                 for line in lines:
                     if line.startswith(prefix):
                         if not matched and userline:
-                            new_lines.append(userline + eol)
+                            if overwrite:
+                                new_lines.append(userline + eol)
+                            else:
+                                new_lines.append(line.rstrip('\r\n') + eol)
                         matched = True
                     # preserve existing lines with proper eol
                     elif line.endswith(eol) and not \

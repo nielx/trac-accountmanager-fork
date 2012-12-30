@@ -12,25 +12,56 @@ import shutil
 import tempfile
 import unittest
 
-from trac.perm  import PermissionSystem
-from trac.test  import EnvironmentStub, Mock
+from trac.core import TracError
+from trac.perm import PermissionSystem
+from trac.test import EnvironmentStub, Mock
 
-from acct_mgr.api  import AccountManager
+from acct_mgr.api import AccountManager
+from acct_mgr.db  import SessionStore
 
 
-class PermissionTestCase(unittest.TestCase):
-
+class _BaseTestCase(unittest.TestCase):
     def setUp(self):
         self.env = EnvironmentStub(
-                enable=['trac.*', 'acct_mgr.api.*'])
+                enable=['trac.*', 'acct_mgr.api.*',
+                        'acct_mgr.db.SessionStore']
+        )
         self.env.path = tempfile.mkdtemp()
+
+    def tearDown(self):
+        shutil.rmtree(self.env.path)
+
+
+class AccountManagerTestCase(_BaseTestCase):
+
+    def setUp(self):
+        _BaseTestCase.setUp(self)
+        self.mgr = AccountManager(self.env)
+
+        self.store = SessionStore(self.env)
+        self.store.set_password('user', 'passwd')
+
+    def test_set_password(self):
+        # Can't work without at least one password store.
+        self.assertRaises(TracError, self.mgr.set_password, 'user', 'passwd')
+        self.env.config.set(
+            'account-manager', 'password_store', 'SessionStore')
+        self.mgr.set_password('user', 'passwd')
+        # Refuse to overwrite existing credetialy, if requested.
+        self.assertRaises(TracError, self.mgr.set_password, 'user', 'passwd',
+                          overwrite=False)
+
+
+class PermissionTestCase(_BaseTestCase):
+
+    def setUp(self):
+        _BaseTestCase.setUp(self)
         self.perm = PermissionSystem(self.env)
         self.req = Mock()
         self.actions = ['ACCTMGR_ADMIN', 'ACCTMGR_CONFIG_ADMIN',
                         'ACCTMGR_USER_ADMIN', 'EMAIL_VIEW', 'USER_VIEW']
 
-    def tearDown(self):
-        shutil.rmtree(self.env.path)
+   # Tests
 
     def test_available_actions(self):
         for action in self.actions:
@@ -65,8 +96,10 @@ class PermissionTestCase(unittest.TestCase):
                 self.assertFalse(self.perm.check_permission('TRAC_ADMIN',
                                                             user))
 
+
 def suite():
     suite = unittest.TestSuite()
+    suite.addTest(unittest.makeSuite(AccountManagerTestCase, 'test'))
     suite.addTest(unittest.makeSuite(PermissionTestCase, 'test'))
     return suite
 
