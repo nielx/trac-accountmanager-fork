@@ -473,6 +473,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
             #   adding the function with a different key name here.
             data['pretty_date'] = get_pretty_dateinfo(env, req)
         add_stylesheet(req, 'acct_mgr/acct_mgr.css')
+        add_stylesheet(req, 'common/css/report.css')
         return 'admin_users.html', data
 
     def _do_acct_details(self, req):

@@ -86,6 +86,7 @@
     <form method="post" py:otherwise="" py:strip="not delete_enabled">
       <div class="system-message"
            py:if="deletion_error"><p>${deletion_error}</p></div>
+      <h2>Accounts <span class="numrows">(${len(accounts)})</span></h2>
       <xi:include href="user_table.html"/>
       <div class="buttons">
         <input type="submit" name="reset"
