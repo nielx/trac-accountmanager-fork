@@ -4,6 +4,7 @@ Maintainer: Steffen Hoffmann <hoff.st@web.de>
 acct_mgr-0.5 (not yet released) - branch 0.11
  resolved issues
  * #10681: User with empty password can't reset their password
+ * #10740: Checkbox columns are too wide on the Accounts: Cleanup page
  * prevent two ways for a user to bypass a forced password change
  * skip BotTrapCheck on admin user requests, i.e. from inside user admin panel
 
