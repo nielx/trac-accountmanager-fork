@@ -10,6 +10,7 @@ acct_mgr-0.5 (not yet released) - branch 0.11
  * skip BotTrapCheck on admin user requests, i.e. from inside user admin panel
 
  new features
+ * #7426: Dynamicity of Trac (Show number of registered users)
  * #10739: Move 'Back to Accounts' button to the contextual navigation
  * add unit tests for db access functions
  * add account guard configuration to config admin panel
