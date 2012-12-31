@@ -12,6 +12,7 @@ acct_mgr-0.5 (not yet released) - branch 0.11
  new features
  * #7426: Dynamicity of Trac (Show number of registered users)
  * #10739: Move 'Back to Accounts' button to the contextual navigation
+ * #10742: Rename "Update" button to "Refresh" on Review Account Details page
  * add unit tests for db access functions
  * add account guard configuration to config admin panel
  * allow logging-in into password-less accounts via acct_mgr.LoginModule
