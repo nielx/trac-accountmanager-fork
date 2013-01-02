@@ -93,6 +93,8 @@
                py:if="password_reset_enabled"
                title="Send another random password"
                value="${dgettext('acct_mgr', 'Reset passwords')}" />
+        <input type="submit" name="approve"
+               value="${dgettext('acct_mgr', 'Toggle account approval')}" />
         <input type="submit" name="remove"
                py:if="delete_enabled"
                value="${dgettext('acct_mgr', 'Remove selected accounts')}" />

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2008 Pedro Algarvio <ufs@ufsoft.org>
+# Copyright (C) 2013 Steffen Hoffmann <hoff.st@web.de>
 # All rights reserved.
 #
 # This software is licensed as described in the file COPYING, which
@@ -56,6 +57,10 @@ class AccountChangeListener(Component):
     def user_email_verification_requested(self, username, token):
         notifier = EmailVerificationNotification(self.env)
         notifier.notify(username, token)
+
+    def user_registration_approval_required(self, username):
+        notifier = EmailVerificationNotification(self.env)
+        notifier.notify(username, 'Registration approval required')
 
 
 class AccountChangeNotification(NotifyEmail):

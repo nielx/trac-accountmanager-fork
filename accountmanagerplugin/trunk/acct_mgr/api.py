@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2005 Matthew Good <trac@matt-good.net>
-# Copyright (C) 2011,2012 Steffen Hoffmann <hoff.st@web.de>
+# Copyright (C) 2011-2013 Steffen Hoffmann <hoff.st@web.de>
 # All rights reserved.
 #
 # This software is licensed as described in the file COPYING, which
@@ -9,26 +9,27 @@
 #
 # Author: Matthew Good <trac@matt-good.net>
 
-from pkg_resources  import resource_filename
+from pkg_resources import resource_filename
 
-from trac.config  import BoolOption, Configuration, ExtensionOption, \
-                         Option, OrderedExtensionsOption
-from trac.core  import Component, ExtensionPoint, Interface, TracError, \
-                       implements
-from trac.perm import IPermissionRequestor
-from trac.web.chrome  import ITemplateProvider
+from trac.config import BoolOption, Configuration, ExtensionOption
+from trac.config import Option, OrderedExtensionsOption
+from trac.core import Component, ExtensionPoint, Interface, TracError
+from trac.core import implements
+from trac.perm import IPermissionRequestor, PermissionCache
+from trac.web.chrome import ITemplateProvider
+from trac.web.main import IRequestFilter
 
 # Import i18n methods.  Fallback modules maintain compatibility to Trac 0.11
 # by keeping Babel optional here.
 try:
-    from trac.util.translation  import domain_functions
+    from trac.util.translation import domain_functions
     add_domain, _, N_, gettext, ngettext, tag_ = \
         domain_functions('acct_mgr', ('add_domain', '_', 'N_', 'gettext',
                                       'ngettext', 'tag_'))
     dgettext = None
 except ImportError:
-    from genshi.builder  import tag as tag_
-    from trac.util.translation  import gettext
+    from genshi.builder import tag as tag_
+    from trac.util.translation import gettext
     _ = gettext
     N_ = lambda text: text
     def add_domain(a,b,c=None):
@@ -47,8 +48,8 @@ except ImportError:
                 pass
         return string
 
-from acct_mgr.model import delete_user, get_user_attribute, \
-                           prime_auth_session, set_user_attribute
+from acct_mgr.model import delete_user, get_user_attribute
+from acct_mgr.model import prime_auth_session, set_user_attribute
 
 
 class IPasswordStore(Interface):
@@ -122,6 +123,9 @@ class IAccountChangeListener(Interface):
     def user_email_verification_requested(user, token):
         """User verification has been requested."""
 
+    def user_registration_approval_required(user):
+        """Account registered, requiring administrative approval."""
+
 
 class IAccountRegistrationInspector(Interface):
     """An interface for Components, that wish to participate in examining
@@ -159,7 +163,7 @@ class AccountManager(Component):
     stores, and if so, then each password store is queried in turn.
     """
 
-    implements(IAccountChangeListener, IPermissionRequestor)
+    implements(IAccountChangeListener, IPermissionRequestor, IRequestFilter)
 
     _password_store = OrderedExtensionsOption(
         'account-manager', 'password_store', IPasswordStore,
@@ -406,6 +410,28 @@ class AccountManager(Component):
         
     def user_email_verification_requested(self, user, token):
         self.log.info("Email verification requested for user: %s" % user)
+
+    def user_registration_approval_required(self, user):
+        self.log.info("Registration approval required for user: %s" % user)
+
+    # IRequestFilter methods
+
+    def pre_process_request(self, req, handler):
+        if not req.session.authenticated or \
+                req.perm.has_permission('ACCTMGR_USER_ADMIN'):
+            # Permissions for anonymous and admin users remain unchanged.
+            return handler
+        if 'approval' in req.session:
+            # Account approval not granted, remove elevated permissions.
+            req.perm = PermissionCache(self.env)
+            self.log.debug(
+                "AccountManager.pre_process_request: Permissions for '%s' "
+                "stripped (account approval %s)"
+                % (req.authname, req.session['approval']))
+        return handler
+
+    def post_process_request(self, req, template, data, content_type):
+        return template, data, content_type
 
     # IPermissionRequestor methods
 
