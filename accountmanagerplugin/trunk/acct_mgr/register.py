@@ -411,7 +411,7 @@ class RegistrationModule(CommonTemplateProvider):
             else:
                 if self.require_approval:
                     set_user_attribute(self.env, username, 'approval',
-                                       'pending')
+                                       N_('pending'))
                     # Notify admin user about registration pending for review.
                     acctmgr._notify('registration_approval_required',
                                     username)
