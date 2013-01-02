@@ -17,6 +17,17 @@
   <body>
     <h2>Accounts: Configuration</h2>
 
+      <fieldset>
+        <legend>General</legend>
+        <div class="field">
+          <label>
+            <input type="checkbox" name="ignore_auth_case" value="true"
+                   checked="${ignore_auth_case and 'checked' or None}" />
+            Convert login names to lower case on registration and login
+          </label>
+        </div>
+      </fieldset>
+
     <div class="notice system-message" py:if="result">
       <p>${result}</p>
     </div>
@@ -26,14 +37,13 @@
           <label>
             <select name="${section.classname}" >
               <option py:for="order in numstores" value="${order}"
-                selected="${order == section.order or None}">
+                      selected="${order == section.order or None}">
                 ${order == 0 and '--' or order}
               </option>
             </select>
             $section.name
           </label>
         </legend>
-
         <div class="field" py:for="option in section.options">
           <label>$option.label:
             <py:choose>
@@ -59,41 +69,6 @@
       </fieldset>
 
       <fieldset>
-        <legend>Password Refresh</legend>
-        <label>
-          <input type="checkbox" name="refresh_passwd" value="true"
-                 checked="${refresh_passwd and 'checked' or None}" />
-          Silently update password hashes on next successful login.</label>
-          <div class="buttons">
-            <input type="submit" name="restart"
-              value="${dgettext('acct_mgr', 'Restart')}" />
-          </div>
-      </fieldset>
-
-      <fieldset>
-        <legend>Persistent Sessions</legend>
-        <label>
-          <input type="checkbox" name="persistent_sessions" value="true"
-                 checked="${persistent_sessions and 'checked' or None}" />
-          Allow the user to be remembered across sessions without needing to
-          re-authenticate.
-        </label>
-        <p class="help" i18n:msg="">This is, user checks a "Remember Me"
-          <tt>checkbox</tt> and, next time he visits the site within
-          30 days, he'll be remembered and automatically authenticated.
-        </p>
-      </fieldset>
-
-      <fieldset>
-        <legend>Password Reset</legend>
-        <label>
-          <input type="checkbox" name="force_passwd_change" value="true"
-                 checked="${force_passwd_change and 'checked' or None}" />
-          Force users to change passwords after a password reset.
-        </label>
-      </fieldset>
-
-      <fieldset>
         <legend>Account Verification</legend>
           <div class="field">
             <label>
@@ -107,6 +82,28 @@
                      checked="${verify_email and 'checked' or None}" />
               Force users to verify their email addresses.</label>
           </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Refresh/Reset Password</legend>
+        <div class="field">
+          <label>
+            <input type="checkbox" name="force_passwd_change" value="true"
+                   checked="${force_passwd_change and 'checked' or None}" />
+            Force users to change passwords after a password reset.
+          </label>
+        </div>
+        <hr />
+        <div class="field">
+          <label>
+            <input type="checkbox" name="refresh_passwd" value="true"
+                   checked="${refresh_passwd and 'checked' or None}" />
+            Silently update password hashes on next successful login.</label>
+        </div>
+        <div class="buttons">
+          <input type="submit" name="restart"
+                 value="${dgettext('acct_mgr', 'Restart')}" />
+        </div>
       </fieldset>
 
       <fieldset>
@@ -161,6 +158,22 @@
             </label>
           </p>
         </p>
+      </fieldset>
+
+      <fieldset>
+        <legend>Persistent Sessions</legend>
+        <div class="field">
+          <label>
+            <input type="checkbox" name="persistent_sessions" value="true"
+                   checked="${persistent_sessions and 'checked' or None}" />
+            Allow the user to be remembered across sessions without needing to
+            re-authenticate.
+          </label>
+          <p class="help" i18n:msg="">This is, user checks a "Remember Me"
+            <tt>checkbox</tt> and, next time he visits the site within
+            30 days, he'll be remembered and automatically authenticated.
+          </p>
+        </div>
       </fieldset>
 
       <div class="buttons">
