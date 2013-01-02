@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2005 Matthew Good <trac@matt-good.net>
-# Copyright (C) 2010-2012 Steffen Hoffmann <hoff.st@web.de>
+# Copyright (C) 2010-2013 Steffen Hoffmann <hoff.st@web.de>
 # All rights reserved.
 #
 # This software is licensed as described in the file COPYING, which
@@ -359,6 +359,8 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
             # Preserve selection during a series of requests.
             data['email_approved'] = email_approved
 
+            sel = req.args.get('sel')
+            sel = isinstance(sel, list) and sel or [sel]
             if req.args.get('add'):
                 # Add new user account.
                 if create_enabled:
@@ -373,7 +375,6 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                         # User editor form clean-up.
                         data['acctmgr'] = {}
                     except RegistrationError, e:
-
                         # Attempt deferred translation.
                         message = gettext(e.message)
                         # Check for (matching number of) message arguments
@@ -386,11 +387,24 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                 else:
                     data['editor_error'] = _(
                         "The password store does not support creating users.")
+            elif req.args.get('approve') and req.args.get('sel'):
+                # Toggle approval status for selected accounts.
+                if sel:
+                    for account in sel:
+                        username = account
+                        status = None
+                        # Get account approval status.
+                        status = get_user_attribute(env, username,
+                                                    attribute='approval')
+                        status = username in status and \
+                                 status[username][1].get('approval')
+                        if status == 'pending':
+                            # Admit authenticated/registered session.
+                            del_user_attribute(env, username,
+                                               attribute='approval')
             elif req.args.get('reset') and req.args.get('sel'):
                 # Password reset for one or more accounts.
                 if password_reset_enabled:
-                    sel = req.args.get('sel')
-                    sel = isinstance(sel, list) and sel or [sel]
                     for username, name, email in env.get_known_users():
                         if username in sel:
                             acctmod._reset_password(username, email)
@@ -400,8 +414,6 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
             elif req.args.get('remove') and req.args.get('sel'):
                 # Delete one or more accounts.
                 if delete_enabled:
-                    sel = req.args.get('sel')
-                    sel = isinstance(sel, list) and sel or [sel]
                     for account in sel:
                         acctmgr.delete_user(account)
                 else:

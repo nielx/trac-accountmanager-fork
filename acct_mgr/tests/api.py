@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2012 Steffen Hoffmann <hoff.st@web.de>
+# Copyright (C) 2012,2013 Steffen Hoffmann <hoff.st@web.de>
 # All rights reserved.
 #
 # This software is licensed as described in the file COPYING, which
@@ -12,21 +12,26 @@ import shutil
 import tempfile
 import unittest
 
+from Cookie import SimpleCookie as Cookie
+
 from trac.core import TracError
-from trac.perm import PermissionSystem
+from trac.perm import PermissionCache, PermissionSystem
 from trac.test import EnvironmentStub, Mock
+from trac.web.main import RequestDispatcher
+from trac.web.session import Session
 
 from acct_mgr.api import AccountManager
-from acct_mgr.db  import SessionStore
+from acct_mgr.db import SessionStore
 
 
 class _BaseTestCase(unittest.TestCase):
     def setUp(self):
-        self.env = EnvironmentStub(
+        self.env = EnvironmentStub(default_data=True,
                 enable=['trac.*', 'acct_mgr.api.*',
                         'acct_mgr.db.SessionStore']
         )
         self.env.path = tempfile.mkdtemp()
+        self.perm = PermissionSystem(self.env)
 
     def tearDown(self):
         shutil.rmtree(self.env.path)
@@ -40,6 +45,15 @@ class AccountManagerTestCase(_BaseTestCase):
 
         self.store = SessionStore(self.env)
         self.store.set_password('user', 'passwd')
+        args = dict(username='user', name='', email='')
+        incookie = Cookie()
+        incookie['trac_session'] = '123456'
+        self.req = Mock(authname='', args=args, authenticated=True,
+                        base_path='/', callbacks=dict(),
+                        href=Mock(prefs=lambda x: None),
+                        incookie=incookie, outcookie=Cookie(),
+                        redirect=lambda x: None)
+        self.req.path_info = '/'
 
     def test_set_password(self):
         # Can't work without at least one password store.
@@ -51,12 +65,52 @@ class AccountManagerTestCase(_BaseTestCase):
         self.assertRaises(TracError, self.mgr.set_password, 'user', 'passwd',
                           overwrite=False)
 
+    def test_approval_admin_keep_perm(self):
+        self.perm.grant_permission('admin', 'ACCTMGR_ADMIN')
+
+        # Some elevated permission action.
+        action = 'USER_VIEW'
+        self.assertFalse(action in PermissionCache(self.env))
+
+        req = self.req
+        req.perm = PermissionCache(self.env, 'admin')
+        req.session = Session(self.env, req)
+        req.session.save()
+        self.mgr.pre_process_request(req, None)
+        self.assertTrue(action in req.perm)
+
+        # Mock an authenticated request with account approval pending.
+        req.session['approval'] = 'pending'
+        req.session.save()
+        # Don't touch admin user requests.
+        self.mgr.pre_process_request(req, None)
+        self.assertTrue(action in req.perm)
+
+    def test_approval_user_strip_perm(self):
+        # Some elevated permission action.
+        action = 'USER_VIEW'
+        self.assertFalse(action in PermissionCache(self.env))
+        self.perm.grant_permission('user', action)
+
+        req = self.req
+        req.perm = PermissionCache(self.env, 'user')
+        req.session = Session(self.env, req)
+        req.session.save()
+        self.mgr.pre_process_request(req, None)
+        self.assertTrue(action in req.perm)
+
+        # Mock an authenticated request with account approval pending.
+        req.session['approval'] = 'pending'
+        req.session.save()
+        # Remove elevated permission, if account approval is pending.
+        self.mgr.pre_process_request(req, None)
+        self.assertFalse(action in req.perm)
+
 
 class PermissionTestCase(_BaseTestCase):
 
     def setUp(self):
         _BaseTestCase.setUp(self)
-        self.perm = PermissionSystem(self.env)
         self.req = Mock()
         self.actions = ['ACCTMGR_ADMIN', 'ACCTMGR_CONFIG_ADMIN',
                         'ACCTMGR_USER_ADMIN', 'EMAIL_VIEW', 'USER_VIEW']

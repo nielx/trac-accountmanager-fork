@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2005 Matthew Good <trac@matt-good.net>
-# Copyright (C) 2010-2012 Steffen Hoffmann <hoff.st@web.de>
+# Copyright (C) 2010-2013 Steffen Hoffmann <hoff.st@web.de>
 # All rights reserved.
 #
 # This software is licensed as described in the file COPYING, which
@@ -19,7 +19,7 @@ from os import urandom
 
 from trac import perm, util
 from trac.core import Component, TracError, implements
-from trac.config import Option
+from trac.config import BoolOption, Option
 from trac.env import open_environment
 from trac.web import auth, chrome
 from trac.web.main import IRequestHandler, IRequestFilter
@@ -336,6 +336,11 @@ class RegistrationModule(CommonTemplateProvider):
 
     implements(chrome.INavigationContributor, IRequestHandler)
 
+    require_approval = BoolOption(
+        'account-manager', 'require_approval', False,
+        doc="Whether account registration requires administrative approval "
+            "to enable the account or not.")
+
     def __init__(self):
         self.acctmgr = AccountManager(self.env)
         self._enable_check(log=True)
@@ -404,6 +409,17 @@ class RegistrationModule(CommonTemplateProvider):
                     message = message % e.msg_args
                 chrome.add_warning(req, Markup(message))
             else:
+                if self.require_approval:
+                    set_user_attribute(self.env, username, 'approval',
+                                       'pending')
+                    # Notify admin user about registration pending for review.
+                    acctmgr._notify('registration_approval_required',
+                                    username)
+                    chrome.add_notice(req, Markup(tag.span(Markup(_(
+                        "Your username has been registered successfully, but "
+                        "your account requires administrative approval. "
+                        "Please proceed according to local policy."))))
+                    )
                 if verify_enabled:
                     chrome.add_notice(req, Markup(tag.span(Markup(_(
                         """Your username has been successfully registered but
