@@ -220,6 +220,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
             return self._do_users(req)
 
     def _do_config(self, req):
+        cfg = self.env.config
         stores = StoreOrder(stores=self.acctmgr.stores,
                             list=self.acctmgr.password_store)
         if req.method == 'POST':
@@ -227,8 +228,11 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                 del_user_attribute(self.env, attribute='password_refreshed')
                 req.redirect(req.href.admin('accounts', 'config',
                                             done='restart'))
+            cfg.set('trac', 'ignore_auth_case',
+                            req.args.get('ignore_auth_case', False))
+
             _setorder(req, stores)
-            self.config.set('account-manager', 'password_store',
+            cfg.set('account-manager', 'password_store',
                             ','.join(stores.get_enabled_store_names()))
             for store in stores.get_all_stores():
                 for attr, option in _getoptions(store):
@@ -236,33 +240,34 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                     newvalue = req.args.get('%s.%s' % (cls_name, attr))
                     self.log.debug("%s.%s: %s" % (cls_name, attr, newvalue))
                     if newvalue is not None:
-                        self.config.set(option.section, option.name, newvalue)
-                        self.config.save()
-            self.config.set('account-manager', 'force_passwd_change',
-                            req.args.get('force_passwd_change', False))
-            self.config.set('account-manager', 'persistent_sessions',
-                            req.args.get('persistent_sessions', False))
-            self.config.set('account-manager', 'verify_email',
-                            req.args.get('verify_email', False))
-            self.config.set('account-manager', 'require_approval',
-                            req.args.get('require_approval', False))
-            self.config.set('account-manager', 'refresh_passwd',
-                            req.args.get('refresh_passwd', False))
-            self.config.set('account-manager', 'login_attempt_max_count',
-                            as_int(req.args.get('login_attempt_max_count'),
-                            self.guard.login_attempt_max_count, min=0))
+                        cfg.set(option.section, option.name, newvalue)
+
+            cfg.set('account-manager', 'force_passwd_change',
+                    req.args.get('force_passwd_change', False))
+            cfg.set('account-manager', 'persistent_sessions',
+                    req.args.get('persistent_sessions', False))
+            cfg.set('account-manager', 'verify_email',
+                    req.args.get('verify_email', False))
+            cfg.set('account-manager', 'require_approval',
+                    req.args.get('require_approval', False))
+            cfg.set('account-manager', 'refresh_passwd',
+                    req.args.get('refresh_passwd', False))
+            cfg.set('account-manager', 'login_attempt_max_count',
+                    as_int(req.args.get('login_attempt_max_count'),
+                    self.guard.login_attempt_max_count, min=0))
             user_lock_time = as_int(req.args.get('user_lock_time'),
                                     self.guard.user_lock_time, min=0)
-            self.config.set('account-manager', 'user_lock_time',
-                            user_lock_time)
-            # Hint: AccountGuard.lock_time_progression has the sanitized value.
-            self.config.set('account-manager', 'user_lock_time_progression',
-                            req.args.get('user_lock_time_progression') or \
-                            self.guard.lock_time_progression)
-            self.config.set('account-manager', 'user_lock_max_time',
-                            as_int(req.args.get('user_lock_max_time'),
-                            self.guard.user_lock_max_time, min=user_lock_time))
-            self.config.save()
+            cfg.set('account-manager', 'user_lock_time', user_lock_time)
+            # AccountGuard.lock_time_progression has the sanitized value.
+            cfg.set('account-manager', 'user_lock_time_progression',
+                    req.args.get('user_lock_time_progression') or \
+                    self.guard.lock_time_progression)
+            cfg.set('account-manager', 'user_lock_max_time',
+                    as_int(req.args.get('user_lock_max_time'),
+                    self.guard.user_lock_max_time, min=user_lock_time))
+            # Write changes back to file to make them permanent, what causes
+            # the environment to reload on next request as well.
+            cfg.save()
         sections = []
         for store in self.acctmgr.stores:
             if store.__class__.__name__ == "ResetPwStore":
@@ -314,18 +319,19 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                         'options' : options,
                         })
             continue
-        sections = sorted(sections, key=lambda i: i['name'])
+        sections = sorted(sections, key=lambda i: i['order'])
         numstores = range(0, stores.numstores() + 1)
         data = {
             '_dgettext': dgettext,
+            'ignore_auth_case': cfg.getbool('trac', 'ignore_auth_case'),
             'pretty_precise_timedelta': pretty_precise_timedelta,
             'sections': sections,
             'numstores': numstores,
             'force_passwd_change': self.acctmgr.force_passwd_change,
             'persistent_sessions': self.acctmgr.persistent_sessions,
             'verify_email': self.acctmgr.verify_email,
-            'require_approval': self.config.getbool('account-manager',
-                                                    'require_approval'),
+            'require_approval': cfg.getbool('account-manager',
+                                            'require_approval'),
             'refresh_passwd': self.acctmgr.refresh_passwd,
             'login_attempt_max_count': self.guard.login_attempt_max_count,
             'user_lock_time': self.guard.user_lock_time,
