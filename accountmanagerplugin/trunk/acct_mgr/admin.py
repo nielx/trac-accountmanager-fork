@@ -389,19 +389,20 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                         "The password store does not support creating users.")
             elif req.args.get('approve') and req.args.get('sel'):
                 # Toggle approval status for selected accounts.
-                if sel:
-                    for account in sel:
-                        username = account
-                        status = None
-                        # Get account approval status.
-                        status = get_user_attribute(env, username,
-                                                    attribute='approval')
-                        status = username in status and \
-                                 status[username][1].get('approval')
-                        if status == 'pending':
-                            # Admit authenticated/registered session.
-                            del_user_attribute(env, username,
-                                               attribute='approval')
+                for username in sel:
+                    # Get account approval status.
+                    status = get_user_attribute(env, username,
+                                                attribute='approval')
+                    status = username in status and \
+                             status[username][1].get('approval') or None
+                    if status:
+                        # Admit authenticated/registered session.
+                        del_user_attribute(env, username,
+                                           attribute='approval')
+                    else:
+                        # Ban the account.
+                        set_user_attribute(env, username, 'approval',
+                                           'revoked')
             elif req.args.get('reset') and req.args.get('sel'):
                 # Password reset for one or more accounts.
                 if password_reset_enabled:
