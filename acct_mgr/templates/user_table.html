@@ -25,37 +25,42 @@ Arguments:
     </thead>
     <tbody>
       <py:for each="idx, acct in enumerate(accounts)">
-        <py:with vars="odd_even = ('even', 'odd')[idx % 2]">
-          <tr class="$odd_even">
-            <td py:if="delete_enabled">
-              <input type="checkbox" name="sel"
-                     value="${acct.username}" />
-            </td>
-            <td>
-              <a href="${acct.review_url}">${acct.username}</a>
-              <!--! Additional account status icons -->
-              <py:choose py:if="acct.locked">
-                <img src="${href.chrome('/acct_mgr/time-locked.png')}"
-                     py:when="acct.release_hint" alt="Account locked"
-                     title="${acct.release_hint}" />
-                <img src="${href.chrome('/acct_mgr/locked.png')}"
-                     py:otherwise="" alt="Permanently locked"
-                     title="${dgettext('acct_mgr', 'Permanently locked')}" />
-              </py:choose>
-            </td>
-            <td py:if="'name' in cols">${acct.name}</td>
-            <td py:if="'email' in cols">${acct.email}</td>
-            <!--! Trac >= 0.13: 'pretty_dateinfo' calls 'user_time' here -->
-            <py:if test="pretty_dateinfo">
-              <td>${acct.last_visit and pretty_date(acct.last_visit) or ''}</td>
-            </py:if>
-            <!--! pre-trac-0.13 fallback: always show absolute time here -->
-            <py:if test="not pretty_dateinfo">
-              <td>${acct.last_visit and \
-                    pretty_date(acct.last_visit, format='absolute') or ''}</td>
-            </py:if>
-          </tr>
-        </py:with>
+        <tr py:attrs="{'class': ('even', 'odd')[idx % 2] +
+                                (acct.approval and ' missing' or ''),
+                       'title': acct.approval and
+                                ('email' in acct.approval and
+                                 dgettext('acct_mgr', 'Email not verified') or
+                                 dgettext('acct_mgr', 'Approval %s')
+                                 % dgettext('acct_mgr', acct.approval[0])) or
+                                None}">
+          <td py:if="delete_enabled">
+            <input type="checkbox" name="sel"
+                   value="${acct.username}" />
+          </td>
+          <td>
+            <a href="${acct.review_url}">${acct.username}</a>
+            <!--! Additional account status icons -->
+            <py:choose py:if="acct.locked">
+              <img src="${href.chrome('/acct_mgr/time-locked.png')}"
+                   py:when="acct.release_hint" alt="Account locked"
+                   title="${acct.release_hint}" />
+              <img src="${href.chrome('/acct_mgr/locked.png')}"
+                   py:otherwise="" alt="Permanently locked"
+                   title="${dgettext('acct_mgr', 'Permanently locked')}" />
+            </py:choose>
+          </td>
+          <td py:if="'name' in cols">${acct.name}</td>
+          <td py:if="'email' in cols">${acct.email}</td>
+          <!--! Trac >= 1.0: 'pretty_dateinfo' calls 'user_time' here -->
+          <py:if test="pretty_dateinfo">
+            <td>${acct.last_visit and pretty_date(acct.last_visit) or ''}</td>
+          </py:if>
+          <!--! Trac < 1.0 fallback: always show absolute time here -->
+          <py:if test="not pretty_dateinfo">
+            <td>${acct.last_visit and \
+                  pretty_date(acct.last_visit, format='absolute') or ''}</td>
+          </py:if>
+        </tr>
       </py:for>
     </tbody>
   </table>

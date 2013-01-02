@@ -25,7 +25,7 @@ from trac.web.chrome import add_stylesheet, add_warning
 from trac.admin import IAdminPanelProvider
 
 from acct_mgr.api import AccountManager, CommonTemplateProvider
-from acct_mgr.api import _, dgettext, gettext, ngettext, tag_
+from acct_mgr.api import _, N_, dgettext, gettext, ngettext, tag_
 from acct_mgr.guard import AccountGuard
 from acct_mgr.model import del_user_attribute, email_verified
 from acct_mgr.model import get_user_attribute, last_seen
@@ -70,6 +70,9 @@ def fetch_user_data(env, req):
                 accounts[username]['release_hint'] = _(
                         "Locked until %(t_release)s",
                         t_release=t_release)
+    verify_email = acctmgr.verify_email and \
+                   is_enabled(env, EmailVerificationModule) and \
+                   EmailVerificationModule(env).email_enabled
     for acct, status in get_user_attribute(env, username=None,
                                            authenticated=None).iteritems():
         account = accounts.get(acct)
@@ -81,6 +84,19 @@ def fetch_user_data(env, req):
             if account['email']:
                 account['email'] = Chrome(env).format_author(req,
                                                              account['email'])
+            approval = status[1].get('approval')
+            approval = approval and list((approval,)) or []
+            if account['email'] and verify_email:
+                if email_verified(env, account['username'],
+                                  account['email']) == True:
+                    if approval:
+                        account['approval'] = approval
+                elif approval:
+                    account['approval'] = approval.append('email')
+                else:
+                    account['approval'] = list(('email',))
+            elif approval:
+                account['approval'] = approval
     ts_seen = last_seen(env)
     for username, last_visit in ts_seen:
         account = accounts.get(username)
@@ -228,6 +244,8 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                             req.args.get('persistent_sessions', False))
             self.config.set('account-manager', 'verify_email',
                             req.args.get('verify_email', False))
+            self.config.set('account-manager', 'require_approval',
+                            req.args.get('require_approval', False))
             self.config.set('account-manager', 'refresh_passwd',
                             req.args.get('refresh_passwd', False))
             self.config.set('account-manager', 'login_attempt_max_count',
@@ -306,6 +324,8 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
             'force_passwd_change': self.acctmgr.force_passwd_change,
             'persistent_sessions': self.acctmgr.persistent_sessions,
             'verify_email': self.acctmgr.verify_email,
+            'require_approval': self.config.getbool('account-manager',
+                                                    'require_approval'),
             'refresh_passwd': self.acctmgr.refresh_passwd,
             'login_attempt_max_count': self.guard.login_attempt_max_count,
             'user_lock_time': self.guard.user_lock_time,
@@ -330,7 +350,6 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
         delete_enabled = acctmgr.supports('delete_user')
         verify_enabled = acctmgr.verify_email and \
                          EmailVerificationModule(env).email_enabled
-
         account = dict(email=req.args.get('email', '').strip(),
                        name=req.args.get('name', '').strip(),
                        username=acctmgr.handle_username_casing(
@@ -402,7 +421,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                     else:
                         # Ban the account.
                         set_user_attribute(env, username, 'approval',
-                                           'revoked')
+                                           N_('revoked'))
             elif req.args.get('reset') and req.args.get('sel'):
                 # Password reset for one or more accounts.
                 if password_reset_enabled:
