@@ -260,6 +260,31 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
     must be disabled to use this one.
     """
 
+    # Trac core options, replicated here to not make them disappear by
+    # disabling auth.LoginModule.
+    check_ip = BoolOption('trac', 'check_auth_ip', 'false',
+         """Whether the IP address of the user should be checked for
+         authentication (''since 0.9'').""")
+
+    ignore_case = BoolOption('trac', 'ignore_auth_case', 'false',
+        """Whether login names should be converted to lower case
+        (''since 0.9'').""")
+
+    auth_cookie_lifetime = IntOption('trac', 'auth_cookie_lifetime', 0,
+        """Lifetime of the authentication cookie, in seconds.
+        
+        This value determines how long the browser will cache
+        authentication information, and therefore, after how much
+        inactivity a user will have to log in again. The default value
+        of 0 makes the cookie expire at the end of the browsing
+        session. (''since 0.12'')""")
+
+    auth_cookie_path = Option('trac', 'auth_cookie_path', '',
+        """Path for the authentication cookie. Set this to the common
+        base path of several Trac instances if you want them to share
+        the cookie.  (''since 0.12'')""")
+
+    # Options dedicated to acct_mgr.web_ui.LoginModule. 
     login_opt_list = BoolOption(
         'account-manager', 'login_opt_list', False,
         """Set to True, to switch login page style showing alternative actions
@@ -296,7 +321,7 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
             self.env.log.info("trac.web.auth.LoginModule disabled, "
                               "giving preference to %s." % self.__class__)
 
-        self.cookie_lifetime = c.getint('trac', 'auth_cookie_lifetime', 0)
+        self.cookie_lifetime = self.auth_cookie_lifetime
         if not self.cookie_lifetime > 0:
             # Set the session to expire after some time and not
             #   when the browser is closed - what is Trac core default).
@@ -557,8 +582,7 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
                 env = open_environment(path, use_cache=True)
                 # Consider only Trac environments with equal, non-default
                 #   'auth_cookie_path', which enables cookies to be shared.
-                if self._get_cookie_path(req) == env.config.get('trac',
-                                                     'auth_cookie_path'):
+                if self._get_cookie_path(req) == self.auth_cookie_path:
                     db = env.get_db_cnx()
                     cursor = db.cursor()
                     # Authentication cookie values must be unique. Ensure,
@@ -583,12 +607,8 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
                     self.log.debug('Auth distribution skipped: ' + environ)
 
     def _get_cookie_path(self, req):
-        """Check request object for "path" cookie property.
-
-        There is even a configuration option (since Trac 0.12).
-        """
-        return self.env.config.get('trac', 'auth_cookie_path') or \
-                   req.base_path or '/'
+        """Determine "path" cookie property from setting or request object."""
+        return self.auth_cookie_path or req.base_path or '/'
 
     # overrides
     def _expire_cookie(self, req):
