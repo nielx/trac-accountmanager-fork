@@ -33,7 +33,7 @@ Arguments:
                                  dgettext('acct_mgr', 'Approval %s')
                                  % dgettext('acct_mgr', acct.approval[0])) or
                                 None}">
-          <td py:if="delete_enabled">
+          <td class="sel" py:if="delete_enabled">
             <input type="checkbox" name="sel"
                    value="${acct.username}" />
           </td>

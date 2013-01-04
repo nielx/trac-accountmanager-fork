@@ -12,6 +12,57 @@
         dgettext = _dgettext ?>
   <head>
     <title>Accounts</title>
+    <script type="text/javascript">
+      jQuery(document).ready(function($) {
+        // Compatibility: The prop function doesn't exist before jQuery 1.6
+        if(!$.isFunction($.fn.prop)) $.fn.prop = $.fn.attr;
+        // Compatibility: The closest function doesn't exist before jQuery 1.3
+        if(!$.isFunction($.fn.closest)) $.fn.closest = $.fn.parents;
+        // Clear all the checkboxes, to cover the case that the user clicks
+        // the Back button in the browser
+        $("table.listing input:checkbox").prop("checked", false);
+        // Prompt with a confirm dialog when deleting accounts
+        var button_pressed;
+        $("#manage-accounts div.buttons input").click(function() {
+          button_pressed = $(this).attr("name");
+        });
+        $("#manage-accounts").submit(function() {
+          if (button_pressed === "remove")
+            return confirm('${delete_msg_confirm}');
+        })
+        // Disable the submit buttons until at least one checkboxes is checked
+        function setButtonsDisabled(state) {
+          $("#reset").attr("disabled", state);
+          $("#approve").attr("disabled", state);
+          $("#remove").attr("disabled", state);
+          $("#cleanup").attr("disabled", state);
+        }
+        setButtonsDisabled(true);
+        // Add a group toggler checkbox in the header
+        $("table.listing th.sel").html('<input type="checkbox" />').children()
+          .click(function() {
+            $("td.sel input:checkbox", $(this).closest("table.listing"))
+              .prop("checked", this.checked);
+            setButtonsDisabled(!this.checked);
+          });
+        // Toggle the group toggle checkbox and buttons' disable state
+        $("table.listing td.sel input:checkbox").click(function() {
+          var checkboxes = $("input:checkbox", $(this).closest("tbody"));
+          var numChecked = checkboxes.filter(":checked").length;
+          var noneChecked = numChecked === 0;
+          var allChecked = numChecked === checkboxes.length;
+          // Compatibility: the 'indeterminate' can't be set using jQuery's,
+          // 'attr' function, so calling 'prop' wouldn't work with the
+          // compatibility fix that was put in place for 'prop'
+          $("th.sel input:checkbox", $(this).closest("table.listing"))
+            .prop("checked", this.checked)
+            .each(function() {
+              this.indeterminate = !(noneChecked || allChecked);
+            });
+          setButtonsDisabled(noneChecked);
+        });
+      })
+    </script>
   </head>
 
   <body>
@@ -83,22 +134,23 @@
          py:when="not listing_enabled">
       <p>This password store does not support listing users.</p>
     </div>
-    <form method="post" py:otherwise="" py:strip="not delete_enabled">
+    <form id="manage-accounts" method="post"
+          py:otherwise="" py:strip="not delete_enabled">
       <div class="system-message"
            py:if="deletion_error"><p>${deletion_error}</p></div>
       <h2>Accounts <span class="numrows">(${len(accounts)})</span></h2>
       <xi:include href="user_table.html"/>
       <div class="buttons">
-        <input type="submit" name="reset"
+        <input type="submit" id="reset" name="reset"
                py:if="password_reset_enabled"
                title="Send another random password"
                value="${dgettext('acct_mgr', 'Reset passwords')}" />
-        <input type="submit" name="approve"
+        <input type="submit" id="approve" name="approve"
                value="${dgettext('acct_mgr', 'Toggle account approval')}" />
-        <input type="submit" name="remove"
+        <input type="submit" id="remove" name="remove"
                py:if="delete_enabled"
                value="${dgettext('acct_mgr', 'Remove selected accounts')}" />
-        <input type="submit" name="cleanup"
+        <input type="submit" id="cleanup" name="cleanup"
                py:if="req.perm.has_permission('ACCTMGR_ADMIN')"
                value="${dgettext('acct_mgr', 'Review account attributes')}" />
       </div>

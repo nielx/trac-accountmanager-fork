@@ -506,6 +506,8 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
             data['accounts'] = fetch_user_data(env, req)
             data['cls'] = 'listing'
             data['cols'] = ['email', 'name']
+            data['delete_msg_confirm'] = _(
+                "Are you sure you want to delete these accounts?")
             # Prevent IRequestFilter in trac.timeline.web_ui.TimelineModule
             #   of Trac 0.13 and later from adding a link to timeline by
             #   adding the function with a different key name here.
