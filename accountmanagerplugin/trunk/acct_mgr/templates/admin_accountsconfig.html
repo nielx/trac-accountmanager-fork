@@ -28,9 +28,6 @@
         </div>
       </fieldset>
 
-    <div class="notice system-message" py:if="result">
-      <p>${result}</p>
-    </div>
     <form id="accountsconfig" class="mod" method="post">
       <fieldset py:for="section in sections">
         <legend>
@@ -95,6 +92,9 @@
         </div>
         <hr />
         <div class="field">
+          <div class="notice system-message" py:if="result">
+            <p>${result}</p>
+          </div>
           <label>
             <input type="checkbox" name="refresh_passwd" value="true"
                    checked="${refresh_passwd and 'checked' or None}" />
