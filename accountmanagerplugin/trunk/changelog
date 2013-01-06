@@ -22,6 +22,7 @@ acct_mgr-0.5 (not yet released) - branch 0.11
  * add unit tests for db access functions
  * add account guard configuration to config admin panel
  * allow logging-in into password-less accounts via acct_mgr.LoginModule
+ * filter account list in user admin panel by account status
 
 
 acct_mgr-0.4.2 (27-Dec-2012) - branch 0.11
