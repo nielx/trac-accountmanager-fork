@@ -52,7 +52,7 @@ except ImportError:
             value = max
         return value
 
-def fetch_user_data(env, req):
+def fetch_user_data(env, req, filters=None):
     acctmgr = AccountManager(env)
     guard = AccountGuard(env)
     accounts = {}
@@ -81,22 +81,33 @@ def fetch_user_data(env, req):
             # accounts.
             account['name'] = status[1].get('name')
             account['email'] = status[1].get('email')
+            # Obfuscate email address if required. 
             if account['email']:
                 account['email'] = Chrome(env).format_author(req,
                                                              account['email'])
             approval = status[1].get('approval')
-            approval = approval and list((approval,)) or []
+            approval = approval and set((approval,)) or set()
+            if approval and filters and not approval.intersection(filters):
+                del accounts[acct]
+                continue
             if account['email'] and verify_email:
                 if email_verified(env, account['username'],
                                   account['email']) == True:
                     if approval:
-                        account['approval'] = approval
+                        account['approval'] = list(approval)
                 elif approval:
-                    account['approval'] = approval.append('email')
-                else:
-                    account['approval'] = list(('email',))
+                    account['approval'] = list(approval.union(['email']))
+                elif not filters or 'email' in filters:
+                    account['approval'] = ['email']
             elif approval:
-                account['approval'] = approval
+                account['approval'] = list(approval)
+    if filters and 'active' not in filters:
+        inactive_accounts = {}
+        for username in accounts:
+            if 'approval' in accounts[username]:
+                # Hint: This is 30 % faster than dict.update() here.
+                inactive_accounts[username] = accounts[username]
+        accounts = inactive_accounts
     ts_seen = last_seen(env)
     for username, last_visit in ts_seen:
         account = accounts.get(username)
@@ -362,8 +373,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                                     req.args.get('username', '').strip()))
         data = {
             '_dgettext': dgettext,
-            'acctmgr': account,
-            'email_approved': True,
+            'acctmgr': account, 'email_approved': True, 'filters': [],
             'listing_enabled': listing_enabled,
             'create_enabled': create_enabled,
             'delete_enabled': delete_enabled,
@@ -502,17 +512,48 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                 return self._do_db_cleanup(req)
 
         # (Re-)Build current user list.
+        available_filters = [
+            ('active', _("active")),
+            ('revoked', _("revoked"), False), # not shown by default
+            ('pending', _("pending approval"))
+        ]
+        if verify_enabled:
+            available_filters.append(('email', _("pending email approval")))
+        # Check request or session for enabled filters, or use default.
+        filters = [f[0] for f in available_filters if f[0] in req.args]
+        key = 'acctmgr_user.filter.%s'
+        if not filters:
+            filters = [f[0] for f in available_filters
+                       if req.session.get(key % f[0]) == '1']
+        if not filters:
+                filters = [f[0] for f in available_filters
+                           if len(f) == 2 or f[2]]
+        for filter_ in available_filters:
+            data['filters'].append({'name': filter_[0], 'label': filter_[1],
+                                    'enabled': filter_[0] in filters})
         if listing_enabled:
-            data['accounts'] = fetch_user_data(env, req)
+            data['accounts'] = fetch_user_data(env, req, filters)
             data['cls'] = 'listing'
             data['cols'] = ['email', 'name']
             data['delete_msg_confirm'] = _(
                 "Are you sure you want to delete these accounts?")
+
+            # Save results of submitting user list filter form to the session.
+            if 'update' in req.args:
+                for filter in available_filters:
+                    key = 'acctmgr_user.filter.%s' % filter[0]
+                    if filter[0] in req.args:
+                        req.session[key] = '1'
+                    elif key in req.session:
+                        del req.session[key]
+                req.redirect(req.href.admin('accounts', 'users'))
+
             # Prevent IRequestFilter in trac.timeline.web_ui.TimelineModule
             #   of Trac 0.13 and later from adding a link to timeline by
             #   adding the function with a different key name here.
             data['pretty_date'] = get_pretty_dateinfo(env, req)
         add_stylesheet(req, 'acct_mgr/acct_mgr.css')
+        add_stylesheet(req, 'common/css/report.css')
         return 'admin_users.html', data
 
     def _do_acct_details(self, req):

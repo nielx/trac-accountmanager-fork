@@ -12,6 +12,8 @@
         dgettext = _dgettext ?>
   <head>
     <title>Accounts</title>
+    <script type="text/javascript"
+            src="${chrome.htdocs_location}js/folding.js"></script>
     <script type="text/javascript">
       jQuery(document).ready(function($) {
         // Compatibility: The prop function doesn't exist before jQuery 1.6
@@ -61,6 +63,8 @@
             });
           setButtonsDisabled(noneChecked);
         });
+        // Hide account filter settings by default
+        $("fieldset legend.foldable").enableFolding(true);
       })
     </script>
   </head>
@@ -138,7 +142,29 @@
           py:otherwise="" py:strip="not delete_enabled">
       <div class="system-message"
            py:if="deletion_error"><p>${deletion_error}</p></div>
-      <h2>Accounts <span class="trac-count">(${len(accounts)})</span></h2>
+      <h3>Accounts <span class="trac-count">(${len(accounts)})</span></h3>
+
+      <form id="prefs" method="get" action="">
+        <fieldset id="filters">
+          <legend class="foldable">Filters</legend>
+          <table summary="Account filters">
+            <th scope="row">Status</th>
+            <td class="filter">
+              <label class="control" py:for="filter in filters">
+                <input type="checkbox" name="${filter.name}"
+                       checked="${filter.enabled or None}"/> ${filter.label}
+              </label>
+            </td>
+            <td>
+              <div class="inlinebuttons">
+                <input type="submit" name="update"
+                       value="${dgettext('acct_mgr', 'Update')}" />
+              </div>
+            </td>
+          </table>
+        </fieldset>
+      </form>
+
       <xi:include href="user_table.html"/>
       <div class="buttons">
         <input type="submit" id="reset" name="reset"
