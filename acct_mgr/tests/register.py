@@ -17,11 +17,12 @@ from Cookie  import SimpleCookie as Cookie
 from genshi.core  import Markup
 
 from trac.perm  import PermissionCache, PermissionSystem
-from trac.test  import EnvironmentStub, Mock
+from trac.test  import EnvironmentStub, Mock, MockPerm
 from trac.web.session  import Session
 
 from acct_mgr.api  import AccountManager, IAccountRegistrationInspector
 from acct_mgr.db  import SessionStore
+from acct_mgr.htfile  import HtPasswdStore
 from acct_mgr.model  import set_user_attribute
 from acct_mgr.register  import BasicCheck, BotTrapCheck, EmailCheck, \
                                EmailVerificationModule, \
@@ -63,7 +64,7 @@ class DummyRegInspectorTestCase(_BaseTestCase):
 
     def test_bad_check(self):
         class BadRegistrationInspector(GenericRegistrationInspector):
-            """Child class, that is left as a copy of its base.
+            """Child class, that is left as a pure copy of its base.
 
             Bad check class example, because check method is not implemented.
             """
@@ -301,17 +302,23 @@ class UsernamePermCheckTestCase(_BaseTestCase):
 class RegistrationModuleTestCase(_BaseTestCase):
     def setUp(self):
         _BaseTestCase.setUp(self)
-        self.env = EnvironmentStub(
-                enable=['trac.*', 'acct_mgr.api.*', 'acct_mgr.register.*'])
+        self.env = EnvironmentStub(enable=[
+                       'trac.*', 'acct_mgr.api.*', 'acct_mgr.db.*',
+                       'acct_mgr.register.*',
+                       'acct_mgr.pwhash.HtDigestHashMethod'
+                   ])
         self.env.path = tempfile.mkdtemp()
         self.reg_template = 'register.html'
         self.req.method = 'POST'
 
+        self.env.config.set('account-manager', 'password_store',
+                            'SessionStore')
         self.acctmgr = AccountManager(self.env)
         self.check = BasicCheck(self.env)
         self.rmod = RegistrationModule(self.env)
+        self.store = SessionStore(self.env)
 
-    def test_check(self):
+    def test_checks(self):
         # Default configuration: All default checks enabled.
         response = self.rmod.process_request(self.req)
         self.assertEqual(response[0], self.reg_template)
@@ -329,6 +336,57 @@ class RegistrationModuleTestCase(_BaseTestCase):
         self.assertFalse(self.acctmgr._register_check)
         response = self.rmod.process_request(self.req)
         self.assertEqual(response[0], self.reg_template)
+
+    def test_mandatory_email_registration(self):
+        user = 'user1'
+        passwd = 'test'
+        # A more complete mock of a request object is required for this test.
+        req = Mock(authname='anonymous', method='POST',
+                   args={
+                       'action': 'create',
+                       'username': user,
+                       'name': 'Tester',
+                       'password': passwd,
+                       'password_confirm': passwd
+                   },
+                   chrome=dict(notices=[], warnings=[]),
+                   href=self.env.abs_href, perm=MockPerm(),
+                   redirect=lambda x: None
+        )
+        # Fail to register the user.
+        self.rmod.process_request(req)
+        self.assertTrue('email address' in str(req.chrome['warnings']))
+        self.assertEqual(list(self.store.get_users()), [])
+
+    def test_optional_email_registration(self):
+        user = 'user1'
+        passwd = 'test'
+        def redirect_noop(href):
+            """Log relevant information for checking registration result."""
+            #print req.chrome['notices']
+            return
+        # A more complete mock of a request object is required for this test.
+        req = Mock(authname='anonymous', method='POST',
+                   args={
+                       'action': 'create',
+                       'username': user,
+                       'name': 'Tester',
+                       'password': passwd,
+                       'password_confirm': passwd
+                   },
+                   chrome=dict(notices=[], warnings=[]),
+                   href=self.env.abs_href, perm=MockPerm(),
+                   redirect=redirect_noop
+        )
+        self.env.config.set('account-manager', 'verify_email', False)
+        # Successfully register the user.
+        # Note: This would have raised an AttributeError without graceful
+        #   request checking for 'email'.
+        self.rmod.process_request(req)
+        # DEVEL: Check registration success more directly.
+        self.assertEqual(req.chrome['warnings'], [])
+        self.assertEqual([user], list(self.store.get_users()))
+        self.assertTrue(self.store.check_password(user, passwd))
 
 
 class EmailVerificationModuleTestCase(_BaseTestCase):
