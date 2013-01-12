@@ -32,25 +32,9 @@ from acct_mgr.model import get_user_attribute, last_seen
 from acct_mgr.model import set_user_attribute
 from acct_mgr.register import EmailVerificationModule, RegistrationError
 from acct_mgr.web_ui import AccountModule
-from acct_mgr.util import is_enabled, get_pretty_dateinfo
+from acct_mgr.util import as_int, is_enabled, get_pretty_dateinfo
 from acct_mgr.util import pretty_precise_timedelta
 
-try:
-    from trac.util import as_int
-except ImportError:
-    def as_int(s, default, min=None, max=None):
-        """Convert s to an int and limit it to the given range, or
-        return default if unsuccessful (copied verbatim from Trac0.12dev).
-        """
-        try:
-            value = int(s)
-        except (TypeError, ValueError):
-            return default
-        if min is not None and value < min:
-            value = min
-        if max is not None and value > max:
-            value = max
-        return value
 
 def fetch_user_data(env, req, filters=None):
     acctmgr = AccountManager(env)

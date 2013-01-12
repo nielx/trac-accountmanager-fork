@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2005 Matthew Good <trac@matt-good.net>
-# Copyright (C) 2010-2012 Steffen Hoffmann <hoff.st@web.de>
+# Copyright (C) 2010-2013 Steffen Hoffmann <hoff.st@web.de>
 # Copyright (C) 2011 Edgewall Software
 # All rights reserved.
 #
@@ -68,6 +68,24 @@ class EnvRelativePathOption(Option):
             return path
         return os.path.normpath(os.path.join(instance.env.path, path))
 
+try:
+    from trac.util import as_int
+# Provide the function for compatibility (available since Trac 0.12).
+except ImportError:
+    def as_int(s, default, min=None, max=None):
+        """Convert s to an int and limit it to the given range, or
+        return default if unsuccessful (copied verbatim from Trac0.12dev).
+        """
+        try:
+            value = int(s)
+        except (TypeError, ValueError):
+            return default
+        if min is not None and value < min:
+            value = min
+        if max is not None and value > max:
+            value = max
+        return value
+
 # taken from a comment of Horst Hansen
 # at http://code.activestate.com/recipes/65441
 def containsAny(str, set):
@@ -98,7 +116,7 @@ def is_enabled(env, cls):
         return env.enabled[cls]
 
 # Compatibility code for `pretty_dateinfo` from template data dict
-# (available since Trac 0.13)
+# (available since Trac 1.0)
 def get_pretty_dateinfo(env, req):
     """Return the function defined in trac.web.chrome.Chrome.populate_data .
 

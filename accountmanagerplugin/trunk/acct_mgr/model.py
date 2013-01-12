@@ -11,6 +11,7 @@
 from trac.util.text import to_unicode
 
 from acct_mgr.hashlib_compat  import md5
+from acct_mgr.util import as_int
 
 _USER_KEYS = {
     'auth_cookie': 'name',
@@ -96,7 +97,7 @@ def get_user_attribute(env, username=None, authenticated=1, attribute=None,
         constraints.append(username)
     if authenticated is not None:
         columns.append('authenticated')
-        constraints.append(authenticated)
+        constraints.append(as_int(authenticated, 0, min=0, max=1))
     if attribute is not None:
         columns.append('name')
         constraints.append(attribute)
@@ -229,7 +230,7 @@ def del_user_attribute(env, username=None, authenticated=1, attribute=None,
         constraints.append(username)
     if authenticated is not None:
         columns.append('authenticated')
-        constraints.append(authenticated)
+        constraints.append(as_int(authenticated, 0, min=0, max=1))
     if attribute is not None:
         columns.append('name')
         constraints.append(attribute)
