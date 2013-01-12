@@ -28,12 +28,17 @@ class _BaseTestCase(unittest.TestCase):
     def setUp(self):
         self.env = EnvironmentStub(default_data=True,
                 enable=['trac.*', 'acct_mgr.api.*',
-                        'acct_mgr.db.SessionStore']
+                        'acct_mgr.db.SessionStore', 'acct_mgr.pwhash.*',
+                        'acct_mgr.htfile.HtDigestStore']
         )
         self.env.path = tempfile.mkdtemp()
         self.perm = PermissionSystem(self.env)
+        self.db = self.env.get_db_cnx()
 
     def tearDown(self):
+        self.db.close()
+        # Really close db connections.
+        self.env.shutdown()
         shutil.rmtree(self.env.path)
 
 
@@ -54,6 +59,8 @@ class AccountManagerTestCase(_BaseTestCase):
                         incookie=incookie, outcookie=Cookie(),
                         redirect=lambda x: None)
         self.req.path_info = '/'
+
+   # Tests
 
     def test_set_password(self):
         # Can't work without at least one password store.
@@ -105,6 +112,55 @@ class AccountManagerTestCase(_BaseTestCase):
         # Remove elevated permission, if account approval is pending.
         self.mgr.pre_process_request(req, None)
         self.assertFalse(action in req.perm)
+
+    def test_maybe_update_hash(self):
+        # Configure another, primary password store.
+        self.env.config.set('account-manager', 'password_store',
+                            'HtDigestStore, SessionStore')
+        self.env.config.set('account-manager', 'htdigest_file', '.htdigest')
+        cursor = self.db.cursor()
+        cursor.execute("""
+            INSERT INTO session_attribute
+                   (sid,authenticated,name,value)
+            VALUES (%s,%s,%s,%s)
+        """, ('user', 1, 'password_refreshed', '1'))
+
+        # Refresh not happening due to 'password_refreshed' attribute.
+        self.mgr._maybe_update_hash('user', 'passwd')
+        cursor.execute("""
+            SELECT value
+            FROM   session_attribute
+            WHERE  sid='user'
+            AND    authenticated=1
+            AND    name='password'
+        """)
+        self.assertNotEqual(cursor.fetchall(), [])
+
+        cursor.execute("""
+            DELETE
+            FROM   session_attribute
+            WHERE  sid='user'
+            AND    authenticated=1
+            AND    name='password_refreshed'
+        """)
+        # Refresh (and effectively migrate) user credentials.
+        self.mgr._maybe_update_hash('user', 'passwd')
+        cursor.execute("""
+            SELECT value
+            FROM   session_attribute
+            WHERE  sid='user'
+            AND    authenticated=1
+            AND    name='password'
+        """)
+        self.assertEqual(cursor.fetchall(), [])
+        cursor.execute("""
+            SELECT value
+            FROM   session_attribute
+            WHERE  sid='user'
+            AND    authenticated=1
+            AND    name='password_refreshed'
+        """)
+        self.assertEqual(cursor.fetchall(), [('1',)])
 
 
 class PermissionTestCase(_BaseTestCase):

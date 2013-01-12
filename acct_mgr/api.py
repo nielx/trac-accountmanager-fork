@@ -378,7 +378,8 @@ class AccountManager(Component):
                 set_user_attribute(self.env, username, attribute, value)
 
     def _maybe_update_hash(self, user, password):
-        if not get_user_attribute(self.env, 1, user, 'password_refreshed', 1):
+        if get_user_attribute(self.env, user, 1,
+                              'password_refreshed', 1) == [0]:
             self.log.debug("Refresh password for user: %s" % user)
             store = self.find_user_store(user)
             pwstore = self.get_supporting_store('set_password')

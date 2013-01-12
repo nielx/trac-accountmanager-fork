@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2012 Steffen Hoffmann <hoff.st@web.de>
+# Copyright (C) 2012,2013 Steffen Hoffmann <hoff.st@web.de>
 # All rights reserved.
 #
 # This software is licensed as described in the file COPYING, which
 # you should have received as part of this distribution.
 #
 # Author: Steffen Hoffmann <hoff.st@web.de>
+
+from trac.util.text import to_unicode
 
 from acct_mgr.hashlib_compat  import md5
 
@@ -100,7 +102,7 @@ def get_user_attribute(env, username=None, authenticated=1, attribute=None,
         constraints.append(attribute)
     if value is not None:
         columns.append('value')
-        constraints.append(value)
+        constraints.append(to_unicode(value))
     sel_columns = [col for col in ALL_COLS if col not in columns]
     if len(sel_columns) == 0:
         # No variable left, so only COUNTing is as a sensible task here. 
