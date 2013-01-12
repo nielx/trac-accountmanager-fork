@@ -70,7 +70,6 @@ class ModelTestCase(unittest.TestCase):
         self._create_session(user, False)
         self.assertEqual(last_seen(self.env, user), [])
 
-
     def test_user_known(self):
         user = 'user'
         self.assertFalse(user_known(self.env, user))
@@ -79,6 +78,68 @@ class ModelTestCase(unittest.TestCase):
         self.assertFalse(user_known(self.env, user))
         self._create_session(user)
         self.assertTrue(user_known(self.env, user))
+
+    def test_get_user_attribute(self):
+        self.assertEqual(get_user_attribute(self.env, authenticated=None), {})
+        cursor = self.db.cursor()
+        cursor.executemany("""
+            INSERT INTO session_attribute
+                   (sid,authenticated,name,value)
+            VALUES (%s,%s,%s,%s)
+        """, [
+        ('user', 0, 'attribute1', 'value1'),
+        ('user', 0, 'attribute2', 'value2'),
+        ('user', 1, 'attribute1', 'value1'),
+        ('user', 1, 'attribute2', 'value2'),
+        ('another', 1, 'attribute2', 'value3')]
+        )
+        no_constraints = get_user_attribute(self.env, authenticated=None)
+        # Distinct session IDs form top-level keys.
+        self.assertEqual(set(no_constraints.keys()),
+                         set([u'user', u'another']))
+        # There are probably anonymous sessions named equally to
+        # authenticated ones, causing different nested dicts below each
+        # session ID.  Btw, only authenticated ones are real usernames.
+        self.assertTrue(0 in no_constraints['user'])
+        self.assertTrue(1 in no_constraints['user'])
+        self.assertFalse(0 in no_constraints['another'])
+        self.assertTrue(1 in no_constraints['another'])
+        # Touch some of the attributes stored before.
+        self.assertTrue(no_constraints['user'][0]['attribute1'], 'value1')
+        self.assertTrue(no_constraints['user'][1]['attribute2'], 'value2')
+        self.assertEqual(no_constraints['another'].get(0), None)
+        self.assertTrue(no_constraints['another'][1]['attribute2'], 'value3')
+
+    def test_set_user_attribute(self):
+        set_user_attribute(self.env, 'user', 'attribute1', 'value1')
+        cursor = self.db.cursor()
+        cursor.execute("""
+            SELECT name,value
+            FROM   session_attribute
+            WHERE  sid='user'
+            AND    authenticated=1
+        """)
+        self.assertEqual(cursor.fetchall(), [('attribute1', 'value1')])
+        # Setting an attribute twice will eventually just update the value.
+        set_user_attribute(self.env, 'user', 'attribute1', 'value2')
+        cursor.execute("""
+            SELECT name,value
+            FROM   session_attribute
+            WHERE  sid='user'
+            AND    authenticated=1
+        """)
+        self.assertEqual(cursor.fetchall(), [('attribute1', 'value2')])
+        # All values are stored as strings internally, but the function
+        # should take care to handle forseeable abuse gracefully.
+        # This is a test for possible regressions of #10772.
+        set_user_attribute(self.env, 'user', 'attribute1', 0)
+        cursor.execute("""
+            SELECT name,value
+            FROM   session_attribute
+            WHERE  sid='user'
+            AND    authenticated=1
+        """)
+        self.assertEqual(cursor.fetchall(), [('attribute1', '0')])
 
 
 def suite():

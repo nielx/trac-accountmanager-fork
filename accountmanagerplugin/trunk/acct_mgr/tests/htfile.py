@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2005 Matthew Good <trac@matt-good.net>
-# Copyright (C) 2011,2012 Steffen Hoffmann <hoff.st@web.de>
+# Copyright (C) 2011-2013 Steffen Hoffmann <hoff.st@web.de>
 # All rights reserved.
 #
 # This software is licensed as described in the file COPYING, which
@@ -83,8 +83,6 @@ class HtDigestTestCase(_BaseTestCase):
 
     def setUp(self):
         _BaseTestCase.setUp(self)
-        self.env.config.set('account-manager', 'digest_password_store',
-                            'HtDigestStore')
         self.env.config.set('account-manager', 'htdigest_realm',
                             'TestRealm')
         self.store = HtDigestStore(self.env)
@@ -113,8 +111,6 @@ class HtPasswdTestCase(_BaseTestCase):
 
     def setUp(self):
         _BaseTestCase.setUp(self)
-        self.env.config.set('account-manager', 'htpasswd_store',
-                            'HtPasswdStore')
         self.store = HtPasswdStore(self.env)
 
     def test_md5(self):
