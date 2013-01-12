@@ -31,19 +31,21 @@ provided by AccountManagerPlugin itself.
 
 New configuration options to supersed 'password_file' for affected stores:
 {{{
-#!diff
- [account-manager]
- password_store = HtDigestStore
--password_file = <abs_path>/.htdigest
-+htdigest_file = <abs_path>/.htdigest
+#!ini
+[account-manager]
+password_store = HtDigestStore
+# Obsolete entry commented for reference
+#password_file = <abs_path>/.htdigest
+htdigest_file = <abs_path>/.htdigest
 }}}
 
 {{{
-#!diff
- [account-manager]
- password_store = HtPasswdStore
--password_file = <abs_path>/.htpasswd
-+htpasswd_file = <abs_path>/.htpasswd
+#!ini
+[account-manager]
+password_store = HtPasswdStore
+# Obsolete entry commented for reference
+#password_file = <abs_path>/.htpasswd
+htpasswd_file = <abs_path>/.htpasswd
 }}}
 
 The password reset procedure has been re-designed from ground to make password
