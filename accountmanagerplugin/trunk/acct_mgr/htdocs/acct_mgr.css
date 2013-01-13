@@ -15,3 +15,9 @@ div#failed_attempts p.tableheader {
 table#login_attempts { width: 480px; }
 td a img { vertical-align:middle; }
 p span.buttons input { margin-top:0; vertical-align:baseline; }
+
+/* style for compatibility with Trac <= 1.0 */
+h3 .trac-count {
+    margin-left: .2em; vertical-align: baseline; color: #999;
+    font-size: 90%; font-weight: normal;
+}
