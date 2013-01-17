@@ -217,7 +217,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
     def _do_config(self, req):
         cfg = self.env.config
         stores = StoreOrder(stores=self.acctmgr.stores,
-                            list=self.acctmgr.password_store)
+                            list=self.acctmgr.password_stores)
         if req.method == 'POST':
             if req.args.get('restart'):
                 del_user_attribute(self.env, attribute='password_refreshed')
@@ -278,8 +278,10 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                     opt_val = option.__get__(store, store)
                 except AttributeError, e:
                     self.env.log.error(e)
-                    error = _("""Error while reading configuration -
-                              Hint: Enable/install the required component.""")
+                    regexp = r'^.* interface named \"(.*?)\".*$'
+                    error = _("Error while reading configuration - "
+                              "Hint: Enable/install required component '%s'."
+                              % re.sub(regexp, r'\1', str(e)))
                     pass
                 if opt_val:
                     value = isinstance(opt_val, Component) and \
@@ -568,7 +570,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                 'user': username,
                }
         stores = StoreOrder(stores=acctmgr.stores,
-                            list=acctmgr.password_store)
+                            list=acctmgr.password_stores)
         user_store = acctmgr.find_user_store(username)
         if not user_store is None:
             data['user_store'] = user_store.__class__.__name__
