@@ -165,7 +165,8 @@ class AccountManager(Component):
 
     implements(IAccountChangeListener, IPermissionRequestor, IRequestFilter)
 
-    _password_store = OrderedExtensionsOption(
+    change_listeners = ExtensionPoint(IAccountChangeListener)
+    password_stores = OrderedExtensionsOption(
         'account-manager', 'password_store', IPasswordStore,
         include_missing=False,
         doc = N_("Ordered list of password stores, queried in turn."))
@@ -176,8 +177,8 @@ class AccountManager(Component):
         include_missing=False,
         doc="""Ordered list of IAccountRegistrationInspector's to use for
         registration checks.""")
+    # All stores, not only the configured ones (see self.password_stores).
     stores = ExtensionPoint(IPasswordStore)
-    change_listeners = ExtensionPoint(IAccountChangeListener)
     allow_delete_account = BoolOption(
         'account-manager', 'allow_delete_account', True,
         doc="Allow users to delete their own account.")
@@ -219,14 +220,14 @@ class AccountManager(Component):
         expected.
         """
         users = []
-        for store in self._password_store:
+        for store in self.password_stores:
             users.extend(store.get_users())
         return users
 
     def has_user(self, user):
         exists = False
         user = self.handle_username_casing(user)
-        for store in self._password_store:
+        for store in self.password_stores:
             if store.has_user(user):
                 exists = True
                 break
@@ -269,7 +270,7 @@ class AccountManager(Component):
     def check_password(self, user, password):
         valid = False
         user = self.handle_username_casing(user)
-        for store in self._password_store:
+        for store in self.password_stores:
             valid = store.check_password(user, password)
             if valid:
                 if valid == True and (self.refresh_passwd == True) and \
@@ -290,14 +291,9 @@ class AccountManager(Component):
         delete_user(self.env, user)
         self._notify('deleted', user)
 
-    @property
-    def password_store(self):
-        # Legacy option 'password_format' is not supported anymore.
-        return self._password_store
-
     def supports(self, operation):
         try:
-            stores = self.password_store
+            stores = self.password_stores
         except AttributeError:
             return False
         else:
@@ -312,7 +308,7 @@ class AccountManager(Component):
         None is returned if no supporting store can be found.
         """
         supports = False
-        for store in self.password_store:
+        for store in self.password_stores:
             if hasattr(store, operation):
                 supports = True
                 break
@@ -323,7 +319,7 @@ class AccountManager(Component):
     def get_all_supporting_stores(self, operation):
         """Returns a list of stores that implement the specified operation"""
         stores = []
-        for store in self.password_store:
+        for store in self.password_stores:
             if hasattr(store, operation):
                 stores.append(store)
             continue
@@ -336,7 +332,7 @@ class AccountManager(Component):
         returned.
         """
         user_stores = []
-        for store in self._password_store:
+        for store in self.password_stores:
             userlist = store.get_users()
             user_stores.append((store, userlist))
             continue
