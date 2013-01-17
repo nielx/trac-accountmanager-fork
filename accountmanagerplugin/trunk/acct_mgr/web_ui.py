@@ -140,6 +140,10 @@ class AccountModule(CommonTemplateProvider):
                 _("Forgot your password?"), href=req.href.reset_password())
 
     def _reset_password_enabled(self, log=False):
+        try:
+            self.store.hash_method
+        except AttributeError:
+            return False
         return is_enabled(self.env, self.__class__) and \
                self.reset_password and (self._write_check(log) != []) and \
                is_enabled(self.env, self.store.__class__) and \
