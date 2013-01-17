@@ -4,6 +4,7 @@ Maintainer: Steffen Hoffmann <hoff.st@web.de>
 acct_mgr-0.5 (not yet released) - branch 0.11
  resolved issues
  * #8217: Race condition when creating new accounts
+ * #8927: LoginModule with .htpasswd & passwd reset => not working
  * #10681: User with empty password can't reset their password
  * #10740: Checkbox columns are too wide on the Accounts: Cleanup page
  * #10765: AttributeError: 'NoneType' object has no attribute 'strip'

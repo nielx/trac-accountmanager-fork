@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2005 Matthew Good <trac@matt-good.net>
-# Copyright (C) 2010-2012 Steffen Hoffmann <hoff.st@web.de>
+# Copyright (C) 2010-2013 Steffen Hoffmann <hoff.st@web.de>
 # All rights reserved.
 #
 # This software is licensed as described in the file COPYING, which
@@ -143,7 +143,7 @@ class AccountModule(CommonTemplateProvider):
         return is_enabled(self.env, self.__class__) and \
                self.reset_password and (self._write_check(log) != []) and \
                is_enabled(self.env, self.store.__class__) and \
-               self.store.hash_method
+               self.store.hash_method and True or False
 
     reset_password_enabled = property(_reset_password_enabled)
 
