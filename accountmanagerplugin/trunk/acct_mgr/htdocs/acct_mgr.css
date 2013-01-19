@@ -2,8 +2,9 @@
 /* styles for users admin page */
 
 div#accountlist { max-height:640px; overflow:auto; }
-tr.missing td, tr.missing td a { color: #998; }
 fieldset.collapsed { border-width: 0; padding: 0 0.5em; }
+form#query { clear: none; }
+tr.missing td, tr.missing td a { color: #998; }
 
 /* styles for account details admin page */
 

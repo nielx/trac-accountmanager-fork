@@ -72,6 +72,7 @@
   <body>
     <h2>Manage User Accounts</h2>
 
+    <!--! Account property editor -->
     <form id="account-editor" class="addnew" method="post">
       <fieldset>
         <div class="system-message" py:if="editor_error">
@@ -138,13 +139,11 @@
          py:when="not listing_enabled">
       <p>This password store does not support listing users.</p>
     </div>
-    <form id="manage-accounts" method="post"
-          py:otherwise="" py:strip="not delete_enabled">
-      <div class="system-message"
-           py:if="deletion_error"><p>${deletion_error}</p></div>
+
+    <div py:otherwise="">
       <h3>Accounts <span class="trac-count">(${len(accounts)})</span></h3>
 
-      <form id="prefs" method="get" action="">
+      <form id="query" method="get" action="">
         <fieldset id="filters">
           <legend class="foldable">Filters</legend>
           <table summary="Account filters">
@@ -165,22 +164,32 @@
         </fieldset>
       </form>
 
-      <xi:include href="user_table.html"/>
-      <div class="buttons">
-        <input type="submit" id="reset" name="reset"
-               py:if="password_reset_enabled"
-               title="Send another random password"
-               value="${dgettext('acct_mgr', 'Reset passwords')}" />
-        <input type="submit" id="approve" name="approve"
-               value="${dgettext('acct_mgr', 'Toggle account approval')}" />
-        <input type="submit" id="remove" name="remove"
-               py:if="delete_enabled"
-               value="${dgettext('acct_mgr', 'Remove selected accounts')}" />
-        <input type="submit" id="cleanup" name="cleanup"
-               py:if="req.perm.has_permission('ACCTMGR_ADMIN')"
-               value="${dgettext('acct_mgr', 'Review account attributes')}" />
-      </div>
-    </form>
+      <form id="manage-accounts" method="post">
+        <div class="system-message" py:strip="not delete_enabled"
+             py:if="deletion_error"><p>${deletion_error}</p></div>
+
+        <!--! Main account list -->
+        <xi:include href="user_table.html"/>
+
+        <div class="buttons">
+          <input type="submit" id="reset" name="reset"
+                 py:if="password_reset_enabled"
+                 title="Send another random password"
+                 value="${dgettext('acct_mgr', 'Reset passwords')}" />
+          <input type="submit" id="approve" name="approve"
+                 value="${dgettext('acct_mgr', 'Toggle account approval')}" />
+          <input type="submit" id="remove" name="remove"
+                 py:if="delete_enabled"
+                 value="${dgettext('acct_mgr',
+                                   'Remove selected accounts')}" />
+          <input type="submit" id="cleanup" name="cleanup"
+                 py:if="req.perm.has_permission('ACCTMGR_ADMIN')"
+                 value="${dgettext('acct_mgr',
+                                   'Review account attributes')}" />
+        </div>
+      </form>
+    </div>
+
     </py:choose>
   </body>
 </html>
