@@ -13,6 +13,7 @@ acct_mgr-0.5 (not yet released) - branch 0.11
  * skip BotTrapCheck on admin user requests, i.e. from inside user admin panel
  * keep trac.auth.LoginModule options defined after disabling that component
    by defining all options in acct_mgr.web_ui.LoginModule as well
+ * fix access to account properties clean-up from user admin panel
 
  new features
  * #843: Make admin approval required for account registration
