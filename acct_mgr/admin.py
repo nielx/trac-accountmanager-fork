@@ -338,6 +338,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
         result = req.args.get('done')
         if result == 'restart':
             data['result'] = _("Password hash refresh procedure restarted.")
+        add_stylesheet(req, 'acct_mgr/acct_mgr.css')
         return 'admin_accountsconfig.html', data
 
     def _do_users(self, req):

@@ -1,4 +1,7 @@
 /* CSS definitions for AccountManagerPlugin */
+/* styles for configuration admin page */
+fieldset img.icon { float: right; }
+
 /* styles for users admin page */
 
 div#accountlist { max-height:640px; overflow:auto; }
