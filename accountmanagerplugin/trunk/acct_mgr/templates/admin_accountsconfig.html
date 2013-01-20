@@ -41,6 +41,8 @@
             $section.name
           </label>
         </legend>
+        <img class="icon" alt="Password store icon"
+             src="${href.chrome('/acct_mgr/users.png')}" />
         <div class="field" py:for="option in section.options">
           <label>$option.label:
             <py:choose>
@@ -67,22 +69,26 @@
 
       <fieldset>
         <legend>Account Verification</legend>
-          <div class="field">
-            <label>
-              <input type="checkbox" name="require_approval" value="true"
-                     checked="${require_approval and 'checked' or None}" />
-              Require administrative approval for new registrations.</label>
-          </div>
-          <div class="field">
-            <label>
-              <input type="checkbox" name="verify_email" value="true"
-                     checked="${verify_email and 'checked' or None}" />
-              Force users to verify their email addresses.</label>
-          </div>
+        <img class="icon" alt="Account approval icon"
+             src="${href.chrome('/acct_mgr/approval.png')}" />
+        <div class="field">
+          <label>
+            <input type="checkbox" name="require_approval" value="true"
+                   checked="${require_approval and 'checked' or None}" />
+            Require administrative approval for new registrations.</label>
+        </div>
+        <div class="field">
+          <label>
+            <input type="checkbox" name="verify_email" value="true"
+                   checked="${verify_email and 'checked' or None}" />
+            Force users to verify their email addresses.</label>
+        </div>
       </fieldset>
 
       <fieldset>
         <legend>Refresh/Reset Password</legend>
+        <img class="icon" alt="Password refresh icon"
+             src="${href.chrome('/acct_mgr/refresh.png')}" />
         <div class="field">
           <label>
             <input type="checkbox" name="force_passwd_change" value="true"
@@ -108,6 +114,8 @@
 
       <fieldset>
         <legend>Account guard</legend>
+        <img class="icon" alt="Account guard icon"
+             src="${href.chrome('/acct_mgr/guard.png')}" />
         <p>
           <label>
             Failed login attempt count max:
