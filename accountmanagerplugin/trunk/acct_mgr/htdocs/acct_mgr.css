@@ -20,12 +20,10 @@ table#login_attempts { width: 480px; }
 td a img { vertical-align:middle; }
 p span.buttons input { margin-top:0; vertical-align:baseline; }
 
-/* Derived from Easy CSS Progress Bar 1.0
+
+/* styles for configuration wizard page */
+/* progress display derived from Easy CSS Progress Bar 1.0
    by Juergen Koller [www.kollermedia.at] */
-/*
-* { margin:0px; padding:0px; font-family:verdana, Helvetica, sans-serif;
-    font-size:10px; }
- */
 ul.progress {
     width:600px; list-style:none; margin:10px; clear:both; float:right;
 }
