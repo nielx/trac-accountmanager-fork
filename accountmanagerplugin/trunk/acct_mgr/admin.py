@@ -22,6 +22,7 @@ from trac.util.datefmt import format_datetime, to_datetime
 from trac.util.presentation import Paginator
 from trac.web.chrome import Chrome, add_ctxtnav, add_link, add_notice
 from trac.web.chrome import add_stylesheet, add_warning
+from trac.web.main import IRequestHandler
 from trac.admin import IAdminPanelProvider
 
 from acct_mgr.api import AccountManager, CommonTemplateProvider
@@ -742,3 +743,42 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
             add_link(req, 'prev', prev_href, _('Previous Page'))
         page_href = req.href.admin('accounts', 'cleanup')
         return {'attr': attr, 'page_href': page_href}
+
+
+class AccountManagerSetupWizard(CommonTemplateProvider):
+
+    implements(IRequestHandler)
+
+    path = 'acctmgr/cfg-wizard'
+
+    def __init__(self):
+        self.acctmgr = AccountManager(self.env)
+        self.guard = AccountGuard(self.env)
+
+    # IRequestHandler methods
+
+    def match_request(self, req):
+        if req.path_info == '/' + self.path:
+            return True
+        return False
+
+    def process_request(self, req):
+        req.perm.require('ACCTMGR_CONFIG_ADMIN')
+        cfg = self.env.config
+        step = int(req.args.get('step', 0))
+        steps = [
+            dict(label=_("Common Options"), past=step>0),
+            dict(image='users', label=_("Password Store"), past=step > 1),
+            dict(image='refresh', label=_("Password Policy"), past=step > 2),
+            dict(image='guard', label=_("Account Guard"), past=step > 3),
+            dict(label=_("Review"))
+        ]
+        data = dict(steps=steps)
+        if req.method == 'POST':
+            if step == len(steps):
+                req.redirect(req.href.admin('accounts', 'config'))
+            data['active'] = step + 1
+        data['active'] = step
+        data['start_href'] = self.path
+        add_stylesheet(req, 'acct_mgr/acct_mgr.css')
+        return 'accounts_cfg_wizard.html', data, None
