@@ -1,0 +1,73 @@
+<!DOCTYPE html
+    PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:xi="http://www.w3.org/2001/XInclude"
+      xmlns:py="http://genshi.edgewall.org/" 
+      xmlns:i18n="http://genshi.edgewall.org/i18n"
+      i18n:domain="acct_mgr">
+  <xi:include href="layout.html" />
+  <head>
+    <title>Account Manager Setup</title>
+  </head>
+
+  <body>
+    <div id="content" class="wizard">
+      <div id="progress">
+        <!-- Progress bar   idx < active and 'past' or   -->
+        <ul class="progress">
+          <py:for each="idx,step in enumerate(steps)">
+            <li class="${step.past and 'past' or (idx == active and 'active') or None}"
+                id="${idx == len(steps) - 1 and 'last' or None}"
+                style="${'width:' + str(100 / len(steps)) + '%'}">
+              <span>
+                <a href="${href(start_href, step=idx)}">${idx + 1}</a>
+              </span>
+              <a href="${href(start_href, step=idx)}"
+                 title="${step.image and step.label or None}">
+              <img class="icon" alt="${step.label}" py:if="step.image"
+                   heigth="32" width="32"
+                   src="${href.chrome('/acct_mgr/' + step.image + '.png')}" />
+              <py:if test="not step.image">
+                $step.label
+              </py:if>
+              </a>
+            </li>
+          </py:for>
+        </ul>
+      </div>
+      <h1>Accounts: Configuration</h1>
+      <h2 i18n:msg="step,label">
+        Step ${str(active + 1)}: ${steps[active].label}
+      </h2>
+      <py:choose test="active">
+        <div py:when="0">
+          <h3>Set Common Options</h3>
+
+        </div>
+        <div py:when="1">
+          <h3>Select a Password Store</h3>
+          <img class="icon" alt="Password store icon"
+               src="${href.chrome('/acct_mgr/users.png')}" />
+
+        </div>
+        <div py:when="2">
+          <h3>Define Password Policy</h3>
+          <img class="icon" alt="Password refresh icon"
+               src="${href.chrome('/acct_mgr/refresh.png')}" />
+
+        </div>
+        <div py:when="3">
+          <h3>Set account guard options</h3>
+          <img class="icon" alt="Account guard icon"
+               src="${href.chrome('/acct_mgr/guard.png')}" />
+
+        </div>
+        <div py:otherwise="">
+          <h3>Review Your Configuration</h3>
+
+        </div>
+      </py:choose>
+    </div>
+  </body>
+</html>
