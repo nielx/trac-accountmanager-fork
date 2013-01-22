@@ -68,7 +68,7 @@
           trac:check_auth_ip [_]
           <p class="hint">
             Whether IP address should be checked for authentication,
-            potentially troublesome for users with with dynamic IP adress,
+            potentially troublesome for users with dynamic IP adress,
             disregarded for persistant sessions
           </p>
 
@@ -122,11 +122,147 @@
         </div>
 
         <div py:when="1">
-          <h3>Select a Password Store</h3>
+          <h3>Objective for configuring a Password Store</h3>
+          <p>
+            AccountManagerPlugin manages user credentials in a modular
+            back-end providing access to at least one password store.
+            While store chaining works flawlessly, this advanced configuration
+            scenario is not supported by the configuration wizard yet.
+          </p>
+
           <img class="icon" alt="Password store icon"
                src="${href.chrome('/acct_mgr/users.png')}" />
+          <h3>Authentication back-end</h3>
+          [x] Use a password store embedded into Trac db.
+          <p class="hint" i18n:msg="">
+            AccountManagerPlugin's <strong>SessionStore</strong> implements
+            password storage in db table 'session_attributes'.  Its the
+            default choice mainly for avoiding additional dependencies like
+            directory and file permissions.  While great to resolve some
+            concurrent access issues too, this password store has some
+            shortcomings as well.  Notably it does not support seamless
+            hash type migration yet, and its no candidate for shared use
+            by multiple Trac instances or even by applications beyond Trac.
+          </p>
+          <div>
+            Details
+            <ul>
+              <li>account-manager:hash_method [HtDigestHashMethod__]</li>
+              <!-- py:if acctmgr.HtDigestHashMethod enabled -->
+              <ul>
+                <li>account-manager:db_htdigest_realm [______________]</li>
+              </ul>
+              <!-- /py:if -->
+              <!-- py:if acctmgr.HtPasswdHashMethod enabled -->
+              <ul>
+                <li>account-manager:db_htpasswd_hash_type [md5___________]</li>
+              </ul>
+              <!-- /py:if -->
+            </ul>
+          </div>
 
+          [_] Use a writable file-based password store.
+          <p class="hint">
+            AccountManagerPlugin includes native support for common Apache
+            file formats 'htpasswd' and 'htdigest'.  Note that setting
+            appropriate directory and file permissions is cruicial for this
+            password store, but not covered by this configuration wizard.
+          </p>
+          <div>
+            Details
+            <ul>
+              <li>
+                [_] 'htpasswd' format
+                <p class="hint">
+                  <strong>HtDigestStore</strong>
+                </p>
+              </li>
+              <ul>
+                <li>account-manager:htdigest_file [trac.htdigest_]</li>
+                <li>account-manager:htdigest_realm [______________]</li>
+              </ul>
+              <li>
+                [_] 'htdigest' format
+                <p class="hint">
+                  <strong>HtPasswdStore</strong>
+                </p>
+              </li>
+              <ul>
+                <li>account-manager:htpasswd_file [trac.htpasswd_]</li>
+                <li>account-manager:htpasswd_hash_type [md5___________]</li>
+              </ul>
+            </ul>
+          </div>
+
+          [_] Use a read-only file-based password store.
+          <p class="hint">
+            <strong>SvnServePasswordStore</strong> includes support for
+            reading svnserve's  password file format.  This is another way to
+            enable shared use of authentication data, but relies on independed
+            management of the password file.
+          </p>
+          <div>
+            Details
+            <ul>
+              <li>
+                account-manager:password_file [______________]
+                <p class="hint">
+                  Path to the users file, leave blank to locate the users file
+                  by reading svnserve.conf
+                </p>
+              </li>
+            </ul>
+          </div>
+
+          [_] Delegate authentication using HTTP authentication.
+          <p class="hint">
+            AccountManagerPlugin enables use of standard HTTP authentication
+            by its <strong>HttpAuthStore</strong> component.  Both Basic and
+            Digest authentication callenges are supported.  Apart from being
+            read-only this password store does even not support listing users
+            for obvious reasons.
+          </p>
+          <div>
+            Details
+            <ul>
+              <li>
+                account-manager:auth_url [______________]
+                <p class="hint">
+                  URL of the HTTP authentication service
+                </p>
+              </li>
+            </ul>
+          </div>
+
+          [_] Use a different password store (requires manual configuration).
+          <p class="hint">
+            AccountManagerPlugin's modular password store concept encourages
+            creation of even more ways to provide user credential beyond the
+            natively supported stores.  Setup assistance for these 3rd-party
+            authentication providers is not implemented yet.
+          </p>
+
+          [_] Chain password stores (requires manual configuration).
+          <p class="hint">
+            Select the desired password stores and related options to enable
+            concurrent use of multiple password stores.  Order matters.
+            This is merely a placeholder to skip further configuration details
+            in this section if checked, or if a multi-store setup is detected
+            in current configuration.
+          </p>
+          <div>
+            Details
+            <ul>
+              <li>
+                account-manager:password_store [______________]
+                <p class="hint">
+                  Ordered list of password stores, queried in turn
+                </p>
+              </li>
+            </ul>
+          </div>
         </div>
+
         <div py:when="2">
           <h3>Define Password Policy</h3>
           <img class="icon" alt="Password refresh icon"
