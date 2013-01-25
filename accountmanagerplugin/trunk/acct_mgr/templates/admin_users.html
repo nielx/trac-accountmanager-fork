@@ -177,6 +177,8 @@
                  title="Send another random password"
                  value="${dgettext('acct_mgr', 'Reset passwords')}" />
           <input type="submit" id="approve" name="approve"
+                 title="${dgettext('acct_mgr',
+                        'Approve pending registrations, ban/unban accounts')}"
                  value="${dgettext('acct_mgr', 'Toggle account approval')}" />
           <input type="submit" id="remove" name="remove"
                  py:if="delete_enabled"
