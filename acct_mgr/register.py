@@ -219,7 +219,7 @@ class EmailCheck(GenericRegistrationInspector):
         from acct_mgr.web_ui import AccountModule
         reset_password = AccountModule(self.env).reset_password_enabled
         verify_account = is_enabled(self.env, EmailVerificationModule) and \
-                         AccountManager(self.env).verify_email
+                         EmailVerificationModule(self.env).verify_email
         if verify_account:
             # TRANSLATOR: Registration form hints for a mandatory input field.
             hint = tag.p(_("""The email address is required for Trac to send
@@ -246,7 +246,7 @@ class EmailCheck(GenericRegistrationInspector):
         email = req.args.get('email', '').strip()
 
         if is_enabled(self.env, EmailVerificationModule) and \
-                acctmgr.verify_email:
+                EmailVerificationModule(self.env).verify_email:
             if not email:
                 raise RegistrationError(N_(
                     "You must specify a valid email address.")
@@ -285,8 +285,9 @@ class RegExpCheck(GenericRegistrationInspector):
             )
 
         email = req.args.get('email', '').strip()
-        if acctmgr.verify_email and is_enabled(self.env, EmailCheck) and \
-                is_enabled(self.env, EmailVerificationModule):
+        if is_enabled(self.env, EmailCheck) and \
+                is_enabled(self.env, EmailVerificationModule) and \
+                EmailVerificationModule(self.env).verify_email:
             if self.email_regexp.strip() != "" and \
                     not re.match(self.email_regexp.strip(), email):
                 raise RegistrationError(N_(
@@ -393,7 +394,7 @@ class RegistrationModule(CommonTemplateProvider):
          'ignore_auth_case': self.config.getbool('trac', 'ignore_auth_case')
         }
         verify_enabled = is_enabled(self.env, EmailVerificationModule) and \
-                         acctmgr.verify_email
+                         EmailVerificationModule(self.env).verify_email
         data['verify_account_enabled'] = verify_enabled
         if req.method == 'POST' and action == 'create':
             try:
@@ -478,6 +479,10 @@ class EmailVerificationModule(CommonTemplateProvider):
 
     implements(IRequestFilter, IRequestHandler)
 
+    verify_email = BoolOption(
+        'account-manager', 'verify_email', True,
+        doc="Verify the email address of Trac users.")
+
     def __init__(self, *args, **kwargs):
         self.email_enabled = True
         if self.config.getbool('announcer', 'email_enabled') != True and \
@@ -506,7 +511,7 @@ class EmailVerificationModule(CommonTemplateProvider):
                 chrome.add_warning(
                     req, Markup(gettext(e.message)))
                 req.redirect(req.href.prefs(None))
-        if AccountManager(self.env).verify_email and handler is not self and \
+        if self.verify_email and handler is not self and \
                 'email_verification_token' in req.session and \
                 not req.perm.has_permission('ACCTMGR_ADMIN'):
             # TRANSLATOR: Your permissions have been limited until you ...
@@ -528,13 +533,12 @@ class EmailVerificationModule(CommonTemplateProvider):
 
         email = req.session.get('email')
         # Only send verification if the user entered an email address.
-        acctmgr = AccountManager(self.env)
-        if acctmgr.verify_email and self.email_enabled is True and email and \
+        if self.verify_email and self.email_enabled is True and email and \
                 email != req.session.get('email_verification_sent_to') and \
                 not req.perm.has_permission('ACCTMGR_ADMIN'):
             req.session['email_verification_token'] = self._gen_token()
             req.session['email_verification_sent_to'] = email
-            acctmgr._notify(
+            AccountManager(self.env)._notify(
                 'email_verification_requested', 
                 req.authname, 
                 req.session['email_verification_token']
