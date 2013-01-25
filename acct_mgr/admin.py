@@ -770,8 +770,9 @@ class AccountManagerSetupWizard(CommonTemplateProvider):
             dict(label=_("Common Options"), past=step>0),
             dict(image='users', label=_("Password Store"), past=step > 1),
             dict(image='refresh', label=_("Password Policy"), past=step > 2),
-            dict(image='guard', label=_("Account Guard"), past=step > 3),
-            dict(label=_("Review"))
+            dict(label=_("Account Policy"), past=step > 3),
+            dict(image='guard', label=_("Account Guard"), past=step > 4),
+            dict(label=_("Initialization"))
         ]
         data = dict(steps=steps)
         if req.method == 'POST':

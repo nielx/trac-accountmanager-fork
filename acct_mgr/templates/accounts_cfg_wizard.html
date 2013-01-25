@@ -72,6 +72,11 @@
             disregarded for persistant sessions
           </p>
 
+          trac:ignore_auth_case [_]
+          <p class="hint">
+            Whether login names should be converted to lower case
+          </p>
+
           <h3>Authentication front-end</h3>
           [_] Use HTTP authentication and credentials as configured in and
               provided by your web-server.
@@ -79,8 +84,8 @@
             You can still manage some password stores with
             AccountManagerPlugin, if you configure them in the next section.
           </p>
-          [x] Use a HTML login form with credentials managed by
-              AccountManagerPlugin.
+          [x] Use a HTML login form backed by one or more password stores
+              managed by AccountManagerPlugin.
           <div i18n:msg="">
             <p class="hint">
               AccountManagerPlugin provides a form-based login page, even
@@ -101,13 +106,20 @@
             </p>
           </div>
 
-          <!-- py:if acctmgr.LoginModule enabled -->
+          <!-- py:if acct_mgr.web_ui.LoginModule enabled -->
           <h3>AccountManagerPlugin authentication options</h3>
           account-manager:persistent_sessions [_]
           <p class="hint">
             Keep authentication across browsing sessions without needing to
             re-authenticate, user has to check a "Remember Me" checkbox in
             the AccountManagerPlugin login form (opt-in)
+          </p>
+
+          account-manager:cookie_refresh_pct [_____10] %
+          <p class="hint">
+            Likelihood of session cookie ID change in percent per work hour
+            (zero equals to never), driving a refresh process to decrease
+            vulnerability of long-lasting sessions
           </p>
 
           trac:auth_cookie_path [_______]
@@ -264,19 +276,94 @@
         </div>
 
         <div py:when="2">
-          <h3>Define Password Policy</h3>
+          <h3>Objective for Password Policy rules</h3>
+          <p>
+            While AccountManagerPlugin does not enforce password rules in
+            general, there are some other ways to alter password handling.
+          </p>
+
           <img class="icon" alt="Password refresh icon"
                src="${href.chrome('/acct_mgr/refresh.png')}" />
 
+          account-manager:reset_password [_]
+          <p class="hint">
+            Enable the password reset procedure, that relies on a working
+            email sender for Trac, supporting both TracAnnouncer and
+            TracNotification
+          </p>
+
+          account-manager:generated_password_length [_8]
+          <p class="hint">
+            Length of the randomly-generated passwords created when resetting
+            the password for an account
+          </p>
+
+          account-manager:force_passwd_change [_]
+          <p class="hint">
+            Force the user to change password after a successful reset
+          </p>
+
         </div>
+
         <div py:when="3">
-          <h3>Set account guard options</h3>
+          <h3>Objective for Account Registration and Verification rules</h3>
+          <p>
+            You may require administrative approval of new accounts for the
+            user registration process.  The ability to immediately ban
+            existing accounts is another, related but independed feature.
+          </p>
+
+          [_] Allow users to register for a new account.
+          <!-- py:if acct_mgr.register.RegistrationModule enabled -->
+          account-manager:register_check [BasicCheck, EmailCheck,
+            BotTrapCheck, RegExpCheck, UsernamePermCheck]
+          <p class="hint">
+            Ordered list of checks to use for validating registration requests
+          </p>
+          <p class="hint">
+            All checks provided by AccountManagerPlugin are enabled per
+            default, but some are configurable on their own, and checks like
+            <strong>BotTrapCheck</strong> don't work at all without additional
+            configuration
+          </p>
+
+          account-manager:require_approval [_]
+          <p class="hint">
+            Whether account registration requires administrative approval
+            to enable the account or not
+          </p>
+
+          account-manager:verify_email [x]
+          <p class="hint">
+            Enable the email verification procedure, that relies on a working
+            email sender for Trac, supporting both TracAnnouncer and
+            TracNotification
+          </p>
+          <!-- /py:if -->
+
+        </div>
+
+        <div py:when="4">
+          <h3>Objective for Account Protection rules</h3>
+          <p>
+            <strong>AccountGuard</strong> component provides additional
+            protection.  It is an add-on to AccountManagerPlugin's own
+            <strong>LoginModule</strong> discouraging brute-force login
+            attempts.
+          </p>
+
           <img class="icon" alt="Account guard icon"
                src="${href.chrome('/acct_mgr/guard.png')}" />
 
         </div>
+
         <div py:otherwise="">
-          <h3>Review Your Configuration</h3>
+          <h3>Review your Configuration</h3>
+          <h3>Setup Initialization </h3>
+          <p>
+            Save the configuration and create one admin and one regular
+            user account.
+          </p>
 
         </div>
       </py:choose>
