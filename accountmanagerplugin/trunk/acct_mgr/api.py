@@ -197,9 +197,6 @@ class AccountManager(Component):
             This is most useful to move users to a new password store or
             enforce new store configuration (i.e. changed hash type),
             but should be disabled/unset otherwise.""")
-    verify_email = BoolOption(
-        'account-manager', 'verify_email', True,
-        doc="Verify the email address of Trac users.")
     username_char_blacklist = Option(
         'account-manager', 'username_char_blacklist', ':[]',
         doc="""Always exclude some special characters from usernames.

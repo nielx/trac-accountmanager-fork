@@ -55,9 +55,9 @@ def fetch_user_data(env, req, filters=None):
                 accounts[username]['release_hint'] = _(
                         "Locked until %(t_release)s",
                         t_release=t_release)
-    verify_email = acctmgr.verify_email and \
-                   is_enabled(env, EmailVerificationModule) and \
-                   EmailVerificationModule(env).email_enabled
+    verify_email = is_enabled(env, EmailVerificationModule) and \
+                   EmailVerificationModule(env).email_enabled and \
+                   EmailVerificationModule(env).verify_email
     for acct, status in get_user_attribute(env, username=None,
                                            authenticated=None).iteritems():
         account = accounts.get(acct)
@@ -327,7 +327,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
             'numstores': numstores,
             'force_passwd_change': self.acctmgr.force_passwd_change,
             'persistent_sessions': self.acctmgr.persistent_sessions,
-            'verify_email': self.acctmgr.verify_email,
+            'verify_email': EmailVerificationModule(self.env).verify_email,
             'require_approval': cfg.getbool('account-manager',
                                             'require_approval'),
             'refresh_passwd': self.acctmgr.refresh_passwd,
@@ -353,8 +353,8 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
         password_change_enabled = acctmgr.supports('set_password')
         password_reset_enabled = acctmod.reset_password_enabled
         delete_enabled = acctmgr.supports('delete_user')
-        verify_enabled = acctmgr.verify_email and \
-                         EmailVerificationModule(env).email_enabled
+        verify_enabled = EmailVerificationModule(env).email_enabled and \
+                         EmailVerificationModule(env).verify_email
         account = dict(email=req.args.get('email', '').strip(),
                        name=req.args.get('name', '').strip(),
                        username=acctmgr.handle_username_casing(
@@ -606,7 +606,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
             data['release_time'] = guard.pretty_release_time(req, username)
 
         if is_enabled(self.env, EmailVerificationModule) and \
-                acctmgr.verify_email is True:
+                EmailVerificationModule(self.env).verify_email:
             data['verification'] = 'enabled'
             data['email_verified'] = email_verified(self.env, username, email)
             self.log.debug('AcctMgr:admin:_do_acct_details for user \"' + \
