@@ -55,7 +55,7 @@ ul.progress li.past span, ul.progress li.active span {
     border:1px solid #990000;
 }
 
-/* style for compatibility with Trac <= 1.0 */
+/* style for compatibility with Trac < 1.0 */
 h3 .trac-count {
     margin-left: .2em; vertical-align: baseline; color: #999;
     font-size: 90%; font-weight: normal;
