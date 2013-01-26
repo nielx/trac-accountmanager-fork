@@ -129,7 +129,7 @@
                  py:if="create_enabled"
                  value="${dgettext('acct_mgr', ' Add ')}" />
           <input type="submit" name="change"
-                 value="${dgettext('acct_mgr', ' Change ')}" />
+                 value="${dgettext('acct_mgr', 'Apply changes')}" />
         </div>
       </fieldset>
     </form>
@@ -182,8 +182,9 @@
                  value="${dgettext('acct_mgr', 'Toggle account approval')}" />
           <input type="submit" id="remove" name="remove"
                  py:if="delete_enabled"
+                 title="${dgettext('acct_mgr', 'Delete accounts')}"
                  value="${dgettext('acct_mgr',
-                                   'Remove selected accounts')}" />
+                                   'Remove selected items')}" />
           <input type="submit" id="cleanup" name="cleanup"
                  py:if="req.perm.has_permission('ACCTMGR_ADMIN')"
                  value="${dgettext('acct_mgr',

@@ -9,6 +9,7 @@ acct_mgr-0.5 (not yet released) - branch 0.11
  * #10740: Checkbox columns are too wide on the Accounts: Cleanup page
  * #10765: AttributeError: 'NoneType' object has no attribute 'strip'
  * #10772: ProgrammingError: operator does not exist: text = integer
+ * #10829: Consider renaming 'Save' buttons to 'Apply changes'
  * prevent two ways for a user to bypass a forced password change
  * skip BotTrapCheck on admin user requests, i.e. from inside user admin panel
  * keep trac.auth.LoginModule options defined after disabling that component
