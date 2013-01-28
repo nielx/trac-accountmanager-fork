@@ -32,7 +32,7 @@ from acct_mgr.model import del_user_attribute, email_verified
 from acct_mgr.model import get_user_attribute, last_seen
 from acct_mgr.model import set_user_attribute
 from acct_mgr.register import EmailVerificationModule, RegistrationError
-from acct_mgr.web_ui import AccountModule
+from acct_mgr.web_ui import AccountModule, LoginModule
 from acct_mgr.util import as_int, is_enabled, get_pretty_dateinfo
 from acct_mgr.util import pretty_precise_timedelta
 
@@ -766,20 +766,48 @@ class AccountManagerSetupWizard(CommonTemplateProvider):
         req.perm.require('ACCTMGR_CONFIG_ADMIN')
         cfg = self.env.config
         step = int(req.args.get('step', 0))
+        if req.method == 'POST':
+            if 'next' in req.args:
+                step += 1
         steps = [
             dict(label=_("Common Options"), past=step>0),
             dict(image='users', label=_("Password Store"), past=step > 1),
             dict(image='refresh', label=_("Password Policy"), past=step > 2),
-            dict(label=_("Account Policy"), past=step > 3),
+            dict(image='approval', label=_("Account Policy"), past=step > 3),
             dict(image='guard', label=_("Account Guard"), past=step > 4),
             dict(label=_("Initialization"))
         ]
-        data = dict(steps=steps)
-        if req.method == 'POST':
-            if step == len(steps):
-                req.redirect(req.href.admin('accounts', 'config'))
-            data['active'] = step + 1
-        data['active'] = step
-        data['start_href'] = self.path
+        if not step < len(steps):
+            req.redirect(req.href.admin('accounts', 'config'))
+        data = {
+            '_dgettext': dgettext,
+            'pretty_precise_timedelta': pretty_precise_timedelta,
+
+            'active': step, 'steps': steps, 'start_href': self.path,
+
+            'auth_cookie_lifetime': cfg.getint('trac',
+                                               'auth_cookie_lifetime'),
+            'secure_cookies': cfg.getbool('trac', 'secure_cookies'),
+            'check_auth_ip': cfg.getbool('trac', 'check_auth_ip'),
+            'ignore_auth_case': cfg.getbool('trac', 'ignore_auth_case'),
+            'acctmgr_loginmodule': is_enabled(self.env, LoginModule),
+            'persistent_sessions': self.acctmgr.persistent_sessions,
+            'cookie_refresh_pct': cfg.getint('account-manager',
+                                             'cookie_refresh_pct'),
+            'auth_cookie_path': cfg.get('trac', 'auth_cookie_path'),
+
+            'force_passwd_change': self.acctmgr.force_passwd_change,
+
+            'require_approval': cfg.getbool('account-manager',
+                                            'require_approval'),
+            'verify_email': EmailVerificationModule(self.env).verify_email,
+
+            'login_attempt_max_count': self.guard.login_attempt_max_count,
+            'user_lock_time': self.guard.user_lock_time,
+            'user_lock_max_time': self.guard.user_lock_max_time,
+            'user_lock_time_progression': self.guard.lock_time_progression,
+
+            'refresh_passwd': self.acctmgr.refresh_passwd,
+            }
         add_stylesheet(req, 'acct_mgr/acct_mgr.css')
         return 'accounts_cfg_wizard.html', data, None

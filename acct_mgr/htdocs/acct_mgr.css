@@ -22,6 +22,10 @@ p span.buttons input { margin-top:0; vertical-align:baseline; }
 
 
 /* styles for configuration wizard page */
+form#cfg_wiz fieldset { clear:both; }
+form#cfg_wiz fieldset legend { font-size:110%; }
+input.numwidget { text-align:right; width: 7em; }
+
 /* progress display derived from Easy CSS Progress Bar 1.0
    by Juergen Koller [www.kollermedia.at] */
 ul.progress {
