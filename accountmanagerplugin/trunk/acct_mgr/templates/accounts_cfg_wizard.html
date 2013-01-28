@@ -38,11 +38,18 @@
       </div>
 
       <h1>Accounts: Configuration</h1>
-      <h2 i18n:msg="step,label">
-        Step ${str(active + 1)}: ${steps[active].label}
-      </h2>
-      <py:choose test="active">
-        <div py:when="0">
+      <form id="cfg_wiz" method="post">
+        <div class="buttons">
+          <input type="hidden" name="step" value="$active" />
+          <input type="submit" name="next" py:if="active != (len(steps) - 1)"
+                 value="${dgettext('acct_mgr', 'Next step')}" />
+        </div>
+        <py:choose test="active">
+
+          <fieldset py:when="0">
+            <legend i18n:msg="step,label">
+              Step ${str(active + 1)}: ${steps[active].label}
+            </legend>
           <h3>Objective for setting Common Options</h3>
           <p>
             Trac sessions are authenticated per request based on browser
@@ -51,42 +58,75 @@
           </p>
 
           <h3>Authentication provider-agnostic options</h3>
-          trac:auth_cookie_lifetime [______0] seconds
-          <p class="hint">
-            Lifetime of the authentication cookie, determines how long the
-            browser will cache authentication information, and therefore,
-            after how much inactivity a user will have to log in again,
-            default (0&nbsp;s) makes cookie expire at browsing sessions end
-          </p>
-
-          trac:secure_cookies [_]
-          <p class="hint">
-            Restrict sending cookies to HTTPS connections, required if your
-            Trac instance is only accessible through HTTPS
-          </p>
-
-          trac:check_auth_ip [_]
-          <p class="hint">
-            Whether IP address should be checked for authentication,
-            potentially troublesome for users with dynamic IP adress,
-            disregarded for persistant sessions
-          </p>
-
-          trac:ignore_auth_case [_]
-          <p class="hint">
-            Whether login names should be converted to lower case
-          </p>
+          <div class="field"
+               py:with="value = acctmgr_loginmodule and auth_cookie_lifetime or 
+                                acctmgr_loginmodule and 2592000 or
+                                auth_cookie_lifetime">
+            <label i18n:msg="">
+              Lifetime of the authentication cookie:
+              <input class="numwidget" type="text" name="auth_cookie_lifetime"
+                     title="${'trac:auth_cookie_lifetime ' +
+                              pretty_precise_timedelta(None, diff=value)}"
+                     value="$value" />
+              seconds
+              <p class="hint">
+                Determines how long the browser will cache authentication
+                information, and therefore, after how much inactivity a user
+                will have to log in again.  Default (0&nbsp;s) makes cookie
+                expire at browsing sessions end.
+              </p>
+            </label>
+          </div>
+          <div class="field">
+            <label>
+              <input type="checkbox" name="secure_cookies" value="true"
+                     title="trac:secure_cookies"
+                     checked="${secure_cookies and 'checked' or None}" />
+              Restrict sending cookies to HTTPS connections.
+            </label>
+            <p class="hint">
+              Required if this Trac instance is only accessible through HTTPS.
+            </p>
+          </div>
+          <div class="field">
+            <label>
+              <input type="checkbox" name="check_auth_ip" value="true"
+                     title="trac:check_auth_ip"
+                     checked="${check_auth_ip and 'checked' or None}" />
+              Check IP address for authentication.
+            </label>
+            <p class="hint">
+              Potentially troublesome for users with dynamic IP adress, but
+              disregarded for persistant sessions.
+            </p>
+          </div>
+          <div class="field">
+            <label>
+              <input type="checkbox" name="ignore_auth_case" value="true"
+                     title="trac:ignore_auth_case"
+                     checked="${ignore_auth_case and 'checked' or None}" />
+              Convert login names to lower case on registration and login.
+            </label>
+          </div>
 
           <h3>Authentication front-end</h3>
-          [_] Use HTTP authentication and credentials as configured in and
+          <div class="field">
+            <label>
+              <input type="radio" name="acctmgr_loginmodule" value="0"
+                     checked="${acctmgr_loginmodule and 'checked' or None}" />
+              Use HTTP authentication and credentials as configured in and
               provided by your web-server.
-          <p class="hint">
-            You can still manage some password stores with
-            AccountManagerPlugin, if you configure them in the next section.
-          </p>
-          [x] Use a HTML login form backed by one or more password stores
+            </label>
+            <p class="hint">
+              You can still manage some password stores with
+              AccountManagerPlugin, if you configure them in the next section.
+            </p>
+            <label>
+              <input type="radio" name="acctmgr_loginmodule" value="1"
+                     checked="${acctmgr_loginmodule and 'checked' or None}" />
+              Use a HTML login form backed by one or more password stores
               managed by AccountManagerPlugin.
-          <div i18n:msg="">
+            </label>
             <p class="hint">
               AccountManagerPlugin provides a form-based login page, even
               integrating links to related actions:
@@ -106,34 +146,59 @@
             </p>
           </div>
 
-          <!-- py:if acct_mgr.web_ui.LoginModule enabled -->
-          <h3>AccountManagerPlugin authentication options</h3>
-          account-manager:persistent_sessions [_]
-          <p class="hint">
-            Keep authentication across browsing sessions without needing to
-            re-authenticate, user has to check a "Remember Me" checkbox in
-            the AccountManagerPlugin login form (opt-in)
-          </p>
+          <div py:if="acctmgr_loginmodule">
+            <h3>AccountManagerPlugin authentication options</h3>
+            <div class="field">
+              <label>
+                <input type="checkbox" name="persistent_sessions" value="true"
+                       checked="${persistent_sessions and 'checked' or None}"
+                       title="account-manager:persistent_sessions" />
+                Allow the user to be remembered across sessions without
+                needing to re-authenticate.
+              </label>
+              <p class="hint" i18n:msg="">This is, user checks a "Remember Me"
+                <tt>checkbox</tt> in the AccountManagerPlugin login form and,
+                next time he visits the site within 30 days, he'll be
+                remembered and authenticated automatically.
+              </p>
+            </div>
+            <div class="field">
+              <label i18n:msg="">
+                Likelihood of session cookie ID change:
+                <input class="numwidget" type="text" name="cookie_refresh_pct"
+                       title="account-manager:cookie_refresh_pct"
+                       value="$cookie_refresh_pct" />
+                % per work hour
+                <p class="hint">
+                  Driving a refresh process to decrease vulnerability of
+                  long-lasting sessions.  Zero equals to never.
+                </p>
+              </label>
+            </div>
+            <div class="field">
+              <label>
+                Path for authentication cookie:
+                <input class="textwidget" type="text" name="auth_cookie_path"
+                       title="trac:auth_cookie_path"
+                       value="$auth_cookie_path" />
+                <p class="hint">
+                  Set this to a common base path of several Trac instances to
+                  share the cookie, providing cheap Single-Sign-On experience.
+                  This enables AccountManagerPlugin's authentication data
+                  distribution to Trac instances with matching cookie path.
+                </p>
+              </label>
+            </div>
+          </div>
+          </fieldset>
 
-          account-manager:cookie_refresh_pct [_____10] %
-          <p class="hint">
-            Likelihood of session cookie ID change in percent per work hour
-            (zero equals to never), driving a refresh process to decrease
-            vulnerability of long-lasting sessions
-          </p>
+          <fieldset py:when="1">
+            <legend i18n:msg="step,label">
+              Step ${str(active + 1)}: ${steps[active].label}
+            </legend>
+            <img class="icon" alt="Password store icon"
+                 src="${href.chrome('/acct_mgr/users.png')}" />
 
-          trac:auth_cookie_path [_______]
-          <p class="hint">
-            Path for authentication cookie, setting this to a common base path
-            of several Trac instances to share the cookie providing a cheap
-            Single-Sign-On experience and enable AccountManagerPlugin's
-            authentication data distribution to Trac instances with matching
-            cookie path
-          </p>
-          <!-- /py:if -->
-        </div>
-
-        <div py:when="1">
           <h3>Objective for configuring a Password Store</h3>
           <p>
             AccountManagerPlugin manages user credentials in a modular
@@ -142,8 +207,6 @@
             scenario is not supported by the configuration wizard yet.
           </p>
 
-          <img class="icon" alt="Password store icon"
-               src="${href.chrome('/acct_mgr/users.png')}" />
           <h3>Authentication back-end</h3>
           [x] Use a password store embedded into Trac db.
           <p class="hint" i18n:msg="">
@@ -273,17 +336,20 @@
               </li>
             </ul>
           </div>
-        </div>
+          </fieldset>
 
-        <div py:when="2">
+          <fieldset py:when="2">
+            <legend i18n:msg="step,label">
+              Step ${str(active + 1)}: ${steps[active].label}
+            </legend>
+            <img class="icon" alt="Password refresh icon"
+                 src="${href.chrome('/acct_mgr/refresh.png')}" />
+
           <h3>Objective for Password Policy rules</h3>
           <p>
             While AccountManagerPlugin does not enforce password rules in
             general, there are some other ways to alter password handling.
           </p>
-
-          <img class="icon" alt="Password refresh icon"
-               src="${href.chrome('/acct_mgr/refresh.png')}" />
 
           account-manager:reset_password [_]
           <p class="hint">
@@ -302,10 +368,15 @@
           <p class="hint">
             Force the user to change password after a successful reset
           </p>
+          </fieldset>
 
-        </div>
+          <fieldset py:when="3">
+            <legend i18n:msg="step,label">
+              Step ${str(active + 1)}: ${steps[active].label}
+            </legend>
+            <img class="icon" alt="Account approval icon"
+                 src="${href.chrome('/acct_mgr/approval.png')}" />
 
-        <div py:when="3">
           <h3>Objective for Account Registration and Verification rules</h3>
           <p>
             You may require administrative approval of new accounts for the
@@ -340,10 +411,15 @@
             TracNotification
           </p>
           <!-- /py:if -->
+          </fieldset>
 
-        </div>
+          <fieldset py:when="4">
+            <legend i18n:msg="step,label">
+              Step ${str(active + 1)}: ${steps[active].label}
+            </legend>
+            <img class="icon" alt="Account guard icon"
+                 src="${href.chrome('/acct_mgr/guard.png')}" />
 
-        <div py:when="4">
           <h3>Objective for Account Protection rules</h3>
           <p>
             <strong>AccountGuard</strong> component provides additional
@@ -352,21 +428,35 @@
             attempts.
           </p>
 
-          <img class="icon" alt="Account guard icon"
-               src="${href.chrome('/acct_mgr/guard.png')}" />
+          </fieldset>
 
+          <fieldset py:otherwise="">
+            <legend i18n:msg="step,label">
+              Step ${str(active + 1)}: ${steps[active].label}
+            </legend>
+            <h3>Review your Configuration</h3>
+
+            <h3>Setup Initialization </h3>
+            <p>
+              Save the configuration and create one admin and one regular
+              user account.
+            </p>
+          </fieldset>
+        </py:choose>
+
+        <div class="buttons">
+          <input type="submit" name="next" py:if="active != (len(steps) - 1)"
+                 value="${dgettext('acct_mgr', 'Next step')}" />
+          <input type="submit" name="save"
+                 value="${dgettext('acct_mgr', 'Apply changes')}" />
+          <input type="submit" name="next" py:if="active == (len(steps) - 1)"
+                 title="${dgettext('acct_mgr', 'Exit wizard')}"
+                 value="${dgettext('acct_mgr', 'Cancel')}" />
+          <input type="submit" name="save" py:if="active != (len(steps) - 1)"
+                 title="${dgettext('acct_mgr', 'Drop any changes')}"
+                 value="${dgettext('acct_mgr', 'Refresh')}" />
         </div>
-
-        <div py:otherwise="">
-          <h3>Review your Configuration</h3>
-          <h3>Setup Initialization </h3>
-          <p>
-            Save the configuration and create one admin and one regular
-            user account.
-          </p>
-
-        </div>
-      </py:choose>
+      </form>
     </div>
   </body>
 </html>
