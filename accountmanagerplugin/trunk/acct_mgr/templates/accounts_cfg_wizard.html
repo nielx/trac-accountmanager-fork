@@ -9,6 +9,21 @@
   <xi:include href="layout.html" />
   <head>
     <title>Account Manager Setup</title>
+    <script type="text/javascript">/*<![CDATA[*/
+      jQuery(document).ready(function($) {
+        // Hide/unhide depending section
+        $("#cfg_wiz input:radio").click(function() {
+          var isChecked = $("input:radio[name=acctmgr_login]:checked").val();
+          var section = $("#acctmgr_login_opts");
+          if(isChecked === "0"){
+            section.hide();
+          }
+          else{
+            section.show();
+          }
+        });
+      })
+    /*]]>*/</script>
   </head>
 
   <body>
@@ -59,8 +74,8 @@
 
           <h3>Authentication provider-agnostic options</h3>
           <div class="field"
-               py:with="value = acctmgr_loginmodule and auth_cookie_lifetime or 
-                                acctmgr_loginmodule and 2592000 or
+               py:with="value = acctmgr_login and auth_cookie_lifetime or 
+                                acctmgr_login and 2592000 or
                                 auth_cookie_lifetime">
             <label i18n:msg="">
               Lifetime of the authentication cookie:
@@ -112,8 +127,8 @@
           <h3>Authentication front-end</h3>
           <div class="field">
             <label>
-              <input type="radio" name="acctmgr_loginmodule" value="0"
-                     checked="${acctmgr_loginmodule and 'checked' or None}" />
+              <input type="radio" name="acctmgr_login" value="0"
+                     checked="${acctmgr_login and None or 'checked'}" />
               Use HTTP authentication and credentials as configured in and
               provided by your web-server.
             </label>
@@ -122,8 +137,8 @@
               AccountManagerPlugin, if you configure them in the next section.
             </p>
             <label>
-              <input type="radio" name="acctmgr_loginmodule" value="1"
-                     checked="${acctmgr_loginmodule and 'checked' or None}" />
+              <input type="radio" name="acctmgr_login" value="1"
+                     checked="${acctmgr_login and 'checked' or None}" />
               Use a HTML login form backed by one or more password stores
               managed by AccountManagerPlugin.
             </label>
@@ -146,7 +161,7 @@
             </p>
           </div>
 
-          <div py:if="acctmgr_loginmodule">
+          <div id="acctmgr_login_opts">
             <h3>AccountManagerPlugin authentication options</h3>
             <div class="field">
               <label>

@@ -790,7 +790,7 @@ class AccountManagerSetupWizard(CommonTemplateProvider):
             'secure_cookies': cfg.getbool('trac', 'secure_cookies'),
             'check_auth_ip': cfg.getbool('trac', 'check_auth_ip'),
             'ignore_auth_case': cfg.getbool('trac', 'ignore_auth_case'),
-            'acctmgr_loginmodule': is_enabled(self.env, LoginModule),
+            'acctmgr_login': is_enabled(self.env, LoginModule),
             'persistent_sessions': self.acctmgr.persistent_sessions,
             'cookie_refresh_pct': cfg.getint('account-manager',
                                              'cookie_refresh_pct'),

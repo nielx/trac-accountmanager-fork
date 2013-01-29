@@ -14,7 +14,7 @@
     <title>Accounts</title>
     <script type="text/javascript"
             src="${chrome.htdocs_location}js/folding.js"></script>
-    <script type="text/javascript">
+    <script type="text/javascript">/*<![CDATA[*/
       jQuery(document).ready(function($) {
         // Compatibility: The prop function doesn't exist before jQuery 1.6
         if(!$.isFunction($.fn.prop)) $.fn.prop = $.fn.attr;
@@ -66,7 +66,7 @@
         // Hide account filter settings by default
         $("fieldset legend.foldable").enableFolding(true);
       })
-    </script>
+    /*]]>*/</script>
   </head>
 
   <body>
