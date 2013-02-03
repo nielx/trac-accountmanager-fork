@@ -11,18 +11,80 @@
     <title>Account Manager Setup</title>
     <script type="text/javascript">/*<![CDATA[*/
       jQuery(document).ready(function($) {
-        // Hide/unhide depending section
-        $("#cfg_wiz input:radio").click(function() {
-          var isChecked = $("input:radio[name=acctmgr_login]:checked").val();
-          var section = $("#acctmgr_login_opts");
-          if(isChecked === "0"){
-            section.hide();
+        // Hide/unhide depending sections
+        $("input[name=auth_cookie_lifetime]").change(function() {
+          var isChecked = parseInt(
+                            $("input[name=acctmgr_login]:checked").val());
+          var oldValue = parseInt($("#auth_cookie_lifetime_old").val());
+          if(parseInt($("input[name=auth_cookie_lifetime]")
+                        .val()) != oldValue ||
+                        (isChecked === 0 && oldValue === 0)){
+            $("span#pretty_auth_cookie_lifetime").hide();
           }
           else{
-            section.show();
+            $("span#pretty_auth_cookie_lifetime").show();
           }
         });
-      })
+        $("input[type=radio][name=acctmgr_login]").click(function() {
+          var isChecked = parseInt(
+                            $("input[name=acctmgr_login]:checked").val());
+          var section = $("#acctmgr_login_opts");
+          if(isChecked === 0){
+            $("input[name=auth_cookie_lifetime]").change();
+            section.slideUp();
+          }
+          else{
+            $("input[name=auth_cookie_lifetime]").change();
+            section.slideDown();
+          }
+        });
+        $("input[name=login_attempt_max_count]").change(function() {
+          var currVal = parseInt(
+                          $("input[name=login_attempt_max_count]").val());
+          var section = $("div#user_lock_time");
+          if(currVal === 0){
+            section.slideUp();
+          }
+          else if(currVal < 0){
+            $("input[name=login_attempt_max_count]").val('0');
+            section.slideUp();
+          }
+          else{
+            section.slideDown();
+          }
+        }).change();
+        $("input[name=user_lock_time]").change(function() {
+          var currVal = parseInt($("input[name=user_lock_time]").val());
+          var section = $("div#user_lock_time_progression");
+          if(currVal === 0){
+            section.slideUp();
+          }
+          else if(currVal < 0){
+            $("input[name=user_lock_time]").val('0');
+            section.slideUp();
+          }
+          else{
+            section.slideDown();
+          }
+        }).change();
+        $("input[name=user_lock_time_progression]").change(function() {
+          var currVal = parseFloat(
+                          $("input[name=user_lock_time_progression]").val());
+          var section = $("div#user_lock_max_time");
+          if(currVal === 1){
+            section.slideUp();
+          }
+          else if(currVal < 1){
+            $("input[name=user_lock_time_progression]").val('1');
+            section.slideUp();
+          }
+          else{
+            section.slideDown();
+          }
+        }).change();
+        // Fix initial section visibility depending on radio button
+        $("input[type=radio][name=acctmgr_login]:checked").click();
+      });
     /*]]>*/</script>
   </head>
 
@@ -32,7 +94,8 @@
         <!-- Progress bar -->
         <ul class="progress">
           <py:for each="idx,step in enumerate(steps)">
-            <li class="${step.past and 'past' or (idx == active and 'active') or None}"
+            <li class="${step.past and 'past' or
+                         (idx == active and 'active') or None}"
                 id="${idx == len(steps) - 1 and 'last' or None}"
                 style="${'width:' + str(100 / len(steps)) + '%'}">
               <span>
@@ -77,20 +140,27 @@
                py:with="value = acctmgr_login and auth_cookie_lifetime or 
                                 acctmgr_login and 2592000 or
                                 auth_cookie_lifetime">
-            <label i18n:msg="">
+
+            <!-- Last value cache for JS code -->
+            <input type="hidden" id="auth_cookie_lifetime_old"
+                   value="$auth_cookie_lifetime" disabled="disabled" />
+            <label>
               Lifetime of the authentication cookie:
-              <input class="numwidget" type="text" name="auth_cookie_lifetime"
-                     title="${'trac:auth_cookie_lifetime ' +
-                              pretty_precise_timedelta(None, diff=value)}"
-                     value="$value" />
+              <input type="text" class="numwidget" name="auth_cookie_lifetime"
+                     title="trac:auth_cookie_lifetime"
+                     value="$auth_cookie_lifetime" />
               seconds
-              <p class="hint">
-                Determines how long the browser will cache authentication
-                information, and therefore, after how much inactivity a user
-                will have to log in again.  Default (0&nbsp;s) makes cookie
-                expire at browsing sessions end.
-              </p>
+              <span class="hint" py:if="value"
+                    id="pretty_auth_cookie_lifetime">
+                (${pretty_precise_timedelta(None, diff=value)})
+              </span>
             </label>
+            <p class="hint">
+              Determines how long the browser will cache authentication
+              information, and therefore, after how much inactivity a user
+              will have to log in again.  Default (0&nbsp;s) makes cookie
+              expire at browsing sessions end.
+            </p>
           </div>
           <div class="field">
             <label>
@@ -180,29 +250,29 @@
             <div class="field">
               <label i18n:msg="">
                 Likelihood of session cookie ID change:
-                <input class="numwidget" type="text" name="cookie_refresh_pct"
+                <input type="text" class="numwidget" name="cookie_refresh_pct"
                        title="account-manager:cookie_refresh_pct"
                        value="$cookie_refresh_pct" />
                 % per work hour
-                <p class="hint">
-                  Driving a refresh process to decrease vulnerability of
-                  long-lasting sessions.  Zero equals to never.
-                </p>
               </label>
+              <p class="hint">
+                Driving a refresh process to decrease vulnerability of
+                long-lasting sessions.  Zero equals to never.
+              </p>
             </div>
             <div class="field">
               <label>
                 Path for authentication cookie:
-                <input class="textwidget" type="text" name="auth_cookie_path"
+                <input type="text" class="textwidget" name="auth_cookie_path"
                        title="trac:auth_cookie_path"
                        value="$auth_cookie_path" />
-                <p class="hint">
-                  Set this to a common base path of several Trac instances to
-                  share the cookie, providing cheap Single-Sign-On experience.
-                  This enables AccountManagerPlugin's authentication data
-                  distribution to Trac instances with matching cookie path.
-                </p>
               </label>
+              <p class="hint">
+                Set this to a common base path of several Trac instances to
+                share the cookie, providing cheap Single-Sign-On experience.
+                This enables AccountManagerPlugin's authentication data
+                distribution to Trac instances with matching cookie path.
+              </p>
             </div>
           </div>
           </fieldset>
@@ -360,29 +430,45 @@
             <img class="icon" alt="Password refresh icon"
                  src="${href.chrome('/acct_mgr/refresh.png')}" />
 
-          <h3>Objective for Password Policy rules</h3>
-          <p>
-            While AccountManagerPlugin does not enforce password rules in
-            general, there are some other ways to alter password handling.
-          </p>
+            <h3>Objective for Password Policy rules</h3>
+            <p>
+              While AccountManagerPlugin does not enforce password rules in
+              general, there are some other ways to alter password handling.
+            </p>
 
-          account-manager:reset_password [_]
-          <p class="hint">
-            Enable the password reset procedure, that relies on a working
-            email sender for Trac, supporting both TracAnnouncer and
-            TracNotification
-          </p>
-
-          account-manager:generated_password_length [_8]
-          <p class="hint">
-            Length of the randomly-generated passwords created when resetting
-            the password for an account
-          </p>
-
-          account-manager:force_passwd_change [_]
-          <p class="hint">
-            Force the user to change password after a successful reset
-          </p>
+            <div class="field">
+              <label>
+                <input type="checkbox" name="reset_password" value="true"
+                       checked="${reset_password and 'checked' or None}"
+                       title="account-manager:reset_password" />
+                Enable the password reset procedure.
+              </label>
+              <p class="hint">
+                It relies on a working email sender for Trac, supporting both
+                TracAnnouncer and TracNotification.
+              </p>
+            </div>
+            <div class="field">
+              <label i18n:msg="">
+                Length of the randomly-generated passwords:
+                <input type="text" class="numwidget"
+                       name="generated_password_length"
+                       title="account-manager:generated_password_length"
+                       value="$generated_password_length" />
+                characters
+              </label>
+              <p class="hint">
+                These passwords are used as alternative passwords on request.
+              </p>
+            </div>
+            <div class="field">
+              <label>
+                <input type="checkbox" name="force_passwd_change" value="true"
+                       checked="${force_passwd_change and 'checked' or None}"
+                       title="account-manager:force_passwd_change" />
+                Force users to change passwords after a password reset.
+              </label>
+            </div>
           </fieldset>
 
           <fieldset py:when="3">
@@ -435,14 +521,88 @@
             <img class="icon" alt="Account guard icon"
                  src="${href.chrome('/acct_mgr/guard.png')}" />
 
-          <h3>Objective for Account Protection rules</h3>
-          <p>
-            <strong>AccountGuard</strong> component provides additional
-            protection.  It is an add-on to AccountManagerPlugin's own
-            <strong>LoginModule</strong> discouraging brute-force login
-            attempts.
-          </p>
+            <h3>Objective for Account Protection rules</h3>
+            <p>
+              <strong>AccountGuard</strong> component provides additional
+              protection.  It is an add-on to AccountManagerPlugin's own
+              <strong>LoginModule</strong> discouraging brute-force login
+              attempts.
+            </p>
 
+            <div class="field">
+              <label>
+                Failed login attempt count max:
+                <input type="text" class="numwidget"
+                       name="login_attempt_max_count"
+                       value="$login_attempt_max_count" />
+                <p class="hint" i18n:msg="">
+                  Lock user account after specified number of failed attempts.
+                  Value zero means <strong>no limit</strong>.
+                </p>
+              </label>
+            </div>
+            <div id="user_lock_time">
+              <div class="field">
+                <label i18n:msg="">
+                  Drop lock after
+                  <input type="text" class="numwidget" name="user_lock_time"
+                         value="$user_lock_time" />
+                  seconds
+                  <p class="hint" i18n:msg="">
+                    Zero means <strong>unlimited</strong> lock time here.
+                  </p>
+                </label>
+              </div>
+              <div id="user_lock_time_progression">
+                <div class="field">
+                  <label>
+                    Lock time progression factor:
+                    <input type="text" class="numwidget"
+                           name="user_lock_time_progression"
+                           value="$user_lock_time_progression" />
+                    <p class="hint">
+                      Extend user account lock duration incrementally.
+                      It uses logarithmic calculation with the factor as
+                      exponent, accepting decimal numbers >= 1.
+                    </p>
+                    <p class="hint">
+                      Lock time will grow for any value > 1, if the failure
+                      happens before lock expiration.  I.e. value '2' means
+                    </p>
+                    <ul i18n:msg="">
+                      <li><span class="hint">
+                        double lock time after 2nd failure,</span>
+                      </li>
+                      <li><span class="hint">
+                        four times the initial lock time after 3rd,</span>
+                      </li>
+                      <li><span class="hint">
+                        eight times as long after 4th failure, etc.</span>
+                      </li>
+                    </ul>
+                    <p class="hint">
+                      At any time after lock expiration a login failure will
+                      just trigger a lock and set a new lock timeout, but not
+                      extend the total lock duration.
+                    </p>
+                  </label>
+                </div>
+                <div id="user_lock_max_time" class="field">
+                  <label i18n:msg="">
+                    Upper lock time limit:
+                    <input type="text" class="numwidget"
+                           name="user_lock_max_time"
+                           value="$user_lock_max_time"
+                           title="${pretty_precise_timedelta(None,
+                                    diff=user_lock_max_time)}" />
+                    seconds
+                    <p class="hint">
+                      This is relevant only with a progression factor > 1.
+                    </p>
+                  </label>
+                </div>
+              </div>
+            </div>
           </fieldset>
 
           <fieldset py:otherwise="">

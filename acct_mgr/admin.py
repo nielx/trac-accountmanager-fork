@@ -796,6 +796,10 @@ class AccountManagerSetupWizard(CommonTemplateProvider):
                                              'cookie_refresh_pct'),
             'auth_cookie_path': cfg.get('trac', 'auth_cookie_path'),
 
+            'reset_password': cfg.getbool('account-manager',
+                                          'reset_password'),
+            'generated_password_length': cfg.getint('account-manager',
+                                             'generated_password_length'),
             'force_passwd_change': self.acctmgr.force_passwd_change,
 
             'require_approval': cfg.getbool('account-manager',
