@@ -166,11 +166,13 @@ class AccountManager(Component):
     implements(IAccountChangeListener, IPermissionRequestor, IRequestFilter)
 
     change_listeners = ExtensionPoint(IAccountChangeListener)
+    # All checks, not only the configured ones (see self.register_checks).
+    checks = ExtensionPoint(IAccountRegistrationInspector)
     password_stores = OrderedExtensionsOption(
         'account-manager', 'password_store', IPasswordStore,
         include_missing=False,
         doc = N_("Ordered list of password stores, queried in turn."))
-    _register_check = OrderedExtensionsOption(
+    register_checks = OrderedExtensionsOption(
         'account-manager', 'register_check', IAccountRegistrationInspector,
         default="""BasicCheck, EmailCheck, BotTrapCheck, RegExpCheck,
                  UsernamePermCheck""",
@@ -351,7 +353,7 @@ class AccountManager(Component):
 
     def validate_registration(self, req):
         """Run configured registration checks and prime account on success."""
-        for inspector in self._register_check:
+        for inspector in self.register_checks:
             inspector.validate_registration(req)
 
         username = self.handle_username_casing(

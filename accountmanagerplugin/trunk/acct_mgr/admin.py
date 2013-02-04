@@ -15,6 +15,7 @@ import re
 from genshi.builder import tag
 from genshi.core import Markup
 
+from trac.admin import IAdminPanelProvider
 from trac.core import Component, TracError, implements
 from trac.config import Option
 from trac.perm import PermissionSystem
@@ -23,7 +24,7 @@ from trac.util.presentation import Paginator
 from trac.web.chrome import Chrome, add_ctxtnav, add_link, add_notice
 from trac.web.chrome import add_stylesheet, add_warning
 from trac.web.main import IRequestHandler
-from trac.admin import IAdminPanelProvider
+from trac.wiki.formatter import format_to_html
 
 from acct_mgr.api import AccountManager, CommonTemplateProvider
 from acct_mgr.api import _, N_, dgettext, gettext, ngettext, tag_
@@ -32,9 +33,10 @@ from acct_mgr.model import del_user_attribute, email_verified
 from acct_mgr.model import get_user_attribute, last_seen
 from acct_mgr.model import set_user_attribute
 from acct_mgr.register import EmailVerificationModule, RegistrationError
+from acct_mgr.register import RegistrationModule
 from acct_mgr.web_ui import AccountModule, LoginModule
-from acct_mgr.util import as_int, is_enabled, get_pretty_dateinfo
-from acct_mgr.util import pretty_precise_timedelta
+from acct_mgr.util import as_int, is_enabled, exception_to_unicode
+from acct_mgr.util import get_pretty_dateinfo, pretty_precise_timedelta
 
 
 def fetch_user_data(env, req, filters=None):
@@ -126,6 +128,69 @@ def _setorder(req, stores):
     for store in stores.get_all_stores():
         stores[store] = int(req.args.get(store.__class__.__name__, 0))
         continue
+
+
+class ExtensionOrder(dict):
+    """Keeps the order of components in OrderedExtensionsOption."""
+
+    instance = 0
+
+    def __init__(self, d={}, components=[], list=[]):
+        self.instance += 1
+        self.d = {}
+        self.sxref = {}
+        for component in components:
+            self.d[component] = 0
+            self[0] = component
+            self.sxref[component.__class__.__name__] = component
+            continue
+        for i, s in enumerate(list):
+            self.d[s] = i + 1
+            self[i + 1] = s
+
+    def __getitem__(self, key):
+        """Lookup a component in the list."""
+        return self.d[key]
+
+    def __setitem__(self, key, value):
+        if isinstance(key, Component):
+            order = self.d[key]
+            self.d[key] = value
+            self.d[order].remove(key)
+            self[value] = key
+        elif isinstance(key, basestring):
+            self.d[self.sxref[key]] = value
+        elif isinstance(key, int):
+            self.d.setdefault(key, [])
+            self.d[key].append(value)
+        else:
+            raise KeyError(_("Invalid key type (%s) for ExtensionOrder")
+                             % str(type(key)))
+        pass
+
+    def get_enabled_components(self):
+        """Return an ordered list of components.
+
+        All components that are order 0 are dropped from the list.
+        """
+        keys = [k for k in self.d.keys() if isinstance(k, int)]
+        keys.sort()
+        component_list = []
+        for k in keys[1:]:
+            component_list.extend(self.d[k])
+            continue
+        return component_list
+
+    def get_enabled_component_names(self):
+        """Returns the class names of the enabled components."""
+        components = self.get_enabled_components()
+        return [s.__class__.__name__ for s in components]
+
+    def get_all_components(self):
+        return [k for k in self.d.keys() if isinstance(k, Component)]
+
+    def numcomponents(self):
+        return len(self.get_all_components())
 
 
 class StoreOrder(dict):
@@ -779,9 +844,132 @@ class AccountManagerSetupWizard(CommonTemplateProvider):
         ]
         if not step < len(steps):
             req.redirect(req.href.admin('accounts', 'config'))
+        checks = ExtensionOrder(components=self.acctmgr.checks,
+                                list=self.acctmgr.register_checks)
+        check_list = []
+        for check in self.acctmgr.checks:
+            options = []
+            for attr, option in _getoptions(check):
+                error = None
+                opt_val = None
+                value = None
+                try:
+                    opt_val = option.__get__(check, check)
+                except AttributeError, e:
+                    self.env.log.error(e)
+                    regexp = r'^.* interface named \"(.*?)\".*$'
+                    error = _("Error while reading configuration - "
+                              "Hint: Enable/install required component '%s'."
+                              % re.sub(regexp, r'\1', str(e)))
+                    pass
+                if opt_val:
+                    value = isinstance(opt_val, Component) and \
+                            opt_val.__class__.__name__ or opt_val
+                opt_sel = None
+                try:
+                    interface = option.xtnpt.interface
+                    opt_sel = {'options': [], 'selected': None}
+                except AttributeError:
+                    # No ExtensionOption / Interface undefined.
+                    pass
+                if opt_sel:
+                    for impl in option.xtnpt.extensions(self.env):
+                        extension = impl.__class__.__name__
+                        opt_sel['options'].append(extension)
+                        if opt_val and extension == value:
+                            opt_sel['selected'] = extension
+                    if len(opt_sel['options']) == 0 and error:
+                        opt_sel['error'] = error
+                    value = opt_sel
+                options.append(
+                            {'label': attr,
+                            'name': '%s.%s' % (check.__class__.__name__, attr),
+                            'value': value,
+                            'doc': gettext(option.__doc__)
+                            })
+                continue
+            check_list.append(
+                        {'name': check.__class__.__name__,
+                        'classname': check.__class__.__name__,
+                        'doc': gettext(check.doc),
+                        'order': checks[check],
+                        'options' : options,
+                        })
+            continue
+        check_list = sorted(check_list, key=lambda i: i['order'])
+        numchecks = range(0, checks.numcomponents() + 1)
+
+        stores = ExtensionOrder(components=self.acctmgr.stores,
+                                list=self.acctmgr.password_stores)
+        numstores = range(0, stores.numcomponents() + 1)
+        store_list = []
+        for store in self.acctmgr.stores:
+            if store.__class__.__name__ == "ResetPwStore":
+                # Exclude special store, that is used strictly internally and
+                # inherits configuration from SessionStore anyway.
+                continue
+            options = []
+            for attr, option in _getoptions(store):
+                error = None
+                opt_val = None
+                value = None
+                try:
+                    opt_val = option.__get__(store, store)
+                except AttributeError, e:
+                    self.env.log.error(e)
+                    regexp = r'^.* interface named \"(.*?)\".*$'
+                    error = _("Error while reading configuration - "
+                              "Hint: Enable/install required component '%s'."
+                              % re.sub(regexp, r'\1', str(e)))
+                    pass
+                if opt_val:
+                    value = isinstance(opt_val, Component) and \
+                            opt_val.__class__.__name__ or opt_val
+                opt_sel = None
+                try:
+                    interface = option.xtnpt.interface
+                    opt_sel = {'options': [], 'selected': None}
+                except AttributeError:
+                    # No ExtensionOption / Interface undefined.
+                    pass
+                if opt_sel:
+                    for impl in option.xtnpt.extensions(self.env):
+                        extension = impl.__class__.__name__
+                        opt_sel['options'].append(extension)
+                        if opt_val and extension == value:
+                            opt_sel['selected'] = extension
+                    if len(opt_sel['options']) == 0 and error:
+                        opt_sel['error'] = error
+                    value = opt_sel
+                options.append(
+                            {'label': attr,
+                            'name': '%s.%s' % (store.__class__.__name__, attr),
+                            'value': value,
+                            'doc': gettext(option.__doc__)
+                            })
+                continue
+            store_list.append(
+                        {'name': store.__class__.__name__,
+                        'classname': store.__class__.__name__,
+                        'order': stores[store],
+                        'options' : options,
+                        })
+            continue
+        store_list = sorted(store_list, key=lambda i: i['order'])
+
+        def safe_wiki_to_html(context, text):
+            """Convenience function from trac.admin.web_ui."""
+            try:
+                return format_to_html(self.env, context, text)
+            except Exception, e:
+                self.log.error('Unable to render component documentation: %s',
+                               exception_to_unicode(e, traceback=True))
+            return tag.pre(text)
+
         data = {
             '_dgettext': dgettext,
             'pretty_precise_timedelta': pretty_precise_timedelta,
+            'safe_wiki_to_html': safe_wiki_to_html,
 
             'active': step, 'steps': steps, 'start_href': self.path,
 
@@ -795,6 +983,10 @@ class AccountManagerSetupWizard(CommonTemplateProvider):
             'cookie_refresh_pct': cfg.getint('account-manager',
                                              'cookie_refresh_pct'),
             'auth_cookie_path': cfg.get('trac', 'auth_cookie_path'),
+            'numstores': numstores,
+            'store_list': store_list,
+            'password_store': cfg.getlist('account-manager',
+                                          'password_store'),
 
             'reset_password': cfg.getbool('account-manager',
                                           'reset_password'),
@@ -802,6 +994,10 @@ class AccountManagerSetupWizard(CommonTemplateProvider):
                                              'generated_password_length'),
             'force_passwd_change': self.acctmgr.force_passwd_change,
 
+            'acctmgr_register': is_enabled(self.env, RegistrationModule),
+            'register_check': cfg.get('account-manager', 'register_check'),
+            'check_list': check_list,
+            'numchecks': numchecks,
             'require_approval': cfg.getbool('account-manager',
                                             'require_approval'),
             'verify_email': EmailVerificationModule(self.env).verify_email,
