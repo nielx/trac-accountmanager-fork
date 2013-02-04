@@ -55,6 +55,10 @@ class GenericRegistrationInspector(Component):
 
     abstract = True
 
+    @property
+    def doc(self):
+        return N_(self.__class__.__doc__)
+
     def render_registration_fields(self, req, data):
         """Emit one or multiple additional fields for registration form built.
 
@@ -81,13 +85,13 @@ class GenericRegistrationInspector(Component):
 class BasicCheck(GenericRegistrationInspector):
     """A collection of basic checks.
 
-    This includes checking for
-     * emptiness (no user input for username and/or password)
-     * some blacklisted username characters
-     * upper-cased usernames (reserved for Trac permission actions)
-     * some reserved usernames
-     * a username duplicate in configured password stores
-    """
+This includes checking for
+ * emptiness (no user input for username and/or password)
+ * some blacklisted username characters
+ * upper-cased usernames (reserved for Trac permission actions)
+ * some reserved usernames
+ * a username duplicate in configured password stores
+"""
 
     def validate_registration(self, req):
         acctmgr = AccountManager(self.env)
@@ -153,8 +157,8 @@ class BasicCheck(GenericRegistrationInspector):
 class BotTrapCheck(GenericRegistrationInspector):
     """A collection of simple bot checks.
 
-    This check is bypassed for requests by an admin user.
-    """
+''This check is bypassed for requests by an admin user.''
+"""
 
     reg_basic_token = Option('account-manager', 'register_basic_token', '',
         doc="A string required as input to pass verification.")
@@ -203,8 +207,8 @@ class BotTrapCheck(GenericRegistrationInspector):
 class EmailCheck(GenericRegistrationInspector):
     """A collection of checks for email addresses.
 
-    This check is bypassed, if account verification is disabled.
-    """
+''This check is bypassed, if account verification is disabled.''
+"""
 
     def render_registration_fields(self, req, data):
         """Add an email address text input field to the registration form."""
@@ -261,9 +265,9 @@ class EmailCheck(GenericRegistrationInspector):
 class RegExpCheck(GenericRegistrationInspector):
     """A collection of checks based on regular expressions.
 
-    It depends on EmailCheck being enabled too for using it's input field.
-    Likewise email checking is bypassed, if account verification is disabled.
-    """
+''It depends on !EmailCheck being enabled too for using it's input field.
+Likewise email checking is bypassed, if account verification is disabled.''
+"""
 
     username_regexp = Option('account-manager', 'username_regexp',
         r'(?i)^[A-Z0-9.\-_]{5,}$',
@@ -299,8 +303,8 @@ class RegExpCheck(GenericRegistrationInspector):
 class UsernamePermCheck(GenericRegistrationInspector):
     """Check for usernames referenced in the permission system.
 
-    This check is bypassed for requests by an admin user.
-    """
+''This check is bypassed for requests by an admin user.''
+"""
 
     def validate_registration(self, req):
         if req.perm.has_permission('ACCTMGR_USER_ADMIN'):
@@ -437,7 +441,7 @@ class RegistrationModule(CommonTemplateProvider):
                 req.redirect(req.href.login())
         # Collect additional fields from IAccountRegistrationInspector's.
         fragments = dict(required=[], optional=[])
-        for inspector in acctmgr._register_check:
+        for inspector in acctmgr.register_checks:
             try:
                 fragment, f_data = inspector.render_registration_fields(req,
                                                                         data)

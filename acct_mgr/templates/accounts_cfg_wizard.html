@@ -25,7 +25,7 @@
             $("span#pretty_auth_cookie_lifetime").show();
           }
         });
-        $("input[type=radio][name=acctmgr_login]").click(function() {
+        function toggleLoginOpts() {
           var isChecked = parseInt(
                             $("input[name=acctmgr_login]:checked").val());
           var section = $("#acctmgr_login_opts");
@@ -37,6 +37,33 @@
             $("input[name=auth_cookie_lifetime]").change();
             section.slideDown();
           }
+        };
+        $("input[type=radio][name=acctmgr_login]").click(function() {
+          toggleLoginOpts();
+        });
+        function toggleMultiStore() {
+          var section = $("#multi_store");
+          if(! $("input[name=multi_store]").is(':checked')){
+            section.slideUp();
+          }
+          else{
+            section.slideDown();
+          }
+        };
+        $("input[type=checkbox][name=multi_store]").click(function() {
+          toggleMultiStore();
+        });
+        function toggleRegisterOpts() {
+          var section = $("#acctmgr_register_opts");
+          if(! $("input[name=acctmgr_register]").is(':checked')){
+            section.slideUp();
+          }
+          else{
+            section.slideDown();
+          }
+        };
+        $("input[type=checkbox][name=acctmgr_register]").click(function() {
+          toggleRegisterOpts();
         });
         $("input[name=login_attempt_max_count]").change(function() {
           var currVal = parseInt(
@@ -82,8 +109,10 @@
             section.slideDown();
           }
         }).change();
-        // Fix initial section visibility depending on radio button
-        $("input[type=radio][name=acctmgr_login]:checked").click();
+        // Fix initial section visibility depending on some input state
+        toggleLoginOpts();
+        toggleMultiStore();
+        toggleRegisterOpts();
       });
     /*]]>*/</script>
   </head>
@@ -125,7 +154,7 @@
         <py:choose test="active">
 
           <fieldset py:when="0">
-            <legend i18n:msg="step,label">
+            <legend class="step" i18n:msg="step,label">
               Step ${str(active + 1)}: ${steps[active].label}
             </legend>
           <h3>Objective for setting Common Options</h3>
@@ -147,7 +176,7 @@
             <label>
               Lifetime of the authentication cookie:
               <input type="text" class="numwidget" name="auth_cookie_lifetime"
-                     title="trac:auth_cookie_lifetime"
+                     title="[trac] auth_cookie_lifetime"
                      value="$auth_cookie_lifetime" />
               seconds
               <span class="hint" py:if="value"
@@ -165,7 +194,7 @@
           <div class="field">
             <label>
               <input type="checkbox" name="secure_cookies" value="true"
-                     title="trac:secure_cookies"
+                     title="[trac] secure_cookies"
                      checked="${secure_cookies and 'checked' or None}" />
               Restrict sending cookies to HTTPS connections.
             </label>
@@ -176,7 +205,7 @@
           <div class="field">
             <label>
               <input type="checkbox" name="check_auth_ip" value="true"
-                     title="trac:check_auth_ip"
+                     title="[trac] check_auth_ip"
                      checked="${check_auth_ip and 'checked' or None}" />
               Check IP address for authentication.
             </label>
@@ -188,7 +217,7 @@
           <div class="field">
             <label>
               <input type="checkbox" name="ignore_auth_case" value="true"
-                     title="trac:ignore_auth_case"
+                     title="[trac] ignore_auth_case"
                      checked="${ignore_auth_case and 'checked' or None}" />
               Convert login names to lower case on registration and login.
             </label>
@@ -198,7 +227,8 @@
           <div class="field">
             <label>
               <input type="radio" name="acctmgr_login" value="0"
-                     checked="${acctmgr_login and None or 'checked'}" />
+                     checked="${acctmgr_login and None or 'checked'}"
+                     title="[components] trac.web.auth.loginmodule" />
               Use HTTP authentication and credentials as configured in and
               provided by your web-server.
             </label>
@@ -208,7 +238,8 @@
             </p>
             <label>
               <input type="radio" name="acctmgr_login" value="1"
-                     checked="${acctmgr_login and 'checked' or None}" />
+                     checked="${acctmgr_login and 'checked' or None}"
+                     title="[components] acct_mgr.web_ui.loginmodule" />
               Use a HTML login form backed by one or more password stores
               managed by AccountManagerPlugin.
             </label>
@@ -237,7 +268,7 @@
               <label>
                 <input type="checkbox" name="persistent_sessions" value="true"
                        checked="${persistent_sessions and 'checked' or None}"
-                       title="account-manager:persistent_sessions" />
+                       title="[account-manager] persistent_sessions" />
                 Allow the user to be remembered across sessions without
                 needing to re-authenticate.
               </label>
@@ -251,7 +282,7 @@
               <label i18n:msg="">
                 Likelihood of session cookie ID change:
                 <input type="text" class="numwidget" name="cookie_refresh_pct"
-                       title="account-manager:cookie_refresh_pct"
+                       title="[account-manager] cookie_refresh_pct"
                        value="$cookie_refresh_pct" />
                 % per work hour
               </label>
@@ -264,7 +295,7 @@
               <label>
                 Path for authentication cookie:
                 <input type="text" class="textwidget" name="auth_cookie_path"
-                       title="trac:auth_cookie_path"
+                       title="[trac] auth_cookie_path"
                        value="$auth_cookie_path" />
               </label>
               <p class="hint">
@@ -278,7 +309,7 @@
           </fieldset>
 
           <fieldset py:when="1">
-            <legend i18n:msg="step,label">
+            <legend class="step" i18n:msg="step,label">
               Step ${str(active + 1)}: ${steps[active].label}
             </legend>
             <img class="icon" alt="Password store icon"
@@ -307,15 +338,15 @@
           <div>
             Details
             <ul>
-              <li>account-manager:hash_method [HtDigestHashMethod__]</li>
+              <li>[account-manager] hash_method [HtDigestHashMethod__]</li>
               <!-- py:if acctmgr.HtDigestHashMethod enabled -->
               <ul>
-                <li>account-manager:db_htdigest_realm [______________]</li>
+                <li>[account-manager] db_htdigest_realm [______________]</li>
               </ul>
               <!-- /py:if -->
               <!-- py:if acctmgr.HtPasswdHashMethod enabled -->
               <ul>
-                <li>account-manager:db_htpasswd_hash_type [md5___________]</li>
+                <li>[account-manager] db_htpasswd_hash_type [md5___________]</li>
               </ul>
               <!-- /py:if -->
             </ul>
@@ -338,8 +369,8 @@
                 </p>
               </li>
               <ul>
-                <li>account-manager:htdigest_file [trac.htdigest_]</li>
-                <li>account-manager:htdigest_realm [______________]</li>
+                <li>[account-manager] htdigest_file [trac.htdigest_]</li>
+                <li>[account-manager] htdigest_realm [______________]</li>
               </ul>
               <li>
                 [_] 'htdigest' format
@@ -348,8 +379,8 @@
                 </p>
               </li>
               <ul>
-                <li>account-manager:htpasswd_file [trac.htpasswd_]</li>
-                <li>account-manager:htpasswd_hash_type [md5___________]</li>
+                <li>[account-manager] htpasswd_file [trac.htpasswd_]</li>
+                <li>[account-manager] htpasswd_hash_type [md5___________]</li>
               </ul>
             </ul>
           </div>
@@ -365,7 +396,7 @@
             Details
             <ul>
               <li>
-                account-manager:password_file [______________]
+                [account-manager] password_file [______________]
                 <p class="hint">
                   Path to the users file, leave blank to locate the users file
                   by reading svnserve.conf
@@ -386,7 +417,7 @@
             Details
             <ul>
               <li>
-                account-manager:auth_url [______________]
+                [account-manager] auth_url [______________]
                 <p class="hint">
                   URL of the HTTP authentication service
                 </p>
@@ -402,29 +433,75 @@
             authentication providers is not implemented yet.
           </p>
 
-          [_] Chain password stores (requires manual configuration).
-          <p class="hint">
-            Select the desired password stores and related options to enable
-            concurrent use of multiple password stores.  Order matters.
-            This is merely a placeholder to skip further configuration details
-            in this section if checked, or if a multi-store setup is detected
-            in current configuration.
-          </p>
-          <div>
-            Details
-            <ul>
-              <li>
-                account-manager:password_store [______________]
-                <p class="hint">
-                  Ordered list of password stores, queried in turn
-                </p>
-              </li>
-            </ul>
-          </div>
+            <div class="field">
+              <label>
+                <input type="checkbox" name="multi_store"
+                       checked="${len(password_store) > 1 and 'checked' or
+                                  None}"
+                     value="true" />
+                Chain password stores.
+              </label>
+              <p class="hint">
+                Select desired password stores and related options to enable
+                concurrent use of multiple password stores.  Password stores
+                are queried in turn in, so order matters.
+            </p>
+            </div>
+            <div id="multi_store">
+              <h3>Multiple Password Store Configuration</h3>
+              <p i18n:msg="store_list">
+                All enabled stores are listed below, but most won't work at
+                all without additional configuration.<br />Currently enabled:
+                <span title="[account-manager] password_store">
+                  <em>${', '.join(password_store)}</em>
+                </span>
+              </p>
+              <p class="hint" py:if="len(password_store) > 1">
+                This is an experts-only type of store configuration.
+              </p>
+
+              <fieldset py:for="section in store_list">
+                <legend>
+                  <label>
+                    <select name="${section.classname}" >
+                      <option py:for="order in numstores" value="${order}"
+                              selected="${order == section.order or None}">
+                        ${order == 0 and '--' or order}
+                      </option>
+                    </select>
+                    $section.name
+                  </label>
+                </legend>
+                <div class="field" py:for="option in section.options">
+                  <label>$option.label:
+                    <py:choose>
+                      <div class="system-message"
+                           py:when="isinstance(option.value, dict) and
+                                    'error' in option.value.keys()" >
+                        <p>${option.value['error']}</p>
+                      </div>
+                      <select name="$option.name"
+                              py:when="isinstance(option.value, dict)" >
+                        <option py:for="opt in option.value['options']"
+                                class="textwidget" 
+                                selected="${opt == option.value['selected'] or
+                                          None}"
+                                value="${opt}">
+                          ${opt}
+                        </option>
+                      </select>
+                      <input type="text" class="textwidget" py:otherwise=""
+                             name="$option.name" value="$option.value" />
+                    </py:choose>
+                  </label>
+                  <p class="hint" py:if="option.doc">$option.doc</p>
+                </div>
+              </fieldset>
+            </div>
           </fieldset>
 
           <fieldset py:when="2">
-            <legend i18n:msg="step,label">
+            <legend class="step" i18n:msg="step,label">
               Step ${str(active + 1)}: ${steps[active].label}
             </legend>
             <img class="icon" alt="Password refresh icon"
@@ -440,7 +517,7 @@
               <label>
                 <input type="checkbox" name="reset_password" value="true"
                        checked="${reset_password and 'checked' or None}"
-                       title="account-manager:reset_password" />
+                       title="[account-manager] reset_password" />
                 Enable the password reset procedure.
               </label>
               <p class="hint">
@@ -453,7 +530,7 @@
                 Length of the randomly-generated passwords:
                 <input type="text" class="numwidget"
                        name="generated_password_length"
-                       title="account-manager:generated_password_length"
+                       title="[account-manager] generated_password_length"
                        value="$generated_password_length" />
                 characters
               </label>
@@ -465,14 +542,14 @@
               <label>
                 <input type="checkbox" name="force_passwd_change" value="true"
                        checked="${force_passwd_change and 'checked' or None}"
-                       title="account-manager:force_passwd_change" />
+                       title="[account-manager] force_passwd_change" />
                 Force users to change passwords after a password reset.
               </label>
             </div>
           </fieldset>
 
           <fieldset py:when="3">
-            <legend i18n:msg="step,label">
+            <legend class="step" i18n:msg="step,label">
               Step ${str(active + 1)}: ${steps[active].label}
             </legend>
             <img class="icon" alt="Account approval icon"
@@ -485,37 +562,103 @@
             existing accounts is another, related but independed feature.
           </p>
 
-          [_] Allow users to register for a new account.
-          <!-- py:if acct_mgr.register.RegistrationModule enabled -->
-          account-manager:register_check [BasicCheck, EmailCheck,
-            BotTrapCheck, RegExpCheck, UsernamePermCheck]
-          <p class="hint">
-            Ordered list of checks to use for validating registration requests
-          </p>
-          <p class="hint">
-            All checks provided by AccountManagerPlugin are enabled per
-            default, but some are configurable on their own, and checks like
-            <strong>BotTrapCheck</strong> don't work at all without additional
-            configuration
-          </p>
+          <div class="field">
+            <label>
+              <input type="checkbox" name="acctmgr_register"
+                     checked="${acctmgr_register and 'checked' or None}"
+                     title="[components] acct_mgr.register.RegistrationModule"
+                     value="true" />
+              Allow users to register for a new account.
+            </label>
+          </div>
+          <div id="acctmgr_register_opts">
+            <h3>Checks to use for validating Registration requests</h3>
+            <p i18n:msg="check_list">
+              All checks provided by AccountManagerPlugin are enabled per
+              default, but some are configurable on their own.<br />
+              Currently enabled:
+              <span title="[account-manager] register_check">
+                <em>$register_check</em>
+              </span>
+            </p>
+            <p class="hint">
+              Checks like <strong>BotTrapCheck</strong> won't work at all
+              without additional configuration.
+            </p>
 
-          account-manager:require_approval [_]
-          <p class="hint">
-            Whether account registration requires administrative approval
-            to enable the account or not
-          </p>
+            <fieldset py:for="section in check_list">
+              <legend>
+                <label>
+                  <select name="${section.classname}" >
+                    <option py:for="order in numchecks" value="${order}"
+                            selected="${order == section.order or None}">
+                      ${order == 0 and '--' or order}
+                    </option>
+                  </select>
+                  $section.name
+                </label>
+              </legend>
+              <div py:if="section.doc" xml:space="preserve">
+                ${safe_wiki_to_html(context, section.doc)}
+              </div>
+              <div class="field" py:for="option in section.options">
+                <label>$option.label:
+                  <py:choose>
+                    <div class="system-message"
+                         py:when="isinstance(option.value, dict) and
+                                  'error' in option.value.keys()" >
+                      <p>${option.value['error']}</p>
+                    </div>
+                    <select name="$option.name"
+                            py:when="isinstance(option.value, dict)" >
+                      <option py:for="opt in option.value['options']"
+                              class="textwidget" 
+                              selected="${opt == option.value['selected'] or
+                                          None}"
+                              value="${opt}">
+                        ${opt}
+                      </option>
+                    </select>
+                    <input type="text" class="textwidget" py:otherwise=""
+                           name="$option.name" value="$option.value" />
+                  </py:choose>
+                </label>
+                <p class="hint" py:if="option.doc">$option.doc</p>
+              </div>
+            </fieldset>
 
-          account-manager:verify_email [x]
-          <p class="hint">
-            Enable the email verification procedure, that relies on a working
-            email sender for Trac, supporting both TracAnnouncer and
-            TracNotification
-          </p>
-          <!-- /py:if -->
+            <h3>Other Account Policy options</h3>
+            <div class="field">
+              <label>
+                <input type="checkbox" name="require_approval" value="true"
+                       checked="${require_approval and 'checked' or None}"
+                       title="[account-manager] require_approval" />
+                Require administrative account approval after registration.
+              </label>
+              <p class="hint">
+                For admin notification on registration time it relies on a
+                working email sender for Trac, supporting both TracAnnouncer
+                and TracNotification.
+              </p>
+            </div>
+            <div class="field">
+              <label>
+                <input type="checkbox" name="verify_email" value="true"
+                       checked="${verify_email and 'checked' or None}"
+                       title="[account-manager] verify_email" />
+                Force users to verify their email addresses.
+              </label>
+              <p class="hint">
+                For sending a verificaton token to the user it relies on a
+                working email sender for Trac, supporting both TracAnnouncer
+                and TracNotification.
+              </p>
+            </div>
+          </div>
           </fieldset>
 
           <fieldset py:when="4">
-            <legend i18n:msg="step,label">
+            <legend class="step" i18n:msg="step,label">
               Step ${str(active + 1)}: ${steps[active].label}
             </legend>
             <img class="icon" alt="Account guard icon"
@@ -606,7 +749,7 @@
           </fieldset>
 
           <fieldset py:otherwise="">
-            <legend i18n:msg="step,label">
+            <legend class="step" i18n:msg="step,label">
               Step ${str(active + 1)}: ${steps[active].label}
             </legend>
             <h3>Review your Configuration</h3>

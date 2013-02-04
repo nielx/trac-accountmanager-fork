@@ -18,6 +18,7 @@ from genshi.builder import tag
 from trac.config import Option
 from trac.util.datefmt import format_datetime, pretty_timedelta
 from trac.util.datefmt import to_datetime, utc
+from trac.util.text import to_unicode
 from trac.web.chrome import Chrome
 
 from acct_mgr.api import _, ngettext
@@ -68,6 +69,7 @@ class EnvRelativePathOption(Option):
             return path
         return os.path.normpath(os.path.join(instance.env.path, path))
 
+
 try:
     from trac.util import as_int
 # Provide the function for compatibility (available since Trac 0.12).
@@ -100,6 +102,25 @@ def if_enabled(func):
             return None
         return func(self, *args, **kwds)
     return wrap
+
+try:
+    from trac.util.text import exception_to_unicode
+# Provide the function for compatibility (available since Trac 0.11.3).
+except:
+    def exception_to_unicode(e, traceback=False):
+        """Convert an `Exception` to an `unicode` object.
+
+        In addition to `to_unicode`, this representation of the exception
+        also contains the class name and optionally the traceback.
+        This replicates the Trac core method for backwards-compatibility.
+        """
+        message = '%s: %s' % (e.__class__.__name__, to_unicode(e))
+        if traceback:
+            from trac.util import get_last_traceback
+            traceback_only = get_last_traceback().split('\n')[:-2]
+            message = '\n%s\n%s' % (to_unicode('\n'.join(traceback_only)),
+                                    message)
+        return message
 
 # Compatibility code for `ComponentManager.is_enabled`
 # (available since Trac 0.12)
