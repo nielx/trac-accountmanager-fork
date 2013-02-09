@@ -573,7 +573,8 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
         if verify_enabled:
             available_filters.append(('email', _("email unverified")))
         # Check request or session for enabled filters, or use default.
-        filters = [f[0] for f in available_filters if f[0] in req.args]
+        filters = [f[0] for f in available_filters
+                   if 'filter_%s' % f[0] in req.args]
         key = 'acctmgr_user.filter.%s'
         if not filters:
             filters = [f[0] for f in available_filters
