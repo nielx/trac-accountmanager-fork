@@ -333,7 +333,7 @@ class RegistrationModuleTestCase(_BaseTestCase):
 
         # Custom configuration: No check at all, if you insist.
         self.env.config.set('account-manager', 'register_check', '')
-        self.assertFalse(self.acctmgr._register_check)
+        self.assertFalse(self.acctmgr.register_checks)
         response = self.rmod.process_request(self.req)
         self.assertEqual(response[0], self.reg_template)
 
