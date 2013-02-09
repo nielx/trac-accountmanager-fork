@@ -15,7 +15,7 @@ div#user_locked p span img { vertical-align:middle; }
 div#failed_attempts p.tableheader {
     color:#999; font-size:90%; font-weight:bold;
     margin:0pt; padding:1em 5px 0;
-    }
+}
 table#login_attempts { width: 480px; }
 td a img { vertical-align:middle; }
 p span.buttons input { margin-top:0; vertical-align:baseline; }
@@ -24,8 +24,11 @@ p span.buttons input { margin-top:0; vertical-align:baseline; }
 /* styles for configuration wizard page */
 form#cfg_wiz fieldset { clear:both; }
 form#cfg_wiz fieldset legend.step { font-size:110%; }
+form#cfg_wiz tt { border:1px none #ffffff }
 input.numwidget { text-align:right; width: 7em; }
-input[name$=filename], input[name$=_regexp] { width: 48em; }
+input[name$=filename], input[name$=_regexp], form#cfg_wiz textarea {
+    width: 48em;
+}
 
 /* progress display derived from Easy CSS Progress Bar 1.0
    by Juergen Koller [www.kollermedia.at] */
@@ -39,13 +42,15 @@ ul.progress li {
 }
 ul.progress li span {
     display:block; margin:auto; margin-right:50%; text-align:center;
-    border:1px solid #a9a9a9; width:19px; height:19px; line-height:19px;
-    background-color:#ffffff;
+    border:1px solid #a9a9a9; border-radius:9px; width:19px; height:19px;
+    line-height:19px; background-color:#ffffff;
 } 
-ul.progress li span a { display:block; width:19px; height:19px; margin:0px; }
+ul.progress li span a {
+    display:block; margin:0px; border-radius:9px; width:19px; height:19px;
+}
 ul.progress li span a.active, ul.progress li.active span a,
 ul.progress li.past span a:hover, ul.progress li.past:hover span a {
-    background-color:#990000; color:#ffffff;
+    border-radius:9px; background-color:#990000; color:#ffffff;
 }
 ul.progress li a { display:block; margin-right:11%; text-align:center; }
 ul.progress li.past { background-position:right -106px; }

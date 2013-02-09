@@ -835,7 +835,7 @@ class AccountManagerSetupWizard(CommonTemplateProvider):
             if 'next' in req.args:
                 step += 1
         steps = [
-            dict(label=_("Common Options"), past=step>0),
+            dict(label=_("Authentication Options"), past=step>0),
             dict(image='users', label=_("Password Store"), past=step > 1),
             dict(image='refresh', label=_("Password Policy"), past=step > 2),
             dict(image='approval', label=_("Account Policy"), past=step > 3),
@@ -979,11 +979,16 @@ class AccountManagerSetupWizard(CommonTemplateProvider):
             'check_auth_ip': cfg.getbool('trac', 'check_auth_ip'),
             'ignore_auth_case': cfg.getbool('trac', 'ignore_auth_case'),
             'acctmgr_login': is_enabled(self.env, LoginModule),
+            'login_opt_list': cfg.getbool('account-manager',
+                                          'login_opt_list'),
             'persistent_sessions': self.acctmgr.persistent_sessions,
             'cookie_refresh_pct': cfg.getint('account-manager',
                                              'cookie_refresh_pct'),
             'auth_cookie_path': cfg.get('trac', 'auth_cookie_path'),
             'numstores': numstores,
+            'store_cfg_hint': _("Please apply this set of options first. "
+                "You'll be able to change default values afterwards."),
+
             'store_list': store_list,
             'password_store': cfg.getlist('account-manager',
                                           'password_store'),
@@ -1002,6 +1007,8 @@ class AccountManagerSetupWizard(CommonTemplateProvider):
                                             'require_approval'),
             'verify_email': EmailVerificationModule(self.env).verify_email,
 
+            'acctmgr_guard': is_enabled(self.env, LoginModule) and \
+                             is_enabled(self.env, AccountGuard),
             'login_attempt_max_count': self.guard.login_attempt_max_count,
             'user_lock_time': self.guard.user_lock_time,
             'user_lock_max_time': self.guard.user_lock_max_time,
