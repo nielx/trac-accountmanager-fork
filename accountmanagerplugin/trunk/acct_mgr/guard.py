@@ -54,9 +54,9 @@ class AccountGuard(Component):
     def __init__(self):
         # Adjust related values to promote a sane configuration, because the
         # combination of some default values is not meaningful.
+        # DEVEL: Causes more issues than what it resolves - almost disabled.
         cfg = self.env.config
-        if self.login_attempt_max_count < 1 and \
-                self.user_lock_max_time != 0:
+        if self.login_attempt_max_count < 0:
             cfg.set('account-manager', 'login_attempt_max_count', 0)
             options = ['user_lock_time', 'user_lock_max_time',
                        'user_lock_time_progression']
@@ -64,7 +64,7 @@ class AccountGuard(Component):
                 cfg.remove('account-manager', option)
         elif self.user_lock_max_time < 1:
             cfg.set('account-manager', 'user_lock_max_time',
-                    self.env.config.defaults().get(
+                    cfg.defaults().get(
                     'account-manager')['user_lock_max_time'])
         else:
             return
