@@ -4,17 +4,9 @@ Maintainer: Steffen Hoffmann <hoff.st@web.de>
 acct_mgr-0.5 (not yet released) - branch 0.11
  resolved issues
  * #8217: Race condition when creating new accounts
- * #8927: LoginModule with .htpasswd & passwd reset => not working
- * #10681: User with empty password can't reset their password
  * #10740: Checkbox columns are too wide on the Accounts: Cleanup page
- * #10765: AttributeError: 'NoneType' object has no attribute 'strip'
  * #10772: ProgrammingError: operator does not exist: text = integer
  * #10829: Consider renaming 'Save' buttons to 'Apply changes'
- * #10871: AccountGuard destroys trac.ini
- * prevent two ways for a user to bypass a forced password change
- * skip BotTrapCheck on admin user requests, i.e. from inside user admin panel
- * keep trac.auth.LoginModule options defined after disabling that component
-   by defining all options in acct_mgr.web_ui.LoginModule as well
  * fix access to account properties clean-up from user admin panel
 
  new features
@@ -27,8 +19,22 @@ acct_mgr-0.5 (not yet released) - branch 0.11
  * #10745: Add 'Select all' checkbox to header of list in user admin panel
  * add unit tests for db access functions
  * add account guard configuration to config admin panel
- * allow logging-in into password-less accounts via acct_mgr.LoginModule
  * filter account list in user admin panel by account status
+
+
+acct_mgr-0.4.3 (13-Feb-2013) - branch 0.11
+ resolved issues
+ * #8927: LoginModule with .htpasswd & passwd reset => not working
+ * #10681: User with empty password can't reset their password
+ * #10765: AttributeError: 'NoneType' object has no attribute 'strip'
+ * #10871: AccountGuard destroys trac.ini
+ * prevent two ways for a user to bypass a forced password change
+ * skip BotTrapCheck on admin user requests, i.e. from inside user admin panel
+ * keep trac.auth.LoginModule options defined after disabling that component
+   by defining all options in acct_mgr.web_ui.LoginModule as well
+
+ new features
+ * allow logging-in into password-less accounts via acct_mgr.LoginModule
 
 
 acct_mgr-0.4.2 (27-Dec-2012) - branch 0.11
