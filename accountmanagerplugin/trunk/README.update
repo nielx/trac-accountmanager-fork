@@ -9,12 +9,14 @@ Many valuable hints on AccountManager configuration are compiled into
 http://trac-hacks.org/wiki/CookBook/AccountManagerPluginConfiguration
 
 
-Upgrading acct_mgr-0.4.2 -> 0.5
+Upgrading acct_mgr-0.4.3 -> 0.5
 -------------------------------
 The 'password_file' option has been removed from AbstractPasswordFileStore.
 Now each file store implementation must provide its own filename option.
 Likewise 'password_format' is no longer supported for store selection.
 Please specifiy the appropriate class name in 'password_store' instead.
+Note though, that SvnServePasswordStore still uses the ambiguous
+'password_file' so others must avoid it to allow password store chaining.
 
 
 Upgrading acct_mgr-0.4 -> 0.4.1
