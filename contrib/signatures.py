@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2011 Steffen Hoffmann <hoff.st@web.de>
+# Copyright (C) 2011,2013 Steffen Hoffmann
 # All rights reserved.
 #
 # This software is licensed as described in the file COPYING, which
@@ -104,7 +104,7 @@ def sign(action='r'):
                         # This is non-fatal, but warn about it anyway.
                         print('%s: "%s" unknown (added)' % (hashtype, path))
     elif action == 'w':
-        for path in hashes.keys():
+        for path in sorted(hashes.keys()):
             md5sums.write(''.join([hashes[path]['md5'], ' ', path, '\n']))
             sha1sums.write(''.join([hashes[path]['sha1'], ' ', path, '\n']))
     # DEVEL: Better use new 'finally' statement here, but
