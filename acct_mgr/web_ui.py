@@ -323,14 +323,14 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
     UPDATE_INTERVAL = 86400
 
     def __init__(self):
-        c = self.config
+        cfg = self.config
         if is_enabled(self.env, self.__class__) and \
                 is_enabled(self.env, auth.LoginModule):
             # Disable auth.LoginModule to handle login requests alone.
             self.env.log.info("Concurrent enabled login modules found, "
                               "fixing configuration ...")
-            c.set('components', 'trac.web.auth.loginmodule', 'disabled')
-            c.save()
+            cfg.set('components', 'trac.web.auth.loginmodule', 'disabled')
+            cfg.save()
             self.env.log.info("trac.web.auth.LoginModule disabled, "
                               "giving preference to %s." % self.__class__)
 
