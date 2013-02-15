@@ -22,6 +22,13 @@ p span.buttons input { margin-top:0; vertical-align:baseline; }
 
 
 /* styles for configuration wizard page */
+div.compact { width: 48em; }
+div.compact pre { background-color:#ffffff; }
+div.compact textarea { height:12em; }
+div.ini {
+    background-color:#ffffff; font-family:Courier, Monospace;
+    max-height:640px; overflow:auto; padding:1em;
+} 
 form#cfg_wiz fieldset { clear:both; }
 form#cfg_wiz fieldset legend.step { font-size:110%; }
 form#cfg_wiz tt { border:1px none #ffffff }
@@ -29,6 +36,10 @@ input.numwidget { text-align:right; width: 7em; }
 input[name$=filename], input[name$=_regexp], form#cfg_wiz textarea {
     width: 48em;
 }
+li.disabled { list-style-image: url(../acct_mgr/status_disabled.png); }
+li.error { list-style-image: url(../acct_mgr/status_error.png); }
+li.ok { list-style-image: url(../acct_mgr/status_ok.png); }
+li.unknown { list-style-image: url(../acct_mgr/status_unknown.png); }
 
 /* progress display derived from Easy CSS Progress Bar 1.0
    by Juergen Koller [www.kollermedia.at] */
@@ -41,22 +52,22 @@ ul.progress li {
     text-align:left;
 }
 ul.progress li span {
-    display:block; margin:auto; margin-right:50%; text-align:center;
-    border:1px solid #a9a9a9; border-radius:9px; width:19px; height:19px;
-    line-height:19px; background-color:#ffffff;
+    display:block; margin:auto; margin-right:45%; text-align:center;
+    border:1px solid #a9a9a9; border-radius:10px; width:20px; height:20px;
+    line-height:20px; background-color:#ffffff;
 } 
 ul.progress li span a {
-    display:block; margin:0px; border-radius:9px; width:19px; height:19px;
+    display:block; margin:0px; border-radius:10px; width:20px; height:20px;
 }
 ul.progress li span a.active, ul.progress li.active span a,
 ul.progress li.past span a:hover, ul.progress li.past:hover span a {
-    border-radius:9px; background-color:#990000; color:#ffffff;
+    border-radius:10px; background-color:#990000; color:#ffffff;
 }
-ul.progress li a { display:block; margin-right:11%; text-align:center; }
-ul.progress li.past { background-position:right -106px; }
-ul.progress li.active { background-position:right -48px; }
-ul.progress li#last { background-position:right -214px; }
-ul.progress li#last.active { background-position:right -160px; }
+ul.progress li a { display:block; margin: 0.2em 11% 0 0; text-align:center; }
+ul.progress li.past { background-position:right -174px; }
+ul.progress li.active { background-position:right -84px; }
+ul.progress li#last { background-position:right -354px; }
+ul.progress li#last.active { background-position:right -264px; }
 ul.progress li.active a:hover, ul.progress li.past a:hover,
 ul.progress li.past a, ul.progress li.active a { color:#990000; }
 ul.progress li.active span a:hover { color:#ffffff; }

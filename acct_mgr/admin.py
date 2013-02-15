@@ -22,7 +22,7 @@ from trac.perm import PermissionSystem
 from trac.util.datefmt import format_datetime, to_datetime
 from trac.util.presentation import Paginator
 from trac.web.chrome import Chrome, add_ctxtnav, add_link, add_notice
-from trac.web.chrome import add_stylesheet, add_warning
+from trac.web.chrome import add_script, add_stylesheet, add_warning
 from trac.web.main import IRequestHandler
 from trac.wiki.formatter import format_to_html
 
@@ -404,7 +404,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
         result = req.args.get('done')
         if result == 'restart':
             data['result'] = _("Password hash refresh procedure restarted.")
-        add_stylesheet(req, 'acct_mgr/acct_mgr.css')
+        add_stylesheet(req, 'acct_mgr/acctmgr.css')
         return 'admin_accountsconfig.html', data
 
     def _do_users(self, req):
@@ -606,7 +606,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
             #   of Trac 0.13 and later from adding a link to timeline by
             #   adding the function with a different key name here.
             data['pretty_date'] = get_pretty_dateinfo(env, req)
-        add_stylesheet(req, 'acct_mgr/acct_mgr.css')
+        add_stylesheet(req, 'acct_mgr/acctmgr.css')
         add_stylesheet(req, 'common/css/report.css')
         return 'admin_users.html', data
 
@@ -679,7 +679,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                 username + '\", email \"' + str(email) + '\": ' + \
                 str(data['email_verified']))
 
-        add_stylesheet(req, 'acct_mgr/acct_mgr.css')
+        add_stylesheet(req, 'acct_mgr/acctmgr.css')
         add_ctxtnav(req, _("Back to Accounts"),
                     href=req.href.admin('accounts', 'users'))
         data['url'] = req.href.admin('accounts', 'users', user=username)
@@ -772,7 +772,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                                      tag.ul(accounts, attributes))
             add_ctxtnav(req, _("Back to Accounts"),
                         href=req.href.admin('accounts', 'users'))
-            add_stylesheet(req, 'acct_mgr/acct_mgr.css')
+            add_stylesheet(req, 'acct_mgr/acctmgr.css')
             return 'db_cleanup.html', data
 
     def _prepare_attrs(self, req, attr):
@@ -830,11 +830,17 @@ class AccountManagerSetupWizard(CommonTemplateProvider):
 
     def process_request(self, req):
         req.perm.require('ACCTMGR_CONFIG_ADMIN')
+
         cfg = self.env.config
+        env = self.env
+
+        # Prepare information for progress bar and page navigation.
         step = int(req.args.get('step', 0))
         if req.method == 'POST':
             if 'next' in req.args:
                 step += 1
+            elif 'back' in req.args or 'prev' in req.args:
+                step -= 1
         steps = [
             dict(label=_("Authentication Options"), past=step>0),
             dict(image='users', label=_("Password Store"), past=step > 1),
@@ -845,64 +851,29 @@ class AccountManagerSetupWizard(CommonTemplateProvider):
         ]
         if not step < len(steps):
             req.redirect(req.href.admin('accounts', 'config'))
-        checks = ExtensionOrder(components=self.acctmgr.checks,
-                                list=self.acctmgr.register_checks)
-        check_list = []
-        for check in self.acctmgr.checks:
-            options = []
-            for attr, option in _getoptions(check):
-                error = None
-                opt_val = None
-                value = None
-                try:
-                    opt_val = option.__get__(check, check)
-                except AttributeError, e:
-                    self.env.log.error(e)
-                    regexp = r'^.* interface named \"(.*?)\".*$'
-                    error = _("Error while reading configuration - "
-                              "Hint: Enable/install required component '%s'."
-                              % re.sub(regexp, r'\1', str(e)))
-                    pass
-                if opt_val:
-                    value = isinstance(opt_val, Component) and \
-                            opt_val.__class__.__name__ or opt_val
-                opt_sel = None
-                try:
-                    interface = option.xtnpt.interface
-                    opt_sel = {'options': [], 'selected': None}
-                except AttributeError:
-                    # No ExtensionOption / Interface undefined.
-                    pass
-                if opt_sel:
-                    for impl in option.xtnpt.extensions(self.env):
-                        extension = impl.__class__.__name__
-                        opt_sel['options'].append(extension)
-                        if opt_val and extension == value:
-                            opt_sel['selected'] = extension
-                    if len(opt_sel['options']) == 0 and error:
-                        opt_sel['error'] = error
-                    value = opt_sel
-                options.append(
-                            {'label': attr,
-                            'name': '%s.%s' % (check.__class__.__name__, attr),
-                            'value': value,
-                            'doc': gettext(option.__doc__)
-                            })
-                continue
-            check_list.append(
-                        {'name': check.__class__.__name__,
-                        'classname': check.__class__.__name__,
-                        'doc': gettext(check.doc),
-                        'order': checks[check],
-                        'options' : options,
-                        })
-            continue
-        check_list = sorted(check_list, key=lambda i: i['order'])
-        numchecks = range(0, checks.numcomponents() + 1)
 
+        # Extract relevant configuration options.
+        config = {}
+        opts = [(k, v) for k, v in cfg['account-manager'].options(env)]
+        config['account-manager'] = sorted(opts)
+        components = ['trac.web.auth.loginmodule']
+        if cfg['account-manager'].contains('sibling_cmp'):
+            components = cfg['account-manager'].getlist('sibling_cmp')
+        config['components'] = [(k, v) for k, v in
+                                cfg['components'].options()
+                                if k.startswith('acct_mgr') or
+                                   k in components]
+        if cfg['account-manager'].contains('sibling_cfg'):
+            siblings = cfg['account-manager'].getlist('sibling_cfg')
+            for sibling in siblings:
+                opts = [(k, v) for k, v in cfg[sibling].options(env)]
+                config[sibling] = sorted(opts)
+
+        # Build password store configuration details.
         stores = ExtensionOrder(components=self.acctmgr.stores,
                                 list=self.acctmgr.password_stores)
         numstores = range(0, stores.numcomponents() + 1)
+        password_store = cfg.getlist('account-manager', 'password_store')
         store_list = []
         for store in self.acctmgr.stores:
             if store.__class__.__name__ == "ResetPwStore":
@@ -917,7 +888,7 @@ class AccountManagerSetupWizard(CommonTemplateProvider):
                 try:
                     opt_val = option.__get__(store, store)
                 except AttributeError, e:
-                    self.env.log.error(e)
+                    env.log.error(e)
                     regexp = r'^.* interface named \"(.*?)\".*$'
                     error = _("Error while reading configuration - "
                               "Hint: Enable/install required component '%s'."
@@ -934,7 +905,7 @@ class AccountManagerSetupWizard(CommonTemplateProvider):
                     # No ExtensionOption / Interface undefined.
                     pass
                 if opt_sel:
-                    for impl in option.xtnpt.extensions(self.env):
+                    for impl in option.xtnpt.extensions(env):
                         extension = impl.__class__.__name__
                         opt_sel['options'].append(extension)
                         if opt_val and extension == value:
@@ -942,26 +913,131 @@ class AccountManagerSetupWizard(CommonTemplateProvider):
                     if len(opt_sel['options']) == 0 and error:
                         opt_sel['error'] = error
                     value = opt_sel
-                options.append(
-                            {'label': attr,
-                            'name': '%s.%s' % (store.__class__.__name__, attr),
-                            'value': value,
-                            'doc': gettext(option.__doc__)
-                            })
+                options.append({
+                    'label': attr,
+                    'name': '%s.%s' % (store.__class__.__name__, attr),
+                    'value': value,
+                    'doc': gettext(option.__doc__)
+                })
                 continue
-            store_list.append(
-                        {'name': store.__class__.__name__,
-                        'classname': store.__class__.__name__,
-                        'order': stores[store],
-                        'options' : options,
-                        })
+            store_list.append({
+                'name': store.__class__.__name__,
+                'classname': store.__class__.__name__,
+                'order': stores[store],
+                'options': options
+            })
             continue
         store_list = sorted(store_list, key=lambda i: i['order'])
+        disabled_store = frozenset(password_store).difference(frozenset(
+                         [store['classname'] for store in store_list]))
+
+        # Build registration check configuration details.
+        checks = ExtensionOrder(components=self.acctmgr.checks,
+                                list=self.acctmgr.register_checks)
+        check_list = []
+        for check in self.acctmgr.checks:
+            options = []
+            for attr, option in _getoptions(check):
+                error = None
+                opt_val = None
+                value = None
+                try:
+                    opt_val = option.__get__(check, check)
+                except AttributeError, e:
+                    env.log.error(e)
+                    regexp = r'^.* interface named \"(.*?)\".*$'
+                    error = _("Error while reading configuration - "
+                              "Hint: Enable/install required component '%s'."
+                              % re.sub(regexp, r'\1', str(e)))
+                    pass
+                if opt_val:
+                    value = isinstance(opt_val, Component) and \
+                            opt_val.__class__.__name__ or opt_val
+                opt_sel = None
+                try:
+                    interface = option.xtnpt.interface
+                    opt_sel = {'options': [], 'selected': None}
+                except AttributeError:
+                    # No ExtensionOption / Interface undefined.
+                    pass
+                if opt_sel:
+                    for impl in option.xtnpt.extensions(env):
+                        extension = impl.__class__.__name__
+                        opt_sel['options'].append(extension)
+                        if opt_val and extension == value:
+                            opt_sel['selected'] = extension
+                    if len(opt_sel['options']) == 0 and error:
+                        opt_sel['error'] = error
+                    value = opt_sel
+                options.append({
+                    'label': attr,
+                    'name': '%s.%s' % (check.__class__.__name__, attr),
+                    'value': value,
+                    'doc': gettext(option.__doc__)
+                })
+                continue
+            check_list.append({
+                'name': check.__class__.__name__,
+                'classname': check.__class__.__name__,
+                'doc': gettext(check.doc),
+                'order': checks[check],
+                'options': options
+            })
+            continue
+        check_list = sorted(check_list, key=lambda i: i['order'])
+        numchecks = range(0, checks.numcomponents() + 1)
+        register_check = cfg.getlist('account-manager', 'register_check')
+        disabled_check = frozenset(register_check).difference(frozenset(
+                         [check['classname'] for check in check_list]))
+
+        # Collect various other configuration options and properties.
+        acctmgr_guard = is_enabled(env, LoginModule) and \
+                        is_enabled(env, AccountGuard)
+        acctmgr_register = is_enabled(env, RegistrationModule)
+        admin_available = PermissionSystem(env).get_users_with_permission(
+                          'TRAC_ADMIN') and True or False
+        login_attempt_max_count = self.guard.login_attempt_max_count
+        reset_password = cfg.getbool('account-manager', 'reset_password')
+
+        # Prepare configuration check-up information.
+        details = []
+        status = (disabled_store and 'error' or not password_store and
+                  'disabled' or 'ok')
+        details.append(dict(desc=_("Password Store"), status=status, step=1))
+        # Require no pending password store configuration issues.
+        ready = status != 'error' and True or False
+        
+        details.append(dict(
+            desc=_("Password Reset"),
+            status=not reset_password and 'disabled' or 'ok',
+            step=2
+            )
+        )
+        status = (disabled_check and 'error' or not register_check and
+                  'unknown' or not acctmgr_register and 'disabled' or 'ok')
+        details.append(
+            dict(desc=_("Account Registration"), status=status, step=3)
+        )
+        # Require no pending registration check configuration issues.
+        ready = ready and status != 'error' and True or False
+
+        details.append(dict(
+            desc=_("Account Guard"),
+            status=((acctmgr_guard or login_attempt_max_count < 1) and
+                    'disabled' or 'ok'),
+            step=4)
+        )
+        status = not admin_available and 'error' or 'ok'
+        details.append(dict(desc=_("Admin user account"), status=status))
+        # Require at least one admin account.
+        ready = ready and status != 'error' and True or False
+
+        details.append(dict(desc=_("Configuration Review"), status='unknown'))
 
         def safe_wiki_to_html(context, text):
             """Convenience function from trac.admin.web_ui."""
             try:
-                return format_to_html(self.env, context, text)
+                return format_to_html(env, context, text)
             except Exception, e:
                 self.log.error('Unable to render component documentation: %s',
                                exception_to_unicode(e, traceback=True))
@@ -979,43 +1055,104 @@ class AccountManagerSetupWizard(CommonTemplateProvider):
             'secure_cookies': cfg.getbool('trac', 'secure_cookies'),
             'check_auth_ip': cfg.getbool('trac', 'check_auth_ip'),
             'ignore_auth_case': cfg.getbool('trac', 'ignore_auth_case'),
-            'acctmgr_login': is_enabled(self.env, LoginModule),
+            'acctmgr_login': is_enabled(env, LoginModule),
             'login_opt_list': cfg.getbool('account-manager',
                                           'login_opt_list'),
             'persistent_sessions': self.acctmgr.persistent_sessions,
             'cookie_refresh_pct': cfg.getint('account-manager',
                                              'cookie_refresh_pct'),
             'auth_cookie_path': cfg.get('trac', 'auth_cookie_path'),
+
+            'init_store': 'db',
+            'init_store_hint': dict(
+                db = _pre_strip("""
+                   [account-manager]
+                   db_htdigest_realm =
+                   password_store = SessionStore
+
+                   [components]
+                   acct_mgr.db.SessionStore = enabled
+                   acct_mgr.pwhash.HtDigestHashMethod = enabled
+                   """),
+                htdigest = _pre_strip("""
+                   [account-manager]
+                   htdigest_file = trac.htdigest
+                   htdigest_realm =
+                   password_store = HtDigestStore
+
+                   [components]
+                   acct_mgr.htfile.HtDigestStore = enabled
+                   """),
+                htpasswd = _pre_strip("""
+                   [account-manager]
+                   htpasswd_file = trac.htpasswd
+                   htpasswd_hash_type = md5
+                   password_store = HtPasswdStore
+
+                   [components]
+                   acct_mgr.htfile.HtPasswdStore = enabled
+                   """),
+                svn_file = _pre_strip("""
+                   [account-manager]
+                   password_file =
+                   password_store = SvnServePasswordStore
+
+                   [components]
+                   acct_mgr.svnserve.SvnServePasswordStore = enabled
+                   """),
+                http = _pre_strip("""
+                   [account-manager]
+                   auth_url =
+                   password_store = HttpAuthStore
+
+                   [components]
+                   acct_mgr.http.HttpAuthStore = enabled
+                   """),
+                etc = _pre_strip("""
+                   [account-manager]
+                   password_store =
+
+                   [components]
+                   """)
+            ),
             'numstores': numstores,
-            'store_cfg_hint': _("Please apply this set of options first. "
-                "You'll be able to change default values afterwards."),
-
+            'disabled_store': disabled_store,
             'store_list': store_list,
-            'password_store': cfg.getlist('account-manager',
-                                          'password_store'),
+            'password_store': password_store,
+            'refresh_passwd': self.acctmgr.refresh_passwd,
 
-            'reset_password': cfg.getbool('account-manager',
-                                          'reset_password'),
+            'reset_password': reset_password,
             'generated_password_length': cfg.getint('account-manager',
                                              'generated_password_length'),
             'force_passwd_change': self.acctmgr.force_passwd_change,
 
-            'acctmgr_register': is_enabled(self.env, RegistrationModule),
-            'register_check': cfg.get('account-manager', 'register_check'),
+            'acctmgr_register': acctmgr_register,
+            'register_check': register_check,
+            'disabled_check': disabled_check,
             'check_list': check_list,
             'numchecks': numchecks,
             'require_approval': cfg.getbool('account-manager',
                                             'require_approval'),
-            'verify_email': EmailVerificationModule(self.env).verify_email,
+            'verify_email': EmailVerificationModule(env).verify_email,
 
-            'acctmgr_guard': is_enabled(self.env, LoginModule) and \
-                             is_enabled(self.env, AccountGuard),
-            'login_attempt_max_count': self.guard.login_attempt_max_count,
+            'acctmgr_guard': acctmgr_guard,
+            'login_attempt_max_count': login_attempt_max_count,
             'user_lock_time': self.guard.user_lock_time,
             'user_lock_max_time': self.guard.user_lock_max_time,
             'user_lock_time_progression': self.guard.lock_time_progression,
 
-            'refresh_passwd': self.acctmgr.refresh_passwd,
+            'admin_available': admin_available,
+            'acctmgr': dict(),
+            'set_password': self.acctmgr.supports('set_password'),
+            'completion': dict(details=details, ready=ready),
+            'cfg': config,
             }
-        add_stylesheet(req, 'acct_mgr/acct_mgr.css')
+
+        add_script(req, 'acct_mgr/acctmgr_admin.js')
+        add_stylesheet(req, 'acct_mgr/acctmgr.css')
         return 'accounts_cfg_wizard.html', data, None
+
+
+def _pre_strip(text):
+    """Strip whitespace to prepare multiline strings as pre-formatted text."""
+    return '\n'.join([line.strip() for line in text.split('\n')])
