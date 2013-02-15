@@ -7,230 +7,17 @@
       xmlns:i18n="http://genshi.edgewall.org/i18n"
       i18n:domain="acct_mgr">
   <xi:include href="layout.html" />
+  <?python
+    if _dgettext is not None:
+        dgettext = _dgettext ?>
   <head>
     <title>Account Manager Setup</title>
     <script type="text/javascript"
             src="${chrome.htdocs_location}js/folding.js"></script>
     <script type="text/javascript">/*<![CDATA[*/
       jQuery(document).ready(function($) {
-        // Hide/unhide depending sections
-        $("input[name=auth_cookie_lifetime]").change(function() {
-          var isChecked = parseInt(
-                            $("input[name=acctmgr_login]:checked").val());
-          var oldValue = parseInt($("#auth_cookie_lifetime_old").val());
-          if(parseInt($("input[name=auth_cookie_lifetime]")
-                        .val()) != oldValue ||
-                        (isChecked === 0 && oldValue === 0)){
-            $("span#pretty_auth_cookie_lifetime").hide();
-          }
-          else{
-            $("span#pretty_auth_cookie_lifetime").show();
-          }
-        });
-        $("input[name=user_lock_max_time]").change(function() {
-          var oldValue = parseInt($("#user_lock_max_time_old").val());
-          if(parseInt($("input[name=user_lock_max_time]")
-                        .val()) != oldValue){
-            $("span#pretty_user_lock_max_time").hide();
-          }
-          else{
-            $("span#pretty_user_lock_max_time").show();
-          }
-        });
-        function toggleLoginOpts() {
-          var isChecked = parseInt(
-                            $("input[name=acctmgr_login]:checked").val());
-          var section = $("#acctmgr_login_opts");
-          if(isChecked === 0){
-            $("input[name=auth_cookie_lifetime]").change();
-            section.slideUp();
-          }
-          else{
-            $("input[name=auth_cookie_lifetime]").change();
-            section.slideDown();
-          }
-        };
-        $("input[type=radio][name=acctmgr_login]").click(function() {
-          toggleLoginOpts();
-        });
-        // Add a configuration preview field for natively supported stores
-        // using an idea from http://stackoverflow.com/questions/4637586
-        function insertPreview() {
-          var fileChecked = $("input[name=acctmgr_init_file]:checked").val();
-          var isChecked = $("input[name=init_store]:checked").val();
-          var dynContent = [];
-          var dynField = [];
-          dynField.push('<legend class="foldable">Details (Preview)</legend>',
-                        '<div class="field">',
-                        '<textarea id="store_cfg" readonly="readonly" rows="7">',
-                        '</textarea><p class="hint">',
-                        "${store_cfg_hint}",
-                        '</p></div>');
-          $("#preview").remove();
-          $("div#" + isChecked).append('<fieldset id="preview"></fieldset>')
-          if(isChecked === "db"){
-            $("fieldset#preview").empty().append(dynField.join(" "));
-            dynContent.push('[account-manager]',
-                            'db_htdigest_realm =',
-                            'password_store = SessionStore',
-                            '',
-                            '[components]',
-                            'acct_mgr.db.SessionStore = enabled',
-                            'acct_mgr.pwhash.HtDigestHashMethod = enabled');
-          }
-          else if(isChecked === "file"){
-            if(fileChecked === "htdigest"){
-              $("fieldset#preview").empty().append(dynField.join(" "));
-              dynContent.push('[account-manager]',
-                              'htdigest_file = trac.htdigest',
-                              'htdigest_realm =',
-                              'password_store = HtDigestStore',
-                              '',
-                              '[components]',
-                              'acct_mgr.htfile.HtDigestStore = enabled');
-            }
-            else if(fileChecked === "htpasswd"){
-              $("fieldset#preview").empty().append(dynField.join(" "));
-              dynContent.push('[account-manager]',
-                              'htpasswd_file = trac.htpasswd',
-                              'htpasswd_hash_type = md5',
-                              'password_store = HtPasswdStore',
-                              '',
-                              '[components]',
-                              'acct_mgr.htfile.HtPasswdStore = enabled');
-            }
-          }
-          else if(isChecked === "svn_file"){
-            $("fieldset#preview").empty().append(dynField.join(" "));
-            dynContent.push('[account-manager]',
-                            'password_file =',
-                            'password_store = SvnServePasswordStore',
-                            '',
-                            '[components]',
-                            'acct_mgr.svnserve.SvnServePasswordStore = enabled');
-          }
-          else if(isChecked === "http"){
-            $("fieldset#preview").empty().append(dynField.join(" "));
-            dynContent.push('[account-manager]',
-                            'auth_url =',
-                            'password_store = HttpAuthStore',
-                            '',
-                            '[components]',
-                            'acct_mgr.http.HttpAuthStore = enabled');
-          }
-          else{
-            $("fieldset#preview").empty();
-          }
-          $("#store_cfg").val(dynContent.join("\n"));
-          // Hide configuration preview by default
-          $("fieldset legend.foldable").enableFolding(true);
-        };
-        $("input[type=radio][name=init_store]").click(function() {
-          insertPreview();
-        });
-        $("input[type=radio][name=acctmgr_init_file]").click(function() {
-          insertPreview();
-        });
-        function toggleFileStore() {
-          var isChecked = $("input[name=init_store]:checked").val();
-          var section = $("#acctmgr_init_file");
-          if(isChecked === "file"){
-            section.slideDown();
-          }
-          else{
-            section.slideUp();
-          }
-        };
-        $("input[type=radio][name=init_store]").click(function() {
-          toggleFileStore();
-        });
-        function toggleEtcStore() {
-          var isChecked = $("input[name=init_store]:checked").val();
-          var section = $("#etc_store_cfg");
-          if(isChecked === "etc"){
-            section.slideDown();
-          }
-          else{
-            section.slideUp();
-          }
-        };
-        $("input[type=radio][name=init_store]").click(function() {
-          toggleEtcStore();
-        });
-        function toggleRegisterOpts() {
-          var section = $("#acctmgr_register_opts");
-          if(! $("input[name=acctmgr_register]").is(':checked')){
-            section.slideUp();
-          }
-          else{
-            section.slideDown();
-          }
-        };
-        $("input[type=checkbox][name=acctmgr_register]").click(function() {
-          toggleRegisterOpts();
-        });
-        function toggleGuardOpts() {
-          var section = $("#acctmgr_guard_opts");
-          if(! $("input[name=acctmgr_guard]").is(':checked')){
-            section.slideUp();
-          }
-          else{
-            section.slideDown();
-          }
-        };
-        $("input[type=checkbox][name=acctmgr_guard]").click(function() {
-          toggleGuardOpts();
-        });
-        $("input[name=login_attempt_max_count]").change(function() {
-          var currVal = parseInt(
-                          $("input[name=login_attempt_max_count]").val());
-          var section = $("div#user_lock_time");
-          if(currVal === 0){
-            section.slideUp();
-          }
-          else if(currVal < 0){
-            $("input[name=login_attempt_max_count]").val('0');
-            section.slideUp();
-          }
-          else{
-            section.slideDown();
-          }
-        }).change();
-        $("input[name=user_lock_time]").change(function() {
-          var currVal = parseInt($("input[name=user_lock_time]").val());
-          var section = $("div#user_lock_time_progression");
-          if(currVal === 0){
-            section.slideUp();
-          }
-          else if(currVal < 0){
-            $("input[name=user_lock_time]").val('0');
-            section.slideUp();
-          }
-          else{
-            section.slideDown();
-          }
-        }).change();
-        $("input[name=user_lock_time_progression]").change(function() {
-          var currVal = parseFloat(
-                          $("input[name=user_lock_time_progression]").val());
-          var section = $("div#user_lock_max_time");
-          if(currVal === 1){
-            section.slideUp();
-          }
-          else if(currVal < 1){
-            $("input[name=user_lock_time_progression]").val('1');
-            section.slideUp();
-          }
-          else{
-            section.slideDown();
-          }
-        }).change();
-        // Fix initial section visibility depending on some input state
-        toggleLoginOpts();
-        toggleFileStore();
-        toggleEtcStore();
-        toggleRegisterOpts();
-        toggleGuardOpts();
+        // Hide configuration preview sections by default
+        $("fieldset legend.foldable").enableFolding(true);
       });
     /*]]>*/</script>
   </head>
@@ -264,13 +51,24 @@
 
       <h1>Accounts: Configuration</h1>
       <form id="cfg_wiz" method="post">
+        <!-- Top navigation -->
         <div class="buttons">
-          <input type="hidden" name="step" value="$active" />
+          <input type="submit" name="back"
+                 py:if="active != 0 and active != (len(steps) - 1)"
+                 title="${dgettext('acct_mgr', 'Apply changes and go back')}"
+                 value="${dgettext('acct_mgr', 'Previous')}" />
+          <input type="submit" name="prev" py:if="active == (len(steps) - 1)"
+                 title="${dgettext('acct_mgr', 'Go back')}"
+                 value="${dgettext('acct_mgr', 'Previous')}" />
           <input type="submit" name="next" py:if="active != (len(steps) - 1)"
-                 value="${dgettext('acct_mgr', 'Next step')}" />
+                 title="${dgettext('acct_mgr', 'Apply changes and go on')}"
+                 value="${dgettext('acct_mgr', 'Next')}" />
+          <!-- Last value cache for stepping through pages back and forth -->
+          <input type="hidden" name="step" value="$active" />
         </div>
         <py:choose test="active">
 
+          <!--! Page 1 -->
           <fieldset py:when="0">
             <legend class="step" i18n:msg="step,label">
               Step ${str(active + 1)}: ${steps[active].label}
@@ -290,7 +88,7 @@
           <div class="field">
             <label>
               <input type="checkbox" name="ignore_auth_case" value="true"
-                     title="[trac] ignore_auth_case"
+                     title="${'[trac] ignore_auth_case'}"
                      checked="${ignore_auth_case and 'checked' or None}" />
               Convert login names to lower case on registration and login.
             </label>
@@ -303,7 +101,7 @@
           <div class="field">
             <label>
               <input type="checkbox" name="check_auth_ip" value="true"
-                     title="[trac] check_auth_ip"
+                     title="${'[trac] check_auth_ip'}"
                      checked="${check_auth_ip and 'checked' or None}" />
               Check IP address for authentication.
             </label>
@@ -315,7 +113,7 @@
           <div class="field">
             <label>
               <input type="checkbox" name="secure_cookies" value="true"
-                     title="[trac] secure_cookies"
+                     title="${'[trac] secure_cookies'}"
                      checked="${secure_cookies and 'checked' or None}" />
               Restrict sending cookies to HTTPS connections.
             </label>
@@ -334,7 +132,7 @@
             <label>
               Lifetime of the authentication cookie:
               <input type="text" class="numwidget" name="auth_cookie_lifetime"
-                     title="[trac] auth_cookie_lifetime"
+                     title="${'[trac] auth_cookie_lifetime'}"
                      value="$auth_cookie_lifetime" />
               seconds
               <span class="hint" py:if="value"
@@ -355,7 +153,7 @@
             <label>
               <input type="radio" name="acctmgr_login" value="0"
                      checked="${acctmgr_login and None or 'checked'}"
-                     title="[components] trac.web.auth.loginmodule" />
+                     title="${'[components] trac.web.auth.loginmodule'}" />
               Use HTTP authentication and credentials as configured in and
               provided by your web-server.
             </label>
@@ -366,7 +164,7 @@
             <label>
               <input type="radio" name="acctmgr_login" value="1"
                      checked="${acctmgr_login and 'checked' or None}"
-                     title="[components] acct_mgr.web_ui.loginmodule" />
+                     title="${'[components] acct_mgr.web_ui.loginmodule'}" />
               Use a HTML login form backed by one or more password stores
               managed by AccountManagerPlugin.
             </label>
@@ -389,7 +187,7 @@
               <label>
                 <input type="checkbox" name="login_opt_list" value="true"
                        checked="${login_opt_list and 'checked' or None}"
-                       title="[account-manager] login_opt_list" />
+                       title="${'[account-manager] login_opt_list'}" />
                 Integrate links to related actions into the login form.
               </label>
               <p class="hint">
@@ -409,7 +207,7 @@
               <label>
                 <input type="checkbox" name="persistent_sessions" value="true"
                        checked="${persistent_sessions and 'checked' or None}"
-                       title="[account-manager] persistent_sessions" />
+                       title="${'[account-manager] persistent_sessions'}" />
                 Allow the user to be remembered across sessions without
                 needing to re-authenticate.
               </label>
@@ -423,7 +221,7 @@
               <label i18n:msg="">
                 Likelihood of session cookie ID change:
                 <input type="text" class="numwidget" name="cookie_refresh_pct"
-                       title="[account-manager] cookie_refresh_pct"
+                       title="${'[account-manager] cookie_refresh_pct'}"
                        value="$cookie_refresh_pct" />
                 % per work hour
               </label>
@@ -436,7 +234,7 @@
               <label>
                 Path for authentication cookie:
                 <input type="text" class="textwidget" name="auth_cookie_path"
-                       title="[trac] auth_cookie_path"
+                       title="${'[trac] auth_cookie_path'}"
                        value="$auth_cookie_path" />
               </label>
               <p class="hint" i18n:msg="">
@@ -450,6 +248,7 @@
           </div>
           </fieldset>
 
+          <!--! Page 2 -->
           <fieldset py:when="1">
             <legend class="step" i18n:msg="step,label">
               Step ${str(active + 1)}: ${steps[active].label}
@@ -466,95 +265,151 @@
             <div py:if="len(password_store) == 0">
               <h3>Initial Authentication back-end selection</h3>
               <!-- Initial setup content -->
-              <div class="field" id="db">
+              <div class="field">
                 <label>
                   <input type="radio" name="init_store" value="db"
                          checked="${init_store == 'db' and
                                     'checked' or None}"
-                         title="[account-manager] password_store" />
+                         title="${'[account-manager] password_store'}" />
                   Use a password store embedded into Trac db.
                 </label>
                 <p class="hint" i18n:msg="">
                   The <strong>SessionStore</strong> implements password
-                  storage in Trac db table 'session_attributes'.  Its the
-                  default choice mainly for avoiding additional dependencies
-                  like directory and file permissions.  While great to resolve
-                  some concurrent access issues too, this password store has
-                  shortcomings as well.  Notably it does not support seamless
-                  hash type migration, and its no candidate for shared use by
-                  multiple Trac instances or even by applications beyond Trac.
+                  storage in Trac db table 'session_attributes'.
+                  Its the default choice mainly for avoiding additional
+                  dependencies like directory and file permissions.
                 </p>
+                <p class="hint">
+                  While great to resolve some concurrent access issues too,
+                  this password store has shortcomings as well.  Notably it
+                  does not support seamless hash type migration, and its no
+                  candidate for shared use by multiple Trac instances or even
+                  by applications beyond Trac.
+                </p>
+                <fieldset class="ini" id="db">
+                  <legend class="foldable">Details (Preview)</legend>
+                  <div class="compact">
+                    <pre xml:lang="en">$init_store_hint.db</pre>
+                    <p class="hint">
+                      Please apply these default options first. You'll be
+                      able to change values afterwards.
+                    </p>
+                  </div>
+                </fieldset>
               </div>
               <div class="field">
                 <label>
                   <input type="radio" name="init_store" value="file"
                          checked="${init_store in ('htdigest', 'htpasswd') and
                                     'checked' or None}" />
-                  Use a writable file-based password store.
+                  Use a file-based password store.
                 </label>
                 <p class="hint">
                   AccountManagerPlugin includes native support for common
-                  Apache file formats 'htpasswd' and 'htdigest'.  You may use
-                  the same file for several Trac environments too.  Note that
-                  setting appropriate directory and file permissions is
-                  crucial for these stores, but not covered by this
+                  Apache file formats 'htpasswd' and 'htdigest' as well as
+                  support for reading svnserve's password file format.
+                </p>
+                <p class="hint">
+                  You may use the same file for several Trac environments.
+                  Note that setting appropriate directory and file permissions
+                  is crucial for these stores, but not covered by this
                   configuration wizard.
                 </p>
               </div>
-              <fieldset id="acctmgr_init_file">
+              <fieldset id="init_store_file">
                 <div class="field">
                   <label i18n:msg="">
-                    <input type="radio" name="acctmgr_init_file"
+                    <input type="radio" name="init_store_file"
                            value="htdigest"
                            checked="${init_store == 'htdigest' or
                                       not htpasswd and 'checked' or None}"
-                           title="[account-manager] password_store" />
+                           title="${'[account-manager] password_store'}" />
                     'htdigest' format
                     <span class="hint">(<strong>HtDigestStore</strong>)</span>
                   </label>
+                  <fieldset class="ini" id="htdigest">
+                    <legend class="foldable">Details (Preview)</legend>
+                    <div class="compact">
+                      <pre xml:lang="en">$init_store_hint.htdigest</pre>
+                      <p class="hint">
+                        Please apply these default options first. You'll be
+                        able to change values afterwards.
+                      </p>
+                    </div>
+                  </fieldset>
                 </div>
-                <div class="field" id="file">
+                <div class="field">
                   <label i18n:msg="">
-                    <input type="radio" name="acctmgr_init_file"
+                    <input type="radio" name="init_store_file"
                            value="htpasswd"
                            checked="${init_store == 'htpasswd' and
                                       'checked' or None}"
-                           title="[account-manager] password_store" />
+                           title="${'[account-manager] password_store'}" />
                     'htpasswd' format
                     <span class="hint">(<strong>HtPasswdStore</strong>)</span>
                   </label>
+                  <fieldset class="ini" id="htpasswd">
+                    <legend class="foldable">Details (Preview)</legend>
+                    <div class="compact">
+                      <pre xml:lang="en">$init_store_hint.htpasswd</pre>
+                      <p class="hint">
+                        Please apply these default options first. You'll be
+                        able to change values afterwards.
+                      </p>
+                    </div>
+                  </fieldset>
+                </div>
+                <div class="field">
+                  <label i18n:msg="">
+                    <input type="radio" name="init_store_file"
+                           value="svn_file"
+                           checked="${init_store == 'svn_file' and 
+                                      'checked' or None}"
+                           title="${'[account-manager] password_store'}" />
+                    svnserve's password file format
+                    <span class="hint">
+                        (<strong>SvnServePasswordStore</strong>)
+                    </span>
+                  </label>
+                  <fieldset class="ini" id="svn_file">
+                    <legend class="foldable">Details (Preview)</legend>
+                    <div class="compact">
+                      <pre xml:lang="en">$init_store_hint.svn_file</pre>
+                      <p class="hint">
+                        Please apply these default options first. You'll be
+                        able to change values afterwards.
+                      </p>
+                    </div>
+                  </fieldset>
                 </div>
               </fieldset>
-              <div class="field" id="svn_file">
-                <label>
-                  <input type="radio" name="init_store" value="svn_file"
-                         checked="${init_store == 'svn_file' and 
-                                    'checked' or None}"
-                         title="[account-manager] password_store" />
-                  Re-use the file-based password file from SVN - read-only.
-                </label>
-                <p class="hint" i18n:msg="">
-                  <strong>SvnServePasswordStore</strong> includes support for
-                  reading svnserve's  password file format.  This is another
-                  way to enable shared use of authentication data, but relies
-                  on independed management of the password file.
-                </p>
-              </div>
-              <div class="field" id="http">
+              <div class="field">
                 <label>
                   <input type="radio" name="init_store" value="http"
                          checked="${init_store == 'http' and
                                     'checked' or None}"
-                         title="[account-manager] password_store" />
+                         title="${'[account-manager] password_store'}" />
                   Delegate authentication using HTTP authentication.
                 </label>
                 <p class="hint" i18n:msg="">
                   AccountManagerPlugin enables use of standard HTTP-Auth
-                  by its <strong>HttpAuthStore</strong>  component.  Both
+                  by its <strong>HttpAuthStore</strong> component.  Both
                   Basic and Digest authentication callenges are supported.
+                </p>
+                <p class="hint">
                   Apart from being read-only this password store does not even
                   support listing users for obvious reasons.
                 </p>
+                <fieldset class="ini" id="http">
+                  <legend class="foldable">Details (Preview)</legend>
+                  <div class="compact">
+                    <pre xml:lang="en">$init_store_hint.http</pre>
+                    <p class="hint">
+                      Please apply these default options first. You'll be
+                      able to change values afterwards.
+                    </p>
+                  </div>
+                </fieldset>
               </div>
 
               <div class="field">
@@ -562,7 +417,7 @@
                   <input type="radio" name="init_store" value="etc"
                          checked="${init_store == 'etc' and
                                     'checked' or None}"
-                         title="[account-manager] password_store" />
+                         title="${'[account-manager] password_store'}" />
                   Use a different password store.
                 </label>
                 <p class="hint">
@@ -576,14 +431,8 @@
               </div>
               <fieldset id="etc_store_cfg">
                 <legend>Configuration</legend>
-                <div class="field">
-                  <!-- Default field content requires no indentation here -->
-                  <textarea name="etc_store_cfg" rows="7">
-[account-manager]
-password_store =
-
-[components]
-</textarea>
+                <div class="compact field">
+                  <textarea name="etc_cfg">$init_store_hint.http</textarea>
                   <p class="hint">
                     Type the custom configuration options as provided by that
                     components documentation and apply it.
@@ -597,18 +446,27 @@ password_store =
               <h3>Password Store Configuration</h3>
               <p i18n:msg="store_list">
                 All enabled stores are listed below, but most won't work at
-                all without additional configuration.<br />Currently enabled:
-                <span title="[account-manager] password_store">
-                  <em>${', '.join(password_store)}</em>
-                </span>
+                all without additional configuration.<br />
+                Currently configured:
+                <em title="${'[account-manager] password_store'}">
+                  ${', '.join(password_store)}
+                </em>
               </p>
               <p class="hint" py:if="len(password_store) > 1">
                 This is an experts-only type of store configuration.
               </p>
+              <div class="system-message" py:if="disabled_store">
+                <p i18n:msg="components">
+                  <strong>Required disabled component(s):
+                  <em>${', '.join(disabled_store)}</em></strong>
+                </p>
+              </div>
+              <p>
+                Select one or more stores and configure related options.
+                Concurrent use of multiple password stores is supported too.
+              </p>
               <p class="hint">
-                Select desired password stores and related options to enable
-                concurrent use of multiple password stores.  Password stores
-                are queried in turn in, so order matters.
+                Password stores are queried in turn, so order matters.
               </p>
 
               <fieldset py:for="section in store_list">
@@ -648,9 +506,31 @@ password_store =
                   <p class="hint" py:if="option.doc">$option.doc</p>
                 </div>
               </fieldset>
+
+              <div class="field">
+                <label>
+                  <input type="checkbox" name="refresh_passwd" value="true"
+                         checked="${refresh_passwd and 'checked' or None}"
+                         title="${'[account-manager] refresh_passwd'}" />
+                  Silently update password hashes on next successful login.
+                </label>
+                <p class="hint">
+                  Use it after changing hash type or to migrate to a new
+                  primary password store.
+                </p>
+                <p class="hint">
+                  The update will run only once.  Restarting the procedure
+                  for all accounts allows to propagate subsequent changes.
+                </p>
+                <div class="buttons">
+                  <input type="submit" name="restart"
+                         value="${dgettext('acct_mgr', 'Restart')}" />
+                </div>
+              </div>
             </div>
           </fieldset>
 
+          <!--! Page 3 -->
           <fieldset py:when="2">
             <legend class="step" i18n:msg="step,label">
               Step ${str(active + 1)}: ${steps[active].label}
@@ -668,7 +548,7 @@ password_store =
               <label>
                 <input type="checkbox" name="reset_password" value="true"
                        checked="${reset_password and 'checked' or None}"
-                       title="[account-manager] reset_password" />
+                       title="${'[account-manager] reset_password'}" />
                 Enable the password reset procedure.
               </label>
               <p class="hint">
@@ -681,7 +561,7 @@ password_store =
                 Length of the randomly-generated passwords:
                 <input type="text" class="numwidget"
                        name="generated_password_length"
-                       title="[account-manager] generated_password_length"
+                       title="${'[account-manager] generated_password_length'}"
                        value="$generated_password_length" />
                 characters
               </label>
@@ -693,12 +573,13 @@ password_store =
               <label>
                 <input type="checkbox" name="force_passwd_change" value="true"
                        checked="${force_passwd_change and 'checked' or None}"
-                       title="[account-manager] force_passwd_change" />
+                       title="${'[account-manager] force_passwd_change'}" />
                 Force users to change passwords after a password reset.
               </label>
             </div>
           </fieldset>
 
+          <!--! Page 4 -->
           <fieldset py:when="3">
             <legend class="step" i18n:msg="step,label">
               Step ${str(active + 1)}: ${steps[active].label}
@@ -717,7 +598,7 @@ password_store =
             <label>
               <input type="checkbox" name="acctmgr_register"
                      checked="${acctmgr_register and 'checked' or None}"
-                     title="[components] acct_mgr.register.RegistrationModule"
+                     title="${'[components] acct_mgr.register.RegistrationModule'}"
                      value="true" />
               Allow users to register for a new account.
             </label>
@@ -727,14 +608,27 @@ password_store =
             <p i18n:msg="check_list">
               All checks provided by AccountManagerPlugin are enabled per
               default, but some are configurable on their own.<br />
-              Currently enabled:
-              <span title="[account-manager] register_check">
-                <em>$register_check</em>
-              </span>
+              Currently configured:
+              <em title="${'[account-manager] register_check'}">
+                ${', '.join(register_check)}
+              </em>
             </p>
             <p class="hint">
               Checks like <strong>BotTrapCheck</strong> won't work at all
               without additional configuration.
+            </p>
+            <div class="system-message" py:if="disabled_check">
+              <p i18n:msg="components">
+                <strong>Required disabled component(s):
+                <em>${', '.join(disabled_check)}</em></strong>
+              </p>
+            </div>
+            <p>
+              Select one or more checks and configure related options.
+              Concurrent use of multiple registration checks is encouraged.
+            </p>
+            <p class="hint">
+              Checks are applied in turn, so order matters.
             </p>
 
             <fieldset py:for="section in check_list">
@@ -783,7 +677,7 @@ password_store =
               <label>
                 <input type="checkbox" name="require_approval" value="true"
                        checked="${require_approval and 'checked' or None}"
-                       title="[account-manager] require_approval" />
+                       title="${'[account-manager] require_approval'}" />
                 Require administrative account approval after registration.
               </label>
               <p class="hint">
@@ -796,7 +690,7 @@ password_store =
               <label>
                 <input type="checkbox" name="verify_email" value="true"
                        checked="${verify_email and 'checked' or None}"
-                       title="[account-manager] verify_email" />
+                       title="${'[account-manager] verify_email'}" />
                 Force users to verify their email addresses.
               </label>
               <p class="hint">
@@ -808,6 +702,7 @@ password_store =
           </div>
           </fieldset>
 
+          <!--! Page 5 -->
           <fieldset py:when="4">
             <legend class="step" i18n:msg="step,label">
               Step ${str(active + 1)}: ${steps[active].label}
@@ -824,7 +719,7 @@ password_store =
               sophisticated protection, if one can afford them, handle their
               installation, configuration and maintenance.
             </p>
-            <p>
+            <p i18n:msg="">
               The <strong>AccountGuard</strong> component is another option.
               It is an add-on to AccountManagerPlugin's own
               <strong>LoginModule</strong> and provides account protection
@@ -836,7 +731,7 @@ password_store =
                 <input type="checkbox" name="acctmgr_guard"
                        checked="${acctmgr_guard and 'checked' or None}"
                        disabled="${not acctmgr_login and 'disabled' or None}"
-                       title="[components] acct_mgr.guard.AccountGuard"
+                       title="${'[components] acct_mgr.guard.AccountGuard'}"
                        value="true" />
                 Enable the guard add-on component.
               </label>
@@ -850,24 +745,26 @@ password_store =
                   Failed login attempt count max:
                   <input type="text" class="numwidget"
                          name="login_attempt_max_count"
+                         title="${'[account-manager] login_attempt_max_count'}"
                          value="$login_attempt_max_count" />
-                  <p class="hint" i18n:msg="">
-                    Lock user account after the specified number of failed
-                    attempts.  Value zero means <strong>no limit</strong>.
-                  </p>
                 </label>
+                <p class="hint" i18n:msg="">
+                  Lock user account after the specified number of failed
+                  attempts.  Value zero means <strong>no limit</strong>.
+                </p>
               </div>
               <div id="user_lock_time">
                 <div class="field">
                   <label i18n:msg="">
                     Drop lock after
                     <input type="text" class="numwidget" name="user_lock_time"
+                           title="${'[account-manager] user_lock_time'}"
                            value="$user_lock_time" />
                     seconds
-                    <p class="hint" i18n:msg="">
-                      Zero means <strong>unlimited</strong> lock time here.
-                    </p>
                   </label>
+                  <p class="hint" i18n:msg="">
+                    Zero means <strong>unlimited</strong> lock time here.
+                  </p>
                 </div>
                 <div id="user_lock_time_progression">
                   <div class="field">
@@ -875,33 +772,34 @@ password_store =
                       Lock time progression factor:
                       <input type="text" class="numwidget"
                              name="user_lock_time_progression"
+                             title="${'[account-manager] user_lock_time_progression'}"
                              value="$user_lock_time_progression" />
-                      <p class="hint">
-                        Extend user account lock duration incrementally.
-                        It uses logarithmic calculation with the factor as
-                        exponent, accepting decimal numbers >= 1.
-                      </p>
-                      <p class="hint">
-                        Lock time will grow for any value > 1, if the failure
-                        happens before lock expiration.  I.e. value '2' means
-                      </p>
-                      <ul i18n:msg="">
-                        <li><span class="hint">
-                          double lock time after 2nd failure,</span>
-                        </li>
-                        <li><span class="hint">
-                          four times the initial lock time after 3rd,</span>
-                        </li>
-                        <li><span class="hint">
-                          eight times as long after 4th failure, etc.</span>
-                        </li>
-                      </ul>
-                      <p class="hint">
-                        At any time after lock expiration a login failure will
-                        just trigger a lock and set a new lock timeout, but
-                        not extend the total lock duration.
-                      </p>
                     </label>
+                    <p class="hint">
+                      Extend user account lock duration incrementally.
+                      It uses logarithmic calculation with the factor as
+                      exponent, accepting decimal numbers >= 1.
+                    </p>
+                    <p class="hint">
+                      Lock time will grow for any value > 1, if the failure
+                      happens before lock expiration.  I.e. value '2' means
+                    </p>
+                    <ul i18n:msg="">
+                      <li><span class="hint">
+                        double lock time after 2nd failure,</span>
+                      </li>
+                      <li><span class="hint">
+                        four times the initial lock time after 3rd,</span>
+                      </li>
+                      <li><span class="hint">
+                        eight times as long after 4th failure, etc.</span>
+                      </li>
+                    </ul>
+                    <p class="hint">
+                      At any time after lock expiration a login failure will
+                      just trigger a lock and set a new lock timeout, but not
+                      extend the total lock duration.
+                      </p>
                   </div>
                   <!-- Last value cache for JS code -->
                   <input type="hidden" id="user_lock_max_time_old"
@@ -911,6 +809,7 @@ password_store =
                       Upper lock time limit:
                       <input type="text" class="numwidget"
                              name="user_lock_max_time"
+                             title="${'[account-manager] user_lock_max_time'}"
                              value="$user_lock_max_time" />
                       seconds
                       <span class="hint" py:if="user_lock_max_time"
@@ -928,31 +827,155 @@ password_store =
             </div>
           </fieldset>
 
+          <!--! Page 6 -->
           <fieldset py:otherwise="">
             <legend class="step" i18n:msg="step,label">
               Step ${str(active + 1)}: ${steps[active].label}
             </legend>
-            <h3>Review your Configuration</h3>
-
-            <h3>Setup Initialization </h3>
-            <p>
-              Save the configuration and create one admin and one regular
-              user account.
+            <div py:if="not admin_available">
+              <h3>Objective for additional preparation</h3>
+                <p>
+                  Enable yourself to proceed beyond this initial setup.
+                </p>
+              <h3>Initial Admin Account</h3>
+              <fieldset>
+                <legend>Add Admin Account:</legend>
+                <p i18n:msg="">
+                  The user will get <strong>TRAC_ADMIN</strong> assigned, that
+                  inherits all available permissions.  One such account is
+                  required to configure Trac via the admin web-UI.  Create and
+                  manage more limitted admin accounts as well as actual user
+                  accounts on your own later via the Accounts admin panel.
+                </p>
+                <p class="hint" i18n:msg="">
+                  In detail: AccountManagerPlugin requires
+                  <strong>ACCTMGR_USER_ADMIN</strong> for regular user
+                  administration, <strong>ACCTMGR_CONFIG_ADMIN</strong> for
+                  viewing these pages and changing the configuration later.
+                  Both are inherited by <strong>ACCTMGR_ADMIN</strong>
+                  permission.  To assign permissions you'll need
+                  <strong>PERMISSION_GRANT</strong> inherited by
+                  <strong>PERMISSION_ADMIN</strong> too.
+                </p>
+                <div class="field">
+                  <label>Username:<br />
+                    <input type="text" class="textwidget" id="username"
+                           name="username" value="$acctmgr.username" />
+                  </label>
+                  <p class="hint" py:if="ignore_auth_case">
+                    Only lowercase usernames allowed
+                  </p>
+                </div>
+                <div class="field">
+                  <label py:choose="">Password:<br />
+                    <input type="password" class="textwidget" name="password"
+                           disabled="${not set_password and 'disabled' or
+                                       None}" />
+                  </label>
+                </div>
+                <div class="field">
+                  <label >Confirm Password:<br />
+                    <input type="password" class="textwidget"
+                           name="password_confirm"
+                           disabled="${not set_password and 'disabled' or
+                                       None}" />
+                  </label>
+                </div>
+                <div class="field">
+                  <label>Pre-/Surname (Nickname):<br />
+                    <input type="text" class="textwidget" name="name"
+                           value="$acctmgr.name" />
+                  </label>
+                </div>
+                <div class="field">
+                  <label>Email Address:<br />
+                    <input type="text" name="email" class="textwidget"
+                           value="$acctmgr.email" />
+                  </label><br />
+                  <label py:if="verify_email">
+                    <!--! Intentionally non-functional input field -->
+                    <input type="checkbox" checked="checked"
+                           disabled="disabled" />
+                    Skip new email verification
+                  </label>
+                </div>
+                <p py:if="not password_store">
+                  Please take care, that the username is known by the HTTP
+                  authentication provider.
+                </p>
+                <p py:if="password_store and not set_password">
+                  Please take care for a valid username, because no
+                  configured password store supports creating a new account.
+                </p>
+                <div class="buttons">
+                  <input type="submit" name="add"
+                         value="${dgettext('acct_mgr', ' Add ')}" />
+                </div>
+              </fieldset>
+            </div>
+            <h3>Check-up</h3>
+            <ul>
+              <li py:for="goal in completion.details" class="$goal.status">
+                <a href="${href.acctmgr('cfg-wizard', step=goal.step)}"
+                   py:strip="not goal.step">
+                  $goal.desc
+                </a>
+              </li>
+            </ul>
+            <p class="hint" py:if="admin_available and not completion.ready">
+              Please resolve all issues marked as critical. 
             </p>
+            <div py:if="completion.ready">
+              <p i18n:msg="">
+                By now you did almost finish AccountManagerPlugin
+                configuration, but any changes are temporary yet. Please test
+                and adjust the configuration as required, or cancel to revert
+                all changes.  Apply settings to <em>trac.ini</em> only if you
+                really want to preserve them permanently.
+              </p>
+              <!--! Final configuration preview listing -->
+              <fieldset>
+                <legend class="foldable">Details (Preview)</legend>
+                <div class="ini">
+                  <py:for each="section in cfg">
+                    [$section]<br />
+                    <py:for each="option in cfg[section]">
+                      ${option[0]} = ${option[1]}<br />
+                    </py:for>
+                    <br />
+                  </py:for>
+                </div>
+              </fieldset>
+            </div>
+            
           </fieldset>
         </py:choose>
 
+        <!-- Bottom navigation -->
         <div class="buttons">
-          <input type="submit" name="next" py:if="active != (len(steps) - 1)"
-                 value="${dgettext('acct_mgr', 'Next step')}" />
-          <input type="submit" name="save"
-                 value="${dgettext('acct_mgr', 'Apply changes')}" />
-          <input type="submit" name="next" py:if="active == (len(steps) - 1)"
-                 title="${dgettext('acct_mgr', 'Exit wizard')}"
-                 value="${dgettext('acct_mgr', 'Cancel')}" />
+          <input type="submit" name="back"
+                 py:if="active != 0 and active != (len(steps) - 1)"
+                 title="${dgettext('acct_mgr', 'Apply changes and go back')}"
+                 value="${dgettext('acct_mgr', 'Previous')}" />
+          <input type="submit" name="prev" py:if="active == (len(steps) - 1)"
+                 title="${dgettext('acct_mgr', 'Go back')}"
+                 value="${dgettext('acct_mgr', 'Previous')}" />
           <input type="submit" name="save" py:if="active != (len(steps) - 1)"
-                 title="${dgettext('acct_mgr', 'Drop any changes')}"
+                 title="${dgettext('acct_mgr', 'Stay on page')}"
+                 value="${dgettext('acct_mgr', 'Apply changes')}" />
+          <input type="submit" name="save" py:if="active == (len(steps) - 1)"
+                 title="${dgettext('acct_mgr', 'Save changes and exit wizard')}"
+                 value="${dgettext('acct_mgr', 'Apply changes')}"
+                 disabled="${not completion.ready and 'disabled' or None}" />
+          <input type="submit" name="reset" py:if="active != (len(steps) - 1)"
+                 title="${dgettext('acct_mgr', 'Drop unsaved changes')}"
                  value="${dgettext('acct_mgr', 'Refresh')}" />
+          <input type="submit" name="next" py:if="active != (len(steps) - 1)"
+                 title="${dgettext('acct_mgr', 'Apply changes and go on')}"
+                 value="${dgettext('acct_mgr', 'Next')}" />
+          <input type="submit" name="exit" py:if="active == (len(steps) - 1)"
+                 title="${dgettext('acct_mgr', 'Drop changes and exit wizard')}"
+                 value="${dgettext('acct_mgr', 'Cancel')}" />
         </div>
       </form>
     </div>
