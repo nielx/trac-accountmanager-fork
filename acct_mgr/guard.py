@@ -54,7 +54,6 @@ class AccountGuard(Component):
     def __init__(self):
         # Adjust related values to promote a sane configuration, because the
         # combination of some default values is not meaningful.
-        # DEVEL: Causes more issues than what it resolves - almost disabled.
         cfg = self.env.config
         if self.login_attempt_max_count < 0:
             cfg.set('account-manager', 'login_attempt_max_count', 0)
@@ -62,15 +61,20 @@ class AccountGuard(Component):
                        'user_lock_time_progression']
             for option in options:
                 cfg.remove('account-manager', option)
+            self.env.log.warn(
+                "AccountGuard disabled by option, obsoleting other options.")
         elif self.user_lock_max_time < 1:
             cfg.set('account-manager', 'user_lock_max_time',
                     cfg.defaults().get(
                     'account-manager')['user_lock_max_time'])
+            self.env.log.warn(
+                "AccountGuard option fixed, please check your configuration.")
         else:
             return
-        # Write changes back to file to make them permanent, what causes
-        # the environment to reload on next request as well.
-        cfg.save()
+        # Changes are intentionally not written to file for persistence.
+        # This could cause the environment to reload a bit too early, even
+        # interrupting a rewrite in progress by another thread and causing
+        # a DoS condition by truncating the configuration file.
 
     def failed_count(self, user, ipnr=None, reset=False):
         """Report number of previously logged failed login attempts.

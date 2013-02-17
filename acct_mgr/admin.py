@@ -123,10 +123,14 @@ def _getoptions(cls):
             index += 1
     return options
 
-def _setorder(req, stores):
+def _pre_strip(text):
+    """Strip whitespace to prepare multiline strings as pre-formatted text."""
+    return '\n'.join([line.strip() for line in text.split('\n')])
+
+def _setorder(req, components):
     """Pull the password store ordering out of the req object"""
-    for store in stores.get_all_stores():
-        stores[store] = int(req.args.get(store.__class__.__name__, 0))
+    for c in components.get_all_components():
+        components[c] = int(req.args.get(c.__class__.__name__, 0))
         continue
 
 
@@ -139,14 +143,14 @@ class ExtensionOrder(dict):
         self.instance += 1
         self.d = {}
         self.sxref = {}
-        for component in components:
-            self.d[component] = 0
-            self[0] = component
-            self.sxref[component.__class__.__name__] = component
+        for c in components:
+            self.d[c] = 0
+            self[0] = c
+            self.sxref[c.__class__.__name__] = c
             continue
-        for i, s in enumerate(list):
-            self.d[s] = i + 1
-            self[i + 1] = s
+        for i, c in enumerate(list):
+            self.d[c] = i + 1
+            self[i + 1] = c
 
     def __getitem__(self, key):
         """Lookup a component in the list."""
@@ -173,8 +177,7 @@ class ExtensionOrder(dict):
 
         All components that are order 0 are dropped from the list.
         """
-        keys = [k for k in self.d.keys() if isinstance(k, int)]
-        keys.sort()
+        keys = sorted([k for k in self.d.keys() if isinstance(k, int)])
         component_list = []
         for k in keys[1:]:
             component_list.extend(self.d[k])
@@ -184,76 +187,13 @@ class ExtensionOrder(dict):
     def get_enabled_component_names(self):
         """Returns the class names of the enabled components."""
         components = self.get_enabled_components()
-        return [s.__class__.__name__ for s in components]
+        return [c.__class__.__name__ for c in components]
 
     def get_all_components(self):
         return [k for k in self.d.keys() if isinstance(k, Component)]
 
     def numcomponents(self):
         return len(self.get_all_components())
-
-
-class StoreOrder(dict):
-    """Keeps the order of the Password Stores"""
-
-    instance = 0
-
-    def __init__(self, d={}, stores=[], list=[]):
-        self.instance += 1
-        self.d = {}
-        self.sxref = {}
-        for store in stores:
-            self.d[store] = 0
-            self[0] = store
-            self.sxref[store.__class__.__name__] = store
-            continue
-        for i, s in enumerate(list):
-            self.d[s] = i + 1
-            self[i + 1] = s
-
-    def __getitem__(self, key):
-        """Lookup a store in the list"""
-        return self.d[key]
-
-    def __setitem__(self, key, value):
-        if isinstance(key, Component):
-            order = self.d[key]
-            self.d[key] = value
-            self.d[order].remove(key)
-            self[value] = key
-        elif isinstance(key, basestring):
-            self.d[self.sxref[key]] = value
-        elif isinstance(key, int):
-            self.d.setdefault(key, [])
-            self.d[key].append(value)
-        else:
-            raise KeyError(_("Invalid key type (%s) for StoreOrder")
-                             % str(type(key)))
-        pass
-
-    def get_enabled_stores(self):
-        """Return an ordered list of password stores
-
-        All stores that are order 0 are dropped from the list.
-        """
-        keys = [k for k in self.d.keys() if isinstance(k, int)]
-        keys.sort()
-        storelist = []
-        for k in keys[1:]:
-            storelist.extend(self.d[k])
-            continue
-        return storelist
-
-    def get_enabled_store_names(self):
-        """Returns the class names of the enabled password stores"""
-        stores = self.get_enabled_stores()
-        return [s.__class__.__name__ for s in stores]
-
-    def get_all_stores(self):
-        return [k for k in self.d.keys() if isinstance(k, Component)]
-
-    def numstores(self):
-        return len(self.get_all_stores())
 
 
 class AccountManagerAdminPanel(CommonTemplateProvider):
@@ -282,68 +222,369 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
 
     def _do_config(self, req):
         cfg = self.env.config
-        stores = StoreOrder(stores=self.acctmgr.stores,
-                            list=self.acctmgr.password_stores)
+        env = self.env
+
+        def safe_wiki_to_html(context, text):
+            """Convenience function from trac.admin.web_ui."""
+            try:
+                return format_to_html(env, context, text)
+            except Exception, e:
+                self.log.error('Unable to render component documentation: %s',
+                               exception_to_unicode(e, traceback=True))
+            return tag.pre(text)
+
+        data = {
+            '_dgettext': dgettext,
+            'pretty_precise_timedelta': pretty_precise_timedelta,
+            'safe_wiki_to_html': safe_wiki_to_html,
+        }
+
+        step = int(req.args.get('step', 0))
+        stores = ExtensionOrder(components=self.acctmgr.stores,
+                                list=self.acctmgr.password_stores)
+        checks = ExtensionOrder(components=self.acctmgr.checks,
+                                list=self.acctmgr.register_checks)
+
         if req.method == 'POST':
-            if req.args.get('restart'):
+            def _redirect(req):
+                # Use permission-sensitive redirection on exit.
+                if req.perm.has_permission('ACCTMGR_USER_ADMIN'):
+                    req.redirect(req.href.admin('accounts', 'users'))
+                req.redirect(req.href())
+            if req.args.get('exit'):
+                cfg.parse_if_needed(force=True) # Full reload
+                _redirect(req)
+            elif req.args.get('restart') and self.acctmgr.refresh_passwd:
+                # Don't care as long as the feature is disabled.
                 del_user_attribute(self.env, attribute='password_refreshed')
-                req.redirect(req.href.admin('accounts', 'config',
-                                            done='restart'))
-            cfg.set('trac', 'ignore_auth_case',
-                            req.args.get('ignore_auth_case', False))
+                add_notice(req, _("Password hash refresh procedure restarted."))
 
-            _setorder(req, stores)
-            cfg.set('account-manager', 'password_store',
-                            ','.join(stores.get_enabled_store_names()))
-            for store in stores.get_all_stores():
+        if req.method == 'POST' and (req.args.get('back') or
+                                     req.args.get('next') or
+                                     req.args.get('save')):
+            # Handling only values for the current page is important.
+            if step == 0:
+                cfg.set('trac', 'auth_cookie_lifetime',
+                        int(req.args.get('auth_cookie_lifetime')))
+                cfg.set('trac', 'secure_cookies',
+                        bool(req.args.get('secure_cookies', False)))
+                cfg.set('trac', 'check_auth_ip',
+                        bool(req.args.get('check_auth_ip', False)))
+                cfg.set('trac', 'ignore_auth_case',
+                        bool(req.args.get('ignore_auth_case', False)))
+                acctmgr_login = bool(int(req.args.get('acctmgr_login')))
+                # These two can't work in parallel.
+                cfg.set('components', 'acct_mgr.web_ui.LoginModule',
+                        acctmgr_login and 'enabled' or 'disabled')
+                cfg.set('components', 'trac.web.auth.LoginModule',
+                        acctmgr_login and 'disabled' or 'enabled')
+                if acctmgr_login:
+                    cfg.set('account-manager', 'login_opt_list',
+                            bool(req.args.get('login_opt_list', False)))
+                    cfg.set('account-manager', 'persistent_sessions',
+                            bool(req.args.get('persistent_sessions', False)))
+                    cfg.set('account-manager', 'cookie_refresh_pct',
+                            int(req.args.get('cookie_refresh_pct', False)))
+                    cfg.set('trac', 'auth_cookie_path',
+                            req.args.get('auth_cookie_path'))
+
+            elif step == 1:
+                # This section is as critical as it is complicated by the
+                # amount of available options and combinations of options.
+                # We restrict initial setup to a single store, allowing to
+                # configure additional ones later on in the self-adapting
+                # multi-store setup view.
+                init_store = req.args.get('init_store')
+                if init_store:
+                    # Define shortcuts for common strings.
+                    a = 'account-manager'
+                    c = 'components'
+                    e = 'enabled'
+                    p = 'password_store'
+                    # Set minimal required options, leaving most options out
+                    # to keep them at - maybe changing - default values.
+                    if init_store == 'db':
+                        cfg.set(a, p, 'SessionStore')
+                        cfg.set(c, 'acct_mgr.db.SessionStore', e)
+                        cfg.set(c, 'acct_mgr.pwhash.HtDigestHashMethod', e)
+                    elif init_store == 'htdigest':
+                        cfg.set(a, p, 'HtDigestStore')
+                        cfg.set(c, 'acct_mgr.htfile.HtDigestStore', e)
+                    elif init_store == 'htpasswd':
+                        cfg.set(a, 'htpasswd_hash_type', 'md5')
+                        cfg.set(a, p, 'HtPasswdStore')
+                        cfg.set(c, 'acct_mgr.htfile.HtPasswdStore', e)
+                    elif init_store == 'svn_file':
+                        cfg.set(a, p, 'SvnServePasswordStore')
+                        cfg.set(
+                            c, 'acct_mgr.svnserve.SvnServePasswordStore', e)
+                    elif init_store == 'http':
+                        cfg.set(a, p, 'HttpAuthStore')
+                        cfg.set(c, 'acct_mgr.http.HttpAuthStore', e)
+                    # ToDo
+                    #elif init_store == 'etc':
+                    #    [account-manager]
+                    #    password_store =
+                    #    [components]
+                else:
+                    _setorder(req, stores)
+                    cfg.set('account-manager', 'password_store',
+                            ','.join(stores.get_enabled_component_names()))
+                    for store in stores.get_all_components():
+                        for attr, option in _getoptions(store):
+                            cls_name = store.__class__.__name__
+                            newval = req.args.get('%s.%s' % (cls_name, attr))
+                            self.log.debug("%s.%s: %s"
+                                           % (cls_name, attr, newval))
+                            if newval is not None:
+                                cfg.set(option.section, option.name, newval)
+                    cfg.set('account-manager', 'refresh_passwd',
+                        bool(req.args.get('refresh_passwd', False)))
+
+            elif step == 2:
+                reset_password = bool(req.args.get('reset_password', False))
+                # Enable the required hash method for this SessionStore too.
+                hash_method = cfg.get('account-manager', 'hash_method')
+                cfg.set('components', 'acct_mgr.pwhash.%s'
+                                      % hash_method, 'enabled')
+                cfg.set('components', 'acct_mgr.web_ui.ResetPwStore',
+                        reset_password and 'enabled' or 'disabled')
+                cfg.set('account-manager', 'reset_password', reset_password)
+                cfg.set('account-manager', 'generated_password_length',
+                        int(req.args.get('generated_password_length')))
+                cfg.set('account-manager', 'force_passwd_change',
+                        bool(req.args.get('force_passwd_change', False)))
+
+            elif step == 3:
+                acctmgr_register = req.args.get('acctmgr_register', False)
+                cfg.set('components', 'acct_mgr.register.RegistrationModule',
+                        acctmgr_register and 'enabled' or 'disabled')
+                _setorder(req, checks)
+                cfg.set('account-manager', 'register_check',
+                        ','.join(checks.get_enabled_component_names()))
+                for check in checks.get_all_components():
+                    for attr, option in _getoptions(check):
+                        cls_name = check.__class__.__name__
+                        newval = req.args.get('%s.%s' % (cls_name, attr))
+                        self.log.debug("%s.%s: %s" % (cls_name, attr, newval))
+                        if newval is not None:
+                            cfg.set(option.section, option.name, newval)
+                if acctmgr_register:
+                    # Should require approval for user self-registrations,
+                    # not for accounts created by admin users alone.
+                    cfg.set('account-manager', 'require_approval',
+                            bool(req.args.get('require_approval', False)))
+                # Allow email verification regardless of account creator.
+                verify_email = bool(req.args.get('verify_email', False))
+                cfg.set('account-manager', 'verify_email', verify_email)
+                cfg.set(
+                    'components', 'acct_mgr.register.EmailVerificationModule',
+                    verify_email and 'enabled' or 'disabled')
+                
+            elif step == 4:
+                acctmgr_guard = req.args.get('acctmgr_guard', False)
+                cfg.set('components', 'acct_mgr.guard.AccountGuard',
+                        acctmgr_guard and 'enabled' or 'disabled')
+                cfg.set('account-manager', 'login_attempt_max_count',
+                        as_int(req.args.get('login_attempt_max_count'),
+                        self.guard.login_attempt_max_count, min=0))
+                user_lock_time = as_int(req.args.get('user_lock_time'),
+                                        self.guard.user_lock_time, min=0)
+                cfg.set('account-manager', 'user_lock_time', user_lock_time)
+                # AccountGuard.lock_time_progression has the sanitized value.
+                cfg.set('account-manager', 'user_lock_time_progression',
+                        req.args.get('user_lock_time_progression') or \
+                        self.guard.lock_time_progression)
+                cfg.set('account-manager', 'user_lock_max_time',
+                        as_int(req.args.get('user_lock_max_time'),
+                        self.guard.user_lock_max_time, min=user_lock_time))
+
+            if req.args.get('save') and step == 5:
+                # Write changes back to file to make them permanent, what
+                # causes the environment to reload on next request as well.
+                cfg.save()
+                add_notice(req, _("Configuration saved persistantly."))
+                _redirect(req)
+
+        # Prepare information for progress bar and page navigation.
+        if req.method == 'POST':
+            if 'next' in req.args:
+                step += 1
+            elif ('back' in req.args or 'prev' in req.args) and step > 0:
+                step -= 1
+        steps = [
+            dict(label=_("Authentication Options"), past=step>0),
+            dict(image='users', label=_("Password Store"), past=step > 1),
+            dict(image='refresh', label=_("Password Policy"), past=step > 2),
+            dict(image='approval', label=_("Account Policy"), past=step > 3),
+            dict(image='guard', label=_("Account Guard"), past=step > 4),
+            dict(label=_("Initialization"))
+        ]
+        data.update({
+            'active': step, 'steps': steps,
+
+            'auth_cookie_lifetime': cfg.getint('trac',
+                                               'auth_cookie_lifetime'),
+            'secure_cookies': cfg.getbool('trac', 'secure_cookies'),
+            'check_auth_ip': cfg.getbool('trac', 'check_auth_ip'),
+            'ignore_auth_case': cfg.getbool('trac', 'ignore_auth_case'),
+            'acctmgr_login': cfg.getbool('components',
+                                         'acct_mgr.web_ui.LoginModule'),
+            'login_opt_list': cfg.getbool('account-manager',
+                                          'login_opt_list'),
+            'persistent_sessions': self.acctmgr.persistent_sessions,
+            'cookie_refresh_pct': cfg.getint('account-manager',
+                                             'cookie_refresh_pct'),
+            'auth_cookie_path': cfg.get('trac', 'auth_cookie_path'),
+            })
+
+        # Build password store configuration details.
+        disabled_store = None
+        password_store = cfg.getlist('account-manager', 'password_store')
+        data.update({'password_store': password_store})
+        if password_store:
+            numstores = range(0, stores.numcomponents() + 1)
+            store_list = []
+            for store in self.acctmgr.stores:
+                if store.__class__.__name__ == "ResetPwStore":
+                    # Exclude special store, that is used strictly internally
+                    # and inherits configuration from SessionStore anyway.
+                    continue
+                options = []
                 for attr, option in _getoptions(store):
-                    cls_name = store.__class__.__name__
-                    newvalue = req.args.get('%s.%s' % (cls_name, attr))
-                    self.log.debug("%s.%s: %s" % (cls_name, attr, newvalue))
-                    if newvalue is not None:
-                        cfg.set(option.section, option.name, newvalue)
-
-            cfg.set('account-manager', 'force_passwd_change',
-                    req.args.get('force_passwd_change', False))
-            cfg.set('account-manager', 'persistent_sessions',
-                    req.args.get('persistent_sessions', False))
-            cfg.set('account-manager', 'verify_email',
-                    req.args.get('verify_email', False))
-            cfg.set('account-manager', 'require_approval',
-                    req.args.get('require_approval', False))
-            cfg.set('account-manager', 'refresh_passwd',
-                    req.args.get('refresh_passwd', False))
-            cfg.set('account-manager', 'login_attempt_max_count',
-                    as_int(req.args.get('login_attempt_max_count'),
-                    self.guard.login_attempt_max_count, min=0))
-            user_lock_time = as_int(req.args.get('user_lock_time'),
-                                    self.guard.user_lock_time, min=0)
-            cfg.set('account-manager', 'user_lock_time', user_lock_time)
-            # AccountGuard.lock_time_progression has the sanitized value.
-            cfg.set('account-manager', 'user_lock_time_progression',
-                    req.args.get('user_lock_time_progression') or \
-                    self.guard.lock_time_progression)
-            cfg.set('account-manager', 'user_lock_max_time',
-                    as_int(req.args.get('user_lock_max_time'),
-                    self.guard.user_lock_max_time, min=user_lock_time))
-            # Write changes back to file to make them permanent, what causes
-            # the environment to reload on next request as well.
-            cfg.save()
-        sections = []
-        for store in self.acctmgr.stores:
-            if store.__class__.__name__ == "ResetPwStore":
-                # Exclude special store, that is used strictly internally and
-                # inherits configuration from SessionStore anyway.
+                    error = None
+                    opt_val = None
+                    value = None
+                    try:
+                        opt_val = option.__get__(store, store)
+                    except AttributeError, e:
+                        env.log.error(e)
+                        regexp = r'^.* interface named \"(.*?)\".*$'
+                        error = _("Error while reading configuration - Hint: "
+                                  "Enable/install required component '%s'."
+                                  % re.sub(regexp, r'\1', str(e)))
+                        pass
+                    if opt_val:
+                        value = isinstance(opt_val, Component) and \
+                                opt_val.__class__.__name__ or opt_val
+                    opt_sel = None
+                    try:
+                        interface = option.xtnpt.interface
+                        opt_sel = {'options': [], 'selected': None}
+                    except AttributeError:
+                        # No ExtensionOption / Interface undefined.
+                        pass
+                    if opt_sel:
+                        for impl in option.xtnpt.extensions(env):
+                            extension = impl.__class__.__name__
+                            opt_sel['options'].append(extension)
+                            if opt_val and extension == value:
+                                opt_sel['selected'] = extension
+                        if len(opt_sel['options']) == 0 and error:
+                            opt_sel['error'] = error
+                        value = opt_sel
+                    options.append({
+                        'label': attr,
+                        'name': '%s.%s' % (store.__class__.__name__, attr),
+                        'value': value,
+                        'doc': gettext(option.__doc__)
+                    })
+                    continue
+                store_list.append({
+                    'name': store.__class__.__name__,
+                    'classname': store.__class__.__name__,
+                    'order': stores[store],
+                    'options': options
+                })
                 continue
+            store_list = sorted(store_list, key=lambda i: i['order'])
+            disabled_store = frozenset(password_store).difference(frozenset(
+                             [store['classname'] for store in store_list]))
+            data.update({
+                'numstores': numstores,
+                'disabled_store': disabled_store,
+                'store_list': store_list,
+                'refresh_passwd': self.acctmgr.refresh_passwd,
+            })
+        else:
+            # Prepare initial setup information.
+            data.update({
+                'init_store': 'db',
+                'init_store_hint': dict(
+                    db = _pre_strip("""
+                        [account-manager]
+                        db_htdigest_realm =
+                        password_store = SessionStore
+
+                        [components]
+                        acct_mgr.db.SessionStore = enabled
+                        acct_mgr.pwhash.HtDigestHashMethod = enabled
+                        """),
+                    htdigest = _pre_strip("""
+                        [account-manager]
+                        htdigest_file = trac.htdigest
+                        htdigest_realm =
+                        password_store = HtDigestStore
+
+                        [components]
+                        acct_mgr.htfile.HtDigestStore = enabled
+                        """),
+                    htpasswd = _pre_strip("""
+                        [account-manager]
+                        htpasswd_file = trac.htpasswd
+                        htpasswd_hash_type = md5
+                        password_store = HtPasswdStore
+
+                        [components]
+                        acct_mgr.htfile.HtPasswdStore = enabled
+                        """),
+                    svn_file = _pre_strip("""
+                        [account-manager]
+                        password_file =
+                        password_store = SvnServePasswordStore
+
+                        [components]
+                        acct_mgr.svnserve.SvnServePasswordStore = enabled
+                        """),
+                    http = _pre_strip("""
+                        [account-manager]
+                        auth_url =
+                        password_store = HttpAuthStore
+
+                        [components]
+                        acct_mgr.http.HttpAuthStore = enabled
+                        """),
+                    etc = _pre_strip("""
+                        [account-manager]
+                        password_store =
+
+                        [components]
+                        """)
+                ),
+            })
+
+        reset_password = cfg.getbool('account-manager', 'reset_password')
+        data.update({
+            'reset_password': reset_password,
+            'generated_password_length': cfg.getint('account-manager',
+                                             'generated_password_length'),
+            'force_passwd_change': self.acctmgr.force_passwd_change,
+        })
+
+        # Build registration check configuration details.
+        acctmgr_register = cfg.getbool('components',
+                                       'acct_mgr.register.RegistrationModule')
+        check_list = []
+        for check in self.acctmgr.checks:
             options = []
-            for attr, option in _getoptions(store):
+            for attr, option in _getoptions(check):
                 error = None
                 opt_val = None
                 value = None
                 try:
-                    opt_val = option.__get__(store, store)
+                    opt_val = option.__get__(check, check)
                 except AttributeError, e:
-                    self.env.log.error(e)
+                    env.log.error(e)
                     regexp = r'^.* interface named \"(.*?)\".*$'
                     error = _("Error while reading configuration - "
                               "Hint: Enable/install required component '%s'."
@@ -357,10 +598,10 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                     interface = option.xtnpt.interface
                     opt_sel = {'options': [], 'selected': None}
                 except AttributeError:
-                    # No ExtensionOption / Interface undefined
+                    # No ExtensionOption / Interface undefined.
                     pass
                 if opt_sel:
-                    for impl in option.xtnpt.extensions(self.env):
+                    for impl in option.xtnpt.extensions(env):
                         extension = impl.__class__.__name__
                         opt_sel['options'].append(extension)
                         if opt_val and extension == value:
@@ -368,42 +609,112 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                     if len(opt_sel['options']) == 0 and error:
                         opt_sel['error'] = error
                     value = opt_sel
-                options.append(
-                            {'label': attr,
-                            'name': '%s.%s' % (store.__class__.__name__, attr),
-                            'value': value,
-                            'doc': gettext(option.__doc__)
-                            })
+                options.append({
+                    'label': attr,
+                    'name': '%s.%s' % (check.__class__.__name__, attr),
+                    'value': value,
+                    'doc': gettext(option.__doc__)
+                })
                 continue
-            sections.append(
-                        {'name': store.__class__.__name__,
-                        'classname': store.__class__.__name__,
-                        'order': stores[store],
-                        'options' : options,
-                        })
+            check_list.append({
+                'name': check.__class__.__name__,
+                'classname': check.__class__.__name__,
+                'doc': gettext(check.doc),
+                'order': checks[check],
+                'options': options
+            })
             continue
-        sections = sorted(sections, key=lambda i: i['order'])
-        numstores = range(0, stores.numstores() + 1)
-        data = {
-            '_dgettext': dgettext,
-            'ignore_auth_case': cfg.getbool('trac', 'ignore_auth_case'),
-            'pretty_precise_timedelta': pretty_precise_timedelta,
-            'sections': sections,
-            'numstores': numstores,
-            'force_passwd_change': self.acctmgr.force_passwd_change,
-            'persistent_sessions': self.acctmgr.persistent_sessions,
-            'verify_email': EmailVerificationModule(self.env).verify_email,
+        check_list = sorted(check_list, key=lambda i: i['order'])
+        numchecks = range(0, checks.numcomponents() + 1)
+        register_check = cfg.getlist('account-manager', 'register_check')
+        disabled_check = frozenset(register_check).difference(frozenset(
+                         [check['classname'] for check in check_list]))
+        data.update({
+            'acctmgr_register': acctmgr_register,
+            'register_check': register_check,
+            'disabled_check': disabled_check,
+            'check_list': check_list,
+            'numchecks': numchecks,
             'require_approval': cfg.getbool('account-manager',
                                             'require_approval'),
-            'refresh_passwd': self.acctmgr.refresh_passwd,
-            'login_attempt_max_count': self.guard.login_attempt_max_count,
+            'verify_email': EmailVerificationModule(env).verify_email,
+        })
+
+        # Prepare AccountGuard configuration details.
+        acctmgr_guard = (
+            cfg.getbool('components', 'acct_mgr.web_ui.LoginModule') and
+            cfg.getbool('components', 'acct_mgr.guard.AccountGuard')
+        )
+        login_attempt_max_count = self.guard.login_attempt_max_count
+        data.update({
+            'acctmgr_guard': acctmgr_guard,
+            'login_attempt_max_count': login_attempt_max_count,
             'user_lock_time': self.guard.user_lock_time,
             'user_lock_max_time': self.guard.user_lock_max_time,
-            'user_lock_time_progression': self.guard.lock_time_progression
-            }
-        result = req.args.get('done')
-        if result == 'restart':
-            data['result'] = _("Password hash refresh procedure restarted.")
+            'user_lock_time_progression': self.guard.lock_time_progression,
+        })
+
+        # Prepare configuration check-up information.
+        details = []
+        status = (disabled_store and 'error' or not password_store and
+                  'disabled' or 'ok')
+        details.append(dict(desc=_("Password Store"), status=status, step=1))
+        # Require no pending password store configuration issues.
+        ready = status != 'error' and True or False
+        
+        details.append(dict(
+            desc=_("Password Reset"),
+            status=not reset_password and 'disabled' or 'ok',
+            step=2
+            )
+        )
+        status = (disabled_check and 'error' or not register_check and
+                  'unknown' or not acctmgr_register and 'disabled' or 'ok')
+        details.append(
+            dict(desc=_("Account Registration"), status=status, step=3)
+        )
+        # Require no pending registration check configuration issues.
+        ready = ready and status != 'error' and True or False
+
+        details.append(dict(
+            desc=_("Account Guard"),
+            status=((not acctmgr_guard or login_attempt_max_count < 1) and
+                    'disabled' or 'ok'),
+            step=4)
+        )
+        admin_available = PermissionSystem(env).get_users_with_permission(
+                          'TRAC_ADMIN') and True or False
+        status = not admin_available and 'error' or 'ok'
+        details.append(dict(desc=_("Admin user account"), status=status))
+        # Require at least one admin account.
+        ready = ready and status != 'error' and True or False
+
+        details.append(dict(desc=_("Configuration Review"), status='unknown'))
+        data.update({
+            'admin_available': admin_available,
+            'acctmgr': dict(),
+            'set_password': self.acctmgr.supports('set_password'),
+            'completion': dict(details=details, ready=ready),
+        })
+
+        # Extract relevant configuration options for final review.
+        opts = [(k, v) for k, v in cfg['account-manager'].options(env)]
+        roundup = {'account-manager': sorted(opts)}
+        components = ['trac.web.auth.LoginModule']
+        # Read sections marked as related too.
+        components = cfg['account-manager'].getlist('sibling_cmp')
+        roundup['components'] = [(k, v) for k, v in
+                              cfg['components'].options()
+                              if k.startswith('acct_mgr') or
+                                 k in components]
+        if cfg['account-manager'].contains('sibling_cfg'):
+            siblings = cfg['account-manager'].getlist('sibling_cfg')
+            for sibling in siblings:
+                opts = [(k, v) for k, v in cfg[sibling].options(env)]
+                roundup[sibling] = sorted(opts)
+        data.update({'roundup': sorted(roundup)})
+
+        add_script(req, 'acct_mgr/acctmgr_admin.js')
         add_stylesheet(req, 'acct_mgr/acctmgr.css')
         return 'admin_accountsconfig.html', data
 
@@ -637,8 +948,8 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
         data = {'_dgettext': dgettext,
                 'user': username,
                }
-        stores = StoreOrder(stores=acctmgr.stores,
-                            list=acctmgr.password_stores)
+        stores = ExtensionOrder(components=self.acctmgr.stores,
+                                list=self.acctmgr.password_stores)
         user_store = acctmgr.find_user_store(username)
         if not user_store is None:
             data['user_store'] = user_store.__class__.__name__
@@ -809,350 +1120,3 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
             add_link(req, 'prev', prev_href, _('Previous Page'))
         page_href = req.href.admin('accounts', 'cleanup')
         return {'attr': attr, 'page_href': page_href}
-
-
-class AccountManagerSetupWizard(CommonTemplateProvider):
-
-    implements(IRequestHandler)
-
-    path = 'acctmgr/cfg-wizard'
-
-    def __init__(self):
-        self.acctmgr = AccountManager(self.env)
-        self.guard = AccountGuard(self.env)
-
-    # IRequestHandler methods
-
-    def match_request(self, req):
-        if req.path_info == '/' + self.path:
-            return True
-        return False
-
-    def process_request(self, req):
-        req.perm.require('ACCTMGR_CONFIG_ADMIN')
-
-        cfg = self.env.config
-        env = self.env
-
-        # Prepare information for progress bar and page navigation.
-        step = int(req.args.get('step', 0))
-        if req.method == 'POST':
-            if 'next' in req.args:
-                step += 1
-            elif 'back' in req.args or 'prev' in req.args:
-                step -= 1
-        steps = [
-            dict(label=_("Authentication Options"), past=step>0),
-            dict(image='users', label=_("Password Store"), past=step > 1),
-            dict(image='refresh', label=_("Password Policy"), past=step > 2),
-            dict(image='approval', label=_("Account Policy"), past=step > 3),
-            dict(image='guard', label=_("Account Guard"), past=step > 4),
-            dict(label=_("Initialization"))
-        ]
-        if not step < len(steps):
-            req.redirect(req.href.admin('accounts', 'config'))
-
-        # Extract relevant configuration options.
-        config = {}
-        opts = [(k, v) for k, v in cfg['account-manager'].options(env)]
-        config['account-manager'] = sorted(opts)
-        components = ['trac.web.auth.loginmodule']
-        if cfg['account-manager'].contains('sibling_cmp'):
-            components = cfg['account-manager'].getlist('sibling_cmp')
-        config['components'] = [(k, v) for k, v in
-                                cfg['components'].options()
-                                if k.startswith('acct_mgr') or
-                                   k in components]
-        if cfg['account-manager'].contains('sibling_cfg'):
-            siblings = cfg['account-manager'].getlist('sibling_cfg')
-            for sibling in siblings:
-                opts = [(k, v) for k, v in cfg[sibling].options(env)]
-                config[sibling] = sorted(opts)
-
-        # Build password store configuration details.
-        stores = ExtensionOrder(components=self.acctmgr.stores,
-                                list=self.acctmgr.password_stores)
-        numstores = range(0, stores.numcomponents() + 1)
-        password_store = cfg.getlist('account-manager', 'password_store')
-        store_list = []
-        for store in self.acctmgr.stores:
-            if store.__class__.__name__ == "ResetPwStore":
-                # Exclude special store, that is used strictly internally and
-                # inherits configuration from SessionStore anyway.
-                continue
-            options = []
-            for attr, option in _getoptions(store):
-                error = None
-                opt_val = None
-                value = None
-                try:
-                    opt_val = option.__get__(store, store)
-                except AttributeError, e:
-                    env.log.error(e)
-                    regexp = r'^.* interface named \"(.*?)\".*$'
-                    error = _("Error while reading configuration - "
-                              "Hint: Enable/install required component '%s'."
-                              % re.sub(regexp, r'\1', str(e)))
-                    pass
-                if opt_val:
-                    value = isinstance(opt_val, Component) and \
-                            opt_val.__class__.__name__ or opt_val
-                opt_sel = None
-                try:
-                    interface = option.xtnpt.interface
-                    opt_sel = {'options': [], 'selected': None}
-                except AttributeError:
-                    # No ExtensionOption / Interface undefined.
-                    pass
-                if opt_sel:
-                    for impl in option.xtnpt.extensions(env):
-                        extension = impl.__class__.__name__
-                        opt_sel['options'].append(extension)
-                        if opt_val and extension == value:
-                            opt_sel['selected'] = extension
-                    if len(opt_sel['options']) == 0 and error:
-                        opt_sel['error'] = error
-                    value = opt_sel
-                options.append({
-                    'label': attr,
-                    'name': '%s.%s' % (store.__class__.__name__, attr),
-                    'value': value,
-                    'doc': gettext(option.__doc__)
-                })
-                continue
-            store_list.append({
-                'name': store.__class__.__name__,
-                'classname': store.__class__.__name__,
-                'order': stores[store],
-                'options': options
-            })
-            continue
-        store_list = sorted(store_list, key=lambda i: i['order'])
-        disabled_store = frozenset(password_store).difference(frozenset(
-                         [store['classname'] for store in store_list]))
-
-        # Build registration check configuration details.
-        checks = ExtensionOrder(components=self.acctmgr.checks,
-                                list=self.acctmgr.register_checks)
-        check_list = []
-        for check in self.acctmgr.checks:
-            options = []
-            for attr, option in _getoptions(check):
-                error = None
-                opt_val = None
-                value = None
-                try:
-                    opt_val = option.__get__(check, check)
-                except AttributeError, e:
-                    env.log.error(e)
-                    regexp = r'^.* interface named \"(.*?)\".*$'
-                    error = _("Error while reading configuration - "
-                              "Hint: Enable/install required component '%s'."
-                              % re.sub(regexp, r'\1', str(e)))
-                    pass
-                if opt_val:
-                    value = isinstance(opt_val, Component) and \
-                            opt_val.__class__.__name__ or opt_val
-                opt_sel = None
-                try:
-                    interface = option.xtnpt.interface
-                    opt_sel = {'options': [], 'selected': None}
-                except AttributeError:
-                    # No ExtensionOption / Interface undefined.
-                    pass
-                if opt_sel:
-                    for impl in option.xtnpt.extensions(env):
-                        extension = impl.__class__.__name__
-                        opt_sel['options'].append(extension)
-                        if opt_val and extension == value:
-                            opt_sel['selected'] = extension
-                    if len(opt_sel['options']) == 0 and error:
-                        opt_sel['error'] = error
-                    value = opt_sel
-                options.append({
-                    'label': attr,
-                    'name': '%s.%s' % (check.__class__.__name__, attr),
-                    'value': value,
-                    'doc': gettext(option.__doc__)
-                })
-                continue
-            check_list.append({
-                'name': check.__class__.__name__,
-                'classname': check.__class__.__name__,
-                'doc': gettext(check.doc),
-                'order': checks[check],
-                'options': options
-            })
-            continue
-        check_list = sorted(check_list, key=lambda i: i['order'])
-        numchecks = range(0, checks.numcomponents() + 1)
-        register_check = cfg.getlist('account-manager', 'register_check')
-        disabled_check = frozenset(register_check).difference(frozenset(
-                         [check['classname'] for check in check_list]))
-
-        # Collect various other configuration options and properties.
-        acctmgr_guard = is_enabled(env, LoginModule) and \
-                        is_enabled(env, AccountGuard)
-        acctmgr_register = is_enabled(env, RegistrationModule)
-        admin_available = PermissionSystem(env).get_users_with_permission(
-                          'TRAC_ADMIN') and True or False
-        login_attempt_max_count = self.guard.login_attempt_max_count
-        reset_password = cfg.getbool('account-manager', 'reset_password')
-
-        # Prepare configuration check-up information.
-        details = []
-        status = (disabled_store and 'error' or not password_store and
-                  'disabled' or 'ok')
-        details.append(dict(desc=_("Password Store"), status=status, step=1))
-        # Require no pending password store configuration issues.
-        ready = status != 'error' and True or False
-        
-        details.append(dict(
-            desc=_("Password Reset"),
-            status=not reset_password and 'disabled' or 'ok',
-            step=2
-            )
-        )
-        status = (disabled_check and 'error' or not register_check and
-                  'unknown' or not acctmgr_register and 'disabled' or 'ok')
-        details.append(
-            dict(desc=_("Account Registration"), status=status, step=3)
-        )
-        # Require no pending registration check configuration issues.
-        ready = ready and status != 'error' and True or False
-
-        details.append(dict(
-            desc=_("Account Guard"),
-            status=((acctmgr_guard or login_attempt_max_count < 1) and
-                    'disabled' or 'ok'),
-            step=4)
-        )
-        status = not admin_available and 'error' or 'ok'
-        details.append(dict(desc=_("Admin user account"), status=status))
-        # Require at least one admin account.
-        ready = ready and status != 'error' and True or False
-
-        details.append(dict(desc=_("Configuration Review"), status='unknown'))
-
-        def safe_wiki_to_html(context, text):
-            """Convenience function from trac.admin.web_ui."""
-            try:
-                return format_to_html(env, context, text)
-            except Exception, e:
-                self.log.error('Unable to render component documentation: %s',
-                               exception_to_unicode(e, traceback=True))
-            return tag.pre(text)
-
-        data = {
-            '_dgettext': dgettext,
-            'pretty_precise_timedelta': pretty_precise_timedelta,
-            'safe_wiki_to_html': safe_wiki_to_html,
-
-            'active': step, 'steps': steps, 'start_href': self.path,
-
-            'auth_cookie_lifetime': cfg.getint('trac',
-                                               'auth_cookie_lifetime'),
-            'secure_cookies': cfg.getbool('trac', 'secure_cookies'),
-            'check_auth_ip': cfg.getbool('trac', 'check_auth_ip'),
-            'ignore_auth_case': cfg.getbool('trac', 'ignore_auth_case'),
-            'acctmgr_login': is_enabled(env, LoginModule),
-            'login_opt_list': cfg.getbool('account-manager',
-                                          'login_opt_list'),
-            'persistent_sessions': self.acctmgr.persistent_sessions,
-            'cookie_refresh_pct': cfg.getint('account-manager',
-                                             'cookie_refresh_pct'),
-            'auth_cookie_path': cfg.get('trac', 'auth_cookie_path'),
-
-            'init_store': 'db',
-            'init_store_hint': dict(
-                db = _pre_strip("""
-                   [account-manager]
-                   db_htdigest_realm =
-                   password_store = SessionStore
-
-                   [components]
-                   acct_mgr.db.SessionStore = enabled
-                   acct_mgr.pwhash.HtDigestHashMethod = enabled
-                   """),
-                htdigest = _pre_strip("""
-                   [account-manager]
-                   htdigest_file = trac.htdigest
-                   htdigest_realm =
-                   password_store = HtDigestStore
-
-                   [components]
-                   acct_mgr.htfile.HtDigestStore = enabled
-                   """),
-                htpasswd = _pre_strip("""
-                   [account-manager]
-                   htpasswd_file = trac.htpasswd
-                   htpasswd_hash_type = md5
-                   password_store = HtPasswdStore
-
-                   [components]
-                   acct_mgr.htfile.HtPasswdStore = enabled
-                   """),
-                svn_file = _pre_strip("""
-                   [account-manager]
-                   password_file =
-                   password_store = SvnServePasswordStore
-
-                   [components]
-                   acct_mgr.svnserve.SvnServePasswordStore = enabled
-                   """),
-                http = _pre_strip("""
-                   [account-manager]
-                   auth_url =
-                   password_store = HttpAuthStore
-
-                   [components]
-                   acct_mgr.http.HttpAuthStore = enabled
-                   """),
-                etc = _pre_strip("""
-                   [account-manager]
-                   password_store =
-
-                   [components]
-                   """)
-            ),
-            'numstores': numstores,
-            'disabled_store': disabled_store,
-            'store_list': store_list,
-            'password_store': password_store,
-            'refresh_passwd': self.acctmgr.refresh_passwd,
-
-            'reset_password': reset_password,
-            'generated_password_length': cfg.getint('account-manager',
-                                             'generated_password_length'),
-            'force_passwd_change': self.acctmgr.force_passwd_change,
-
-            'acctmgr_register': acctmgr_register,
-            'register_check': register_check,
-            'disabled_check': disabled_check,
-            'check_list': check_list,
-            'numchecks': numchecks,
-            'require_approval': cfg.getbool('account-manager',
-                                            'require_approval'),
-            'verify_email': EmailVerificationModule(env).verify_email,
-
-            'acctmgr_guard': acctmgr_guard,
-            'login_attempt_max_count': login_attempt_max_count,
-            'user_lock_time': self.guard.user_lock_time,
-            'user_lock_max_time': self.guard.user_lock_max_time,
-            'user_lock_time_progression': self.guard.lock_time_progression,
-
-            'admin_available': admin_available,
-            'acctmgr': dict(),
-            'set_password': self.acctmgr.supports('set_password'),
-            'completion': dict(details=details, ready=ready),
-            'cfg': config,
-            }
-
-        add_script(req, 'acct_mgr/acctmgr_admin.js')
-        add_stylesheet(req, 'acct_mgr/acctmgr.css')
-        return 'accounts_cfg_wizard.html', data, None
-
-
-def _pre_strip(text):
-    """Strip whitespace to prepare multiline strings as pre-formatted text."""
-    return '\n'.join([line.strip() for line in text.split('\n')])

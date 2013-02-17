@@ -330,7 +330,10 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
             self.env.log.info("Concurrent enabled login modules found, "
                               "fixing configuration ...")
             cfg.set('components', 'trac.web.auth.loginmodule', 'disabled')
-            cfg.save()
+            # Changes are intentionally not written to file for persistence.
+            # This could cause the environment to reload a bit too early, even
+            # interrupting a rewrite in progress by another thread and causing
+            # a DoS condition by truncating the configuration file.
             self.env.log.info("trac.web.auth.LoginModule disabled, "
                               "giving preference to %s." % self.__class__)
 

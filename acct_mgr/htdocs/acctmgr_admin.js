@@ -50,6 +50,16 @@
     }
   }
 
+  function toggleRestart() {
+    var button = $("#restart");
+    if (!$("input[name=refresh_passwd]").is(':checked')) {
+      button.attr('disabled','disabled');
+    }
+    else {
+      button.removeAttr('disabled');
+    }
+  }
+
   function toggleRegisterOpts() {
     var section = $("#acctmgr_register_opts");
     if (!$("input[name=acctmgr_register]").is(':checked')) {
@@ -84,27 +94,27 @@
       else {
         $("span#pretty_auth_cookie_lifetime").show();
       }
-      });
+    });
 
-      $("input[name=user_lock_max_time]").change(function() {
-        var oldValue = parseInt($("#user_lock_max_time_old").val());
-        if (parseInt($("input[name=user_lock_max_time]")
-                       .val()) != oldValue) {
-          $("span#pretty_user_lock_max_time").hide();
-        }
-        else {
-          $("span#pretty_user_lock_max_time").show();
-        }
-      });
+    $("input[name=user_lock_max_time]").change(function() {
+      var oldValue = parseInt($("#user_lock_max_time_old").val());
+      if (parseInt($("input[name=user_lock_max_time]")
+                     .val()) != oldValue) {
+        $("span#pretty_user_lock_max_time").hide();
+      }
+      else {
+        $("span#pretty_user_lock_max_time").show();
+      }
+    });
 
-      // Hide/unhide depending sections
-      $("input[type=radio][name=init_store]").click(function() {
-        togglePreview();
-      });
-      $("input[type=radio][name=init_store_file]").click(function() {
-        togglePreview();
-      });
-      $("input[name=init_store]:checked").click();
+    // Hide/unhide depending sections
+    $("input[type=radio][name=init_store]").click(function() {
+      togglePreview();
+    });
+    $("input[type=radio][name=init_store_file]").click(function() {
+      togglePreview();
+    });
+    $("input[name=init_store]:checked").click();
 
 
     $("input[name=login_attempt_max_count]").change(function() {
@@ -171,6 +181,10 @@
     toggleEtcStore();
     $("input[type=checkbox][name=acctmgr_register]").click(function() {
       toggleRegisterOpts();
+    });
+    toggleRestart()
+    $("input[type=checkbox][name=refresh_passwd]").click(function() {
+      toggleRestart();
     });
     toggleRegisterOpts();
     $("input[type=checkbox][name=acctmgr_guard]").click(function() {
