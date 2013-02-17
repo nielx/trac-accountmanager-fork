@@ -1,27 +1,9 @@
 /* CSS definitions for AccountManagerPlugin */
-/* styles for configuration admin page */
-fieldset img.icon { float: right; }
 
-/* styles for users admin page */
-
-div#accountlist { max-height:640px; overflow:auto; }
 fieldset.collapsed { border-width: 0; padding: 0 0.5em; }
-form#query { clear: none; }
-tr.missing td, tr.missing td a { color: #998; }
-
-/* styles for account details admin page */
-
-div#user_locked p span img { vertical-align:middle; }
-div#failed_attempts p.tableheader {
-    color:#999; font-size:90%; font-weight:bold;
-    margin:0pt; padding:1em 5px 0;
-}
-table#login_attempts { width: 480px; }
-td a img { vertical-align:middle; }
-p span.buttons input { margin-top:0; vertical-align:baseline; }
 
 
-/* styles for configuration wizard page */
+/* styles for configuration admin page */
 div.compact { width: 48em; }
 div.compact pre { background-color:#ffffff; }
 div.compact textarea { height:12em; }
@@ -29,9 +11,10 @@ div.ini {
     background-color:#ffffff; font-family:Courier, Monospace;
     max-height:640px; overflow:auto; padding:1em;
 } 
-form#cfg_wiz fieldset { clear:both; }
+form#cfg_wiz fieldset { clear:right; }
 form#cfg_wiz fieldset legend.step { font-size:110%; }
 form#cfg_wiz tt { border:1px none #ffffff }
+fieldset img.icon { float: right; }
 input.numwidget { text-align:right; width: 7em; }
 input[name$=filename], input[name$=_regexp], form#cfg_wiz textarea {
     width: 48em;
@@ -43,38 +26,56 @@ li.unknown { list-style-image: url(../acct_mgr/status_unknown.png); }
 
 /* progress display derived from Easy CSS Progress Bar 1.0
    by Juergen Koller [www.kollermedia.at] */
-ul.progress {
-    width:600px; list-style:none; margin:10px; clear:both; float:right;
+ul#progress {
+    width:600px; list-style:none; margin:10px; float:right;
 }
-ul.progress a { text-decoration:none; color:#a9a9a9; }
-ul.progress li {
+ul#progress a { text-decoration:none; color:#a9a9a9; }
+ul#progress li {
     float:left; background:url(../acct_mgr/arrow.png) repeat-x right 6px;
     text-align:left;
 }
-ul.progress li span {
+ul#progress li span {
     display:block; margin:auto; margin-right:45%; text-align:center;
     border:1px solid #a9a9a9; border-radius:10px; width:20px; height:20px;
     line-height:20px; background-color:#ffffff;
 } 
-ul.progress li span a {
+ul#progress li span a {
     display:block; margin:0px; border-radius:10px; width:20px; height:20px;
 }
-ul.progress li span a.active, ul.progress li.active span a,
-ul.progress li.past span a:hover, ul.progress li.past:hover span a {
+ul#progress li span a.active, ul#progress li.active span a,
+ul#progress li.past span a:hover, ul.progress li.past:hover span a {
     border-radius:10px; background-color:#990000; color:#ffffff;
 }
-ul.progress li a { display:block; margin: 0.2em 11% 0 0; text-align:center; }
-ul.progress li.past { background-position:right -174px; }
-ul.progress li.active { background-position:right -84px; }
-ul.progress li#last { background-position:right -354px; }
-ul.progress li#last.active { background-position:right -264px; }
-ul.progress li.active a:hover, ul.progress li.past a:hover,
-ul.progress li.past a, ul.progress li.active a { color:#990000; }
-ul.progress li.active span a:hover { color:#ffffff; }
-ul.progress li.past:hover { cursor:hand; cursor:pointer; }
-ul.progress li.past span, ul.progress li.active span {
+ul#progress li a { display:block; margin: 0.2em 11% 0 0; text-align:center; }
+ul#progress li.past { background-position:right -174px; }
+ul#progress li.active { background-position:right -84px; }
+ul#progress li#last { background-position:right -354px; }
+ul#progress li#last.active { background-position:right -264px; }
+ul#progress li.active a:hover, ul.progress li.past a:hover,
+ul#progress li.past a, ul#progress li.active a { color:#990000; }
+ul#progress li.active span a:hover { color:#ffffff; }
+ul#progress li.past:hover { cursor:hand; cursor:pointer; }
+ul#progress li.past span, ul#progress li.active span {
     border:1px solid #990000;
 }
+
+
+/* styles for users admin page */
+div#accountlist { max-height:640px; overflow:auto; }
+form#query { clear: none; }
+tr.missing td, tr.missing td a { color: #998; }
+
+
+/* styles for account details admin page */
+div#user_locked p span img { vertical-align:middle; }
+div#failed_attempts p.tableheader {
+    color:#999; font-size:90%; font-weight:bold;
+    margin:0pt; padding:1em 5px 0;
+}
+table#login_attempts { width: 480px; }
+td a img { vertical-align:middle; }
+p span.buttons input { margin-top:0; vertical-align:baseline; }
+
 
 /* style for compatibility with Trac < 1.0 */
 h3 .trac-count {
