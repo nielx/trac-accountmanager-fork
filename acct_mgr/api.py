@@ -356,10 +356,10 @@ class AccountManager(Component):
         for inspector in self.register_checks:
             inspector.validate_registration(req)
 
-        username = self.handle_username_casing(
-            req.args.get('username').strip())
-        name = req.args.get('name').strip()
         email = req.args.get('email', '').strip()
+        name = req.args.get('name', '').strip()
+        username = self.handle_username_casing(
+                       req.args.get('username', '').strip())
         # Create the user in the configured (primary) password store.
         if self.set_password(username, req.args.get('password'), None, False):
             # Result of a successful account creation request is a made-up
