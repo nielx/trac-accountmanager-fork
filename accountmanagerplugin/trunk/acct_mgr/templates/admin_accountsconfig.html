@@ -103,7 +103,7 @@
             </label>
             <p class="hint">
               Potentially troublesome for users with dynamic IP adress, but
-              disregarded for persistant sessions.
+              disregarded for persistent sessions.
             </p>
           </div>
           <div class="field">
@@ -265,7 +265,7 @@
             </p>
 
             <div py:if="len(password_store) == 0">
-              <h3>Initial Authentication back-end selection</h3>
+              <h3>Initial Authentication Back-end selection</h3>
               <!-- Initial setup content -->
               <div class="field">
                 <label>
@@ -396,11 +396,11 @@
                 <p class="hint" i18n:msg="">
                   AccountManagerPlugin enables use of standard HTTP-Auth
                   by its <strong>HttpAuthStore</strong> component.  Both
-                  Basic and Digest authentication callenges are supported.
+                  Basic and Digest authentication challenges are supported.
                 </p>
                 <p class="hint">
-                  Apart from being read-only this password store does not even
-                  support listing users for obvious reasons.
+                  In addition to being read-only this password store does not
+                  even support listing users for obvious reasons.
                 </p>
                 <fieldset class="ini" id="http">
                   <legend class="foldable">Details (Preview)</legend>
@@ -884,24 +884,6 @@
                            name="password_confirm"
                            disabled="${not set_password and 'disabled' or
                                        None}" />
-                  </label>
-                </div>
-                <div class="field">
-                  <label>Pre-/Surname (Nickname):<br />
-                    <input type="text" class="textwidget" name="name"
-                           value="$acctmgr.name" />
-                  </label>
-                </div>
-                <div class="field">
-                  <label>Email Address:<br />
-                    <input type="text" name="email" class="textwidget"
-                           value="$acctmgr.email" />
-                  </label><br />
-                  <label py:if="verify_email">
-                    <!--! Intentionally non-functional input field -->
-                    <input type="checkbox" checked="checked"
-                           disabled="disabled" />
-                    Skip new email verification
                   </label>
                 </div>
                 <p py:if="not password_store">

@@ -13,8 +13,8 @@ import base64
 import re
 import time
 
-from genshi.core import Markup
 from genshi.builder import tag
+from genshi.core import Markup
 from os import urandom
 
 from trac import perm, util

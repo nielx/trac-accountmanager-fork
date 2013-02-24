@@ -17,13 +17,13 @@ from genshi.core import Markup
 
 from trac.admin import IAdminPanelProvider
 from trac.core import Component, TracError, implements
-from trac.config import Option
-from trac.perm import PermissionSystem
+from trac.config import BoolOption, Option
+from trac.perm import PermissionCache, PermissionSystem
 from trac.util.datefmt import format_datetime, to_datetime
 from trac.util.presentation import Paginator
+from trac.web.api import IAuthenticator
 from trac.web.chrome import Chrome, add_ctxtnav, add_link, add_notice
 from trac.web.chrome import add_script, add_stylesheet, add_warning
-from trac.web.main import IRequestHandler
 from trac.wiki.formatter import format_to_html
 
 from acct_mgr.api import AccountManager, CommonTemplateProvider
@@ -198,13 +198,19 @@ class ExtensionOrder(dict):
 
 class AccountManagerAdminPanel(CommonTemplateProvider):
 
-    implements(IAdminPanelProvider)
+    implements(IAdminPanelProvider, IAuthenticator)
 
     ACCTS_PER_PAGE = 5
 
+    auth_init = BoolOption('account-manager', 'auth_init', True,
+        doc="Launch an initial Trac authentication setup.")
+
     def __init__(self):
         self.acctmgr = AccountManager(self.env)
+        self.authname = 'setup'
+        self.cfg_action = 'ACCTMGR_CONFIG_ADMIN'
         self.guard = AccountGuard(self.env)
+        self.perms = PermissionSystem(self.env)
 
     # IAdminPanelProvider methods
 
@@ -259,6 +265,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                 del_user_attribute(self.env, attribute='password_refreshed')
                 add_notice(req, _("Password hash refresh procedure restarted."))
 
+        account = dict()
         if req.method == 'POST' and (req.args.get('back') or
                                      req.args.get('next') or
                                      req.args.get('save')):
@@ -295,6 +302,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                 # configure additional ones later on in the self-adapting
                 # multi-store setup view.
                 init_store = req.args.get('init_store')
+                init_store_file = req.args.get('init_store_file')
                 if init_store:
                     # Define shortcuts for common strings.
                     a = 'account-manager'
@@ -307,20 +315,35 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                         cfg.set(a, p, 'SessionStore')
                         cfg.set(c, 'acct_mgr.db.SessionStore', e)
                         cfg.set(c, 'acct_mgr.pwhash.HtDigestHashMethod', e)
-                    elif init_store == 'htdigest':
-                        cfg.set(a, p, 'HtDigestStore')
-                        cfg.set(c, 'acct_mgr.htfile.HtDigestStore', e)
-                    elif init_store == 'htpasswd':
-                        cfg.set(a, 'htpasswd_hash_type', 'md5')
-                        cfg.set(a, p, 'HtPasswdStore')
-                        cfg.set(c, 'acct_mgr.htfile.HtPasswdStore', e)
-                    elif init_store == 'svn_file':
-                        cfg.set(a, p, 'SvnServePasswordStore')
-                        cfg.set(
-                            c, 'acct_mgr.svnserve.SvnServePasswordStore', e)
+                        from acct_mgr.db import SessionStore
+                        from acct_mgr.pwhash import HtDigestHashMethod
+                        assert is_enabled(env, HtDigestHashMethod)
+                        assert is_enabled(env, SessionStore)
+                    elif init_store == 'file':
+                        if init_store_file == 'htdigest':
+                            cfg.set(a, 'htdigest_file', 'trac.htdigest')
+                            cfg.set(a, p, 'HtDigestStore')
+                            cfg.set(c, 'acct_mgr.htfile.HtDigestStore', e)
+                            from acct_mgr.htfile import HtDigestStore
+                            assert is_enabled(env, HtDigestStore)
+                        elif init_store_file == 'htpasswd':
+                            cfg.set(a, 'htpasswd_file', 'trac.htpasswd')
+                            cfg.set(a, 'htpasswd_hash_type', 'md5')
+                            cfg.set(a, p, 'HtPasswdStore')
+                            cfg.set(c, 'acct_mgr.htfile.HtPasswdStore', e)
+                            from acct_mgr.htfile import HtPasswdStore
+                            assert is_enabled(env, HtPasswdStore)
+                        elif init_store_file == 'svn_file':
+                            cfg.set(a, p, 'SvnServePasswordStore')
+                            cfg.set(c,
+                                'acct_mgr.svnserve.SvnServePasswordStore', e)
+                            from acct_mgr.svnserve import SvnServePasswordStore
+                            assert is_enabled(env, SvnServePasswordStore)
                     elif init_store == 'http':
                         cfg.set(a, p, 'HttpAuthStore')
                         cfg.set(c, 'acct_mgr.http.HttpAuthStore', e)
+                        from acct_mgr.http import HttpAuthStore
+                        assert is_enabled(env, HttpAuthStore)
                     # ToDo
                     #elif init_store == 'etc':
                     #    [account-manager]
@@ -340,6 +363,9 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                                 cfg.set(option.section, option.name, newval)
                     cfg.set('account-manager', 'refresh_passwd',
                         bool(req.args.get('refresh_passwd', False)))
+                # Refresh object after changes.
+                stores = ExtensionOrder(components=self.acctmgr.stores,
+                                        list=self.acctmgr.password_stores)
 
             elif step == 2:
                 reset_password = bool(req.args.get('reset_password', False))
@@ -380,6 +406,9 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                 cfg.set(
                     'components', 'acct_mgr.register.EmailVerificationModule',
                     verify_email and 'enabled' or 'disabled')
+                # Refresh object after changes.
+                checks = ExtensionOrder(components=self.acctmgr.checks,
+                                        list=self.acctmgr.register_checks)
                 
             elif step == 4:
                 acctmgr_guard = req.args.get('acctmgr_guard', False)
@@ -400,11 +429,36 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                         self.guard.user_lock_max_time, min=user_lock_time))
 
             if req.args.get('save') and step == 5:
+                perms = self.perms.get_user_permissions(self.authname)
+                if perms.get(self.cfg_action) and perms[self.cfg_action]:
+                    # Revoke initial configuration permission.
+                    self.perms.revoke_permission(self.authname,
+                                                 self.cfg_action)
+                    # Restore 'authenticated' users permissions.
+                    perms = self.perms.get_user_permissions('auth_moved')
+                    for action in perms:
+                        # Filter actions inherited from 'anonymous'.
+                        if perms[action] and \
+                                action not in PermissionCache(self.env):
+                            self.perms.grant_permission('authenticated', action)
+                            self.perms.revoke_permission('auth_moved', action)
                 # Write changes back to file to make them permanent, what
-                # causes the environment to reload on next request as well.
+                # causes the environment to reload on next request.
                 cfg.save()
-                add_notice(req, _("Configuration saved persistantly."))
+                add_notice(req, _("Your changes have been saved."))
                 _redirect(req)
+            else:
+                add_notice(req, _(
+                    "Your changes are cached until you either drop or save "
+                    "them all (see last step)."))
+
+        if req.method == 'POST' and req.args.get('add'):
+            # Initial admin account requested.
+            account = self._do_add(req)
+            username = self.acctmgr.handle_username_casing(
+                           req.args.get('username', '').strip())
+            if not account and username:
+                self.perms.grant_permission(username, 'TRAC_ADMIN')
 
         # Prepare information for progress bar and page navigation.
         if req.method == 'POST':
@@ -568,7 +622,8 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
             'reset_password': reset_password,
             'generated_password_length': cfg.getint('account-manager',
                                              'generated_password_length'),
-            'force_passwd_change': self.acctmgr.force_passwd_change,
+            'force_passwd_change': cfg.getbool('account-manager',
+                                               'force_passwd_change'),
         })
 
         # Build registration check configuration details.
@@ -682,8 +737,8 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                     'disabled' or 'ok'),
             step=4)
         )
-        admin_available = PermissionSystem(env).get_users_with_permission(
-                          'TRAC_ADMIN') and True or False
+        admin_available = self.perms.get_users_with_permission(
+                              'TRAC_ADMIN') and True or False
         status = not admin_available and 'error' or 'ok'
         details.append(dict(desc=_("Admin user account"), status=status))
         # Require at least one admin account.
@@ -692,7 +747,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
         details.append(dict(desc=_("Configuration Review"), status='unknown'))
         data.update({
             'admin_available': admin_available,
-            'acctmgr': dict(),
+            'acctmgr': account,
             'set_password': self.acctmgr.supports('set_password'),
             'completion': dict(details=details, ready=ready),
         })
@@ -720,26 +775,20 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
 
     def _do_users(self, req):
         env = self.env
-        perm = PermissionSystem(env)
         acctmgr = self.acctmgr
         acctmod = AccountModule(env)
         guard = self.guard
         listing_enabled = acctmgr.supports('get_users')
-        create_enabled = acctmgr.supports('set_password')
         password_change_enabled = acctmgr.supports('set_password')
         password_reset_enabled = acctmod.reset_password_enabled
         delete_enabled = acctmgr.supports('delete_user')
         verify_enabled = EmailVerificationModule(env).email_enabled and \
                          EmailVerificationModule(env).verify_email
-        account = dict(email=req.args.get('email', '').strip(),
-                       name=req.args.get('name', '').strip(),
-                       username=acctmgr.handle_username_casing(
-                                    req.args.get('username', '').strip()))
         data = {
             '_dgettext': dgettext,
-            'acctmgr': account, 'email_approved': True, 'filters': [],
+            'acctmgr': dict(), 'email_approved': True, 'filters': [],
             'listing_enabled': listing_enabled,
-            'create_enabled': create_enabled,
+            'create_enabled': acctmgr.supports('set_password'),
             'delete_enabled': delete_enabled,
             'verify_enabled': verify_enabled,
             'ignore_auth_case': self.config.getbool('trac',
@@ -762,30 +811,8 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
             sel = isinstance(sel, list) and sel or [sel]
             if req.args.get('add'):
                 # Add new user account.
-                if create_enabled:
-                    # Check request and prime account on success.
-                    try:
-                        acctmgr.validate_registration(req)
-                        # Account email approval for authoritative action.
-                        if verify_enabled and email_approved and \
-                                account['email']:
-                            set_user_attribute(env, account['username'],
-                                'email_verification_sent_to', account['email'])
-                        # User editor form clean-up.
-                        data['acctmgr'] = {}
-                    except RegistrationError, e:
-                        # Attempt deferred translation.
-                        message = gettext(e.message)
-                        # Check for (matching number of) message arguments
-                        #   before attempting string substitution.
-                        if e.msg_args and \
-                                len(e.msg_args) == len(re.findall('%s',
-                                                                  message)):
-                            message = message % e.msg_args
-                        data['editor_error'] = Markup(message)
-                else:
-                    data['editor_error'] = _(
-                        "The password store does not support creating users.")
+                data['acctmgr'] = self._do_add(req)
+
             elif req.args.get('approve') and req.args.get('sel'):
                 # Toggle approval status for selected accounts.
                 for username in sel:
@@ -996,6 +1023,43 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
         data['url'] = req.href.admin('accounts', 'users', user=username)
         return 'account_details.html', data
 
+    def _do_add(self, req):
+        """Add new user account on verified request."""
+        env = self.env
+        acctmgr = self.acctmgr
+        account = dict(email=req.args.get('email', '').strip(),
+                       name=req.args.get('name', '').strip(),
+                       username=acctmgr.handle_username_casing(
+                                    req.args.get('username', '').strip()))
+        verify_enabled = EmailVerificationModule(env).email_enabled and \
+                         EmailVerificationModule(env).verify_email
+        
+        if acctmgr.supports('set_password'):
+            if account['username']:
+                # Check request and prime account on success.
+                try:
+                    acctmgr.validate_registration(req)
+                    # Account email approval for authoritative action.
+                    if verify_enabled and account['email'] and \
+                            req.args.get('email_approved'):
+                        set_user_attribute(env, account['username'],
+                            'email_verification_sent_to', account['email'])
+                    # User editor form clean-up.
+                    account = {}
+                except RegistrationError, e:
+                    # Attempt deferred translation.
+                    message = gettext(e.message)
+                    # Check for (matching number of) message arguments
+                    #   before attempting string substitution.
+                    if e.msg_args and \
+                            len(e.msg_args) == len(re.findall('%s', message)):
+                        message = message % e.msg_args
+                    add_warning(req, Markup(message))
+        else:
+            add_warning(req, _(
+                "The password store does not support creating users."))
+        return account
+
     def _do_db_cleanup(self, req):
         if req.perm.has_permission('ACCTMGR_ADMIN'):
             env = self.env
@@ -1120,3 +1184,35 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
             add_link(req, 'prev', prev_href, _('Previous Page'))
         page_href = req.href.admin('accounts', 'cleanup')
         return {'attr': attr, 'page_href': page_href}
+
+    # IAuthenticator method
+    def authenticate(self, req):
+        """Launch an initial Trac authentication setup.
+
+        This method authorizes the first login request after Trac environment
+        load as setup session, while no user has full permissions, but can
+        be locked by configuration to never authenticate at all.
+        """
+        init = self.env.config.getbool('account-manager', 'auth_init')
+        remote_user = None
+
+        if init and req.path_info == '/login' and not req.remote_user and \
+                not self.perms.get_users_with_permission('TRAC_ADMIN'):
+            # Prevent to run another initial setup later or in parallel.
+            self.env.config.set('account-manager', 'auth_init', False)
+            # Initialize a setup session.
+            req.environ['REMOTE_USER'] = remote_user = self.authname
+            if not self.authname in \
+                    self.perms.get_users_with_permission(self.cfg_action):
+                self.perms.grant_permission(self.authname, self.cfg_action)
+            # Do not grant anything but the required configuration permission.
+            perms = self.perms.get_user_permissions('authenticated')
+            for action in perms:
+                # Filter actions inherited from 'anonymous'.
+                if perms[action] and action not in PermissionCache(self.env):
+                    self.perms.grant_permission('auth_moved', action)
+                    self.perms.revoke_permission('authenticated', action)
+            add_notice(req, _("Initial Trac authentication setup launched."))
+            # Set referer without interfering with redirect to '/login'.
+            req.args['referer'] = req.href.admin('accounts', 'config')
+        return remote_user
