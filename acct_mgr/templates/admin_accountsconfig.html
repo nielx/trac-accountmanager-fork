@@ -46,7 +46,8 @@
       </ul>
 
       <h2>Accounts: Configuration</h2>
-      <form id="cfg_wiz" method="post">
+      <form id="cfg_wiz" method="post"
+            action="${href.admin('accounts', 'config')}">
         <!-- Top navigation -->
         <div class="buttons">
           <input type="submit" name="back"
@@ -60,7 +61,7 @@
                  title="${dgettext('acct_mgr', 'Apply changes and go on')}"
                  value="${dgettext('acct_mgr', 'Next')}" />
           <!-- Last value cache for stepping through pages back and forth -->
-          <input type="hidden" name="step" value="$active" />
+          <input type="hidden" name="active" value="$active" />
         </div>
         <py:choose test="active">
 
@@ -923,11 +924,20 @@
               <!--! Final configuration preview listing -->
               <fieldset>
                 <legend class="foldable">Details (Preview)</legend>
-                <div class="ini">
-                  <py:for each="section in roundup">
+                <div class="ini" py:with="sections = sorted(roundup.keys())"
+                     xml:lang="en">
+                  <py:for each="section in sections">
                     [$section]<br />
-                    <py:for each="option in roundup[section]">
-                      ${option[0]} = ${option[1]}<br />
+                    <py:for each="option in sorted(roundup[section])"
+                            py:choose="">
+                      <py:when test="option[0] in roundup_defaults[section]">
+                        <span class="defaults">
+                          ${option[0]} = ${option[1]}
+                        </span><br />
+                      </py:when>
+                      <py:otherwise>
+                        ${option[0]} = ${option[1]}<br />
+                      </py:otherwise>
                     </py:for>
                     <br />
                   </py:for>

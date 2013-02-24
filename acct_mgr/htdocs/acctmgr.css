@@ -11,6 +11,7 @@ div.ini {
     background-color:#ffffff; font-family:Courier, Monospace;
     max-height:640px; overflow:auto; padding:1em;
 } 
+div.ini span.defaults { color: #998; }
 form#cfg_wiz fieldset { clear:right; }
 form#cfg_wiz fieldset legend.step { font-size:110%; }
 form#cfg_wiz tt { border:1px none #ffffff }
