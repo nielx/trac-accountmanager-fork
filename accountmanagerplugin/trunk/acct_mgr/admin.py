@@ -245,7 +245,9 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
             'safe_wiki_to_html': safe_wiki_to_html,
         }
 
-        step = int(req.args.get('step', 0))
+        # Prefer args from URL to make progress bar links work.
+        step = req.args.get('step', 0)
+        step = int(step and step or req.args.get('active', 0))
         stores = ExtensionOrder(components=self.acctmgr.stores,
                                 list=self.acctmgr.password_stores)
         checks = ExtensionOrder(components=self.acctmgr.checks,
@@ -258,7 +260,12 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                     req.redirect(req.href.admin('accounts', 'users'))
                 req.redirect(req.href())
             if req.args.get('exit'):
-                cfg.parse_if_needed(force=True) # Full reload
+                try:
+                    cfg.parse_if_needed(force=True) # Full reload
+                except TypeError:
+                    # Attribute was introduced in Trac 0.12, so a fallback
+                    # for compatibility down to 0.11 is required.
+                    cfg.touch() # Fake write access for reload
                 _redirect(req)
             elif req.args.get('restart') and self.acctmgr.refresh_passwd:
                 # Don't care as long as the feature is disabled.
@@ -442,8 +449,10 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                                 action not in PermissionCache(self.env):
                             self.perms.grant_permission('authenticated', action)
                             self.perms.revoke_permission('auth_moved', action)
+                # Prevent to run another initial setup later.
+                cfg.set('account-manager', 'auth_init', False)
                 # Write changes back to file to make them permanent, what
-                # causes the environment to reload on next request.
+                # causes the environment to reload on following redirect.
                 cfg.save()
                 add_notice(req, _("Your changes have been saved."))
                 _redirect(req)
@@ -753,24 +762,42 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
         })
 
         # Extract relevant configuration options for final review.
-        opts = [(k, v) for k, v in cfg['account-manager'].options(env)]
+        opts = [(k, v) for k, v in cfg['account-manager'].options()]
         roundup = {'account-manager': sorted(opts)}
         components = ['trac.web.auth.LoginModule']
+        core_opts = (
+            'auth_cookie_path', 'auth_cookie_lifetime', 'ignore_auth_case',
+            'check_auth_ip', 'secure_cookies'
+        )
+        opts = [(k, v) for k, v in cfg['trac'].options() if k in core_opts]
+        roundup['trac'] = sorted(opts)
         # Read sections marked as related too.
-        components = cfg['account-manager'].getlist('sibling_cmp')
+        components.extend(cfg['account-manager'].getlist('sibling_cmp'))
         roundup['components'] = [(k, v) for k, v in
-                              cfg['components'].options()
-                              if k.startswith('acct_mgr') or
-                                 k in components]
-        if cfg['account-manager'].contains('sibling_cfg'):
+                                 cfg['components'].options()
+                                 if k.startswith('acct_mgr') or
+                                 k in [c.lower() for c in components]]
+        if 'sibling_cfg' in cfg['account-manager']:
             siblings = cfg['account-manager'].getlist('sibling_cfg')
             for sibling in siblings:
-                opts = [(k, v) for k, v in cfg[sibling].options(env)]
+                opts = [(k, v) for k, v in cfg[sibling].options()]
                 roundup[sibling] = sorted(opts)
-        data.update({'roundup': sorted(roundup)})
+        # Clean-up by filtering options with default values.
+        roundup_defaults = dict()
+        for section in roundup:
+            defaults = cfg.defaults().get(section)
+            for option in roundup[section]:
+                if defaults and option[0] in defaults and \
+                        defaults[option[0]] == option[1]:
+                    if section in roundup_defaults:
+                        roundup_defaults[section].append(option[0])
+                    else:
+                        roundup_defaults[section] = list((option[0],))
+        data.update(dict(roundup=roundup, roundup_defaults=roundup_defaults))
 
         add_script(req, 'acct_mgr/acctmgr_admin.js')
         add_stylesheet(req, 'acct_mgr/acctmgr.css')
+        add_stylesheet(req, 'common/css/report.css')
         return 'admin_accountsconfig.html', data
 
     def _do_users(self, req):
@@ -1198,7 +1225,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
 
         if init and req.path_info == '/login' and not req.remote_user and \
                 not self.perms.get_users_with_permission('TRAC_ADMIN'):
-            # Prevent to run another initial setup later or in parallel.
+            # Prevent to run another initial setup in parallel.
             self.env.config.set('account-manager', 'auth_init', False)
             # Initialize a setup session.
             req.environ['REMOTE_USER'] = remote_user = self.authname

@@ -251,7 +251,7 @@ class EmailCheck(GenericRegistrationInspector):
 
         if is_enabled(self.env, EmailVerificationModule) and \
                 EmailVerificationModule(self.env).verify_email:
-            if not email:
+            if not email and not req.args.get('active'):
                 raise RegistrationError(N_(
                     "You must specify a valid email address.")
                 )
@@ -293,7 +293,8 @@ Likewise email checking is bypassed, if account verification is disabled.''
                 is_enabled(self.env, EmailVerificationModule) and \
                 EmailVerificationModule(self.env).verify_email:
             if self.email_regexp.strip() != "" and \
-                    not re.match(self.email_regexp.strip(), email):
+                    not re.match(self.email_regexp.strip(), email) and \
+                    not req.args.get('active'):
                 raise RegistrationError(N_(
                     "The email address specified appears to be invalid. "
                     "Please specify a valid email address.")

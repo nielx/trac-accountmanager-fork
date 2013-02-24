@@ -58,6 +58,7 @@ setup(
             'acct_mgr.htfile = acct_mgr.htfile',
             'acct_mgr.http = acct_mgr.http',
             'acct_mgr.pwhash = acct_mgr.pwhash',
+            'acct_mgr.register = acct_mgr.register',
             'acct_mgr.svnserve = acct_mgr.svnserve',
             'acct_mgr.web_ui = acct_mgr.web_ui',
             'acct_mgr.notification = acct_mgr.notification',
