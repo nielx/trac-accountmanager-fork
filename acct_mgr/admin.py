@@ -842,6 +842,8 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
 
             elif req.args.get('approve') and req.args.get('sel'):
                 # Toggle approval status for selected accounts.
+                ban = []
+                unban = []
                 for username in sel:
                     # Get account approval status.
                     status = get_user_attribute(env, username,
@@ -852,27 +854,55 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                         # Admit authenticated/registered session.
                         del_user_attribute(env, username,
                                            attribute='approval')
+                        unban.append(username)
                     else:
                         # Ban the account.
                         set_user_attribute(env, username, 'approval',
                                            N_('revoked'))
+                        ban.append(username)
+                msg = None
+                if unban:
+                    accounts = tag.b(', '.join(unban))
+                    msg = ngettext("Approved account: %(accounts)s",
+                                   "Approved accounts: %(accounts)s",
+                                   len(unban), accounts=accounts)
+                if ban:
+                    if msg:
+                        msg = tag(Markup(msg), Markup('<br />'))
+                    else:
+                        msg = tag()
+                    accounts = tag.b(', '.join(ban))
+                    msg(Markup(ngettext("Banned account: %(accounts)s",
+                                        "Banned accounts: %(accounts)s",
+                                        len(ban), accounts=accounts)))
+                if ban or unban:
+                    add_notice(req, Markup(msg))
             elif req.args.get('reset') and req.args.get('sel'):
                 # Password reset for one or more accounts.
                 if password_reset_enabled:
                     for username, name, email in env.get_known_users():
                         if username in sel:
                             acctmod._reset_password(username, email)
+                    if sel:
+                        add_notice(req, Markup(_(
+                                   "Password reset for %(accounts)s.",
+                                   accounts=tag.b(', '.join(sel)))))
                 else:
-                    data['deletion_error'] = _(
-                        "The password reset procedure is not enabled.")
+                    add_warning(req, _(
+                        "The password reset procedure is not enabled."))
             elif req.args.get('remove') and req.args.get('sel'):
                 # Delete one or more accounts.
                 if delete_enabled:
                     for account in sel:
                         acctmgr.delete_user(account)
+                    if sel:
+                        add_notice(req, Markup(ngettext(
+                            "Deleted account: %(accounts)s",
+                            "Deleted accounts: %(accounts)s",
+                            len(sel), accounts=tag.b(', '.join(sel)))))
                 else:
-                    data['deletion_error'] = _(
-                        "The password store does not support deleting users.")
+                    add_warning(req, _(
+                        "The password store does not support deleting users."))
             elif req.args.get('change'):
                 # Change attributes and or password of existing user account.
                 attributes = {
@@ -880,8 +910,8 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                     'name': _("Pre-/Surname (Nickname)"),
                     'password': _("Password")
                     }
-                data['success'] = []
                 error = TracError('')
+                success = []
                 username = acctmgr.handle_username_casing(
                                    req.args.get('username').strip())
                 try:
@@ -903,27 +933,32 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                                 error.message = _("The passwords must match.")
                                 raise error
                             acctmgr.set_password(username, password)
-                            data['success'].append(attributes.get('password'))
+                            success.append(attributes.get('password'))
                         else:
-                            data['editor_error'] = _(
-                                """The password store does not support
-                                changing passwords.
-                                """)
+                            add_warning(req, _(
+                                "The password store does not support "
+                                "changing passwords."))
                     for attribute in ('name', 'email'):
                         value = req.args.get(attribute, '').strip()
                         if value:
                             set_user_attribute(env, username,
                                                attribute, value)
-                            data['success'].append(attributes.get(attribute))
+                            success.append(attributes.get(attribute))
                             # Account email approval for authoritative action.
                             if attribute == 'email' and verify_enabled and \
                                     email_approved:
                                 set_user_attribute(env, username,
                                     'email_verification_sent_to', value)
+                    if success:
+                        attributes = tag.b(', '.join(success))
+                        add_notice(req, Markup(_(
+                                   "Updated %(attributes)s for %(username)s.",
+                                   attributes=attributes,
+                                   username=tag.b(username))))
                     # User editor form clean-up on success.
                     data['acctmgr'] = {}
                 except TracError, e:
-                    data['editor_error'] = e.message
+                    add_warning(req, e.message)
                     data['acctmgr'] = getattr(e, 'account', '')
             elif len([action for action in req.args.iterkeys() \
                       if action in ('cleanup' 'purge' 'unselect')]) > 0:
@@ -951,11 +986,12 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
             data['filters'].append({'name': filter_[0], 'label': filter_[1],
                                     'enabled': filter_[0] in filters})
         if listing_enabled:
-            data['accounts'] = fetch_user_data(env, req, filters)
-            data['cls'] = 'listing'
-            data['cols'] = ['email', 'name']
-            data['delete_msg_confirm'] = _(
-                "Are you sure you want to delete these accounts?")
+            data.update({
+                'accounts': fetch_user_data(env, req, filters),
+                'cls': 'listing',
+                'cols': ['email', 'name'],
+                'delete_msg_confirm': _(
+                    "Are you sure you want to delete these accounts?")})
 
             # Save results of submitted user list filter form to the session.
             if 'update' in req.args:
@@ -1071,6 +1107,9 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                             req.args.get('email_approved'):
                         set_user_attribute(env, account['username'],
                             'email_verification_sent_to', account['email'])
+                    add_notice(req, Markup(tag_(
+                               "Account %(username)s created.",
+                               username=tag.b(account['username']))))
                     # User editor form clean-up.
                     account = {}
                 except RegistrationError, e:

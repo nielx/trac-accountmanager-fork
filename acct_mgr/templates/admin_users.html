@@ -75,15 +75,6 @@
     <!--! Account property editor -->
     <form id="account-editor" class="addnew" method="post">
       <fieldset>
-        <div class="system-message" py:if="editor_error">
-          <p>${editor_error}</p>
-        </div>
-        <div class="notice system-message" py:if="success">
-          <p i18n:msg="success">
-            Successfully updated: ${', '.join(success)}
-          </p>
-        </div>
-
         <legend>Add/Edit Account:</legend>
         <div class="field">
           <label>Username:<br />
