@@ -957,11 +957,11 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
             data['delete_msg_confirm'] = _(
                 "Are you sure you want to delete these accounts?")
 
-            # Save results of submitting user list filter form to the session.
+            # Save results of submitted user list filter form to the session.
             if 'update' in req.args:
                 for filter in available_filters:
                     key = 'acctmgr_user.filter.%s' % filter[0]
-                    if filter[0] in req.args:
+                    if 'filter_%s' % filter[0] in req.args:
                         req.session[key] = '1'
                     elif key in req.session:
                         del req.session[key]
