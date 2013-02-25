@@ -137,6 +137,11 @@ class SessionStore(Component):
 
     @property
     def hash_method_enabled(self):
+        """Prevent AttributeError on plugin load.
+
+        This would happen, if the implementation of 'IPasswordHashMethod'
+        interface configured in 'hash_method' has not been enabled.
+        """
         try:
             hash_method = self.hash_method
         except AttributeError:
