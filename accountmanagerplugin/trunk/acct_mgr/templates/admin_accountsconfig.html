@@ -478,7 +478,7 @@
                 <legend>
                   <label>
                     <select name="${section.classname}" >
-                      <option py:for="order in numstores" value="${order}"
+                      <option py:for="order in store_count" value="${order}"
                               selected="${order == section.order or None}">
                         ${order == 0 and '--' or order}
                       </option>
@@ -640,7 +640,7 @@
               <legend>
                 <label>
                   <select name="${section.classname}" >
-                    <option py:for="order in numchecks" value="${order}"
+                    <option py:for="order in check_count" value="${order}"
                             selected="${order == section.order or None}">
                       ${order == 0 and '--' or order}
                     </option>

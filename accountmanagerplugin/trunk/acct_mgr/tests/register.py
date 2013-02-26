@@ -13,22 +13,22 @@ import string
 import tempfile
 import unittest
 
-from Cookie  import SimpleCookie as Cookie
-from genshi.core  import Markup
+from Cookie import SimpleCookie as Cookie
+from genshi.core import Markup
 
-from trac.perm  import PermissionCache, PermissionSystem
-from trac.test  import EnvironmentStub, Mock, MockPerm
-from trac.web.session  import Session
+from trac.perm import PermissionCache, PermissionSystem
+from trac.test import EnvironmentStub, Mock, MockPerm
+from trac.web.session import Session
 
-from acct_mgr.api  import AccountManager, IAccountRegistrationInspector
-from acct_mgr.db  import SessionStore
-from acct_mgr.htfile  import HtPasswdStore
-from acct_mgr.model  import set_user_attribute
-from acct_mgr.register  import BasicCheck, BotTrapCheck, EmailCheck, \
-                               EmailVerificationModule, \
-                               GenericRegistrationInspector, RegExpCheck, \
-                               RegistrationError, RegistrationModule, \
-                               UsernamePermCheck
+from acct_mgr.api import AccountManager, IAccountRegistrationInspector
+from acct_mgr.db import SessionStore
+from acct_mgr.htfile import HtPasswdStore
+from acct_mgr.model import set_user_attribute
+from acct_mgr.register import BasicCheck, BotTrapCheck, EmailCheck
+from acct_mgr.register import EmailVerificationModule
+from acct_mgr.register import GenericRegistrationInspector, RegExpCheck
+from acct_mgr.register import RegistrationError, RegistrationModule
+from acct_mgr.register import UsernamePermCheck
 
 
 class _BaseTestCase(unittest.TestCase):

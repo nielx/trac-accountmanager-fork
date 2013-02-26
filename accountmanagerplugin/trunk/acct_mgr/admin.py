@@ -192,7 +192,7 @@ class ExtensionOrder(dict):
     def get_all_components(self):
         return [k for k in self.d.keys() if isinstance(k, Component)]
 
-    def numcomponents(self):
+    def component_count(self):
         return len(self.get_all_components())
 
 
@@ -506,7 +506,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
         password_store = cfg.getlist('account-manager', 'password_store')
         data.update({'password_store': password_store})
         if password_store:
-            numstores = range(0, stores.numcomponents() + 1)
+            store_count = range(0, stores.component_count() + 1)
             store_list = []
             for store in self.acctmgr.stores:
                 if store.__class__.__name__ == "ResetPwStore":
@@ -564,7 +564,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
             disabled_store = frozenset(password_store).difference(frozenset(
                              [store['classname'] for store in store_list]))
             data.update({
-                'numstores': numstores,
+                'store_count': store_count,
                 'disabled_store': disabled_store,
                 'store_list': store_list,
                 'refresh_passwd': self.acctmgr.refresh_passwd,
@@ -680,16 +680,22 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                     'doc': gettext(option.__doc__)
                 })
                 continue
+            # Fallback for check components not derived from
+            # acct_mgr.register.GenericRegistrationInspector.
+            try:
+                doc = gettext(check.doc)
+            except AttributeError:
+                doc = check.__class__.__doc__
             check_list.append({
                 'name': check.__class__.__name__,
                 'classname': check.__class__.__name__,
-                'doc': gettext(check.doc),
+                'doc': doc,
                 'order': checks[check],
                 'options': options
             })
             continue
         check_list = sorted(check_list, key=lambda i: i['order'])
-        numchecks = range(0, checks.numcomponents() + 1)
+        check_count = range(0, checks.component_count() + 1)
         register_check = cfg.getlist('account-manager', 'register_check')
         disabled_check = frozenset(register_check).difference(frozenset(
                          [check['classname'] for check in check_list]))
@@ -698,7 +704,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
             'register_check': register_check,
             'disabled_check': disabled_check,
             'check_list': check_list,
-            'numchecks': numchecks,
+            'check_count': check_count,
             'require_approval': cfg.getbool('account-manager',
                                             'require_approval'),
             'verify_email': EmailVerificationModule(env).verify_email,
