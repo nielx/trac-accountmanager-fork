@@ -135,6 +135,15 @@ class IAccountRegistrationInspector(Interface):
     new users from the user editor in AccountManagerAdminPanel too.
     """
 
+    @property
+    def doc():
+        """Provide a descriptive, translatable string for web-UI presentation.
+
+        The class doc-string could be re-used here, but should be formatted
+        with care, because WikiFormatting is assumed to get a nice, uniform
+        rendering i.e. for the configuration admin panel.
+        """
+
     def render_registration_fields(req, data):
         """Emit one or multiple additional fields for registration form built.
 
