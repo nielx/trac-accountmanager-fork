@@ -1022,28 +1022,16 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
         if not username:
             # Accessing user account details without username is not useful,
             # so we revert such request immediately. 
-            add_warning(req, Markup(tag.span(tag_(
-                "Please choose account by username from list to proceed."
-                ))))
+            add_warning(req, _(
+                "Please choose account by username from the list to proceed."
+                ))
             req.redirect(req.href.admin('accounts', 'users'))
 
         acctmgr = self.acctmgr
         guard = self.guard
 
-        if req.args.get('update'):
-            req.redirect(req.href.admin('accounts', 'users',
-                                        user=username))
-        elif req.args.get('delete') or req.args.get('release'):
-            # delete failed login attempts, evaluating attempts count
-            if guard.failed_count(username, reset=True) > 0:
-                add_notice(req, Markup(tag.span(Markup(_(
-                    "Failed login attempts for user %(user)s deleted",
-                    user=tag.b(username)
-                    )))))
+        data = dict(_dgettext=dgettext, user=username)
 
-        data = {'_dgettext': dgettext,
-                'user': username,
-               }
         stores = ExtensionOrder(components=self.acctmgr.stores,
                                 list=self.acctmgr.password_stores)
         user_store = acctmgr.find_user_store(username)
@@ -1060,23 +1048,8 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                     data['email'] = email
                 break
         ts_seen = last_seen(self.env, username)
-        if ts_seen:
+        if ts_seen and ts_seen[0][1]:
             data['last_visit'] = format_datetime(ts_seen[0][1], tzinfo=req.tz)
-
-        attempts = []
-        attempts_count = guard.failed_count(username, reset = None)
-        if attempts_count > 0:
-            for attempt in guard.get_failed_log(username):
-                t = format_datetime(to_datetime(
-                                         attempt['time']), tzinfo=req.tz)
-                attempts.append({'ipnr': attempt['ipnr'], 'time': t})
-        data['attempts'] = attempts
-        data['attempts_count'] = attempts_count
-        data['pretty_lock_time'] = guard.pretty_lock_time(username, next=True)
-        data['lock_count'] = guard.lock_count(username)
-        if guard.user_locked(username) is True:
-            data['user_locked'] = True
-            data['release_time'] = guard.pretty_release_time(req, username)
 
         if is_enabled(self.env, EmailVerificationModule) and \
                 EmailVerificationModule(self.env).verify_email:
@@ -1085,6 +1058,50 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
             self.log.debug('AcctMgr:admin:_do_acct_details for user \"' + \
                 username + '\", email \"' + str(email) + '\": ' + \
                 str(data['email_verified']))
+
+        if is_enabled(self.env, AccountGuard):
+            attempts = []
+            attempts_count = guard.failed_count(username, reset=None)
+            if attempts_count > 0:
+                for attempt in guard.get_failed_log(username):
+                    t = format_datetime(to_datetime(
+                                             attempt['time']), tzinfo=req.tz)
+                    attempts.append({'ipnr': attempt['ipnr'], 'time': t})
+                data['attempts'] = attempts
+                data['pretty_lock_time'] = guard.pretty_lock_time(username,
+                                                                  next=True)
+            data['attempts_count'] = attempts_count
+            data['lock_count'] = guard.lock_count(username)
+            if guard.user_locked(username) is True:
+                data['user_locked'] = True
+                data['release_time'] = guard.pretty_release_time(req, username)
+
+        status = []
+        if self.config.getbool('account-manager', 'require_approval'):
+            status = get_user_attribute(self.env, username,
+                                        attribute='approval')
+        approval = username in status and \
+                   status[username][1].get('approval') or None
+
+        if req.args.get('delete') or req.args.get('release'):
+            changed = False
+            if approval and req.args.get('release'):
+                # Admit authenticated/registered session.
+                del_user_attribute(self.env, username, attribute='approval')
+                add_notice(req, Markup(_(
+                    "Account lock (%(condition)s) for user %(user)s cleared",
+                    condition=gettext(approval), user=tag.b(username))))
+                changed = True
+            # Delete failed login attempts, evaluating attempts count.
+            if guard.failed_count(username, reset=True) > 0:
+                add_notice(req, Markup(_(
+                    "Failed login attempts for user %(user)s deleted",
+                    user=tag.b(username))))
+                changed = True
+            if changed:
+                req.redirect(req.href.admin('accounts', 'users',
+                                            user=username))
+        data['approval'] = approval
 
         add_stylesheet(req, 'acct_mgr/acctmgr.css')
         add_ctxtnav(req, _("Back to Accounts"),
