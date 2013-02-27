@@ -29,124 +29,99 @@
       </div>
 
       <form method="get" action="${url}">
-      <fieldset>
-        <legend>
-          <label>Account Status</label>
-        </legend>
-        <py:choose>
-          <div id="user_store" py:when="user_store">
-            <p i18n:msg="order_num,store">
-              Credentials for this user are stored in AuthStore number
-              <em>${store_order_num}</em> (${user_store}).</p>
-            <py:choose>
-              <p class="hint" py:when="ignore_auth_case" i18n:msg="bool">
-                Username matching is set to <b>not case-sensitive</b>.</p>
-              <p class="hint" py:otherwise="" i18n:msg="bool">
-                Username matching is set to <em>case-sensitive</em>.</p>
-            </py:choose>
-          </div>
-          <div id="no_user_store" py:otherwise="">
-            <p i18n:msg="">No store provides credentials for this user,
-              so the user currently can't be authenticated and
-              access to this <b>account is effectively blocked</b>,
-              while account details may still be available.</p>
-          </div>
-        </py:choose>
-
-        <hr py:if="pretty_lock_time or (lock_count > 0)" />
-
-        <div id="user_locked" py:if="user_locked is True">
-          <p>
-            <py:choose>
-              <span py:when="release_time" i18n:msg="time">
+        <fieldset>
+          <legend><label>Account Status</label></legend>
+          <div id="user_locked" py:if="approval or user_locked">
+            <p>
+              <span py:if="release_time and not approval" i18n:msg="time">
                 <img src="${href.chrome('/acct_mgr/time-locked.png')}" />
                 This account has been locked until ${release_time}<br />
                 and even valid login attempts are rejected meanwhile.</span>
-              <span py:otherwise="">
+              <span py:if="approval or not release_time">
                 <img src="${href.chrome('/acct_mgr/locked.png')}" />
-                This account has been locked permanently.</span>
-            </py:choose>
-            <span class="buttons">
-              <input type="submit" name="release"
-                     alt="Release account lock"
-                     title="Release account lock"
-                     value="${dgettext('acct_mgr', 'Unlock')}" />
-            </span>
-          </p>
-        </div>
+                This account has been locked permanently.
+              </span>
+              <span class="buttons">
+                <input type="submit" name="release"
+                       alt="Release account lock"
+                       title="Release account lock"
+                       value="${dgettext('acct_mgr', 'Unlock')}" />
+              </span>
+            </p>
+          </div>
 
-        <py:choose>
-          <div id="restricted" py:when="pretty_lock_time">
-            <py:choose>
-              <div py:when="lock_count > 0">
-                <i18n:choose numeral="lock_count" params="count"
-                             py:if="not _dgettext">
-                  <p i18n:singular="">Lock condition has been met
-                    ${lock_count} time by now.</p>
-                  <p i18n:plural="">Lock condition has been met
-                    ${lock_count} times by now.</p>
-                </i18n:choose>
-                <!--! i18n:choose doesn't play nicely with Trac releases
-                  before Trac 0.12, so we provide an alternative message
-                  that is excluded from extraction and translation. -->
-                <p py:if="_dgettext" xml:lang="en">Lock condition has been met
-                  ${lock_count} time(s) by now.</p>
-                <p i18n:msg="time">
-                  Therefore after another failed login attempt authentication
-                  for this account would be retarded by ${pretty_lock_time}.
+          <div id="restricted" py:if="lock_count" py:choose="">
+            <div py:when="not lock_count == 0">
+              <i18n:choose numeral="lock_count" params="count"
+                           py:if="not _dgettext">
+                <p i18n:singular="">
+                  Time lock condition has been met ${lock_count} time by now.
                 </p>
-              </div>
-
-              <div py:otherwise="">
-                <p>Lock condition has not been met yet.</p>
-              </div>
-            </py:choose>
-          </div>
-
-          <div id="unrestricted" py:otherwise="">
-            <p py:if="not user_locked is True">
-              No constraints are set for this account.</p>
-          </div>
-        </py:choose>
-      </fieldset>
-
-      <div id="verification" py:if="verification">
-        <fieldset>
-          <legend>
-            <label>Verification</label>
-          </legend>
-          <py:choose>
-            <div py:when="email">
-              <p i18n:msg="email">
-                Current email address: &lt;${email}&gt;</p>
-              <py:choose>
-                <p py:when="email_verified is True">
-                  This address has been verified successfully.</p>
-                <p py:when="not email_verified is None" i18n:msg="token">
-                  Verification is pending
-                  (<span class="hint">token: '${email_verified}' </span>).</p>
-                <p py:otherwise="">
-                  This address has not been verified yet.</p>
-              </py:choose>
+                <p i18n:plural="">
+                  Time lock condition has been met ${lock_count} times by now.
+                </p>
+              </i18n:choose>
+              <!--! i18n:choose doesn't play nicely with Trac releases
+                before Trac 0.12, so we provide an alternative message
+                that is excluded from extraction and translation. -->
+              <p py:if="_dgettext" xml:lang="en">
+                Time lock condition has been met ${lock_count} time(s) by now.
+              </p>
+              <p py:if="not (approval or (user_locked and not release_time))"
+                 i18n:msg="time">
+                Therefore after another failed login attempt authentication
+                for this account would be retarded by ${pretty_lock_time}.
+              </p>
             </div>
             <div py:otherwise="">
-              <p>No email address is registered for this account.</p>
+              <p>Lock condition has not been met yet.</p>
             </div>
-          </py:choose>
-        </fieldset>
-      </div>
+          </div>
+          <div id="unrestricted" py:if="not (approval or lock_count)">
+            <p>No constraints are set for this account.</p>
+          </div>
 
-      <fieldset>
-        <legend>
-          <label>Access History</label>
-        </legend>
-        <py:choose>
-          <p py:when="last_visit" i18n:msg="time">
+          <hr py:if="user_locked or approval" />
+
+          <div id="user_store" py:if="user_store">
+            <p i18n:msg="order_num,store">
+              Credentials for this user are stored in AuthStore number
+              <em>${store_order_num}</em> (${user_store}).</p>
+            <p class="hint" py:if="ignore_auth_case" i18n:msg="">
+              Username matching is set to <b>not case-sensitive</b>.</p>
+            <p class="hint" py:if="not ignore_auth_case" i18n:msg="">
+              Username matching is set to <em>case-sensitive</em>.</p>
+          </div>
+          <div id="no_user_store" py:if="not (approval or user_store)">
+            <p i18n:msg="">
+              No readable store provides credentials for this user,
+              so the user may not get authenticated and access to this
+              <em>account might be effectively blocked</em>.</p>
+          </div>
+          <div py:if="email">
+            <p i18n:msg="email">
+              Current email address: &lt;${email}&gt;</p>
+            <py:choose py:if="verification">
+              <p py:when="email_verified is True">
+                This address has been verified successfully.</p>
+              <p py:when="not email_verified is None" i18n:msg="token">
+                Verification is pending
+                (<span class="hint">token: '${email_verified}' </span>).</p>
+              <p py:otherwise="">
+                This address has not been verified yet.</p>
+            </py:choose>
+          </div>
+          <div py:if="not email">
+            <p>No email address is registered for this account.</p>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend><label>Access History</label></legend>
+          <p py:if="last_visit" i18n:msg="time">
             Last login: ${last_visit}</p>
-          <p py:otherwise="">The user has not logged in before.</p>
-        </py:choose>
-        <py:choose>
-          <div id="failed_attempts" py:when="attempts_count > 0">
+          <p py:if="not last_visit">The user has not logged in before.</p>
+          <div id="failed_attempts" py:if="attempts_count">
             <p i18n:msg="count">Total failed attempts: ${attempts_count}</p> 
             <p class="tableheader">
               Table: Last failed login attempts log view</p>
@@ -164,24 +139,23 @@
                 </tr>
               </tbody>
             </table>
-            <div class="buttons" py:if="not user_locked is True">
+            <div class="buttons" py:if="not user_locked">
               <input type="submit" name="delete"
                      alt="Delete login failure log"
                      title="Delete login failure log"
                      value="${dgettext('acct_mgr', 'Delete Log')}" />
             </div>
           </div>
-          <div id="no_failed_attempts" py:otherwise="">
+          <div id="no_failed_attempts" py:if="not attempts_count">
             <p>There is currently no failed login attempt logged.</p>
           </div>
-        </py:choose>
-      </fieldset>
+        </fieldset>
 
-      <div class="buttons">
-        <input type="hidden" name="user" value="${user}" />
-        <input type="submit" name="update"
-               value="${dgettext('acct_mgr', 'Refresh')}" />
-      </div>
+        <div class="buttons">
+          <input type="hidden" name="user" value="${user}" />
+          <input type="submit" name="update"
+                 value="${dgettext('acct_mgr', 'Refresh')}" />
+        </div>
       </form>
     </div>
 
