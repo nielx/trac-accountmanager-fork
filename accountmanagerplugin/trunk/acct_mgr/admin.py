@@ -392,6 +392,8 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                 acctmgr_register = req.args.get('acctmgr_register', False)
                 cfg.set('components', 'acct_mgr.register.RegistrationModule',
                         acctmgr_register and 'enabled' or 'disabled')
+                cfg.set('account-manager', 'allow_delete_account',
+                        bool(req.args.get('allow_delete_account', False)))
                 _setorder(req, checks)
                 cfg.set('account-manager', 'register_check',
                         ','.join(checks.get_enabled_component_names()))
@@ -701,6 +703,8 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                          [check['classname'] for check in check_list]))
         data.update({
             'acctmgr_register': acctmgr_register,
+            'allow_delete_account': cfg.getbool('account-manager',
+                                                'allow_delete_account'),
             'register_check': register_check,
             'disabled_check': disabled_check,
             'check_list': check_list,
