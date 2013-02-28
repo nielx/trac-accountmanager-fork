@@ -892,7 +892,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                 if password_reset_enabled:
                     for username, name, email in env.get_known_users():
                         if username in sel:
-                            acctmod._reset_password(username, email)
+                            acctmod._reset_password(req, username, email)
                     if sel:
                         add_notice(req, Markup(_(
                                    "Password reset for %(accounts)s.",
@@ -932,8 +932,8 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
 
                     if not acctmgr.has_user(username):
                         error.account = {'username' : username}
-                        error.message = _("Unknown user %(user)s.",
-                                          user=username)
+                        error.message = Markup(_("Unknown user %(user)s.",
+                                                 user=tag.b(username)))
                         raise error
 
                     password = req.args.get('password')

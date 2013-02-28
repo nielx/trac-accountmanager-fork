@@ -9,6 +9,7 @@ acct_mgr-0.5 (not yet released) - branch 0.11
  * #10829: Consider renaming 'Save' buttons to 'Apply changes'
  * fix access to account properties clean-up from user admin panel
  * always show associated email in user details admin panel
+ * fix and unify web-UI feedback on user and admin actions
 
  new features
  * #843: Make admin approval required for account registration
