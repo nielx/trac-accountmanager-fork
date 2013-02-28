@@ -598,7 +598,6 @@
               user registration process.  The ability to immediately ban
               existing accounts is another, related but independed feature.
             </p>
-
             <div class="field">
               <label>
                 <input type="checkbox" name="acctmgr_register"
@@ -608,6 +607,16 @@
                 Allow users to register for a new account.
               </label>
             </div>
+            <div class="field">
+              <label>
+                <input type="checkbox" name="allow_delete_account"
+                       checked="${allow_delete_account and 'checked' or None}"
+                       title="${'[account-manager] allow_delete_account'}"
+                       value="true" />
+                Allow users to delete their own account.
+              </label>
+            </div>
+
             <h3>Checks to use for validating Registration requests</h3>
             <p i18n:msg="check_list">
               All checks provided by AccountManagerPlugin are enabled per
