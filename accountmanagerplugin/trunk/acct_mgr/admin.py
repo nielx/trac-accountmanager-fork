@@ -1128,7 +1128,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
             if account['username']:
                 # Check request and prime account on success.
                 try:
-                    acctmgr.validate_registration(req)
+                    acctmgr.validate_account(req, True)
                     # Account email approval for authoritative action.
                     if verify_enabled and account['email'] and \
                             req.args.get('email_approved'):
