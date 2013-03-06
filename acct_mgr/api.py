@@ -360,11 +360,18 @@ class AccountManager(Component):
         ignore_auth_case = self.config.getbool('trac', 'ignore_auth_case')
         return ignore_auth_case and user.lower() or user
 
-    def validate_registration(self, req):
-        """Run configured registration checks and prime account on success."""
+    def validate_account(self, req, create=False):
+        """Run configured registration checks.
+
+        Optionally create a new account on success.
+        """
         for inspector in self.register_checks:
             inspector.validate_registration(req)
+        if create:
+            self._create_user(req)
 
+    def _create_user(self, req):
+        """Set password and prime a new authenticated Trac session."""
         email = req.args.get('email', '').strip()
         name = req.args.get('name', '').strip()
         username = self.handle_username_casing(

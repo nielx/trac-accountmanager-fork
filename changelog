@@ -7,9 +7,11 @@ acct_mgr-0.5 (not yet released) - branch 0.11
  * #10740: Checkbox columns are too wide on the Accounts: Cleanup page
  * #10772: ProgrammingError: operator does not exist: text = integer
  * #10829: Consider renaming 'Save' buttons to 'Apply changes'
+ * #10910: Unable to change full name
  * fix access to account properties clean-up from user admin panel
  * always show associated email in user details admin panel
  * fix and unify web-UI feedback on user and admin actions
+ * prevent bypassing email address policy via user preferences
 
  new features
  * #843: Make admin approval required for account registration

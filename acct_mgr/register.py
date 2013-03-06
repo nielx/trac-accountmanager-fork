@@ -24,10 +24,11 @@ from trac.env import open_environment
 from trac.web import auth, chrome
 from trac.web.main import IRequestHandler, IRequestFilter
 
-from acct_mgr.api import AccountManager, CommonTemplateProvider, \
-                         IAccountRegistrationInspector, \
-                         _, N_, dgettext, gettext, tag_
-from acct_mgr.model import email_associated, set_user_attribute
+from acct_mgr.api import AccountManager, CommonTemplateProvider
+from acct_mgr.api import IAccountRegistrationInspector
+from acct_mgr.api import _, N_, dgettext, gettext, tag_
+from acct_mgr.model import email_associated, get_user_attribute
+from acct_mgr.model import set_user_attribute
 from acct_mgr.util import containsAny, is_enabled
 
 
@@ -91,9 +92,14 @@ This includes checking for
  * upper-cased usernames (reserved for Trac permission actions)
  * some reserved usernames
  * a username duplicate in configured password stores
+
+''This check is bypassed for requests regarding user's own preferences.''
 """
 
     def validate_registration(self, req):
+        if req.path_info == '/prefs':
+            return
+
         acctmgr = AccountManager(self.env)
         username = acctmgr.handle_username_casing(
             req.args.get('username', '').strip())
@@ -157,7 +163,7 @@ This includes checking for
 class BotTrapCheck(GenericRegistrationInspector):
     """A collection of simple bot checks.
 
-''This check is bypassed for requests by an admin user.''
+''This check is bypassed for requests by an authenticated user.''
 """
 
     reg_basic_token = Option('account-manager', 'register_basic_token', '',
@@ -193,7 +199,7 @@ class BotTrapCheck(GenericRegistrationInspector):
         return insert, data
 
     def validate_registration(self, req):
-        if req.perm.has_permission('ACCTMGR_USER_ADMIN'):
+        if req.authname and req.authname != 'anonymous':
             return
         # Input must be an exact replication of the required token.
         basic_token = req.args.get('basic_token', '')
@@ -248,13 +254,16 @@ class EmailCheck(GenericRegistrationInspector):
     def validate_registration(self, req):
         acctmgr = AccountManager(self.env)
         email = req.args.get('email', '').strip()
-
         if is_enabled(self.env, EmailVerificationModule) and \
                 EmailVerificationModule(self.env).verify_email:
+            # Initial configuration case.
             if not email and not req.args.get('active'):
                 raise RegistrationError(N_(
                     "You must specify a valid email address.")
                 )
+            # User preferences case.
+            elif req.path_info == '/prefs' and email == req.session.get('email'):
+                return
             elif email_associated(self.env, email):
                 raise RegistrationError(N_(
                     "The email address specified is already in use. "
@@ -281,7 +290,7 @@ Likewise email checking is bypassed, if account verification is disabled.''
 
         username = acctmgr.handle_username_casing(
             req.args.get('username', '').strip())
-        if self.username_regexp != "" and \
+        if req.path_info != '/prefs' and self.username_regexp != "" and \
                 not re.match(self.username_regexp.strip(), username):
             raise RegistrationError(N_(
                 "Username %s doesn't match local naming policy."),
@@ -304,11 +313,11 @@ Likewise email checking is bypassed, if account verification is disabled.''
 class UsernamePermCheck(GenericRegistrationInspector):
     """Check for usernames referenced in the permission system.
 
-''This check is bypassed for requests by an admin user.''
+''This check is bypassed for requests by an authenticated user.''
 """
 
     def validate_registration(self, req):
-        if req.perm.has_permission('ACCTMGR_USER_ADMIN'):
+        if req.authname and req.authname != 'anonymous':
             return
         username = AccountManager(self.env).handle_username_casing(
             req.args.get('username', '').strip())
@@ -404,7 +413,7 @@ class RegistrationModule(CommonTemplateProvider):
         if req.method == 'POST' and action == 'create':
             try:
                 # Check request and prime account on success.
-                acctmgr.validate_registration(req)
+                acctmgr.validate_account(req, True)
             except RegistrationError, e:
                 # Attempt deferred translation.
                 message = gettext(e.message)
@@ -502,20 +511,28 @@ class EmailVerificationModule(CommonTemplateProvider):
     # IRequestFilter methods
 
     def pre_process_request(self, req, handler):
-        if not req.session.authenticated:
+        if not req.authname or req.authname == 'anonymous':
             # Permissions for anonymous users remain unchanged.
             return handler
         elif req.path_info == '/prefs' and req.method == 'POST' and \
                 not 'restore' in req.args:
             try:
-                EmailCheck(self.env).validate_registration(req)
+                AccountManager(self.env).validate_account(req)
                 # Check passed without error: New email address seems good.
             except RegistrationError, e:
-                # Attempt to change email to an empty or invalid
-                # address detected, resetting to previously stored value.
+                # Always warn about issues.
                 chrome.add_warning(
                     req, Markup(gettext(e.message)))
-                req.redirect(req.href.prefs(None))
+                # Look, if the issue existed before.
+                attributes = get_user_attribute(self.env, req.authname,
+                                                attribute='email')
+                email = req.authname in attributes and \
+                        attributes[req.authname][1].get('email') or None
+                new_email = req.args.get('email', '').strip()
+                if (email or new_email) and email != new_email:
+                    # Attempt to change email to an empty or invalid
+                    # address detected, resetting to previously stored value.
+                    req.redirect(req.href.prefs(None))
         if self.verify_email and handler is not self and \
                 'email_verification_token' in req.session and \
                 not req.perm.has_permission('ACCTMGR_ADMIN'):
