@@ -164,6 +164,21 @@ class IPasswordStore(Interface):
         Returns True, if the account existed and was deleted, False otherwise.
         """
 
+class IUserIdChanger(Interface):
+    """An interface for Components, that will participate in changing user
+    IDs inside a Trac environment consistently.
+    """
+
+    def replace(old_uid, new_uid, db):
+        """Change the user ID.
+
+        A db connection is provided, so that all components may share the same
+        transaction for making the whole change atomic (commit all or revert
+        pending changes in case of an error in any Trac realm).
+
+        A dict is expected with realm(s) as key and message value to give
+        feedback on failure or success per Trac realm.
+        """
 
 class AccountManager(Component):
     """The AccountManager component handles all user account management methods
@@ -424,6 +439,9 @@ class AccountManager(Component):
     def user_created(self, user, password):
         self.log.info("Created new user: %s" % user)
 
+    def user_id_changed(self, old_uid, new_uid):
+        self.log.info("Changed user id: from '%s' to '%s'" % (old_uid, new_uid))
+
     def user_password_changed(self, user, password):
         self.log.info("Updated password for user: %s" % user)
 
@@ -488,3 +506,20 @@ class CommonTemplateProvider(Component):
         Genshi templates.
         """
         return [resource_filename(__name__, 'templates')]
+
+
+class GenericUserIdChanger(Component):
+    """Define common class attributes for IUserIdChanger components."""
+
+    implements(IUserIdChanger)
+
+    abstract = True
+
+    def msg(self, old_uid, new_uid, realm, result):
+        return _("Replacing user ID '%(old_uid)s' with '%(new_uid)s' for "
+                 "%(realm)s %(result)s", old_uid=old_uid, new_uid=new_uid,
+                 realm=realm, result=result)
+
+    # IUserIdChanger method
+    def replace(self, old_uid, new_uid, db):
+        raise NotImplementedError

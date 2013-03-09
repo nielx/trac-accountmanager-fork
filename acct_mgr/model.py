@@ -10,13 +10,188 @@
 
 from trac.util.text import to_unicode
 
-from acct_mgr.hashlib_compat  import md5
-from acct_mgr.util import as_int
+from acct_mgr.api import GenericUserIdChanger
+from acct_mgr.hashlib_compat import md5
+from acct_mgr.util import as_int, exception_to_unicode
+
 
 _USER_KEYS = {
     'auth_cookie': 'name',
     'permission': 'username',
     }
+
+
+class PrimitiveUserIdChanger(GenericUserIdChanger):
+    """Handle the simple owner-column replacement case."""
+
+    abstract = True
+
+    field = 'author'
+    table = None
+
+    # IUserIdChanger method
+    def replace(self, old_uid, new_uid, db):
+        result = 0
+        if not self.table:
+            self.table = self.realm
+
+        cursor = db.cursor()
+        cursor.execute("SELECT COUNT(*) FROM %s WHERE %s=%%s"
+                       % (self.table, self.field), (old_uid,))
+        exists = cursor.fetchone()
+        if exists[0]:
+            try:
+                cursor.execute("UPDATE %s SET %s=%%s WHERE %s=%%s"
+                               % (self.table, self.field, self.field),
+                               (new_uid, old_uid))
+                result = int(exists[0])
+                self.log.debug(self.msg(old_uid, new_uid, self.table,
+                               result='%s time(s)' % result))
+            except Exception, e:
+                result = exception_to_unicode(e)
+                self.log.debug(self.msg(old_uid, new_uid, self.table,
+                               result='failed: %s' %
+                               exception_to_unicode(e, traceback=True)))
+        return {'%s %s' % (self.table, self.field): result}
+
+
+class UniqueUserIdChanger(GenericUserIdChanger):
+    """Handle columns, where user IDs are an unique key or part of it."""
+
+    abstract = True
+
+    field = 'sid'
+    table = None
+
+    # IUserIdChanger method
+    def replace(self, old_uid, new_uid, db):
+        result = 0
+        if not self.table:
+            self.table = self.realm
+
+        cursor = db.cursor()
+        cursor.execute("DELETE FROM %s WHERE %s=%%s"
+                       % (self.table, self.field), (new_uid,))
+
+        cursor.execute("SELECT COUNT(*) FROM %s WHERE %s=%%s"
+                       % (self.table, self.field), (old_uid,))
+        exists = cursor.fetchone()
+        if exists[0]:
+            try:
+                cursor.execute("UPDATE %s SET %s=%%s WHERE %s=%%s"
+                               % (self.table, self.field, self.field),
+                               (new_uid, old_uid))
+                result = int(exists[0])
+                self.log.debug(self.msg(old_uid, new_uid, self.table,
+                               result='%s time(s)' % result))
+            except Exception, e:
+                result = exception_to_unicode(e)
+                self.log.debug(self.msg(old_uid, new_uid, self.table,
+                               result='failed: %s' %
+                               exception_to_unicode(e, traceback=True)))
+        return {'%s %s' % (self.table, self.field): result}
+
+
+class AttachmentUserIdChanger(PrimitiveUserIdChanger):
+    """Change user IDs in attachments."""
+
+    realm = 'attachment'
+
+
+class AuthCookieUserIdChanger(UniqueUserIdChanger):
+    """Change user IDs for authentication cookies."""
+
+    field = 'name'
+    realm = 'auth_cookie'
+
+
+class ComponentUserIdChanger(PrimitiveUserIdChanger):
+    """Change user IDs in components."""
+
+    field = 'owner'
+    realm = 'component'
+
+
+class PermissionUserIdChanger(UniqueUserIdChanger):
+    """Change user IDs for permissions."""
+
+    field = 'username'
+    realm = 'permission'
+
+
+class ReportUserIdChanger(PrimitiveUserIdChanger):
+    """Change user IDs in reports."""
+
+    realm = 'report'
+
+
+class RevisionUserIdChanger(PrimitiveUserIdChanger):
+    """Change user IDs in changesets."""
+
+    realm = 'revision'
+
+
+class SessionAttributesUserIdChanger(UniqueUserIdChanger):
+    """Change user IDs for session attributes."""
+
+    realm = 'session_attribute'
+
+
+class TicketUserIdChanger(PrimitiveUserIdChanger):
+    """Change all user IDs in tickets."""
+
+    field = 'owner'
+    realm = 'ticket'
+
+    # IUserIdChanger method
+    def replace(self, old_uid, new_uid, db):
+        results = dict()
+
+        results.update(super(TicketUserIdChanger,
+                             self).replace(old_uid, new_uid, db))
+        self.field = 'reporter'
+        results.update(super(TicketUserIdChanger,
+                             self).replace(old_uid, new_uid, db))
+        self.field = 'author'
+        self.table = 'ticket_change'
+        results.update(super(TicketUserIdChanger,
+                             self).replace(old_uid, new_uid, db))
+        cursor = db.cursor()
+        for field in ('oldvalue', 'newvalue'):
+            cursor.execute("""
+                SELECT COUNT(*)
+                  FROM %s
+                 WHERE %s=%%s
+                   AND (field='owner'
+                        OR field='reporter')
+            """ % (self.table, field), (old_uid,))
+            exists = cursor.fetchone()
+            if exists[0]:
+                realm = 'ticket_change: %s = owner OR reporter' % field
+                result = int(exists[0])
+                try:
+                    cursor.execute("""
+                        UPDATE %s
+                           SET %s=%%s
+                         WHERE %s=%%s
+                           AND (field='owner'
+                                OR field='reporter')
+                    """ % (self.table, field, field), (new_uid, old_uid))
+                    self.log.debug(self.msg(old_uid, new_uid, realm,
+                                   result='%s time(s)' % result))
+                except Exception, e:
+                    result = exception_to_unicode(e)
+                    self.log.debug(self.msg(old_uid, new_uid, realm,
+                                   realm=realm, result='failed: %s' %
+                                   exception_to_unicode(e, traceback=True)))
+                results.update({realm: result})
+        return results
+
+
+class WikiUserIdChanger(PrimitiveUserIdChanger):
+    """Change user IDs in wiki pages."""
+
+    realm = 'wiki'
 
 
 # Public functions
@@ -85,6 +260,31 @@ def user_known(env, user, db=None):
 
 
 # Utility functions
+
+def change_uid(env, old_uid, new_uid, changers):
+    """Handle user ID transition for all supported Trac realms."""
+    db = _get_db(env)
+    # Handle the single unique Trac user ID reference first.
+    cursor = db.cursor()
+    sql = """
+        DELETE
+          FROM session
+         WHERE authenticated=1 AND sid=%s
+        """
+    cursor.execute(sql, (new_uid,))
+    cursor.execute("""
+        INSERT INTO session
+                (sid,authenticated,last_visit)
+        VALUES  (%s,1,(SELECT last_visit FROM session WHERE sid=%s))
+        """, (new_uid, old_uid))
+    results = dict()
+    for changer in changers:
+        results.update(changer.replace(old_uid, new_uid, db))
+    # Finally delete old user ID reference after moving everything else.
+    cursor.execute(sql, (old_uid,))
+    results.update(dict(session=1))
+    db.commit()
+    return results
 
 def get_user_attribute(env, username=None, authenticated=1, attribute=None,
                        value=None, db=None):

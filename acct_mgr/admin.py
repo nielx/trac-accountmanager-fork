@@ -16,7 +16,7 @@ from genshi.builder import tag
 from genshi.core import Markup
 
 from trac.admin import IAdminPanelProvider
-from trac.core import Component, TracError, implements
+from trac.core import Component, ExtensionPoint, TracError, implements
 from trac.config import BoolOption, Option
 from trac.perm import PermissionCache, PermissionSystem
 from trac.util.datefmt import format_datetime, to_datetime
@@ -27,11 +27,11 @@ from trac.web.chrome import add_script, add_stylesheet, add_warning
 from trac.wiki.formatter import format_to_html
 
 from acct_mgr.api import AccountManager, CommonTemplateProvider
+from acct_mgr.api import IUserIdChanger
 from acct_mgr.api import _, N_, dgettext, gettext, ngettext, tag_
 from acct_mgr.guard import AccountGuard
-from acct_mgr.model import del_user_attribute, email_verified
-from acct_mgr.model import get_user_attribute, last_seen
-from acct_mgr.model import set_user_attribute
+from acct_mgr.model import change_uid, del_user_attribute, email_verified
+from acct_mgr.model import get_user_attribute, last_seen, set_user_attribute
 from acct_mgr.register import EmailVerificationModule, RegistrationError
 from acct_mgr.register import RegistrationModule
 from acct_mgr.web_ui import AccountModule, LoginModule
@@ -204,6 +204,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
 
     auth_init = BoolOption('account-manager', 'auth_init', True,
         doc="Launch an initial Trac authentication setup.")
+    uid_changers = ExtensionPoint(IUserIdChanger)
 
     def __init__(self):
         self.acctmgr = AccountManager(self.env)
@@ -1152,6 +1153,113 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
             add_warning(req, _(
                 "The password store does not support creating users."))
         return account
+
+    def _do_change_uid(self, req):
+        acctmgr = self.acctmgr
+        acctmod = AccountModule(self.env)
+        old_uid = acctmgr.handle_username_casing(
+                 req.args.get('username', '').strip())
+        # Demand conditions required for a successful change.
+        store = acctmgr.find_user_store(old_uid)
+        if store and not hasattr(store, 'delete_user'):
+            add_warning(req, Markup(tag_(
+                "Removing the old user is not supported by %(store)s.",
+                store=tag.b(store.__class__.__name__))))
+            return
+        if not acctmod.reset_password_enabled:
+            add_warning(req, _(
+                "Password reset is a required action, but disabled yet."))
+            return
+        if req.args.get('force_add') and acctmgr.password_stores and \
+                not acctmgr.supports('set_password'):
+            add_warning(req, _(
+                "None of the configured password stores is writable."))
+            return
+        # Ensure, that the new ID must pass basic checks.
+        checks = ExtensionOrder(components=acctmgr.checks,
+                                list=acctmgr.register_checks)
+        required_check = 'BasicCheck'
+        if not required_check in checks.get_enabled_component_names():
+            add_warning(req, Markup(tag_(
+                "At least %(required_check)s must be configured and enabled.",
+                required_check=tag.b(required_check))))
+            return
+
+        new_uid = acctmgr.handle_username_casing(
+                 req.args.get('new_uid', '').strip())
+        req.args['username'] = new_uid
+        # Ensure valid password just for input validation.
+        req.args['password'] = req.args['password_confirm'] = 'pass'
+        # Prime the request with more possibly missing data.
+        email = req.args.get('email', '').strip()
+        attributes = get_user_attribute(self.env, old_uid, attribute='email')
+        old_email = old_uid in attributes and \
+                    attributes[old_uid][1].get('email') or None
+        if not email and old_email:
+            req.args['email'] = old_email
+        # Prevent account verification failure due to existing email address.
+        del_user_attribute(self.env, old_uid, attribute='email')
+
+        name = req.args.get('name', '').strip()
+        attributes = get_user_attribute(self.env, old_uid, attribute='name')
+        old_name = old_uid in attributes and \
+                   attributes[old_uid][1].get('name') or None
+        if not name and old_name:
+            req.args['name'] = old_name
+
+        try:
+            acctmgr.validate_account(req)
+        except RegistrationError, e:
+            # Attempt deferred translation.
+            message = gettext(e.message)
+            # Check for (matching number of) message arguments before
+            #   attempting string substitution.
+            if e.msg_args and \
+                    len(e.msg_args) == len(re.findall('%s', message)):
+                message = message % e.msg_args
+            add_warning(req, Markup(message))
+            if old_email:
+                set_user_attribute(self.env, old_uid, 'email', old_email)
+            # Rollback request changes.
+            if not email and old_email:
+                del(req.args['email'])
+            if not name and old_name:
+                del(req.args['name'])
+            return
+        # Create the new user ID.
+        if acctmgr.set_password(new_uid, '', None, False):
+            results = change_uid(self.env, old_uid, new_uid,
+                                 self.uid_changers)
+            if 'failed' in results:
+                # Rollback all changes including previously created account.
+                acctmgr.delete_user(new_uid)
+                if not email and old_email:
+                    del(req.args['email'])
+                if old_email:
+                    set_user_attribute(self.env, old_uid, 'email', old_email)
+            else:
+                if email:
+                    # Preserve email verification status.
+                    if email == old_email or req.args.get('email_approved'):
+                        set_user_attribute(self.env, new_uid,
+                                           'email_verification_sent_to',
+                                           email)
+                if not email and old_email:
+                    email = old_email
+                if email:
+                    set_user_attribute(self.env, new_uid, 'email', email)
+                    # Can't use current password.
+                    acctmod._reset_password(req, new_uid, email)
+                else:
+                    add_warning(req, Markup(tag_(
+                        "Cannot send the new password to the user, because "
+                        "no email address is associated with %(username)s.",
+                        username=tag.b(new_uid))))
+                # Finally delete old user ID.
+                acctmgr.delete_user(old_uid)
+                # Notify listeners about successful ID change.
+                acctmgr._notify('id_changed', old_uid, new_uid)
+        return results
 
     def _do_db_cleanup(self, req):
         if req.perm.has_permission('ACCTMGR_ADMIN'):
