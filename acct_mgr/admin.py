@@ -390,6 +390,15 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                         bool(req.args.get('force_passwd_change', False)))
 
             elif step == 3:
+                change_uid_enabled = bool(req.args.get('change_uid_enabled'))
+                cfg.set('components', 'acct_mgr.model.*',
+                        change_uid_enabled and  'enabled' or 'disabled')
+                # Force 'disabled' status for all related components.
+                if not change_uid_enabled and cfg['components'].options():
+                    for k, v in cfg['components'].options():
+                        if k.startswith('acct_mgr.model.') and \
+                                k != 'acct_mgr.model.*':
+                            cfg.remove('components', k)
                 acctmgr_register = req.args.get('acctmgr_register', False)
                 cfg.set('components', 'acct_mgr.register.RegistrationModule',
                         acctmgr_register and 'enabled' or 'disabled')
@@ -703,6 +712,9 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
         disabled_check = frozenset(register_check).difference(frozenset(
                          [check['classname'] for check in check_list]))
         data.update({
+            'change_uid_enabled': [k for k, v in cfg['components'].options()
+                                   if k.startswith('acct_mgr.model.') and
+                                   v == 'enabled'] and True or False,
             'acctmgr_register': acctmgr_register,
             'allow_delete_account': cfg.getbool('account-manager',
                                                 'allow_delete_account'),
@@ -826,6 +838,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
             '_dgettext': dgettext,
             'acctmgr': dict(), 'email_approved': True, 'filters': [],
             'listing_enabled': listing_enabled,
+            'change_uid_enabled': self.uid_changers and True or False,
             'create_enabled': acctmgr.supports('set_password'),
             'delete_enabled': delete_enabled,
             'verify_enabled': verify_enabled,
@@ -914,6 +927,26 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                 else:
                     add_warning(req, _(
                         "The password store does not support deleting users."))
+            elif req.args.get('change') and req.args.get('new_uid', '').strip():
+                # Change user ID of existing user account.
+                results = self._do_change_uid(req)
+                if results:
+                    if 'failed' in results:
+                        add_warning(req, Markup(tag.ul(
+                                    [tag.li(_("%(realm)s: %(message)s",
+                                              realm=realm, message=message))
+                                     for realm, message in results.iteritems()
+                                     if not realm == 'failed'])))
+                    else:
+                        result_list = sorted([(r, m) for r, m in
+                                              results.iteritems()])
+                        add_notice(req, Markup(tag.ul(
+                                   [tag.li(ngettext(
+                                    "Table %(realm)s: %(message)s change",
+                                    "Table %(realm)s: %(message)s changes",
+                                    r[1], realm=r[0], message=r[1]))
+                                    for r in result_list]
+                                   )))
             elif req.args.get('change'):
                 # Change attributes and or password of existing user account.
                 attributes = {

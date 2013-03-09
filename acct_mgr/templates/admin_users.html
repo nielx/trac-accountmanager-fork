@@ -86,6 +86,16 @@
               Only lowercase usernames allowed 
             </p>
           </div>
+          <div class="field" py:if="change_uid_enabled">
+            <label>New Username:<br />
+              <input type="text" name="new_uid" id="new_uid"
+                     class="textwidget"
+                     title="Change user ID ('username')"
+                     value="${acctmgr.new_uid}" /></label>
+          </div>
+          <img src="${href.chrome('/acct_mgr/info.png')}" alt="info"
+               title="User ID change requires additional components enabled"
+               heigth="16" width="16" py:if="not change_uid_enabled" />
         </div>
         <div>
           <div class="field">
