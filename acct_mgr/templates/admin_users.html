@@ -76,51 +76,62 @@
     <form id="account-editor" class="addnew" method="post">
       <fieldset>
         <legend>Add/Edit Account:</legend>
-        <div class="field">
-          <label>Username:<br />
-            <input type="text" name="username" id="username"
-                   class="textwidget" value="${acctmgr.username}" /></label>
-          <p class="hint" py:if="ignore_auth_case"> 
-            Only lowercase usernames allowed 
-          </p> 
+        <div>
+          <div class="field">
+            <label>Username:<br />
+              <input type="text" name="username" id="username"
+                     class="textwidget" value="${acctmgr.username}" />
+            </label>
+            <p class="hint" py:if="ignore_auth_case"> 
+              Only lowercase usernames allowed 
+            </p>
+          </div>
         </div>
-        <div class="field">
-          <label py:choose="">Password:<br />
-            <input type="password" name="password" class="textwidget"
-                   py:when="create_enabled or password_change_enabled" />
-            <input type="password" name="password" class="textwidget"
-                   py:otherwise="" disabled="disabled" />
-          </label>
-        </div>
-        <div class="field">
-          <label py:choose="">Confirm Password:<br />
-            <input type="password" name="password_confirm" class="textwidget"
-                   py:when="create_enabled or password_change_enabled" />
-            <input type="password" name="password_confirm" class="textwidget"
-                   py:otherwise="" disabled="disabled" />
-          </label>
+        <div>
+          <div class="field">
+            <label py:choose="">Password:<br />
+              <input type="password" name="password" class="textwidget"
+                     py:when="create_enabled or password_change_enabled" />
+              <input type="password" name="password" class="textwidget"
+                     py:otherwise="" disabled="disabled" />
+            </label>
+          </div>
+          <div class="field">
+            <label py:choose="">Confirm Password:<br />
+              <input type="password" name="password_confirm"
+                     class="textwidget"
+                     py:when="create_enabled or password_change_enabled" />
+              <input type="password" name="password_confirm"
+                     class="textwidget"
+                     py:otherwise="" disabled="disabled" />
+            </label>
+          </div>
         </div>
         <div class="field">
           <label>Pre-/Surname (Nickname):<br />
             <input type="text" name="name" class="textwidget"
-                   value="${acctmgr.name}" /></label>
+                   value="${acctmgr.name}" />
+          </label>
         </div>
         <div class="field">
           <label>Email Address:<br />
             <input type="text" name="email" class="textwidget"
-                   value="${acctmgr.email}" /></label><br />
-            <label py:if="verify_enabled">
-              <input type="checkbox" name="email_approved" value="true"
-                     checked="${email_approved and 'checked' or None}" />
-              Skip new email verification</label>
+                   value="${acctmgr.email}" />
+          </label><br />
+          <label py:if="verify_enabled">
+            <input type="checkbox" name="email_approved" value="true"
+                   checked="${email_approved and 'checked' or None}" />
+            Skip new email verification
+          </label>
         </div>
-        <p class="help">Add a new user account or edit an existing one.</p>
-        <div class="buttons">
-          <input type="submit" name="add"
-                 py:if="create_enabled"
-                 value="${dgettext('acct_mgr', ' Add ')}" />
-          <input type="submit" name="change"
-                 value="${dgettext('acct_mgr', 'Apply changes')}" />
+        <div>
+          <p class="help">Add a new user account or edit an existing one.</p>
+          <div class="buttons">
+            <input type="submit" name="add" py:if="create_enabled"
+                   value="${dgettext('acct_mgr', ' Add ')}" />
+            <input type="submit" name="change"
+                   value="${dgettext('acct_mgr', 'Apply changes')}" />
+          </div>
         </div>
       </fieldset>
     </form>
@@ -168,12 +179,11 @@
                  title="Send another random password"
                  value="${dgettext('acct_mgr', 'Reset passwords')}" />
           <input type="submit" id="approve" name="approve"
-                 title="${dgettext('acct_mgr',
-                        'Approve pending registrations, ban/unban accounts')}"
+                 title="Approve pending registrations, ban/unban accounts"
                  value="${dgettext('acct_mgr', 'Toggle account approval')}" />
           <input type="submit" id="remove" name="remove"
                  py:if="delete_enabled"
-                 title="${dgettext('acct_mgr', 'Delete accounts')}"
+                 title="Delete accounts"
                  value="${dgettext('acct_mgr',
                                    'Remove selected items')}" />
           <input type="submit" id="cleanup" name="cleanup"

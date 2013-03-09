@@ -48,8 +48,72 @@ except ImportError:
                 pass
         return string
 
-from acct_mgr.model import delete_user, get_user_attribute
-from acct_mgr.model import prime_auth_session, set_user_attribute
+
+class IAccountChangeListener(Interface):
+    """An interface for receiving account change events."""
+
+    def user_created(user, password):
+        """New user (account) created."""
+
+    def user_id_changed(old_uid, new_uid):
+        """User id changed.
+
+        This is, when an authenticated Trac session's ID has been changed.
+        """
+
+    def user_password_changed(user, password):
+        """Password changed."""
+
+    def user_deleted(user):
+        """User and related account information have been deleted."""
+
+    def user_password_reset(user, email, password):
+        """User password has been reset.
+
+        Note, that this is no longer final, and the old password could still
+        be recovered before first successful login with the new password
+        by using the old password again.
+        """
+
+    def user_email_verification_requested(user, token):
+        """User verification has been requested."""
+
+    def user_registration_approval_required(user):
+        """Account registered, requiring administrative approval."""
+
+
+class IAccountRegistrationInspector(Interface):
+    """An interface for Components, that wish to participate in examining
+    requests for account creation.
+
+    The check method is called not only by RegistrationModule but when adding
+    new users from the user editor in AccountManagerAdminPanel too.
+    """
+
+    @property
+    def doc():
+        """Provide a descriptive, translatable string for web-UI presentation.
+
+        The class doc-string could be re-used here, but should be formatted
+        with care, because WikiFormatting is assumed to get a nice, uniform
+        rendering i.e. for the configuration admin panel.
+        """
+
+    def render_registration_fields(req, data):
+        """Emit one or multiple additional fields for registration form built.
+
+        Returns a dict containing a 'required' and/or 'optional' tuple of
+         * Genshi Fragment or valid XHTML markup for registration form
+         * modified or unchanged data object (used to render `register.html`)
+        If the return value is just a single tuple, its fragment or markup
+        will be inserted into the 'required' section.
+        """
+
+    def validate_registration(req):
+        """Check registration form input.
+
+        Returns a RegistrationError with error message, or None on success.
+        """
 
 
 class IPasswordStore(Interface):
@@ -98,66 +162,6 @@ class IPasswordStore(Interface):
         """Deletes the user account.
 
         Returns True, if the account existed and was deleted, False otherwise.
-        """
-
-
-class IAccountChangeListener(Interface):
-    """An interface for receiving account change events."""
-
-    def user_created(user, password):
-        """New user (account) created."""
-
-    def user_password_changed(user, password):
-        """Password changed."""
-
-    def user_deleted(user):
-        """User and related account information have been deleted."""
-
-    def user_password_reset(user, email, password):
-        """User password has been reset.
-
-        Note, that this is no longer final, and the old password could still
-        be recovered before first successful login with the new password.
-        """
-
-    def user_email_verification_requested(user, token):
-        """User verification has been requested."""
-
-    def user_registration_approval_required(user):
-        """Account registered, requiring administrative approval."""
-
-
-class IAccountRegistrationInspector(Interface):
-    """An interface for Components, that wish to participate in examining
-    requests for account creation.
-
-    The check method is called not only by RegistrationModule but when adding
-    new users from the user editor in AccountManagerAdminPanel too.
-    """
-
-    @property
-    def doc():
-        """Provide a descriptive, translatable string for web-UI presentation.
-
-        The class doc-string could be re-used here, but should be formatted
-        with care, because WikiFormatting is assumed to get a nice, uniform
-        rendering i.e. for the configuration admin panel.
-        """
-
-    def render_registration_fields(req, data):
-        """Emit one or multiple additional fields for registration form built.
-
-        Returns a dict containing a 'required' and/or 'optional' tuple of
-         * Genshi Fragment or valid XHTML markup for registration form
-         * modified or unchanged data object (used to render `register.html`)
-        If the return value is just a single tuple, its fragment or markup
-        will be inserted into the 'required' section.
-        """
-
-    def validate_registration(req):
-        """Check registration form input.
-
-        Returns a RegistrationError with error message, or None on success.
         """
 
 
@@ -296,6 +300,7 @@ class AccountManager(Component):
             del_method(user)
         # Delete session attributes, session and any custom permissions
         # set for the user.
+        from acct_mgr.model import delete_user
         delete_user(self.env, user)
         self._notify('deleted', user)
 
@@ -380,6 +385,7 @@ class AccountManager(Component):
         if self.set_password(username, req.args.get('password'), None, False):
             # Result of a successful account creation request is a made-up
             # authenticated session, that a new user can refer to later on.
+            from acct_mgr.model import prime_auth_session, set_user_attribute
             prime_auth_session(self.env, username)
             # Save attributes for the user with reference to that session ID.
             for attribute in ('name', 'email'):
@@ -389,6 +395,7 @@ class AccountManager(Component):
                 set_user_attribute(self.env, username, attribute, value)
 
     def _maybe_update_hash(self, user, password):
+        from acct_mgr.model import get_user_attribute, set_user_attribute
         if get_user_attribute(self.env, user, 1,
                               'password_refreshed', 1) == [0]:
             self.log.debug("Refresh password for user: %s" % user)

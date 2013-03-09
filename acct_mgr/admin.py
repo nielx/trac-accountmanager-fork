@@ -1036,8 +1036,8 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
 
         data = dict(_dgettext=dgettext, user=username)
 
-        stores = ExtensionOrder(components=self.acctmgr.stores,
-                                list=self.acctmgr.password_stores)
+        stores = ExtensionOrder(components=acctmgr.stores,
+                                list=acctmgr.password_stores)
         user_store = acctmgr.find_user_store(username)
         if not user_store is None:
             data['user_store'] = user_store.__class__.__name__
