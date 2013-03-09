@@ -600,6 +600,15 @@
             </p>
             <div class="field">
               <label>
+                <input type="checkbox" name="change_uid_enabled"
+                       checked="${change_uid_enabled and 'checked' or None}"
+                       title="${'[components] acct_mgr.model.*'}"
+                       value="true" />
+                Allow administrative user ID changes.
+              </label>
+            </div>
+            <div class="field">
+              <label>
                 <input type="checkbox" name="acctmgr_register"
                        checked="${acctmgr_register and 'checked' or None}"
                        title="${'[components] acct_mgr.register.RegistrationModule'}"
