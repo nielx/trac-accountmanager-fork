@@ -411,7 +411,13 @@ class AccountManager(Component):
     def _notify(self, mod, *args):
         mod = '_'.join(['user', mod])
         for listener in self.change_listeners:
-            getattr(listener, mod)(*args)
+            # Support divergent account change listener implementations too.
+            try:
+                getattr(listener, mod)(*args)
+            except AttributeError:
+                self.log.warn(
+                    'IAccountChangeListener %s does not support method %s'
+                     % (listener.__class__.__name__, mod))
 
     # IAccountChangeListener methods
 
