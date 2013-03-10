@@ -931,21 +931,26 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                 # Change user ID of existing user account.
                 results = self._do_change_uid(req)
                 if results:
-                    if 'failed' in results:
-                        add_warning(req, Markup(tag.ul(
-                                    [tag.li(_("%(realm)s: %(message)s",
-                                              realm=realm, message=message))
-                                     for realm, message in results.iteritems()
-                                     if not realm == 'failed'])))
+                    if 'error' in results:
+                        add_warning(req, _(
+                            "Update error in table %(table)s: %(message)s",
+                            table=results['error'].keys()[0][0],
+                            message=results['error'].values()[0]))
                     else:
-                        result_list = sorted([(r, m) for r, m in
+                        result_list = sorted([(k, v) for k, v in
                                               results.iteritems()])
                         add_notice(req, Markup(tag.ul(
-                                   [tag.li(ngettext(
-                                    "Table %(realm)s: %(message)s change",
-                                    "Table %(realm)s: %(message)s changes",
-                                    r[1], realm=r[0], message=r[1]))
-                                    for r in result_list]
+                                   [tag.li(Markup(ngettext(
+                                        "Table %(table)s column %(column)s"
+                                        "%(constraint)s: %(result)s change",
+                                        "Table %(table)s column %(column)s"
+                                        "%(constraint)s: %(result)s changes",
+                                        result[1], table=tag.b(result[0][0]),
+                                        column=tag.b(result[0][1]),
+                                        constraint=result[0][2] and
+                                        '(' + result[0][2] + ')' or '',
+                                        result=tag.b(result[1]))))
+                                    for result in result_list]
                                    )))
             elif req.args.get('change'):
                 # Change attributes and or password of existing user account.
@@ -1260,10 +1265,10 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                 del(req.args['name'])
             return
         # Create the new user ID.
-        if acctmgr.set_password(new_uid, '', None, False):
+        if acctmgr.set_password(new_uid, '', None, False) is not None:
             results = change_uid(self.env, old_uid, new_uid,
                                  self.uid_changers)
-            if 'failed' in results:
+            if 'error' in results:
                 # Rollback all changes including previously created account.
                 acctmgr.delete_user(new_uid)
                 if not email and old_email:
@@ -1292,7 +1297,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                 acctmgr.delete_user(old_uid)
                 # Notify listeners about successful ID change.
                 acctmgr._notify('id_changed', old_uid, new_uid)
-        return results
+            return results
 
     def _do_db_cleanup(self, req):
         if req.perm.has_permission('ACCTMGR_ADMIN'):

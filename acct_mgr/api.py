@@ -515,10 +515,12 @@ class GenericUserIdChanger(Component):
 
     abstract = True
 
-    def msg(self, old_uid, new_uid, realm, result):
-        return _("Replacing user ID '%(old_uid)s' with '%(new_uid)s' for "
-                 "%(realm)s %(result)s", old_uid=old_uid, new_uid=new_uid,
-                 realm=realm, result=result)
+    def msg(self, old_uid, new_uid, table, column, constraint=None, result=0):
+        if not constraint:
+            return ("Replacing user ID '%s' with '%s' for %s %s: %s"
+                    % (old_uid, new_uid, table, column, result))
+        return ("Replacing user ID '%s' with '%s' for %s %s (%s): %s"
+                % (old_uid, new_uid, table, column, constraint, result))
 
     # IUserIdChanger method
     def replace(self, old_uid, new_uid, db):
