@@ -10,6 +10,8 @@
 
 import re
 
+from trac.core import TracError
+from trac.db.api import DatabaseManager
 from trac.util.text import to_unicode
 
 from acct_mgr.api import GenericUserIdChanger
@@ -23,6 +25,43 @@ _USER_KEYS = {
     }
 
 
+def _db_exc(env):
+    """Return an object (typically a module) containing all the
+    backend-specific exception types as attributes, named
+    according to the Python Database API
+    (http://www.python.org/dev/peps/pep-0249/).
+
+    This is derived from code found in trac.env.Environment.db_exc (Trac 1.0).
+    """
+    try:
+        module = DatabaseManager(env).get_exceptions()
+    except AttributeError:
+        module = None
+        if dburi.startswith('sqlite:'):
+            try:
+                import pysqlite2.dbapi2 as sqlite
+                module = sqlite
+            except ImportError:
+                try:
+                    import sqlite3 as sqlite
+                    module = sqlite
+                except ImportError:
+                    pass
+        elif dburi.startswith('postgres:'):
+            try:
+                import psycopg2 as psycopg
+                module = psycopg
+            except ImportError:
+                pass
+        elif dburi.startswith('mysql:'):
+            try:
+                import MySQLdb
+                module = MySQLdb
+            except ImportError:
+                pass
+        # Do not need more alternatives, because otherwise we wont get here.
+    return module
+
 def _get_cc_list(cc_value):
     """Parse cc list.
 
@@ -34,144 +73,131 @@ def _get_cc_list(cc_value):
             cclist.append(cc)
     return cclist
 
+def _get_db_exc(env):
+    return (_db_exc(env).InternalError, _db_exc(env).OperationalError,
+            _db_exc(env).ProgrammingError)
+
 
 class PrimitiveUserIdChanger(GenericUserIdChanger):
     """Handle the simple owner-column replacement case."""
 
     abstract = True
 
-    field = 'author'
+    column = 'author'
     table = None
 
     # IUserIdChanger method
     def replace(self, old_uid, new_uid, db):
         result = 0
-        if not self.table:
-            self.table = self.realm
 
         cursor = db.cursor()
         cursor.execute("SELECT COUNT(*) FROM %s WHERE %s=%%s"
-                       % (self.table, self.field), (old_uid,))
+                       % (self.table, self.column), (old_uid,))
         exists = cursor.fetchone()
         if exists[0]:
             try:
                 cursor.execute("UPDATE %s SET %s=%%s WHERE %s=%%s"
-                               % (self.table, self.field, self.field),
+                               % (self.table, self.column, self.column),
                                (new_uid, old_uid))
                 result = int(exists[0])
                 self.log.debug(self.msg(old_uid, new_uid, self.table,
-                               result='%s time(s)' % result))
-            except Exception, e:
+                               self.column, result='%s time(s)' % result))
+            except (_get_db_exc(self.env)), e:
                 result = exception_to_unicode(e)
                 self.log.debug(self.msg(old_uid, new_uid, self.table,
-                               result='failed: %s' %
-                               exception_to_unicode(e, traceback=True)))
-        return {'%s %s' % (self.table, self.field): result}
+                               self.column, result='failed: %s'
+                               % exception_to_unicode(e, traceback=True)))
+                return dict(error={(self.table, self.column, None): result})
+        return {(self.table, self.column, None): result}
 
 
-class UniqueUserIdChanger(GenericUserIdChanger):
+class UniqueUserIdChanger(PrimitiveUserIdChanger):
     """Handle columns, where user IDs are an unique key or part of it."""
 
     abstract = True
 
-    field = 'sid'
-    table = None
+    column = 'sid'
 
     # IUserIdChanger method
     def replace(self, old_uid, new_uid, db):
-        result = 0
-        if not self.table:
-            self.table = self.realm
-
         cursor = db.cursor()
         cursor.execute("DELETE FROM %s WHERE %s=%%s"
-                       % (self.table, self.field), (new_uid,))
-
-        cursor.execute("SELECT COUNT(*) FROM %s WHERE %s=%%s"
-                       % (self.table, self.field), (old_uid,))
-        exists = cursor.fetchone()
-        if exists[0]:
-            try:
-                cursor.execute("UPDATE %s SET %s=%%s WHERE %s=%%s"
-                               % (self.table, self.field, self.field),
-                               (new_uid, old_uid))
-                result = int(exists[0])
-                self.log.debug(self.msg(old_uid, new_uid, self.table,
-                               result='%s time(s)' % result))
-            except Exception, e:
-                result = exception_to_unicode(e)
-                self.log.debug(self.msg(old_uid, new_uid, self.table,
-                               result='failed: %s' %
-                               exception_to_unicode(e, traceback=True)))
-        return {'%s %s' % (self.table, self.field): result}
-
+                       % (self.table, self.column), (new_uid,))
+        return super(UniqueUserIdChanger,
+                     self).replace(old_uid, new_uid, db)
 
 class AttachmentUserIdChanger(PrimitiveUserIdChanger):
     """Change user IDs in attachments."""
 
-    realm = 'attachment'
+    table = 'attachment'
 
 
 class AuthCookieUserIdChanger(UniqueUserIdChanger):
     """Change user IDs for authentication cookies."""
 
-    field = 'name'
-    realm = 'auth_cookie'
+    column = 'name'
+    table = 'auth_cookie'
 
 
 class ComponentUserIdChanger(PrimitiveUserIdChanger):
     """Change user IDs in components."""
 
-    field = 'owner'
-    realm = 'component'
+    column = 'owner'
+    table = 'component'
 
 
 class PermissionUserIdChanger(UniqueUserIdChanger):
     """Change user IDs for permissions."""
 
-    field = 'username'
-    realm = 'permission'
+    column = 'username'
+    table = 'permission'
 
 
 class ReportUserIdChanger(PrimitiveUserIdChanger):
     """Change user IDs in reports."""
 
-    realm = 'report'
+    table = 'report'
 
 
 class RevisionUserIdChanger(PrimitiveUserIdChanger):
     """Change user IDs in changesets."""
 
-    realm = 'revision'
+    table = 'revision'
 
 
 class SessionAttributesUserIdChanger(UniqueUserIdChanger):
     """Change user IDs for session attributes."""
 
-    realm = 'session_attribute'
+    table = 'session_attribute'
 
 
 class TicketUserIdChanger(PrimitiveUserIdChanger):
     """Change all user IDs in tickets."""
 
-    field = 'owner'
-    realm = 'ticket'
+    table = 'ticket'
 
     # IUserIdChanger method
     def replace(self, old_uid, new_uid, db):
-        results = dict()
+        results=dict()
 
-        results.update(super(TicketUserIdChanger,
-                             self).replace(old_uid, new_uid, db))
-        self.field = 'reporter'
-        results.update(super(TicketUserIdChanger,
-                             self).replace(old_uid, new_uid, db))
+        self.column = 'owner'
+        result = super(TicketUserIdChanger,
+                       self).replace(old_uid, new_uid, db)
+        if 'error' in result:
+            return result
+        results.update(result)
 
-        # Replace user ID in Cc ticket field.
+        self.column = 'reporter'
+        result = super(TicketUserIdChanger,
+                       self).replace(old_uid, new_uid, db)
+        if 'error' in result:
+            return result
+        results.update(result)
+
+        # Replace user ID in Cc ticket column.
         cursor = db.cursor()
         cursor.execute("SELECT id,cc FROM ticket WHERE cc %s" % db.like(),
                        ('%' + db.like_escape(old_uid) + '%',))
-        realm = 'ticket cc'
         result = 0
         for row in cursor.fetchall():
             cc = _get_cc_list(row[1])
@@ -181,31 +207,36 @@ class TicketUserIdChanger(PrimitiveUserIdChanger):
                     cursor.execute("UPDATE ticket SET cc=%s WHERE id=%s",
                                    (', '.join(cc), int(row[0])))
                     result += 1
-                except Exception, e:
+                except (_get_db_exc(self.env)), e:
                     result = exception_to_unicode(e)
-                    self.log.debug(self.msg(old_uid, new_uid, realm,
-                                   realm=realm, result='failed: %s' %
-                                   exception_to_unicode(e, traceback=True)))
-                    return results.update(dict(failed=result))
-        self.log.debug(self.msg(old_uid, new_uid, realm,
+                    self.log.debug(self.msg(old_uid, new_uid, self.table, 'cc',
+                                   result='failed: %s'
+                                   % exception_to_unicode(e, traceback=True)))
+                    return dict(error={(self.table, 'cc', None): result})
+        self.log.debug(self.msg(old_uid, new_uid, self.table, 'cc',
                                 result='%s time(s)' % result))
-        results.update({realm: result})
+        results.update({(self.table, 'cc', None): result})
 
-        self.field = 'author'
-        self.table = 'ticket_change'
-        results.update(super(TicketUserIdChanger,
-                             self).replace(old_uid, new_uid, db))
+        table = 'ticket_change'
+        self.column = 'author'
+        self.table = table
+        result = super(TicketUserIdChanger,
+                       self).replace(old_uid, new_uid, db)
+        if 'error' in result:
+            return result
+        results.update(result)
+
+        constraint = "field='owner'|'reporter'"
         cursor = db.cursor()
-        for field in ('oldvalue', 'newvalue'):
+        for column in ('oldvalue', 'newvalue'):
             cursor.execute("""
                 SELECT COUNT(*)
                   FROM %s
                  WHERE %s=%%s
                    AND (field='owner'
                         OR field='reporter')
-            """ % (self.table, field), (old_uid,))
+            """ % (table, column), (old_uid,))
             exists = cursor.fetchone()
-            realm = '%s: %s = owner OR reporter' % (self.table, field)
             result = int(exists[0])
             if exists[0]:
                 try:
@@ -215,27 +246,30 @@ class TicketUserIdChanger(PrimitiveUserIdChanger):
                          WHERE %s=%%s
                            AND (field='owner'
                                 OR field='reporter')
-                    """ % (self.table, field, field), (new_uid, old_uid))
-                    self.log.debug(self.msg(old_uid, new_uid, realm,
-                                   result='%s time(s)' % result))
-                except Exception, e:
+                    """ % (table, column, column), (new_uid, old_uid))
+                except (_get_db_exc(self.env)), e:
                     result = exception_to_unicode(e)
-                    self.log.debug(self.msg(old_uid, new_uid, realm,
-                                   realm=realm, result='failed: %s' %
-                                   exception_to_unicode(e, traceback=True)))
-            results.update({realm: result})
+                    self.log.debug(
+                        self.msg(old_uid, new_uid, table, column,
+                                 constraint, result='failed: %s'
+                                 % exception_to_unicode(e, traceback=True)))
+                    return dict(error={(self.table, column,
+                                        constraint): result})
+            self.log.debug(self.msg(old_uid, new_uid, table, column,
+                                    constraint, result='%s time(s)' % result))
+            results.update({(table, column, constraint): result})
 
         # Replace user ID in Cc ticket field changes too.
-        for field in ('oldvalue', 'newvalue'):
+        constraint = "field='cc'"
+        for column in ('oldvalue', 'newvalue'):
             cursor.execute("""
                 SELECT ticket,time,%s
                   FROM %s
                  WHERE field='cc'
                    AND %s %s
-            """ % (field, self.table, field, db.like()),
-            ('%' + db.like_escape(old_uid) + '%',))
+            """ % (column, table, column, db.like()),
+                ('%' + db.like_escape(old_uid) + '%',))
 
-            realm = '%s: %s = cc' % (self.table, field)
             result = 0
             for row in cursor.fetchall():
                 cc = _get_cc_list(row[2])
@@ -247,26 +281,28 @@ class TicketUserIdChanger(PrimitiveUserIdChanger):
                                SET %s=%%s
                              WHERE ticket=%%s
                                AND time=%%s
-                        """ % (self.table, field),
-                        (', '.join(cc), int(row[0]), int(row[1])))
+                        """ % (table, column),
+                            (', '.join(cc), int(row[0]), int(row[1])))
                         result += 1
-                    except Exception, e:
+                    except (_get_db_exc(self.env)), e:
                         result = exception_to_unicode(e)
-                        self.log.debug(self.msg(old_uid, new_uid, realm,
-                                       realm=realm, result='failed: %s' %
-                                       exception_to_unicode(e, traceback=True)
+                        self.log.debug(
+                            self.msg(old_uid, new_uid, table, column,
+                                     constraint, result='failed: %s'
+                                     % exception_to_unicode(e, traceback=True)
                         ))
-                        return results.update(dict(failed=result))
-            self.log.debug(self.msg(old_uid, new_uid, realm,
-                                    result='%s time(s)' % result))
-            results.update({realm: result})
+                        return dict(error={(self.table, column,
+                                            constraint): result})
+            self.log.debug(self.msg(old_uid, new_uid, table, column,
+                                    constraint, result='%s time(s)' % result))
+            results.update({(table, column, constraint): result})
         return results
 
 
 class WikiUserIdChanger(PrimitiveUserIdChanger):
     """Change user IDs in wiki pages."""
 
-    realm = 'wiki'
+    table = 'wiki'
 
 
 # Public functions
@@ -354,10 +390,19 @@ def change_uid(env, old_uid, new_uid, changers):
         """, (new_uid, old_uid))
     results = dict()
     for changer in changers:
-        results.update(changer.replace(old_uid, new_uid, db))
+        result = changer.replace(old_uid, new_uid, db)
+        if 'error' in result:
+            # Explicit transaction termination is required here to do clean-up
+            # before leaving this context.
+            db.rollback()
+            db = _get_db(env)
+            cursor = db.cursor()
+            cursor.execute(sql, (new_uid,))
+            return result
+        results.update(result)
     # Finally delete old user ID reference after moving everything else.
     cursor.execute(sql, (old_uid,))
-    results.update(dict(session=1))
+    results.update({('session', 'sid', None): 1})
     db.commit()
     return results
 
