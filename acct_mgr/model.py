@@ -8,6 +8,8 @@
 #
 # Author: Steffen Hoffmann <hoff.st@web.de>
 
+import re
+
 from trac.util.text import to_unicode
 
 from acct_mgr.api import GenericUserIdChanger
@@ -19,6 +21,18 @@ _USER_KEYS = {
     'auth_cookie': 'name',
     'permission': 'username',
     }
+
+
+def _get_cc_list(cc_value):
+    """Parse cc list.
+
+    Derived from from trac.ticket.model._fixup_cc_list (Trac-1.0).
+    """
+    cclist = []
+    for cc in re.split(r'[;,\s]+', cc_value):
+        if cc and cc not in cclist:
+            cclist.append(cc)
+    return cclist
 
 
 class PrimitiveUserIdChanger(GenericUserIdChanger):
@@ -152,6 +166,31 @@ class TicketUserIdChanger(PrimitiveUserIdChanger):
         self.field = 'reporter'
         results.update(super(TicketUserIdChanger,
                              self).replace(old_uid, new_uid, db))
+
+        # Replace user ID in Cc ticket field.
+        cursor = db.cursor()
+        cursor.execute("SELECT id,cc FROM ticket WHERE cc %s" % db.like(),
+                       ('%' + db.like_escape(old_uid) + '%',))
+        realm = 'ticket cc'
+        result = 0
+        for row in cursor.fetchall():
+            cc = _get_cc_list(row[1])
+            for i in [i for i,r in enumerate(cc) if r == old_uid]:
+                cc[i] = new_uid
+                try:
+                    cursor.execute("UPDATE ticket SET cc=%s WHERE id=%s",
+                                   (', '.join(cc), int(row[0])))
+                    result += 1
+                except Exception, e:
+                    result = exception_to_unicode(e)
+                    self.log.debug(self.msg(old_uid, new_uid, realm,
+                                   realm=realm, result='failed: %s' %
+                                   exception_to_unicode(e, traceback=True)))
+                    return results.update(dict(failed=result))
+        self.log.debug(self.msg(old_uid, new_uid, realm,
+                                result='%s time(s)' % result))
+        results.update({realm: result})
+
         self.field = 'author'
         self.table = 'ticket_change'
         results.update(super(TicketUserIdChanger,
@@ -166,9 +205,9 @@ class TicketUserIdChanger(PrimitiveUserIdChanger):
                         OR field='reporter')
             """ % (self.table, field), (old_uid,))
             exists = cursor.fetchone()
+            realm = '%s: %s = owner OR reporter' % (self.table, field)
+            result = int(exists[0])
             if exists[0]:
-                realm = 'ticket_change: %s = owner OR reporter' % field
-                result = int(exists[0])
                 try:
                     cursor.execute("""
                         UPDATE %s
@@ -184,7 +223,43 @@ class TicketUserIdChanger(PrimitiveUserIdChanger):
                     self.log.debug(self.msg(old_uid, new_uid, realm,
                                    realm=realm, result='failed: %s' %
                                    exception_to_unicode(e, traceback=True)))
-                results.update({realm: result})
+            results.update({realm: result})
+
+        # Replace user ID in Cc ticket field changes too.
+        for field in ('oldvalue', 'newvalue'):
+            cursor.execute("""
+                SELECT ticket,time,%s
+                  FROM %s
+                 WHERE field='cc'
+                   AND %s %s
+            """ % (field, self.table, field, db.like()),
+            ('%' + db.like_escape(old_uid) + '%',))
+
+            realm = '%s: %s = cc' % (self.table, field)
+            result = 0
+            for row in cursor.fetchall():
+                cc = _get_cc_list(row[2])
+                for i in [i for i,r in enumerate(cc) if r == old_uid]:
+                    cc[i] = new_uid
+                    try:
+                        cursor.execute("""
+                            UPDATE %s
+                               SET %s=%%s
+                             WHERE ticket=%%s
+                               AND time=%%s
+                        """ % (self.table, field),
+                        (', '.join(cc), int(row[0]), int(row[1])))
+                        result += 1
+                    except Exception, e:
+                        result = exception_to_unicode(e)
+                        self.log.debug(self.msg(old_uid, new_uid, realm,
+                                       realm=realm, result='failed: %s' %
+                                       exception_to_unicode(e, traceback=True)
+                        ))
+                        return results.update(dict(failed=result))
+            self.log.debug(self.msg(old_uid, new_uid, realm,
+                                    result='%s time(s)' % result))
+            results.update({realm: result})
         return results
 
 
