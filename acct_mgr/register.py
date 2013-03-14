@@ -26,10 +26,11 @@ from trac.web.main import IRequestHandler, IRequestFilter
 
 from acct_mgr.api import AccountManager, CommonTemplateProvider
 from acct_mgr.api import IAccountRegistrationInspector
-from acct_mgr.api import _, N_, dgettext, gettext, tag_
+from acct_mgr.api import _, N_, cleandoc_, dgettext, gettext, tag_
+from acct_mgr.compat import is_enabled
 from acct_mgr.model import email_associated, get_user_attribute
 from acct_mgr.model import set_user_attribute
-from acct_mgr.util import containsAny, is_enabled
+from acct_mgr.util import containsAny
 
 
 class RegistrationError(TracError):
@@ -51,14 +52,11 @@ class RegistrationError(TracError):
 
 class GenericRegistrationInspector(Component):
     """Generic check class, great for creating simple checks quickly."""
+    _description = ''
 
     implements(IAccountRegistrationInspector)
 
     abstract = True
-
-    @property
-    def doc(self):
-        return N_(self.__class__.__doc__)
 
     def render_registration_fields(self, req, data):
         """Emit one or multiple additional fields for registration form built.
@@ -84,17 +82,18 @@ class GenericRegistrationInspector(Component):
 
 
 class BasicCheck(GenericRegistrationInspector):
+    _description = cleandoc_(
     """A collection of basic checks.
 
-This includes checking for
- * emptiness (no user input for username and/or password)
- * some blacklisted username characters
- * upper-cased usernames (reserved for Trac permission actions)
- * some reserved usernames
- * a username duplicate in configured password stores
+    This includes checking for
+     * emptiness (no user input for username and/or password)
+     * some blacklisted username characters
+     * upper-cased usernames (reserved for Trac permission actions)
+     * some reserved usernames
+     * a username duplicate in configured password stores
 
-''This check is bypassed for requests regarding user's own preferences.''
-"""
+    ''This check is bypassed for requests regarding user's own preferences.''
+    """)
 
     def validate_registration(self, req):
         if req.path_info == '/prefs':
@@ -161,10 +160,11 @@ This includes checking for
 
 
 class BotTrapCheck(GenericRegistrationInspector):
+    _description = cleandoc_(
     """A collection of simple bot checks.
 
-''This check is bypassed for requests by an authenticated user.''
-"""
+    ''This check is bypassed for requests by an authenticated user.''
+    """)
 
     reg_basic_token = Option('account-manager', 'register_basic_token', '',
         doc="A string required as input to pass verification.")
@@ -211,10 +211,11 @@ class BotTrapCheck(GenericRegistrationInspector):
 
 
 class EmailCheck(GenericRegistrationInspector):
+    _description = cleandoc_(
     """A collection of checks for email addresses.
 
-''This check is bypassed, if account verification is disabled.''
-"""
+    ''This check is bypassed, if account verification is disabled.''
+    """)
 
     def render_registration_fields(self, req, data):
         """Add an email address text input field to the registration form."""
@@ -272,11 +273,12 @@ class EmailCheck(GenericRegistrationInspector):
 
 
 class RegExpCheck(GenericRegistrationInspector):
+    _description = cleandoc_(
     """A collection of checks based on regular expressions.
 
-''It depends on !EmailCheck being enabled too for using it's input field.
-Likewise email checking is bypassed, if account verification is disabled.''
-"""
+    ''It depends on !EmailCheck being enabled too for using it's input field.
+    Likewise email checking is bypassed, if account verification is disabled.''
+    """)
 
     username_regexp = Option('account-manager', 'username_regexp',
         r'(?i)^[A-Z0-9.\-_]{5,}$',
@@ -311,10 +313,11 @@ Likewise email checking is bypassed, if account verification is disabled.''
 
 
 class UsernamePermCheck(GenericRegistrationInspector):
+    _description = cleandoc_(
     """Check for usernames referenced in the permission system.
 
-''This check is bypassed for requests by an authenticated user.''
-"""
+    ''This check is bypassed for requests by an authenticated user.''
+    """)
 
     def validate_registration(self, req):
         if req.authname and req.authname != 'anonymous':

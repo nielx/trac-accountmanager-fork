@@ -38,9 +38,8 @@ class DisabledCheck(BadCheck):
 
 
 class DummyCheck(GenericRegistrationInspector):
-    @property
-    def doc(self):
-        return "A dummy check for unit-testing the interface."
+    _description = \
+    """A dummy check for unit-testing the interface."""
 
     def validate_registration(self, req):
         if req.args.get('username') == 'dummy':

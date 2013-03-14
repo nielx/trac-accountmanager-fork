@@ -32,11 +32,12 @@ from trac.web.chrome import add_stylesheet, add_warning
 
 from acct_mgr.api import AccountManager, CommonTemplateProvider
 from acct_mgr.api import _, dgettext, ngettext, tag_
+from acct_mgr.compat import is_enabled
 from acct_mgr.db import SessionStore
 from acct_mgr.guard import AccountGuard
 from acct_mgr.model import set_user_attribute, user_known
 from acct_mgr.register import EmailVerificationModule, RegistrationModule
-from acct_mgr.util import if_enabled, is_enabled
+from acct_mgr.util import if_enabled
 
 
 class ResetPwStore(SessionStore):
