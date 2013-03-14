@@ -19,8 +19,8 @@ from trac.wiki.formatter import format_to_oneliner
 
 from acct_mgr.admin import fetch_user_data
 from acct_mgr.api import AccountManager, CommonTemplateProvider, _
+from acct_mgr.compat import get_pretty_dateinfo
 from acct_mgr.guard import AccountGuard
-from acct_mgr.util import get_pretty_dateinfo
 
 
 class AccountManagerWikiMacros(CommonTemplateProvider):

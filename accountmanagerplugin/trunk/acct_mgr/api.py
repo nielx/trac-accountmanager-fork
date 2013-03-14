@@ -48,6 +48,9 @@ except ImportError:
                 pass
         return string
 
+from acct_mgr.compat import cleandoc
+cleandoc_ = cleandoc
+
 
 class IAccountChangeListener(Interface):
     """An interface for receiving account change events."""

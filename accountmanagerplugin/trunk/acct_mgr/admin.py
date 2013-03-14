@@ -29,14 +29,15 @@ from trac.wiki.formatter import format_to_html
 from acct_mgr.api import AccountManager, CommonTemplateProvider
 from acct_mgr.api import IUserIdChanger
 from acct_mgr.api import _, N_, dgettext, gettext, ngettext, tag_
+from acct_mgr.compat import as_int, is_enabled, exception_to_unicode
+from acct_mgr.compat import get_pretty_dateinfo
 from acct_mgr.guard import AccountGuard
 from acct_mgr.model import change_uid, del_user_attribute, email_verified
 from acct_mgr.model import get_user_attribute, last_seen, set_user_attribute
 from acct_mgr.register import EmailVerificationModule, RegistrationError
 from acct_mgr.register import RegistrationModule
 from acct_mgr.web_ui import AccountModule, LoginModule
-from acct_mgr.util import as_int, is_enabled, exception_to_unicode
-from acct_mgr.util import get_pretty_dateinfo, pretty_precise_timedelta
+from acct_mgr.util import pretty_precise_timedelta
 
 
 def fetch_user_data(env, req, filters=None):
@@ -695,7 +696,8 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
             # Fallback for check components not derived from
             # acct_mgr.register.GenericRegistrationInspector.
             try:
-                doc = gettext(check.doc)
+                if check._description:
+                    doc = gettext(check._description)
             except AttributeError:
                 doc = check.__class__.__doc__
             check_list.append({
@@ -818,7 +820,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                         roundup_defaults[section] = list((option[0],))
         data.update(dict(roundup=roundup, roundup_defaults=roundup_defaults))
 
-        add_script(req, 'acct_mgr/acctmgr_admin.js')
+        add_script(req, 'acct_mgr/js/acctmgr_admin.js')
         add_stylesheet(req, 'acct_mgr/acctmgr.css')
         add_stylesheet(req, 'common/css/report.css')
         return 'admin_accountsconfig.html', data

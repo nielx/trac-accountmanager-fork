@@ -15,8 +15,8 @@ from trac.db.api import DatabaseManager
 from trac.util.text import to_unicode
 
 from acct_mgr.api import GenericUserIdChanger
+from acct_mgr.compat import as_int, exception_to_unicode
 from acct_mgr.hashlib_compat import md5
-from acct_mgr.util import as_int, exception_to_unicode
 
 
 _USER_KEYS = {
