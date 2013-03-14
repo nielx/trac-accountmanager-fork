@@ -91,16 +91,12 @@ class IAccountRegistrationInspector(Interface):
 
     The check method is called not only by RegistrationModule but when adding
     new users from the user editor in AccountManagerAdminPanel too.
+
+    Provide a descriptive, translatable string for web-UI presentation as
+    '_description' attribute using the 'cleandoc_' from acct_mgr.api for
+    trimming excessive whitespace.  WikiFormatting is assumed to get a nice,
+    uniform rendering i.e. for the configuration admin panel.
     """
-
-    @property
-    def doc():
-        """Provide a descriptive, translatable string for web-UI presentation.
-
-        The class doc-string could be re-used here, but should be formatted
-        with care, because WikiFormatting is assumed to get a nice, uniform
-        rendering i.e. for the configuration admin panel.
-        """
 
     def render_registration_fields(req, data):
         """Emit one or multiple additional fields for registration form built.
