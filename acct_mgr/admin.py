@@ -27,8 +27,8 @@ from trac.web.chrome import add_script, add_stylesheet, add_warning
 from trac.wiki.formatter import format_to_html
 
 from acct_mgr.api import AccountManager, CommonTemplateProvider
-from acct_mgr.api import IUserIdChanger
-from acct_mgr.api import _, N_, cleandoc_, dgettext, gettext, ngettext, tag_
+from acct_mgr.api import IUserIdChanger, cleandoc
+from acct_mgr.api import _, N_, dgettext, gettext, ngettext, tag_
 from acct_mgr.compat import as_int, is_enabled, exception_to_unicode
 from acct_mgr.compat import get_pretty_dateinfo
 from acct_mgr.guard import AccountGuard
@@ -583,7 +583,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
             data.update({
                 'init_store': 'db',
                 'init_store_hint': dict(
-                    db = cleandoc_("""
+                    db = cleandoc("""
                         [account-manager]
                         db_htdigest_realm =
                         password_store = SessionStore
@@ -592,7 +592,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                         acct_mgr.db.SessionStore = enabled
                         acct_mgr.pwhash.HtDigestHashMethod = enabled
                         """),
-                    htdigest = cleandoc_("""
+                    htdigest = cleandoc("""
                         [account-manager]
                         htdigest_file = trac.htdigest
                         htdigest_realm =
@@ -601,7 +601,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                         [components]
                         acct_mgr.htfile.HtDigestStore = enabled
                         """),
-                    htpasswd = cleandoc_("""
+                    htpasswd = cleandoc("""
                         [account-manager]
                         htpasswd_file = trac.htpasswd
                         htpasswd_hash_type = md5
@@ -610,7 +610,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                         [components]
                         acct_mgr.htfile.HtPasswdStore = enabled
                         """),
-                    svn_file = cleandoc_("""
+                    svn_file = cleandoc("""
                         [account-manager]
                         password_file =
                         password_store = SvnServePasswordStore
@@ -618,7 +618,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                         [components]
                         acct_mgr.svnserve.SvnServePasswordStore = enabled
                         """),
-                    http = cleandoc_("""
+                    http = cleandoc("""
                         [account-manager]
                         auth_url =
                         password_store = HttpAuthStore
@@ -626,7 +626,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                         [components]
                         acct_mgr.http.HttpAuthStore = enabled
                         """),
-                    etc = cleandoc_("""
+                    etc = cleandoc("""
                         [account-manager]
                         password_store =
 

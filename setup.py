@@ -9,16 +9,25 @@ from setuptools import setup
 
 extra = {}
 
+has_cmdclass = True
 has_trac_extract_python = False
 try:
-    from trac.util.dist import get_l10n_cmdclass
+    from trac.dist import get_l10n_cmdclass
     try:
-        from trac.dist import get_l10n_trac_cmdclass
-        cmdclass = get_l10n_trac_cmdclass()
+        from trac.dist import extract_python
         has_trac_extract_python = True
     except ImportError:
-        # Trac < 1.0, using other compatibility code here.
-        cmdclass = get_l10n_cmdclass()
+        # Trac < 1.0, using compatibility code here.
+        pass
+except ImportError:
+    # Trac < 0.12.2, next is trying the old location.
+    try:
+        from trac.util.dist import get_l10n_cmdclass
+    except ImportError:
+        # Trac < 0.12, i18n is implemented to be optional here.
+        has_cmdclass = False
+if has_cmdclass:
+    cmdclass = get_l10n_cmdclass()
     if cmdclass:
         extra['cmdclass'] = cmdclass
         extractors = [
@@ -33,9 +42,6 @@ try:
         extra['message_extractors'] = {
             'acct_mgr': extractors,
         }
-# Trac < 0.12, i18n is implemented to be optional here.
-except ImportError:
-    pass
 
 
 setup(
