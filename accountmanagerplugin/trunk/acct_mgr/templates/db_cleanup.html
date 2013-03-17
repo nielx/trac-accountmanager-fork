@@ -12,39 +12,12 @@
         dgettext = _dgettext ?>
   <head>
     <title>Accounts: Cleanup</title>
-    <py:if test="attr">
-        <meta name="startIndex" content="${attr.span[0] + 1}"/>
-        <meta name="totalResults" content="$attr.num_items"/>
-        <meta name="itemsPerPage" content="$attr.max_per_page"/>
-    </py:if>
   </head>
 
   <body>
     <h2>Accounts: Cleanup</h2>
-
-    <div class="notice system-message" py:if="result">
-      <p>${result}</p>
-    </div>
-    <form id="prefs" method="get" action="">
-      <div>
-        <label i18n:msg="">
-          Max accounts per page
-          <input type="text" size="3" name="max_per_page"
-                 value="${attr.max_per_page}" />
-        </label>
-      </div>
-      <div class="buttons">
-        <input type="submit" value="${dgettext('acct_mgr', 'Update')}" />
-      </div>
-    </form>
-
     <form id="cleanup" class="mod" method="post">
       <div id="attributelist">
-        <!--! TRANSLATOR: Position in paginated page stack (# of # total) -->
-        <p py:if="attr" i18n:msg="slice">
-          Accounts (${attr.displayed_items()})
-        </p>
-        <xi:include py:with="paginator = attr" href="page_index.html" />
         <table class="listing" id="attributelist">
           <thead>
             <tr>
@@ -59,6 +32,7 @@
             </tr>
           </thead>
           <tbody>
+            <!--! 
             <tr class="important">
               <td colspan="4">Not Authenticated Accounts</td>
             </tr>
@@ -86,11 +60,12 @@
                 </py:if>
               </py:for>
             </py:for>
+            //-->
             <tr class="suggestions">
               <td colspan="4">Authenticated Accounts</td>
             </tr>
-            <py:for each="account, states in attr">
-              <py:if test="1 in states['id'].keys()">
+            <py:for each="account, states in attr.iteritems()">
+              <py:if test="True">
                 <tr>
                   <th><input type="checkbox" name="sel"
                              value="${states['id'][1]}" />
@@ -113,11 +88,12 @@
             </py:for>
           </tbody>
         </table>
-        <xi:include py:with="paginator = attr" href="page_index.html" />
       </div>
       <div class="buttons">
         <input type="hidden" name="max_per_page"
-               value="${attr.max_per_page}" />
+               value="$max_per_page" />
+        <input type="hidden" name="accounts"
+               value="${','.join(accounts)}" />
         <input type="submit" name="purge"
                value="${dgettext('acct_mgr', 'Remove selected entries')}" />
         <input type="submit" name="unselect"

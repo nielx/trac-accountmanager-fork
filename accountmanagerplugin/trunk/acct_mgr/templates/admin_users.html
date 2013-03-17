@@ -74,6 +74,8 @@
 
     <!--! Account property editor -->
     <form id="account-editor" class="addnew" method="post">
+      <input type="hidden" name="max_per_page"
+             value="${accounts and accounts.max_per_page or None}" />
       <fieldset>
         <legend>Add/Edit Account:</legend>
         <div>
@@ -153,9 +155,22 @@
     </div>
 
     <div py:otherwise="">
-      <h3>Accounts <span class="trac-count">(${len(accounts)})</span></h3>
+      <!--! TRANSLATOR: Position (# to # of #) or total, if not paginating -->
+      <h3>Accounts <span class="trac-count">($displayed_items)</span></h3>
+      <form id="prefs" method="get" action="">
+        <label i18n:msg="">
+          Max accounts per page
+          <input type="text" size="3" name="max_per_page"
+                 value="${accounts.max_per_page}" />
+        </label>
+        <div class="buttons">
+          <input type="submit" value="${dgettext('acct_mgr', 'Update')}" />
+        </div>
+      </form>
 
-      <form id="query" method="get" action="">
+      <form id="filter" method="get" action="">
+        <input type="hidden" name="max_per_page"
+               value="${accounts.max_per_page}" />
         <fieldset id="filters">
           <legend class="foldable">Filters</legend>
           <table summary="Account filters">
@@ -177,13 +192,14 @@
       </form>
 
       <form id="manage-accounts" method="post">
-        <div class="system-message" py:strip="not delete_enabled"
-             py:if="deletion_error"><p>${deletion_error}</p></div>
-
+        <xi:include py:with="paginator = accounts" href="page_index.html" />
         <!--! Main account list -->
         <xi:include href="user_table.html"/>
+        <xi:include py:with="paginator = accounts" href="page_index.html" />
 
         <div class="buttons">
+          <input type="hidden" name="max_per_page"
+                 value="${accounts.max_per_page}" />
           <input type="submit" id="reset" name="reset"
                  py:if="password_reset_enabled"
                  title="Send another random password"
