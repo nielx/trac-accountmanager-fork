@@ -43,9 +43,8 @@
         <p class="help">Space-separated list of email addresses and/or
           usernames that get notified of the above actions:
         </p>
-        <textarea cols="60" rows="2" id="notify_addresses"
-                  name="notify_addresses">${ ' '.join(notify_addresses)}
-        </textarea>
+        <textarea cols="60" name="notify_addresses"
+                  rows="2">${' '.join(notify_addresses)}</textarea>
       </fieldset>
       <div class="buttons">
         <input type="submit" name="save"
