@@ -44,9 +44,11 @@ def fetch_user_data(env, req, filters=None):
     acctmgr = AccountManager(env)
     guard = AccountGuard(env)
     accounts = {}
+    max_per_page = as_int(req.args.get('max_per_page'), None)
     for username in acctmgr.get_users():
         if req.perm.has_permission('ACCTMGR_USER_ADMIN'):
-            url = req.href.admin('accounts', 'users', user=username)
+            url = req.href.admin('accounts', 'users', user=username,
+                                 max_per_page=max_per_page)
         else:
             url = None
         accounts[username] = {'username': username, 'review_url': url}
@@ -197,7 +199,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
 
     implements(IAdminPanelProvider, IAuthenticator)
 
-    ACCTS_PER_PAGE = 5
+    ACCTS_PER_PAGE = 20
 
     auth_init = BoolOption('account-manager', 'auth_init', True,
         doc="Launch an initial Trac authentication setup.")
@@ -848,7 +850,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
         if req.method == 'GET':
             if 'user' in req.args.iterkeys():
                 return self._do_acct_details(req)
-            elif req.args.get('max_per_page'):
+            elif req.args.get('cleanup'):
                 return self._do_db_cleanup(req)
 
         if req.method == 'POST':
@@ -1011,7 +1013,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                       if action in ('cleanup' 'purge' 'unselect')]) > 0:
                 return self._do_db_cleanup(req)
 
-        # (Re-)Build current user list.
+        # (Re-)Build data for current user list.
         available_filters = [
             ('active', _("active")),
             ('revoked', _("revoked"), False), # not shown by default
@@ -1034,7 +1036,6 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                                     'enabled': filter_[0] in filters})
         if listing_enabled:
             data.update({
-                'accounts': fetch_user_data(env, req, filters),
                 'cls': 'listing',
                 'cols': ['email', 'name'],
                 'delete_msg_confirm': _(
@@ -1048,17 +1049,26 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                         req.session[key] = '1'
                     elif key in req.session:
                         del req.session[key]
-                req.redirect(req.href.admin('accounts', 'users'))
-
+                # Preserve pager setting, if not default.
+                max_per_page = req.args.get('max_per_page')
+                max_per_page = (max_per_page != self.ACCTS_PER_PAGE and
+                                max_per_page or None)
+                req.redirect(req.href.admin('accounts', 'users',
+                                            max_per_page=max_per_page))
             # Prevent IRequestFilter in trac.timeline.web_ui.TimelineModule
             #   of Trac 0.13 and later from adding a link to timeline by
             #   adding the function with a different key name here.
             data['pretty_date'] = get_pretty_dateinfo(env, req)
+
+            # Read account information.
+            data.update(self._paginate(req, fetch_user_data(env, req,
+                                                            filters)))
         add_stylesheet(req, 'acct_mgr/acctmgr.css')
         add_stylesheet(req, 'common/css/report.css')
         return 'admin_users.html', data
 
     def _do_acct_details(self, req):
+        max_per_page = as_int(req.args.get('max_per_page'), None)
         username = req.args.get('user')
         if not username:
             # Accessing user account details without username is not useful,
@@ -1066,12 +1076,14 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
             add_warning(req, _(
                 "Please choose account by username from the list to proceed."
                 ))
-            req.redirect(req.href.admin('accounts', 'users'))
+            req.redirect(req.href.admin('accounts', 'users',
+                                        max_per_page=max_per_page))
 
         acctmgr = self.acctmgr
         guard = self.guard
 
-        data = dict(_dgettext=dgettext, user=username)
+        data = dict(_dgettext=dgettext, max_per_page=max_per_page,
+                    user=username)
 
         stores = ExtensionOrder(components=acctmgr.stores,
                                 list=acctmgr.password_stores)
@@ -1141,13 +1153,15 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                 changed = True
             if changed:
                 req.redirect(req.href.admin('accounts', 'users',
+                                            max_per_page=max_per_page,
                                             user=username))
         data['approval'] = approval
 
-        add_stylesheet(req, 'acct_mgr/acctmgr.css')
         add_ctxtnav(req, _("Back to Accounts"),
-                    href=req.href.admin('accounts', 'users'))
+                    href=req.href.admin('accounts', 'users',
+                                        max_per_page=max_per_page))
         data['url'] = req.href.admin('accounts', 'users', user=username)
+        add_stylesheet(req, 'acct_mgr/acctmgr.css')
         return 'account_details.html', data
 
     def _do_add(self, req):
@@ -1301,13 +1315,16 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
         if req.perm.has_permission('ACCTMGR_ADMIN'):
             env = self.env
             changed = False
-            # Get all data from 'session_attributes' db table.
+            # Get data for all authenticated users from 'session_attributes'.
             attr = get_user_attribute(self.env, username=None,
-                                      authenticated=None)
+                                      authenticated=1)
             attrs = {}
+            accounts = req.args.get('accounts')
+            accounts = accounts and accounts.split(',') or []
+            max_per_page = as_int(req.args.get('max_per_page'), None)
             sel = req.args.get('sel')
-            if req.args.get('purge') and sel is not None:
-                sel = isinstance(sel, list) and sel or [sel]
+            sel = isinstance(sel, list) and sel or [sel]
+            if req.args.get('purge') and sel:
                 sel_len = len(sel)
                 matched = []
                 for acct, states in attr.iteritems():
@@ -1343,7 +1360,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                                     break
                         if len(matched) == sel_len:
                             break
-                # DEVEL: for Python>2.4 better use defaultdict for counters
+                # DEVEL: For Python>2.4 better use defaultdict for counters.
                 del_count = {'acct': 0, 'attr': 0}
                 for account, states in attrs.iteritems():
                     for state, elem in states.iteritems():
@@ -1358,17 +1375,10 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                     changed = True
 
             if changed == True:
-                # Update the dict after changes.
-                attr = get_user_attribute(env, username=None,
-                                          authenticated=None)
-            data = {'_dgettext': dgettext}
-            data.update(self._prepare_attrs(req, attr))
-
-            if req.args.get('purge') and sel is not None:
-                accounts = attributes = ''
+                accounts_ = attributes = ''
                 n_plural=del_count['acct']
                 if n_plural > 0:
-                    accounts = tag.li(tag.span(tag(ngettext(
+                    accounts_ = tag.li(tag.span(tag(ngettext(
                     "%(count)s account",
                     "%(count)s accounts",
                     n_plural, count=n_plural
@@ -1380,47 +1390,59 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                     "%(count)s account attributes",
                     n_plural, count=n_plural
                 ))))
-                data['result'] = tag(_("Successfully deleted:"),
-                                     tag.ul(accounts, attributes))
+                add_notice(req, Markup(tag(_("Successfully deleted:"),
+                                       tag.ul(accounts_, attributes))))
+                # Update the dict after changes.
+                attr = get_user_attribute(env, username=None,
+                                          authenticated=1)
+            if not accounts and sel:
+                # Get initial account selection from account/user list.
+                accounts = sel
+            attr_sel = dict()
+            for account, states in attr.iteritems():
+                if account in accounts:
+                    attr_sel.update({account: states})
+
             add_ctxtnav(req, _("Back to Accounts"),
-                        href=req.href.admin('accounts', 'users'))
+                        href=req.href.admin('accounts', 'users',
+                                            max_per_page=max_per_page))
             add_stylesheet(req, 'acct_mgr/acctmgr.css')
+            data = dict(_dgettext=dgettext, accounts=accounts, attr=attr_sel,
+                        max_per_page=max_per_page)
             return 'db_cleanup.html', data
 
-    def _prepare_attrs(self, req, attr):
-        page = int(req.args.get('page', '1'))
-        # Paginator can't deal with dict, so convert to list.
-        attr_lst = [(k,v) for k,v in attr.iteritems()]
+    def _paginate(self, req, accounts):
         max_per_page = as_int(req.args.get('max_per_page'), None)
         if max_per_page is None:
             max_per_page = self.ACCTS_PER_PAGE
-        attr = Paginator(attr_lst, page - 1, max_per_page)
-
+        page = int(req.args.get('page', '1'))
+        total = len(accounts)
+        pager = Paginator(accounts, page - 1, max_per_page)
         pagedata = []
-        shown_pages = attr.get_shown_pages(21)
+        shown_pages = pager.get_shown_pages(21)
         for shown_page in shown_pages:
             page_href = req.href.admin('accounts', 'users', page=shown_page,
                                        max_per_page=max_per_page)
             pagedata.append([page_href, None, str(shown_page),
                              _("page %(num)s", num=str(shown_page))])
-
+        # Prepare bottom and top pager navigation data.
         fields = ['href', 'class', 'string', 'title']
-        attr.shown_pages = [dict(zip(fields, p)) for p in pagedata]
-
-        attr.current_page = {'href': None, 'class': 'current',
-                             'string': str(attr.page + 1), 'title':None}
-
-        if attr.has_next_page:
+        pager.current_page = {'href': None, 'class': 'current',
+                              'string': str(pager.page + 1), 'title':None}
+        pager.shown_pages = [dict(zip(fields, p)) for p in pagedata]
+        if pager.has_more_pages:
+            # Show '# of #' instead of total count.
+            total = pager.displayed_items()
+        if pager.has_next_page:
             next_href = req.href.admin('accounts', 'users', page=page + 1,
                                        max_per_page=max_per_page)
             add_link(req, 'next', next_href, _('Next Page'))
-
-        if attr.has_previous_page:
+        if pager.has_previous_page:
             prev_href = req.href.admin('accounts', 'users', page=page - 1,
                                        max_per_page=max_per_page)
             add_link(req, 'prev', prev_href, _('Previous Page'))
         page_href = req.href.admin('accounts', 'cleanup')
-        return {'attr': attr, 'page_href': page_href}
+        return dict(accounts=pager, displayed_items=total, page_href=page_href)
 
     # IAuthenticator method
     def authenticate(self, req):
