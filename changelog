@@ -12,7 +12,12 @@ acct_mgr-0.5 (not yet released) - branch 0.11
  * always show associated email in user details admin panel
  * fix and unify web-UI feedback on user and admin actions
  * prevent bypassing email address policy via user preferences
- * add modular user ID change support
+ * add modular user ID change support for Trac core as well as for some other
+   Trac plugins, currently:
+  * AnnouncerPlugin > 0.12.1
+  * ScreenshotsPlugin (all versions)
+  * TracFormsPlugin > v0.2
+  * VotePlugin (all versions)
 
  new features
  * #843: Make admin approval required for account registration

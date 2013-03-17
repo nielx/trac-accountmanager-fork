@@ -91,23 +91,23 @@ class PrimitiveUserIdChanger(GenericUserIdChanger):
         result = 0
 
         cursor = db.cursor()
-        cursor.execute("SELECT COUNT(*) FROM %s WHERE %s=%%s"
-                       % (self.table, self.column), (old_uid,))
-        exists = cursor.fetchone()
-        if exists[0]:
-            try:
+        try:
+            cursor.execute("SELECT COUNT(*) FROM %s WHERE %s=%%s"
+                           % (self.table, self.column), (old_uid,))
+            exists = cursor.fetchone()
+            if exists[0]:
                 cursor.execute("UPDATE %s SET %s=%%s WHERE %s=%%s"
                                % (self.table, self.column, self.column),
                                (new_uid, old_uid))
                 result = int(exists[0])
                 self.log.debug(self.msg(old_uid, new_uid, self.table,
                                self.column, result='%s time(s)' % result))
-            except (_get_db_exc(self.env)), e:
-                result = exception_to_unicode(e)
-                self.log.debug(self.msg(old_uid, new_uid, self.table,
-                               self.column, result='failed: %s'
-                               % exception_to_unicode(e, traceback=True)))
-                return dict(error={(self.table, self.column, None): result})
+        except (_get_db_exc(self.env)), e:
+            result = exception_to_unicode(e)
+            self.log.debug(self.msg(old_uid, new_uid, self.table,
+                           self.column, result='failed: %s'
+                           % exception_to_unicode(e, traceback=True)))
+            return dict(error={(self.table, self.column, None): result})
         return {(self.table, self.column, None): result}
 
 
@@ -121,10 +121,18 @@ class UniqueUserIdChanger(PrimitiveUserIdChanger):
     # IUserIdChanger method
     def replace(self, old_uid, new_uid, db):
         cursor = db.cursor()
-        cursor.execute("DELETE FROM %s WHERE %s=%%s"
-                       % (self.table, self.column), (new_uid,))
+        try:
+            cursor.execute("DELETE FROM %s WHERE %s=%%s"
+                           % (self.table, self.column), (new_uid,))
+        except (_get_db_exc(self.env)), e:
+            result = exception_to_unicode(e)
+            self.log.debug(self.msg(old_uid, new_uid, self.table,
+                           self.column, result='failed: %s'
+                           % exception_to_unicode(e, traceback=True)))
+            return dict(error={(self.table, self.column, None): result})
         return super(UniqueUserIdChanger,
                      self).replace(old_uid, new_uid, db)
+
 
 class AttachmentUserIdChanger(PrimitiveUserIdChanger):
     """Change user IDs in attachments."""
