@@ -62,8 +62,10 @@ ul#progress li.past span, ul#progress li.active span {
 
 
 /* styles for users admin page */
+.holdingbox { position: relative; top:-0.8em; }
+.panel { position: relative; overflow:hidden; height:6em; }
 div#accountlist { max-height:640px; overflow:auto; }
-form#query { clear: none; }
+form#prefs { clear: right; }
 tr.missing td, tr.missing td a { color: #998; }
 
 
@@ -79,7 +81,7 @@ p span.buttons input { margin-top:0; vertical-align:baseline; }
 
 
 /* style for compatibility with Trac < 1.0 */
-h3 .trac-count {
+h2 .trac-count {
     margin-left: .2em; vertical-align: baseline; color: #999;
     font-size: 90%; font-weight: normal;
 }
