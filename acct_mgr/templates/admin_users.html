@@ -65,13 +65,17 @@
         });
         // Hide account filter settings by default
         $("fieldset legend.foldable").enableFolding(true);
+        // Shrink max_per_page pager preferences after 1st touch
+        $('.holdingbox').hover(function(){
+          $('.panel').animate({height: '6em'}, 1000);
+        }, function(){
+          $('.panel').animate({height: '2.5em'}, 1000);
+        });
       });
     /*]]>*/</script>
   </head>
 
   <body>
-    <h2>Manage User Accounts</h2>
-
     <!--! Account property editor -->
     <form id="account-editor" class="addnew" method="post">
       <input type="hidden" name="max_per_page"
@@ -148,25 +152,27 @@
       </fieldset>
     </form>
 
-    <py:choose>
-    <div class="system-message"
-         py:when="not listing_enabled">
+    <div class="system-message" py:if="not listing_enabled">
       <p>This password store does not support listing users.</p>
     </div>
+    <div id="accounts" py:if="listing_enabled">
+      <div class="holdingbox">
+        <form class="panel" id="prefs" method="get" action="">
+          <label i18n:msg="">
+            Max accounts per page <input type="text" size="3"
+                                         name="max_per_page"
+                                         value="${accounts.max_per_page}" />
+          </label>
+          <div class="buttons">
+            <input type="submit" value="${dgettext('acct_mgr', 'Update')}" />
+          </div>
+        </form>
+      </div>
 
-    <div py:otherwise="">
       <!--! TRANSLATOR: Position (# to # of #) or total, if not paginating -->
-      <h3>Accounts <span class="trac-count">($displayed_items)</span></h3>
-      <form id="prefs" method="get" action="">
-        <label i18n:msg="">
-          Max accounts per page
-          <input type="text" size="3" name="max_per_page"
-                 value="${accounts.max_per_page}" />
-        </label>
-        <div class="buttons">
-          <input type="submit" value="${dgettext('acct_mgr', 'Update')}" />
-        </div>
-      </form>
+      <h2 class="report-result">
+        Accounts <span class="trac-count">($displayed_items)</span>
+      </h2>
 
       <form id="filter" method="get" action="">
         <input type="hidden" name="max_per_page"
@@ -220,6 +226,5 @@
       </form>
     </div>
 
-    </py:choose>
   </body>
 </html>
