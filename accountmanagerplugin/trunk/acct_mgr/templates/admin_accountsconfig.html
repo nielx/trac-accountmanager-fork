@@ -24,6 +24,7 @@
 
   <body>
     <div id="content" class="config">
+      <h2>Accounts: Configuration</h2>
       <!-- Progress bar -->
       <ul id="progress">
         <li py:for="idx,step in enumerate(steps)"
@@ -45,7 +46,6 @@
         </li>
       </ul>
 
-      <h2>Accounts: Configuration</h2>
       <form id="cfg_wiz" method="post"
             action="${href.admin('accounts', 'config')}">
         <!-- Top navigation -->
