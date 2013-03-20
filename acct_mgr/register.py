@@ -52,6 +52,7 @@ class RegistrationError(TracError):
 
 class GenericRegistrationInspector(Component):
     """Generic check class, great for creating simple checks quickly."""
+    _domain = ''
     _description = ''
 
     implements(IAccountRegistrationInspector)
@@ -82,6 +83,7 @@ class GenericRegistrationInspector(Component):
 
 
 class BasicCheck(GenericRegistrationInspector):
+    _domain = 'acct_mgr'
     _description = cleandoc_(
     """A collection of basic checks.
 
@@ -160,6 +162,7 @@ class BasicCheck(GenericRegistrationInspector):
 
 
 class BotTrapCheck(GenericRegistrationInspector):
+    _domain = 'acct_mgr'
     _description = cleandoc_(
     """A collection of simple bot checks.
 
@@ -211,6 +214,7 @@ class BotTrapCheck(GenericRegistrationInspector):
 
 
 class EmailCheck(GenericRegistrationInspector):
+    _domain = 'acct_mgr'
     _description = cleandoc_(
     """A collection of checks for email addresses.
 
@@ -273,6 +277,7 @@ class EmailCheck(GenericRegistrationInspector):
 
 
 class RegExpCheck(GenericRegistrationInspector):
+    _domain = 'acct_mgr'
     _description = cleandoc_(
     """A collection of checks based on regular expressions.
 
@@ -313,6 +318,7 @@ class RegExpCheck(GenericRegistrationInspector):
 
 
 class UsernamePermCheck(GenericRegistrationInspector):
+    _domain = 'acct_mgr'
     _description = cleandoc_(
     """Check for usernames referenced in the permission system.
 
