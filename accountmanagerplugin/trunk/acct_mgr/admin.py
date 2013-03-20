@@ -694,8 +694,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
             # Fallback for check components not derived from
             # acct_mgr.register.GenericRegistrationInspector.
             try:
-                if check._description:
-                    doc = gettext(check._description)
+                doc = dgettext(check._domain, check._description)
             except AttributeError:
                 doc = check.__class__.__doc__
             check_list.append({
