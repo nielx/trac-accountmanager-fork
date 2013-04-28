@@ -32,7 +32,7 @@ from trac.web.chrome import add_stylesheet, add_warning
 
 from acct_mgr.api import AccountManager, CommonTemplateProvider
 from acct_mgr.api import _, dgettext, ngettext, tag_
-from acct_mgr.compat import is_enabled
+from acct_mgr.compat import is_enabled, exception_to_unicode
 from acct_mgr.db import SessionStore
 from acct_mgr.guard import AccountGuard
 from acct_mgr.model import set_user_attribute, user_known
@@ -353,7 +353,6 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
             # Set the session to expire after some time and not
             #   when the browser is closed - what is Trac core default).
             self.cookie_lifetime = 86400 * 30   # AcctMgr default = 30 days
-        self.auth_share_participants = []
 
     def authenticate(self, req):
         if req.method == 'POST' and req.path_info.startswith('/login') and \
@@ -459,21 +458,25 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
         """
 
         acctmgr = AccountManager(self.env)
+        name = None
+        # Replicate _get_name_for_cookie() or _cookie_to_name() since Trac 1.0
+        # adding special handling of persistent sessions, as the user may have
+        # a dynamic IP adress and this would lead to the user being logged out
+        # due to an IP address conflict.
+        if 'trac_auth_session' in req.incookie or True:
+            db = self.env.get_db_cnx()
+            cursor = db.cursor()
+            sql = "SELECT name FROM auth_cookie WHERE cookie=%s AND ipnr=%s"
+            args = (cookie.value, req.remote_addr)
+            if acctmgr.persistent_sessions or not self.check_ip:
+                sql = "SELECT name FROM auth_cookie WHERE cookie=%s"
+                args = (cookie.value,)
+            cursor.execute(sql, args)
+            name = cursor.fetchone()
+            name = name and name[0] or None
+        if name is None:
+            self._expire_cookie(req)
 
-        # Disable IP checking when a persistent session is available, as the
-        # user may have a dynamic IP adress and this would lead to the user 
-        # being logged out due to an IP address conflict.
-        checkIPSetting = self.check_ip and acctmgr.persistent_sessions and \
-                         'trac_auth_session' in req.incookie
-        if checkIPSetting:
-            self.env.config.set('trac', 'check_auth_ip', False)
-        
-        name = auth.LoginModule._get_name_for_cookie(self, req, cookie)
-        
-        if checkIPSetting:
-            # Re-enable IP checking
-            self.env.config.set('trac', 'check_auth_ip', True)
-        
         if acctmgr.persistent_sessions and name and \
                 'trac_auth_session' in req.incookie and \
                 int(req.incookie['trac_auth_session'].value) < \
@@ -515,7 +518,8 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
                     WHERE   cookie=%s
                     """, (cookie.value, old_cookie))
                 db.commit()
-                self._distribute_cookie(req, cookie.value)
+                if self.auth_cookie_path:
+                    self._distribute_auth(req, cookie.value, name)
 
             cookie_lifetime = self.cookie_lifetime
             cookie_path = self._get_cookie_path(req)
@@ -558,8 +562,8 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
         req.outcookie['trac_auth']['path'] = cookie_path
         # Inspect current cookie and try auth data distribution for SSO.
         cookie = req.outcookie.get('trac_auth')
-        if cookie:
-            self._distribute_cookie(req, cookie.value)
+        if cookie and self.auth_cookie_path:
+            self._distribute_auth(req, cookie.value, req.remote_user)
 
         if req.args.get('rememberme', '0') == '1':
             # Check for properties to be set in auth cookie.
@@ -596,42 +600,51 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
                 self._expire_session_cookie(req)
         return res
 
-    def _distribute_cookie(self, req, trac_auth):
+    def _distribute_auth(self, req, trac_auth, name=None):
         # Single Sign On authentication distribution between multiple
         #   Trac environments managed by AccountManager.
-        all_envs = get_environments(req.environ)
-        local_environ = req.environ.get('SCRIPT_NAME', None)
-        self.auth_share_participants = []
+        local_environ = req.environ.get('SCRIPT_NAME', '').lstrip('/')
 
-        for environ, path in all_envs.iteritems():
-            if not environ == local_environ.lstrip('/'):
-                # Cache environment for subsequent invocations.
-                env = open_environment(path, use_cache=True)
-                # Consider only Trac environments with equal, non-default
-                #   'auth_cookie_path', which enables cookies to be shared.
-                if self._get_cookie_path(req) == self.auth_cookie_path:
-                    db = env.get_db_cnx()
-                    cursor = db.cursor()
-                    # Authentication cookie values must be unique. Ensure,
-                    #   there is no other session (or worst: session ID)
-                    #   associated to it.
-                    cursor.execute("""
-                        DELETE FROM auth_cookie
-                        WHERE  cookie=%s
-                        """, (trac_auth,))
-                    cursor.execute("""
-                        INSERT INTO auth_cookie
-                               (cookie,name,ipnr,time)
-                        VALUES (%s,%s,%s,%s)
-                        """, (trac_auth, req.remote_user, req.remote_addr,
-                              int(time.time())))
-                    db.commit()
-                    env.log.debug('Auth data received from: ' + local_environ)
-                    # Track env paths for easier auth revocation later on.
-                    self.auth_share_participants.append(path)
-                    self.log.debug('Auth distribution success: ' + environ)
-                else:
-                    self.log.debug('Auth distribution skipped: ' + environ)
+        for environ, path in get_environments(req.environ).iteritems():
+            if environ != local_environ:
+                try:
+                    # Cache environment for subsequent invocations.
+                    env = open_environment(path, use_cache=True)
+                    auth_cookie_path = env.config.get('trac',
+                                                      'auth_cookie_path')
+                    # Consider only Trac environments with equal, non-default
+                    #   'auth_cookie_path', which enables cookies to be shared.
+                    if auth_cookie_path == self.auth_cookie_path:
+                        db = env.get_db_cnx()
+                        cursor = db.cursor()
+                        # Authentication cookie values must be unique. Ensure,
+                        #   there is no other session (or worst: session ID)
+                        #   associated to it.
+                        cursor.execute("""
+                            DELETE FROM auth_cookie
+                            WHERE  cookie=%s
+                            """, (trac_auth,))
+                        if not name:
+                            db.commit()
+                            env.log.debug('Auth data revoked from: %s'
+                                          % local_environ)
+                            continue
+                        cursor.execute("""
+                            INSERT INTO auth_cookie
+                                   (cookie,name,ipnr,time)
+                            VALUES (%s,%s,%s,%s)
+                            """, (trac_auth, name, req.remote_addr,
+                                  int(time.time())))
+                        db.commit()
+                        env.log.debug('Auth data received from: %s'
+                                      % local_environ)
+                        self.log.debug('Auth distribution success: %s'
+                                       % environ)
+                except Exception, e:
+                    self.log.debug('Auth distribution skipped for env %s: %s'
+                                   % (environ,
+                                      exception_to_unicode(e, traceback=True))
+                    )
 
     def _get_cookie_path(self, req):
         """Determine "path" cookie property from setting or request object."""
@@ -657,18 +670,8 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
         # Then let auth.LoginModule expire all other cookies.
         auth.LoginModule._expire_cookie(self, req)
         # And finally revoke distributed authentication data too.
-        if trac_auth:
-            for path in self.auth_share_participants:
-                env = open_environment(path, use_cache=True)
-                db = env.get_db_cnx()
-                cursor = db.cursor()
-                cursor.execute("""
-                    DELETE FROM auth_cookie
-                    WHERE  cookie=%s
-                    """, (trac_auth,))
-                db.commit()
-                env.log.debug('Auth data revoked from: ' + \
-                              req.environ.get('SCRIPT_NAME', 'unknown'))
+        if self.auth_cookie_path and trac_auth:
+            self._distribute_auth(req, trac_auth)
 
     # Keep this code in a separate methode to be able to expire the session
     # cookie trac_auth_session independently of the trac_auth cookie.
