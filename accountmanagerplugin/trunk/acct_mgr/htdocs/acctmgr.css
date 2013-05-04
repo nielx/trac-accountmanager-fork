@@ -81,6 +81,32 @@ table#login_attempts { width: 480px; }
 td a img { vertical-align: middle; }
 p span.buttons input { margin-top: 0; vertical-align: baseline; }
 
+/* tabs */
+#account_details div.field { margin-bottom: 1em; }
+#account_details #forms { list-style: none; }
+#account_details #forms li {
+    background: #e6e6e6; border: 1px solid;
+    border-color: #ccc #666 #ccc #ccc;
+    border-top-left-radius: .5em;
+    border-top-right-radius: .5em;
+    color: #666; position: relative; bottom: -1px; float: left;
+    font-size: 90%; margin: 0 .3em; padding: .2em 1em .3em;
+}
+#account_details #forms :link, #account_details #forms :visited {
+    border: none; color: #999;
+}
+#account_details #forms :link:hover, #account_details #forms :visited:hover {
+    background: transparent; color: #333;
+}
+#account_details #forms li.active {
+    background: #fff; border-bottom: 1px solid #fff;
+}
+#account_details #formcontent {
+    background: url(../vgradient.png) 0 1px repeat-x;
+    border-top: 1px solid #ccc; float: right; width: 100%;
+}
+* html #account_details #formcontent { padding-top: 0; }
+
 
 /* style for compatibility with Trac < 1.0 */
 h2 .trac-count {

@@ -11,22 +11,101 @@
     if _dgettext:
         dgettext = _dgettext ?>
   <head>
-    <title>Account Details</title>
+    <title>Account</title>
   </head>
 
   <body>
     <div id="account_details">
-      <div id="header">
-        <h2>Review User Account Details</h2>
-        <py:choose>
-          <p py:when="name" i18n:msg="name, user">
-            for <b>${name}</b> (<em>${user}</em>)
-          </p>
-          <p py:otherwise="" i18n:msg="user">
-            for <b>${user}</b>
-          </p>
-        </py:choose>
+      <div>
+        <h2>Manage User Account</h2>
+        <p py:choose="">
+          <py:when test="acctmgr.name" i18n:msg="name, user">
+            for <b>${acctmgr.name}</b> (<em>$user</em>)
+          </py:when>
+          <py:otherwise i18n:msg="user">
+            for <b>$user</b>
+          </py:otherwise>
+          <img src="${href.chrome('/acct_mgr/info.png')}" alt="info"
+               title="User ID change requires additional components enabled"
+               heigth="16" width="16" py:if="not change_uid_enabled" />
+        </p>
       </div>
+
+      <!--! Account property editor -->
+      <form id="account-editor" class="addnew" method="post" py:choose="">
+        <ul id="forms" py:if="len(forms) > 1">
+          <li py:for="name, label in sorted(forms)"
+              class="${'active' if name == active_form else None}"
+              id="${('form_%s' % name) if name else None}">
+            <a py:strip="name == active_form"
+               href="${href.admin('accounts', 'users', user,
+                                  action=name)}">${label}</a>
+          </li>
+        </ul>
+        <div id="formcontent">
+        <fieldset>
+          <div py:when="active_form == 'move'">
+            <div class="field">
+              <label>New Username:<br />
+                <input type="text" name="new_uid" id="new_uid"
+                       class="textwidget"
+                       title="Change user ID ('username')"
+                       value="${acctmgr.new_uid}" /></label>
+            </div>
+            <div class="buttons">
+              <input type="hidden" name="action" value="move" />
+              <input type="submit" name="move"
+                     value="${dgettext('acct_mgr', 'Apply changes')}" />
+            </div>
+          </div>
+          <div py:otherwise="">
+            <div>
+              <div class="field">
+                <label py:choose="">Password:<br />
+                  <input type="password" name="password" class="textwidget"
+                         py:when="password_change_enabled" />
+                  <input type="password" name="password" class="textwidget"
+                         py:otherwise="" disabled="disabled" />
+                </label>
+              </div>
+              <div class="field">
+                <label py:choose="">Confirm Password:<br />
+                  <input type="password" name="password_confirm"
+                         class="textwidget"
+                         py:when="password_change_enabled" />
+                  <input type="password" name="password_confirm"
+                         class="textwidget"
+                         py:otherwise="" disabled="disabled" />
+                </label>
+              </div>
+            </div>
+            <div class="field">
+              <label>Pre-/Surname (Nickname):<br />
+                <input type="text" name="name" class="textwidget"
+                       value="${acctmgr.name}" />
+              </label>
+            </div>
+            <div class="field">
+              <label>Email Address:<br />
+                <input type="text" name="email" class="textwidget"
+                       value="${acctmgr.email}" />
+              </label><br />
+              <label py:if="verify_enabled">
+                <input type="checkbox" name="email_approved" value="true"
+                       checked="${email_approved and 'checked' or None}" />
+                Skip new email verification
+              </label>
+            </div>
+            <div class="buttons">
+              <input type="submit" name="change"
+                     value="${dgettext('acct_mgr', 'Apply changes')}" />
+            </div>
+          </div>
+        </fieldset>
+        </div>
+      </form>
+
+      <hr style="clear: right" py:strip="action_aside" />
 
       <form method="get" action="${url}">
         <fieldset>
@@ -98,9 +177,9 @@
               so the user may not get authenticated and access to this
               <em>account might be effectively blocked</em>.</p>
           </div>
-          <div py:if="email">
+          <div py:if="acctmgr.email">
             <p i18n:msg="email">
-              Current email address: &lt;${email}&gt;</p>
+              Current email address: &lt;${acctmgr.email}&gt;</p>
             <py:choose py:if="verification">
               <p py:when="email_verified is True">
                 This address has been verified successfully.</p>
@@ -111,7 +190,7 @@
                 This address has not been verified yet.</p>
             </py:choose>
           </div>
-          <div py:if="not email">
+          <div py:if="not acctmgr.email">
             <p>No email address is registered for this account.</p>
           </div>
         </fieldset>
@@ -154,7 +233,6 @@
         <div class="buttons">
           <input type="hidden" name="max_per_page"
                  value="$max_per_page" />
-          <input type="hidden" name="user" value="$user" />
           <input type="submit" name="update"
                  value="${dgettext('acct_mgr', 'Refresh')}" />
         </div>

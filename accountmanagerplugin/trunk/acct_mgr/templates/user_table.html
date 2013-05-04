@@ -38,7 +38,7 @@ Arguments:
                    value="${acct.username}" />
           </td>
           <td>
-            <a href="${acct.review_url}">${acct.username}</a>
+            <a href="${acct.url}">${acct.username}</a>
             <!--! Additional account status icons -->
             <py:choose py:if="acct.locked">
               <img src="${href.chrome('/acct_mgr/time-locked.png')}"
