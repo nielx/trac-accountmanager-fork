@@ -81,27 +81,15 @@
       <input type="hidden" name="max_per_page"
              value="${accounts and accounts.max_per_page or None}" />
       <fieldset>
-        <legend>Add/Edit Account:</legend>
-        <div>
-          <div class="field">
-            <label>Username:<br />
-              <input type="text" name="username" id="username"
-                     class="textwidget" value="${acctmgr.username}" />
-            </label>
-            <p class="hint" py:if="ignore_auth_case"> 
-              Only lowercase usernames allowed 
-            </p>
-          </div>
-          <div class="field" py:if="change_uid_enabled">
-            <label>New Username:<br />
-              <input type="text" name="new_uid" id="new_uid"
-                     class="textwidget"
-                     title="Change user ID ('username')"
-                     value="${acctmgr.new_uid}" /></label>
-          </div>
-          <img src="${href.chrome('/acct_mgr/info.png')}" alt="info"
-               title="User ID change requires additional components enabled"
-               heigth="16" width="16" py:if="not change_uid_enabled" />
+        <legend>Add New Account:</legend>
+        <div class="field">
+          <label>Username:<br />
+            <input type="text" name="username" id="username"
+                   class="textwidget" value="${acctmgr.username}" />
+          </label>
+          <p class="hint" py:if="ignore_auth_case"> 
+            Only lowercase usernames allowed 
+          </p>
         </div>
         <div>
           <div class="field">
@@ -141,12 +129,9 @@
           </label>
         </div>
         <div>
-          <p class="help">Add a new user account or edit an existing one.</p>
           <div class="buttons">
             <input type="submit" name="add" py:if="create_enabled"
                    value="${dgettext('acct_mgr', ' Add ')}" />
-            <input type="submit" name="change"
-                   value="${dgettext('acct_mgr', 'Apply changes')}" />
           </div>
         </div>
       </fieldset>

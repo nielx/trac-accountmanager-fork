@@ -34,6 +34,7 @@ acct_mgr-0.5 (not yet released) - branch 0.11
  * add unit tests for db access functions
  * add account guard configuration to config admin panel
  * filter account list in user admin panel by account status
+ * remake account editor following Trac admin panel style i.e. for enums
 
 
 acct_mgr-0.4.3 (13-Feb-2013) - branch 0.11
