@@ -432,9 +432,8 @@ def copy_user_attributes(env, username, new_uid, overwrite, db=None):
                 attrs_new[new_uid].get(1)):
             # No attributes found.
             attrs_new = None
-        else:
-            # Remove value id hashes.
-            attrs[username][1].pop('id')
+        # Remove value id hashes.
+        attrs[username][1].pop('id')
         cursor = db.cursor()
         for attribute, value in attrs[username][1].iteritems():
             if not (attrs_new and attribute in attrs_new[new_uid][1]):
