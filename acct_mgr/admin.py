@@ -1297,7 +1297,8 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                     set_user_attribute(self.env, old_uid, 'email', email)
                 return
             if not keep_passwd or \
-                    acctmgr.set_password(new_uid, '', None, False) is None:
+                    acctmgr.set_password(new_uid, acctmod._random_password,
+                                         None, False) is None:
                 add_warning(req, _(
                     "Failed to save new login data to a password store."))
                 if email:

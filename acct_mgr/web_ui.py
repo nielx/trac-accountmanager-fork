@@ -253,13 +253,14 @@ class AccountModule(CommonTemplateProvider):
             add_warning(req, _(
                 "Email and username must match a known account."))
 
+    @property
     def _random_password(self):
         return ''.join([random.choice(self._password_chars)
                         for _ in xrange(self.password_length)])
 
     def _reset_password(self, req, username, email):
         acctmgr = self.acctmgr
-        new_password = self._random_password()
+        new_password = self._random_password
         try:
             self.store.set_password(username, new_password)
             acctmgr._notify('password_reset', username, email, new_password)
