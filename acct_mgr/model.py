@@ -173,12 +173,6 @@ class RevisionUserIdChanger(PrimitiveUserIdChanger):
     table = 'revision'
 
 
-class SessionAttributesUserIdChanger(UniqueUserIdChanger):
-    """Change user IDs for session attributes."""
-
-    table = 'session_attribute'
-
-
 class TicketUserIdChanger(PrimitiveUserIdChanger):
     """Change all user IDs in tickets."""
 
@@ -380,7 +374,7 @@ def user_known(env, user, db=None):
 
 # Utility functions
 
-def change_uid(env, old_uid, new_uid, changers):
+def change_uid(env, old_uid, new_uid, changers, attr_overwrite):
     """Handle user ID transition for all supported Trac realms."""
     db = _get_db(env)
     # Handle the single unique Trac user ID reference first.
@@ -396,7 +390,15 @@ def change_uid(env, old_uid, new_uid, changers):
                 (sid,authenticated,last_visit)
         VALUES  (%s,1,(SELECT last_visit FROM session WHERE sid=%s))
         """, (new_uid, old_uid))
+    # Process related attributes.
+    attr_count = copy_user_attributes(env, old_uid, new_uid, attr_overwrite,
+                                      db=db)
+    # May want to keep attributes, if not copied completely.
+    if attr_overwrite:
+        del_user_attribute(env, old_uid, db=db)
+
     results = dict()
+    results.update({('session_attribute', 'sid', None): attr_count})
     for changer in changers:
         result = changer.replace(old_uid, new_uid, db)
         if 'error' in result:
@@ -413,6 +415,45 @@ def change_uid(env, old_uid, new_uid, changers):
     results.update({('session', 'sid', None): 1})
     db.commit()
     return results
+
+def copy_user_attributes(env, username, new_uid, overwrite, db=None):
+    """Duplicate attributes for another user, optionally preserving existing
+    values.
+
+    Returns the number of changed attributes.
+    """
+    count = 0
+    db = _get_db(env, db)
+    attrs = get_user_attribute(env, username, db=db)
+
+    if attrs and username in attrs and attrs[username].get(1):
+        attrs_new = get_user_attribute(env, new_uid, db=db)
+        if not (attrs_new and new_uid in attrs_new and \
+                attrs_new[new_uid].get(1)):
+            # No attributes found.
+            attrs_new = None
+        else:
+            # Remove value id hashes.
+            attrs[username][1].pop('id')
+        cursor = db.cursor()
+        for attribute, value in attrs[username][1].iteritems():
+            if not (attrs_new and attribute in attrs_new[new_uid][1]):
+                cursor.execute("""
+                    INSERT INTO session_attribute
+                            (sid,authenticated,name,value)
+                    VALUES  (%s,1,%s,%s)
+                    """, (new_uid, attribute, value))
+                count += 1
+            elif overwrite:
+                cursor.execute("""
+                    UPDATE session_attribute
+                       SET value=%s
+                     WHERE sid=%s
+                       AND authenticated=1
+                       AND name=%s
+                    """, (value, new_uid, attribute))
+                count += 1
+    return count
 
 def get_user_attribute(env, username=None, authenticated=1, attribute=None,
                        value=None, db=None):
