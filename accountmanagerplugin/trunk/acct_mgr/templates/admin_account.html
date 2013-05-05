@@ -43,65 +43,88 @@
           </li>
         </ul>
         <div id="formcontent">
-        <fieldset>
-          <div py:when="active_form == 'move'">
-            <div class="field">
-              <label>New Username:<br />
-                <input type="text" name="new_uid" id="new_uid"
-                       class="textwidget"
-                       title="Change user ID ('username')"
-                       value="${acctmgr.new_uid}" /></label>
-            </div>
-            <div class="buttons">
-              <input type="hidden" name="action" value="move" />
-              <input type="submit" name="move"
-                     value="${dgettext('acct_mgr', 'Apply changes')}" />
-            </div>
-          </div>
-          <div py:otherwise="">
-            <div>
+          <fieldset>
+            <div py:when="active_form == 'uid'">
               <div class="field">
-                <label py:choose="">Password:<br />
-                  <input type="password" name="password" class="textwidget"
-                         py:when="password_change_enabled" />
-                  <input type="password" name="password" class="textwidget"
-                         py:otherwise="" disabled="disabled" />
+                <input type="hidden" name="action" value="uid" />
+                <label>New Username:<br />
+                  <input type="text" name="new_uid" id="new_uid"
+                         class="textwidget"
+                         title="Change user ID ('username')"
+                         value="${acctmgr.new_uid}" /></label>
+              </div>
+              <div>
+                <div class="field">
+                  <label>
+                    <input type="checkbox" name="uid_exists" value="true"
+                           checked="${uid_exists and 'checked' or None}"
+                           title="Skip creating account and password reset" />
+                    Assume existing account
+                  </label>
+                </div>
+                <div class="field">
+                  <label>
+                    <input type="checkbox" name="attr_addonly" value="true"
+                           checked="${attr_addonly and 'checked' or None}"
+                           title="Do not overwrite existing attributes" />
+                    Copy only new account attributes
+                  </label>
+                </div>
+                <div class="field">
+                  <label>
+                    <input type="checkbox" name="skip_delete" value="true"
+                           checked="${skip_delete and 'checked' or None}"
+                           title="Skip final account deletion" />
+                    Leave old login data
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div py:otherwise="">
+              <div>
+                <div class="field">
+                  <input type="hidden" name="action" value="edit" />
+                  <label py:choose="">Password:<br />
+                    <input type="password" name="password" class="textwidget"
+                           py:when="password_change_enabled" />
+                    <input type="password" name="password" class="textwidget"
+                           py:otherwise="" disabled="disabled" />
+                  </label>
+                </div>
+                <div class="field">
+                  <label py:choose="">Confirm Password:<br />
+                    <input type="password" name="password_confirm"
+                           class="textwidget"
+                           py:when="password_change_enabled" />
+                    <input type="password" name="password_confirm"
+                           class="textwidget"
+                           py:otherwise="" disabled="disabled" />
+                  </label>
+                </div>
+              </div>
+              <div class="field">
+                <label>Pre-/Surname (Nickname):<br />
+                  <input type="text" name="name" class="textwidget"
+                         value="${acctmgr.name}" />
                 </label>
               </div>
               <div class="field">
-                <label py:choose="">Confirm Password:<br />
-                  <input type="password" name="password_confirm"
-                         class="textwidget"
-                         py:when="password_change_enabled" />
-                  <input type="password" name="password_confirm"
-                         class="textwidget"
-                         py:otherwise="" disabled="disabled" />
+                <label>Email Address:<br />
+                  <input type="text" name="email" class="textwidget"
+                         value="${acctmgr.email}" />
+                </label><br />
+                <label py:if="verify_enabled">
+                  <input type="checkbox" name="email_approved" value="true"
+                         checked="${email_approved and 'checked' or None}" />
+                  Skip new email verification
                 </label>
               </div>
             </div>
-            <div class="field">
-              <label>Pre-/Surname (Nickname):<br />
-                <input type="text" name="name" class="textwidget"
-                       value="${acctmgr.name}" />
-              </label>
-            </div>
-            <div class="field">
-              <label>Email Address:<br />
-                <input type="text" name="email" class="textwidget"
-                       value="${acctmgr.email}" />
-              </label><br />
-              <label py:if="verify_enabled">
-                <input type="checkbox" name="email_approved" value="true"
-                       checked="${email_approved and 'checked' or None}" />
-                Skip new email verification
-              </label>
-            </div>
             <div class="buttons">
-              <input type="submit" name="change"
+              <input type="submit"
                      value="${dgettext('acct_mgr', 'Apply changes')}" />
             </div>
-          </div>
-        </fieldset>
+          </fieldset>
         </div>
       </form>
 
