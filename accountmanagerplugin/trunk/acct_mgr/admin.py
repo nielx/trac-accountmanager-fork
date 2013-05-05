@@ -1237,14 +1237,25 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
         email = None
 
         # Demand conditions required for a successful change.
-        store = acctmgr.find_user_store(old_uid)
-        if delete_user and store and not hasattr(store, 'delete_user'):
+        store_old = acctmgr.find_user_store(old_uid)
+        if delete_user and store_old and \
+                not hasattr(store_old, 'delete_user'):
             add_warning(req, Markup(tag_(
                 "Removing the old user is not supported by %(store)s.",
-                store=tag.b(store.__class__.__name__))))
+                store=tag.b(store_old.__class__.__name__))))
             return
-        # DEVEL: Preserve passwords for other stores too.
-        keep_passwd = store and store.__class__.__name__ == 'SessionStore'
+        stores = ExtensionOrder(components=acctmgr.stores,
+                                list=acctmgr.password_stores)
+        # Predict stores for old and new account.
+        keep_passwd = False
+        for store in stores.get_enabled_components():
+            if not hasattr(store, 'set_password'):
+                continue
+            if store == store_old:
+               # DEVEL: Preserve passwords for other stores too.
+                keep_passwd = store.__class__.__name__ == 'SessionStore'
+            break
+
         if create_user:
             if acctmgr.password_stores and \
                     not acctmgr.supports('set_password'):
@@ -1296,7 +1307,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                 if email:
                     set_user_attribute(self.env, old_uid, 'email', email)
                 return
-            if not keep_passwd or \
+            if not keep_passwd and \
                     acctmgr.set_password(new_uid, acctmod._random_password,
                                          None, False) is None:
                 add_warning(req, _(
