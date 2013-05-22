@@ -10,6 +10,7 @@ acct_mgr-0.5 (not yet released) - branch 0.11
  * #10829: Consider renaming 'Save' buttons to 'Apply changes'
  * #10910: Unable to change full name
  * #11038: Login fails due to issues with opening sibling Trac environments
+ * #11111: Please add a MANIFEST.in
  * fix access to account properties clean-up from user admin panel
  * always show associated email in user details admin panel
  * fix and unify web-UI feedback on user and admin actions

@@ -1,0 +1,12 @@
+# Define files to include in a distribution built by the 'sdist' command.
+
+include changelog
+include contrib/*
+exclude contrib/signatures.py
+include COPYING
+include README*
+include acct_mgr/htdocs/*
+include acct_mgr/locale/messages.pot
+include acct_mgr/locale/*/LC_MESSAGES/acct_mgr.po
+include acct_mgr/templates/*.html
+include acct_mgr/templates/*.txt
