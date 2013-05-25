@@ -67,9 +67,9 @@
         $("fieldset legend.foldable").enableFolding(true);
         // Shrink max_per_page pager preferences after 1st touch
         $('.holdingbox').hover(function(){
-          $('.panel').animate({height: '6em'}, 1000);
+          $('.panel').stop().animate({height: '6em'}, 250);
         }, function(){
-          $('.panel').animate({height: '2.6em'}, 1000);
+          $('.panel').stop().animate({height: '2.4em'}, 1000);
         });
       });
     /*]]>*/</script>
