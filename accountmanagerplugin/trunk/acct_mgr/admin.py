@@ -30,11 +30,12 @@ from trac.wiki.formatter import format_to_html
 from acct_mgr.api import AccountManager, CommonTemplateProvider
 from acct_mgr.api import IUserIdChanger, cleandoc
 from acct_mgr.api import _, N_, dgettext, gettext, ngettext, tag_
-from acct_mgr.compat import as_int, is_enabled, exception_to_unicode
-from acct_mgr.compat import get_pretty_dateinfo
+from acct_mgr.compat import as_int, exception_to_unicode
+from acct_mgr.compat import get_pretty_dateinfo, is_enabled
 from acct_mgr.guard import AccountGuard
 from acct_mgr.model import change_uid, del_user_attribute, email_verified
 from acct_mgr.model import get_user_attribute, last_seen, set_user_attribute
+from acct_mgr.notification import NotificationError
 from acct_mgr.register import EmailVerificationModule, RegistrationError
 from acct_mgr.register import RegistrationModule
 from acct_mgr.web_ui import AccountModule, LoginModule
@@ -917,7 +918,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                 # Delete one or more accounts.
                 if delete_enabled:
                     for account in sel:
-                        acctmgr.delete_user(account)
+                        self._delete_user(req, account)
                     if sel:
                         add_notice(req, Markup(ngettext(
                             "Deleted account: %(accounts)s",
@@ -1037,7 +1038,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                     if password != req.args.get('password_confirm'):
                         add_warning(req, _("The passwords must match."))
                     else:
-                        acctmgr.set_password(username, password)
+                        self._set_password(req, username, password)
                         success.append(labels.get('password'))
                 for attribute in ('name', 'email'):
                     value = req.args.get(attribute, '').strip()
@@ -1214,6 +1215,12 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                                username=tag.b(account['username']))))
                     # User editor form clean-up.
                     account = {}
+                except NotificationError, e:
+                    add_warning(req, _("Error raised while sending a change "
+                                       "notification.") + _("You'll get "
+                                       "details with TracLogging enabled."))
+                    self.log.error('Unable to send change notification: %s',
+                                   exception_to_unicode(e, traceback=True))
                 except RegistrationError, e:
                     # Attempt deferred translation.
                     message = gettext(e.message)
@@ -1308,8 +1315,8 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                     set_user_attribute(self.env, old_uid, 'email', email)
                 return
             if not keep_passwd and \
-                    acctmgr.set_password(new_uid, acctmod._random_password,
-                                         None, False) is None:
+                    self._set_password(req, new_uid, acctmod._random_password,
+                                       False) is None:
                 add_warning(req, _(
                     "Failed to save new login data to a password store."))
                 if email:
@@ -1322,7 +1329,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
         if 'error' in results:
             if create_user:
                 # Rollback all changes including newly created account.
-                acctmgr.delete_user(new_uid)
+                self._delete_user(req, new_uid)
                 if email:
                     set_user_attribute(self.env, old_uid, 'email', email)
             return results
@@ -1343,9 +1350,16 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                 username=tag.b(new_uid))))
         if delete_user:
             # Finally delete old user ID.
-            acctmgr.delete_user(old_uid)
+            self._delete_user(req, old_uid)
         # Notify listeners about successful ID change.
-        acctmgr._notify('id_changed', old_uid, new_uid)
+        try:
+            acctmgr._notify('id_changed', old_uid, new_uid)
+        except NotificationError, e:
+            add_warning(req, _("Error raised while sending a change "
+                               "notification.") + _("You'll get details "
+                               "with TracLogging enabled."))
+            self.log.error('Unable to send user ID change notification: %s',
+                           exception_to_unicode(e, traceback=True))
         return results
 
     def _do_db_cleanup(self, req):
@@ -1480,6 +1494,33 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
             add_link(req, 'prev', prev_href, _('Previous Page'))
         page_href = req.href.admin('accounts', 'cleanup')
         return dict(accounts=pager, displayed_items=total, page_href=page_href)
+
+    def _set_password(self, req, username, password, overwrite=True):
+        """Password saving with graceful handling of notification errors."""
+        result = None
+        try:
+            result = self.acctmgr.set_password(username, password,
+                                               overwrite=overwrite)
+        except NotificationError, e:
+            add_warning(req, _("Error raised while sending a change "
+                               "notification.") + _("You'll get details "
+                               "with TracLogging enabled."))
+            self.log.error('Unable to send password change notification: %s',
+                           exception_to_unicode(e, traceback=True))
+            result = self.acctmgr.has_user(username) or None
+        return result
+
+    def _delete_user(self, req, username):
+        """Delete method, that handles notification errors gracefully."""
+        try:
+            self.acctmgr.delete_user(username)
+        except NotificationError, e:
+            add_warning(req, _("Error raised while sending a change "
+                               "notification.") + _("You'll get details "
+                               "with TracLogging enabled."))
+            self.log.error('Unable to send user delete notification: %s',
+                           exception_to_unicode(e, traceback=True))
+
 
     # IAuthenticator method
     def authenticate(self, req):

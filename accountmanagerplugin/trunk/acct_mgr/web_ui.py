@@ -36,6 +36,7 @@ from acct_mgr.compat import is_enabled, exception_to_unicode
 from acct_mgr.db import SessionStore
 from acct_mgr.guard import AccountGuard
 from acct_mgr.model import set_user_attribute, user_known
+from acct_mgr.notification import NotificationError
 from acct_mgr.register import EmailVerificationModule, RegistrationModule
 from acct_mgr.util import if_enabled
 
@@ -214,7 +215,7 @@ class AccountModule(CommonTemplateProvider):
         elif password == old_password:
             add_warning(req, _("Password must not match old password."))
         else:
-            self.acctmgr.set_password(username, password, old_password)
+            _set_password(self.env, req, username, password, old_password)
             if req.session.get('password') is not None:
                 # Fetch all session_attributes in case new user password is in
                 # SessionStore, preventing overwrite by session.save().
@@ -231,7 +232,13 @@ class AccountModule(CommonTemplateProvider):
         elif not self.acctmgr.check_password(username, password):
             add_warning(req, _("Password is incorrect."))
         else:
-            self.acctmgr.delete_user(username)
+            try:
+                self.acctmgr.delete_user(username)
+            except NotificationError, e:
+                # User wont care for notification, only care for logging here.
+                self.log.error(
+                       'Unable to send account deletion notification: %s',
+                       exception_to_unicode(e, traceback=True))
             # Delete the whole session, since records in session_attribute
             # would get restored on logout otherwise.
             req.session.clear()
@@ -255,23 +262,43 @@ class AccountModule(CommonTemplateProvider):
 
     @property
     def _random_password(self):
+        """Create a new random password on admin or user request.
+
+        This method is used by acct_mgr.admin.AccountManagerAdminPanel too.
+        """
         return ''.join([random.choice(self._password_chars)
                         for _ in xrange(self.password_length)])
 
     def _reset_password(self, req, username, email):
+        """Store a new, temporary password on admin or user request.
+
+        This method is used by acct_mgr.admin.AccountManagerAdminPanel too.
+        """
         acctmgr = self.acctmgr
         new_password = self._random_password
         try:
             self.store.set_password(username, new_password)
             acctmgr._notify('password_reset', username, email, new_password)
+        except NotificationError, e:
+            msg = _("Error raised while sending a change notification.")
+            if req.path_info.startswith('/admin'):
+                msg += _("You'll get details with TracLogging enabled.")
+            else:
+                msg += _("You should report that issue to a Trac admin.")
+            add_warning(req, msg)
+            self.log.error('Unable to send password reset notification: %s',
+                           exception_to_unicode(e, traceback=True))
+        except Exception, e:
+            add_warning(req, _("Cannot reset password: %(error)s",
+                               error=exception_to_unicode(e)))
+            self.log.error('Unable to reset password: %s',
+                           exception_to_unicode(e, traceback=True))
+            return
+        else:
             # No message, if method has been called from user admin panel.
             if not req.path_info.startswith('/admin'):
                 add_notice(req, _("A new password has been sent to you at "
                                   "<%(email)s>.", email=email))
-        except Exception, e:
-            add_warning(req, _("Cannot reset password: %(error)s",
-                               error=', '.join(map(to_unicode, e.args))))
-            return
         if acctmgr.force_passwd_change:
             set_user_attribute(self.env, username, 'force_change_passwd', 1)
 
@@ -735,7 +762,7 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
                 # a 'force_change_passwd' db entry for this user.
                 req.environ['PASSWORD_RESET'] = username
                 # Change password to temporary password from reset procedure
-                acctmgr.set_password(username, password)
+                _set_password(self.env, req, username, password)
                 return username
         return None
 
@@ -749,3 +776,14 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
                 not is_enabled(self.env, auth.LoginModule)
 
     enabled = property(enabled)
+
+def _set_password(env, req, username, password, old_password=None):
+    try:
+        AccountManager(env).set_password(username, password,
+                                         old_password=old_password)
+    except NotificationError, e:
+        add_warning(req, _("Error raised while sending a change "
+                           "notification.") + _("You should report "
+                           "that issue to a Trac admin."))
+        env.log.error('Unable to send password change notification: %s',
+                      exception_to_unicode(e, traceback=True))

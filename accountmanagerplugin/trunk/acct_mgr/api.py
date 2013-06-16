@@ -47,7 +47,7 @@ except ImportError:
                 pass
         return string
 
-from acct_mgr.compat import cleandoc
+from acct_mgr.compat import cleandoc, exception_to_unicode
 cleandoc_ = cleandoc
 
 
@@ -271,14 +271,14 @@ class AccountManager(Component):
             store = self.get_supporting_store('set_password')
         if store:
             try:
-                res = store.set_password(user, password, old_password,
-                                         overwrite)
+                result = store.set_password(user, password, old_password,
+                                            overwrite)
             except TypeError:
                 # Support former method signature - overwrite unconditionally.
-                res = None
+                result = None
                 if overwrite or not store.has_user(user):
-                    res = store.set_password(user, password, old_password)
-            if res:
+                    result = store.set_password(user, password, old_password)
+            if result:
                 self._notify('created', user, password)
             elif not overwrite:
                 raise TracError(_(
@@ -290,7 +290,7 @@ class AccountManager(Component):
                 """None of the IPasswordStore components listed in the
                 trac.ini supports setting the password or creating users.
                 """))
-        return res
+        return result
 
     def check_password(self, user, password):
         valid = False
@@ -394,18 +394,29 @@ class AccountManager(Component):
         name = req.args.get('name', '').strip()
         username = self.handle_username_casing(
                        req.args.get('username', '').strip())
-        # Create the user in the configured (primary) password store.
-        if self.set_password(username, req.args.get('password'), None, False):
-            # Result of a successful account creation request is a made-up
-            # authenticated session, that a new user can refer to later on.
-            from acct_mgr.model import prime_auth_session, set_user_attribute
+        # Result of a successful account creation request is a made-up
+        # authenticated session, that a new user can refer to later on.
+        # Strictly required to create a primary key for additional attributes,
+        # perhaps even something as critical as the SessionStore password.
+        from acct_mgr.model import prime_auth_session, set_user_attribute
+        try:
             prime_auth_session(self.env, username)
             # Save attributes for the user with reference to that session ID.
+            # Done before writing to a password store to preserve attributes
+            # in case of non-fatal errors (especially notification errors).
             for attribute in ('name', 'email'):
                 value = req.args.get(attribute)
                 if not value:
                     continue
-                set_user_attribute(self.env, username, attribute, value)
+            set_user_attribute(self.env, username, attribute, value)
+            # Create the user in the configured (primary) password store.
+            self.set_password(username, req.args.get('password'),
+                              overwrite=False)
+        finally:
+            if not self.has_user(username):
+                # Rollback.
+                from acct_mgr.model import delete_user
+                delete_user(self.env, user)
 
     def _maybe_update_hash(self, user, password):
         from acct_mgr.model import get_user_attribute, set_user_attribute
@@ -426,11 +437,14 @@ class AccountManager(Component):
         for listener in self.change_listeners:
             # Support divergent account change listener implementations too.
             try:
+                self.log.debug(
+                    'CHANGE_LISTENER: %s(%s)' % (repr(listener), mod))
                 getattr(listener, mod)(*args)
-            except AttributeError:
+            except AttributeError, e:
                 self.log.warn(
-                    'IAccountChangeListener %s does not support method %s'
-                     % (listener.__class__.__name__, mod))
+                    'IAccountChangeListener %s does not support method %s: %s'
+                     % (listener.__class__.__name__, mod,
+                        exception_to_unicode(e)))
 
     # IAccountChangeListener methods
 

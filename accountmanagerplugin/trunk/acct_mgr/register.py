@@ -27,9 +27,10 @@ from trac.web.main import IRequestHandler, IRequestFilter
 from acct_mgr.api import AccountManager, CommonTemplateProvider
 from acct_mgr.api import IAccountRegistrationInspector
 from acct_mgr.api import _, N_, cleandoc_, dgettext, gettext, tag_
-from acct_mgr.compat import is_enabled
+from acct_mgr.compat import exception_to_unicode, is_enabled
 from acct_mgr.model import email_associated, get_user_attribute
 from acct_mgr.model import set_user_attribute
+from acct_mgr.notification import NotificationError
 from acct_mgr.util import containsAny
 
 
@@ -421,8 +422,16 @@ class RegistrationModule(CommonTemplateProvider):
         data['verify_account_enabled'] = verify_enabled
         if req.method == 'POST' and action == 'create':
             try:
-                # Check request and prime account on success.
-                acctmgr.validate_account(req, True)
+                try:
+                    # Check request and prime account on success.
+                    acctmgr.validate_account(req, True)
+                except NotificationError, e:
+                    chrome.add_warning(req, _(
+                        "Error raised while sending a change notification."
+                        ) + _("You should report that issue to a Trac admin."))
+                    self.log.error(
+                        'Unable to send registration notification: %s',
+                        exception_to_unicode(e, traceback=True))
             except RegistrationError, e:
                 # Attempt deferred translation.
                 message = gettext(e.message)
@@ -437,12 +446,22 @@ class RegistrationModule(CommonTemplateProvider):
                     set_user_attribute(self.env, username, 'approval',
                                        N_('pending'))
                     # Notify admin user about registration pending for review.
-                    acctmgr._notify('registration_approval_required',
-                                    username)
-                    chrome.add_notice(req, Markup(tag.span(Markup(_(
-                        "Your username has been registered successfully, but "
-                        "your account requires administrative approval. "
-                        "Please proceed according to local policy."))))
+                    try:
+                        acctmgr._notify('registration_approval_required',
+                                        username)
+                    except NotificationError, e:
+                        chrome.add_warning(req, _(
+                            "Error raised while sending a change "
+                            "notification.") + _("You should report that "
+                            "issue to a Trac admin."))
+                        self.log.error('Unable to send admin notification: %s',
+                                       exception_to_unicode(e, traceback=True))
+                    else:
+                        chrome.add_notice(req, Markup(tag.span(Markup(_(
+                            "Your username has been registered successfully, "
+                            "but your account requires administrative "
+                            "approval. Please proceed according to local "
+                            "policy."))))
                     )
                 if verify_enabled:
                     chrome.add_notice(req, Markup(tag.span(Markup(_(
@@ -569,21 +588,28 @@ class EmailVerificationModule(CommonTemplateProvider):
                 not req.perm.has_permission('ACCTMGR_ADMIN'):
             req.session['email_verification_token'] = self._gen_token()
             req.session['email_verification_sent_to'] = email
-            AccountManager(self.env)._notify(
-                'email_verification_requested', 
-                req.authname, 
-                req.session['email_verification_token']
-            )
-            # TRANSLATOR: An email has been sent to <%(email)s>
-            # with a token to ... (the link label for following message)
-            link = tag.a(_("verify your new email address"),
-                         href=req.href.verify_email()
-                   )
-            # TRANSLATOR: ... verify your new email address
-            chrome.add_notice(req, Markup(tag.span(Markup(_(
-                """An email has been sent to <%(email)s> with a token to
-                %(link)s.""", email=email, link=link))))
-            )
+            try:
+                AccountManager(self.env)._notify(
+                    'email_verification_requested', 
+                    req.authname, 
+                    req.session['email_verification_token']
+                )
+            except NotificationError, e:
+                chrome.add_warning(req, _(
+                    "Error raised while sending a change notification."
+                    ) + _("You should report that issue to a Trac admin."))
+                self.log.error('Unable to send registration notification: %s',
+                               exception_to_unicode(e, traceback=True))
+            else:
+                # TRANSLATOR: An email has been sent to <%(email)s>
+                # with a token to ... (the link label for following message)
+                link = tag.a(_("verify your new email address"),
+                             href=req.href.verify_email())
+                # TRANSLATOR: ... verify your new email address
+                chrome.add_notice(req, Markup(tag.span(Markup(_(
+                    "An email has been sent to <%(email)s> with a token to "
+                    "%(link)s.", email=email, link=link))))
+                )
         return template, data, content_type
 
     # IRequestHandler methods
@@ -600,15 +626,23 @@ class EmailVerificationModule(CommonTemplateProvider):
         if 'email_verification_token' not in req.session:
             chrome.add_notice(req, _("Your email is already verified."))
         elif req.method == 'POST' and 'resend' in req.args:
-            AccountManager(self.env)._notify(
-                'email_verification_requested', 
-                req.authname, 
-                req.session['email_verification_token']
-            )
-            chrome.add_notice(req,
+            try:
+                AccountManager(self.env)._notify(
+                    'email_verification_requested', 
+                    req.authname, 
+                    req.session['email_verification_token']
+                )
+            except NotificationError, e:
+                chrome.add_warning(req, _("Error raised while sending a "
+                                   "change notification.") + _("You should "
+                                   "report that issue to a Trac admin."))
+                self.log.error('Unable to send verification notification: %s',
+                               exception_to_unicode(e, traceback=True))
+            else:
+                chrome.add_notice(req,
                     _("A notification email has been resent to <%s>."),
                     req.session.get('email')
-            )
+                )
         elif 'verify' in req.args:
             # allow via POST or GET (the latter for email links)
             if req.args['token'] == req.session['email_verification_token']:
