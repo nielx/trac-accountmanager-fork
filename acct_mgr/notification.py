@@ -12,13 +12,17 @@
 import re
 
 from trac import __version__
-from trac.core import Component, implements
+from trac.core import Component, TracError, implements
 from trac.admin import IAdminPanelProvider
 from trac.config import Option, ListOption
 from trac.notification import NotifyEmail
 
 from acct_mgr.api import IAccountChangeListener, CommonTemplateProvider, \
                          _, dgettext
+
+
+class NotificationError(TracError):
+    pass
 
 
 class AccountChangeListener(Component):
@@ -89,8 +93,11 @@ class AccountChangeNotification(NotifyEmail):
         projname = self.config.get('project', 'name')
         subject = '[%s] %s: %s' % (projname, action, username)
 
-        NotifyEmail.notify(self, username, subject)
-
+        try:
+            NotifyEmail.notify(self, username, subject)
+        except Exception, e:
+            # Enable dedicated, graceful handling of notification issues.
+            raise NotificationError(e)
 
 class SingleUserNotification(NotifyEmail):
     """Helper class used for account email notifications which should only be
@@ -108,7 +115,7 @@ class SingleUserNotification(NotifyEmail):
         if addr == self._username:
             return NotifyEmail.get_smtp_address(self, addr)
         else:
-            return None
+            return
 
     def notify(self, username, subject):
         # save the username for use in `get_smtp_address`
@@ -118,10 +125,10 @@ class SingleUserNotification(NotifyEmail):
         self.config.set('notification', 'use_public_cc', 'true')
         try:
             NotifyEmail.notify(self, username, subject)
+        except Exception, e:
+            raise NotificationError(e)
         # DEVEL: Better use new 'finally' statement here, but
         #   still need to care for Python 2.4 (RHEL5.x) for now
-        except:
-            pass
         self.config.set('notification', 'use_public_cc', old_public_cc)
 
 
