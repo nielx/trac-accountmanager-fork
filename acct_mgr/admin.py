@@ -1460,7 +1460,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
             add_stylesheet(req, 'acct_mgr/acctmgr.css')
             data = dict(_dgettext=dgettext, accounts=accounts, attr=attr_sel,
                         max_per_page=max_per_page)
-            return 'db_cleanup.html', data
+            return 'admin_db_cleanup.html', data
 
     def _paginate(self, req, accounts):
         max_per_page = as_int(req.args.get('max_per_page'), None)

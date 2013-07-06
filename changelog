@@ -12,7 +12,7 @@ acct_mgr-0.5 (not yet released) - branch 0.11
  * #11038: Login fails due to issues with opening sibling Trac environments
  * #11090: Error on user creation "gaierror: [Errno -2] Name or service ..."
  * #11111: Please add a MANIFEST.in
- * #11213: The username input doesn't have focus when the page loads 
+ * #11213: The username input doesn't have focus when the page loads
  * fix access to account properties clean-up from user admin panel
  * always show associated email in user details admin panel
  * fix and unify web-UI feedback on user and admin actions
@@ -34,7 +34,8 @@ acct_mgr-0.5 (not yet released) - branch 0.11
  * #10741: Provide email verification status indicator on user admin panel
  * #10742: Rename "Update" button to "Refresh" on Review Account Details page
  * #10745: Add 'Select all' checkbox to header of list in user admin panel
- * #11215: Set focus when admin Users page loads 
+ * #11214: Rename db_cleanup to admin_db_cleanup
+ * #11215: Set focus when admin Users page loads
  * add unit tests for db access functions
  * add account guard configuration to config admin panel
  * filter account list in user admin panel by account status
