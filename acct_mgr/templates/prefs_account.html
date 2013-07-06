@@ -41,6 +41,11 @@
 
   <head>
     <title>Account</title>
+     <script type="text/javascript">
+       jQuery(document).ready(function($) {
+          $('#old_password').focus();
+       });
+     </script>
   </head>
 
   <!--! Commont content, will get wrapped in a form with 'save' button -->
@@ -48,8 +53,8 @@
     <h2>Change Password</h2>
     <div class="field">
       <label>Old Password:
-        <input type="password" name="old_password" class="textwidget"
-               size="20" />
+        <input type="password" id="old_password" name="old_password"
+               class="textwidget" size="20" />
       </label>
     </div>
     <div class="field">

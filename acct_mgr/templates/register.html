@@ -13,9 +13,9 @@
   <head>
     <title>Register</title>
     <script type="text/javascript">
-    jQuery(document).ready(function($) {
-        $('input[@name=username]')[0].focus();
-    });
+      jQuery(document).ready(function($) {
+          $('#username').focus();
+      });
     </script>
   </head>
 
@@ -34,8 +34,9 @@
           <div>
             <input type="hidden" name="action" value="create" />
             <label>Username:
-              <input type="text" name="username" class="textwidget"
-                     size="20" value="${acctmgr.username}" />
+              <input type="text" id="username" name="username"
+                     class="textwidget" size="20"
+                     value="${acctmgr.username}" />
             </label>
             <p class="hint" py:if="ignore_auth_case">
               Only lowercase usernames allowed

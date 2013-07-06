@@ -12,6 +12,11 @@
         dgettext = _dgettext ?>
   <head>
     <title>Account</title>
+    <script type="text/javascript">
+      jQuery(document).ready(function($) {
+          $('#password').focus();
+      });
+    </script>
   </head>
 
   <body>
@@ -84,21 +89,19 @@
               <div>
                 <div class="field">
                   <input type="hidden" name="action" value="edit" />
-                  <label py:choose="">Password:<br />
-                    <input type="password" name="password" class="textwidget"
-                           py:when="password_change_enabled" />
-                    <input type="password" name="password" class="textwidget"
-                           py:otherwise="" disabled="disabled" />
+                  <label for="password">Password:<br />
+                    <input type="password" id="password" name="password"
+                           class="textwidget"
+                           disabled="${not password_change_enabled and
+                                       'disabled' or None}" />
                   </label>
                 </div>
                 <div class="field">
-                  <label py:choose="">Confirm Password:<br />
-                    <input type="password" name="password_confirm"
-                           class="textwidget"
-                           py:when="password_change_enabled" />
-                    <input type="password" name="password_confirm"
-                           class="textwidget"
-                           py:otherwise="" disabled="disabled" />
+                  <label for="confirm">Confirm Password:<br />
+                    <input type="password" id="confirm"
+                           name="password_confirm" class="textwidget"
+                           disabled="${not password_change_enabled and
+                                       'disabled' or None}" />
                   </label>
                 </div>
               </div>
