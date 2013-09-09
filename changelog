@@ -13,6 +13,7 @@ acct_mgr-0.5 (not yet released) - branch 0.11
  * #11090: Error on user creation "gaierror: [Errno -2] Name or service ..."
  * #11111: Please add a MANIFEST.in
  * #11213: The username input doesn't have focus when the page loads
+ * #11312: Variable `user' does not exist (in api.py)
  * fix access to account properties clean-up from user admin panel
  * always show associated email in user details admin panel
  * fix and unify web-UI feedback on user and admin actions

@@ -416,7 +416,7 @@ class AccountManager(Component):
             if not self.has_user(username):
                 # Rollback.
                 from acct_mgr.model import delete_user
-                delete_user(self.env, user)
+                delete_user(self.env, username)
 
     def _maybe_update_hash(self, user, password):
         from acct_mgr.model import get_user_attribute, set_user_attribute
