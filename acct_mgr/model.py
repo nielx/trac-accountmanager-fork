@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2012,2013 Steffen Hoffmann <hoff.st@web.de>
+# Copyright (C) 2012-2014 Steffen Hoffmann <hoff.st@web.de>
 # All rights reserved.
 #
 # This software is licensed as described in the file COPYING, which
@@ -553,6 +553,7 @@ def prime_auth_session(env, username, db=None):
         SELECT COUNT(*)
           FROM session
          WHERE sid=%s
+           AND authenticated=1
         """, (username,))
     exists = cursor.fetchone()
     if not exists[0]:
