@@ -43,6 +43,11 @@ acct_mgr-0.5 (not yet released) - branch 0.11
  * remake account editor following Trac admin panel style i.e. for enums
 
 
+acct_mgr-0.4.4 (03-Apr-2014) - branch 0.11
+ resolved issues
+ * escape email for notification message against reported xss vulnerability
+
+
 acct_mgr-0.4.3 (13-Feb-2013) - branch 0.11
  resolved issues
  * #8927: LoginModule with .htpasswd & passwd reset => not working
