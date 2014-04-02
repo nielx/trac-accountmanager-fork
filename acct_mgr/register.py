@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2005 Matthew Good <trac@matt-good.net>
-# Copyright (C) 2010-2013 Steffen Hoffmann <hoff.st@web.de>
+# Copyright (C) 2010-2014 Steffen Hoffmann <hoff.st@web.de>
 # All rights reserved.
 #
 # This software is licensed as described in the file COPYING, which
@@ -608,7 +608,7 @@ class EmailVerificationModule(CommonTemplateProvider):
                 # TRANSLATOR: ... verify your new email address
                 chrome.add_notice(req, Markup(tag.span(Markup(_(
                     "An email has been sent to <%(email)s> with a token to "
-                    "%(link)s.", email=email, link=link))))
+                    "%(link)s.", email=tag(email), link=link))))
                 )
         return template, data, content_type
 
