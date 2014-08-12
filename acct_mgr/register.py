@@ -288,10 +288,13 @@ class RegExpCheck(GenericRegistrationInspector):
 
     username_regexp = Option('account-manager', 'username_regexp',
         r'(?i)^[A-Z0-9.\-_]{5,}$',
-        doc="A validation regular expression describing new usernames.")
+        doc="A validation regular expression describing new usernames. "
+            "Define constraints for allowed user names corresponding to "
+            "local naming policy.")
     email_regexp = Option('account-manager', 'email_regexp',
         r'(?i)^[A-Z0-9._%+-]+@(?:[A-Z0-9-]+\.)+[A-Z]{2,6}$',
-        doc="A validation regular expression describing new account emails.")
+        doc="A validation regular expression describing new account emails. "
+            "Define constraints for a valid email address.")
 
     def validate_registration(self, req):
         acctmgr = AccountManager(self.env)
