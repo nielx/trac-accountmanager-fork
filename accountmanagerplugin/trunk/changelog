@@ -38,6 +38,7 @@ acct_mgr-0.5 (not yet released) - branch 0.11
  * #11214: Rename db_cleanup to admin_db_cleanup
  * #11215: Set focus when admin Users page loads
  * #11894: Make (clear that) username policy (is) configurable
+ * #12054: add QuestionRegisterPlugin-like functionality
  * add unit tests for db access functions
  * add account guard configuration to config admin panel
  * filter account list in user admin panel by account status
