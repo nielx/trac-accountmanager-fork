@@ -170,7 +170,12 @@ class BotTrapCheck(GenericRegistrationInspector):
     ''This check is bypassed for requests by an authenticated user.''
     """)
 
-    reg_basic_token = Option('account-manager', 'register_basic_token', '',
+    reg_basic_question = Option(
+        'account-manager', 'register_basic_question', '',
+        doc="A question to ask instead of the standard prompt, to which "
+            "the value of register_basic_token is the answer.")
+    reg_basic_token = Option(
+        'account-manager', 'register_basic_token', '',
         doc="A string required as input to pass verification.")
 
     def render_registration_fields(self, req, data):
@@ -182,11 +187,19 @@ class BotTrapCheck(GenericRegistrationInspector):
             # everything again.
             old_value = req.args.get('basic_token', '')
 
-            # TRANSLATOR: Hint for visible bot trap registration input field.
-            hint = tag.p(Markup(_(
-                """Please type [%(token)s] as verification token,
-                exactly replicating everything within the braces.""",
-                token=tag.b(self.reg_basic_token))), class_='hint')
+            if self.reg_basic_question:
+                # TRANSLATOR: Question-style hint for visible bot trap
+                # registration input field.
+                hint = tag.p(_("Please answer above: %(question)s",
+                               question=self.reg_basic_question),
+                             class_='hint')
+            else:
+                # TRANSLATOR: Verbatim token hint for visible bot trap
+                # registration input field.
+                hint = tag.p(Markup(_(
+                    """Please type [%(token)s] as verification token,
+                    exactly replicating everything within the braces.""",
+                    token=tag.b(self.reg_basic_token))), class_='hint')
             insert = tag(
                 tag.label(_("Parole:"),
                           tag.input(type='text', name='basic_token', size=20,
