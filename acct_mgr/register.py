@@ -305,9 +305,10 @@ class RegExpCheck(GenericRegistrationInspector):
             "Define constraints for allowed user names corresponding to "
             "local naming policy.")
     email_regexp = Option('account-manager', 'email_regexp',
-        r'(?i)^[A-Z0-9._%+-]+@(?:[A-Z0-9-]+\.)+[A-Z]{2,6}$',
+        r'(?i)^[A-Z0-9._%+-]+@(?:[A-Z0-9-]+\.)+[A-Z0-9-]{2,63}$',
         doc="A validation regular expression describing new account emails. "
-            "Define constraints for a valid email address.")
+            "Define constraints for a valid email address. A custom pattern "
+            "can narrow or widen scope i.e. to accept UTF-8 characters.")
 
     def validate_registration(self, req):
         acctmgr = AccountManager(self.env)
