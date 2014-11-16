@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2008 Pedro Algarvio <ufs@ufsoft.org>
-# Copyright (C) 2013 Steffen Hoffmann <hoff.st@web.de>
+# Copyright (C) 2013,2014 Steffen Hoffmann <hoff.st@web.de>
 # All rights reserved.
 #
 # This software is licensed as described in the file COPYING, which
@@ -79,6 +79,15 @@ class AccountChangeNotification(NotifyEmail):
         recipients = self._recipients.split()
         return (recipients,[])
 
+    def get_smtp_address(self, addr):
+        """Overrides `get_smtp_address` in order to prevent CCing users
+        other than those in the account_changes_notify_addresses option.
+        """
+        if addr in self._recipients:
+            return NotifyEmail.get_smtp_address(self, addr)
+        else:
+            return
+
     def notify(self, username, action):
         self.data.update({
             'account': {
@@ -98,6 +107,7 @@ class AccountChangeNotification(NotifyEmail):
         except Exception, e:
             # Enable dedicated, graceful handling of notification issues.
             raise NotificationError(e)
+
 
 class SingleUserNotification(NotifyEmail):
     """Helper class used for account email notifications which should only be
