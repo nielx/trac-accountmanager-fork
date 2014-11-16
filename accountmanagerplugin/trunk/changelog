@@ -4,6 +4,7 @@ Maintainer: Steffen Hoffmann <hoff.st@web.de>
 acct_mgr-0.5 (not yet released) - branch 0.11
  resolved issues
  * #8217: Race condition when creating new accounts
+ * #8796: notifications also get sent to the smtp_always_cc address
  * #10740: Checkbox columns are too wide on the Accounts: Cleanup page
  * #10754: Selected checkboxes should determine Accounts: Cleanup page items
  * #10772: ProgrammingError: operator does not exist: text = integer
