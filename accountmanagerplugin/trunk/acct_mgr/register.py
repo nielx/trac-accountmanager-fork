@@ -560,7 +560,8 @@ class EmailVerificationModule(CommonTemplateProvider):
             # Permissions for anonymous users remain unchanged.
             return handler
         elif req.path_info == '/prefs' and req.method == 'POST' and \
-                not 'restore' in req.args:
+                not 'restore' in req.args and \
+                not req.get_header('X-Requested-With') == 'XMLHttpRequest':
             try:
                 AccountManager(self.env).validate_account(req)
                 # Check passed without error: New email address seems good.
