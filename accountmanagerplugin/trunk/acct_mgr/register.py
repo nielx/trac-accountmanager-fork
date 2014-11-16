@@ -47,7 +47,7 @@ class RegistrationError(TracError):
         tb = 'show_traceback'
         # Care for the 2nd TracError standard keyword argument only.
         show_traceback = tb in kwargs and kwargs.pop(tb, False)
-        super(RegistrationError, self).__init__(message, title, show_traceback)
+        TracError.__init__(self, message, title, show_traceback)
         self.msg_args = args
 
 
