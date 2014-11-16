@@ -408,7 +408,7 @@ class AccountManager(Component):
                 value = req.args.get(attribute)
                 if not value:
                     continue
-            set_user_attribute(self.env, username, attribute, value)
+                set_user_attribute(self.env, username, attribute, value)
             # Create the user in the configured (primary) password store.
             self.set_password(username, req.args.get('password'),
                               overwrite=False)
