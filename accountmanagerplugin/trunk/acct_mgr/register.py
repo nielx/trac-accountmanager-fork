@@ -173,7 +173,8 @@ class BotTrapCheck(GenericRegistrationInspector):
     reg_basic_question = Option(
         'account-manager', 'register_basic_question', '',
         doc="A question to ask instead of the standard prompt, to which "
-            "the value of register_basic_token is the answer.")
+            "the value of register_basic_token is the answer. Setting to "
+            "empty string (default value) keeps the standard prompt.")
     reg_basic_token = Option(
         'account-manager', 'register_basic_token', '',
         doc="A string required as input to pass verification.")
