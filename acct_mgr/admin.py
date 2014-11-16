@@ -263,6 +263,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                 if req.perm.has_permission('ACCTMGR_USER_ADMIN'):
                     req.redirect(req.href.admin('accounts', 'users'))
                 req.redirect(req.href())
+            # Rollback unsaved configuration changes.
             if req.args.get('exit'):
                 try:
                     cfg.parse_if_needed(force=True) # Full reload
@@ -271,8 +272,8 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                     # for compatibility down to 0.11 is required.
                     cfg.touch() # Fake write access for reload
                 _redirect(req)
+            # Don't care as long as the feature is disabled.
             elif req.args.get('restart') and self.acctmgr.refresh_passwd:
-                # Don't care as long as the feature is disabled.
                 del_user_attribute(self.env, attribute='password_refreshed')
                 add_notice(req, _("Password hash refresh procedure restarted."))
 
@@ -1019,8 +1020,9 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
 
         if req.method == 'POST':
             action = req.args.get('action', '')
+
+            # Change attributes and or password of existing user account.
             if action == 'edit':
-                # Change attributes and or password of existing user account.
                 labels = {
                     'email': _("Email Address"),
                     'name': _("Pre-/Surname (Nickname)"),
@@ -1033,6 +1035,23 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                     old_values['name'] = attributes[username][1].get('name')
                     old_values['email'] = attributes[username][1].get('email')
                 success = []
+
+                # Delete a single user account attribute value.
+                if any([k.startswith('delete_email')
+                        for k in req.args.keys()]):
+                    del_user_attribute(env, username, attribute='email')
+                    add_notice(req, Markup(_(
+                               "Deleted %(attribute)s for %(username)s.",
+                               attribute=tag.b(labels.get('email')),
+                               username=tag.b(username))))
+                elif any([k.startswith('delete_name')
+                          for k in req.args.keys()]):
+                    del_user_attribute(env, username, attribute='name')
+                    add_notice(req, Markup(_(
+                               "Deleted %(attribute)s for %(username)s.",
+                               attribute=tag.b(labels.get('name')),
+                               username=tag.b(username))))
+
                 password = req.args.get('password')
                 if password and (password.strip() != ''):
                     if password != req.args.get('password_confirm'):
@@ -1070,8 +1089,9 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                                "Updated %(attributes)s for %(username)s.",
                                attributes=attributes,
                                username=tag.b(username))))
+
+            # Change user ID of existing user account.
             elif action == 'uid':
-                # Change user ID of existing user account.
                 new_uid = req.args.get('new_uid', '').strip()
                 results = None
                 if new_uid:

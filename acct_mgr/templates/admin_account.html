@@ -110,12 +110,21 @@
                   <input type="text" name="name" class="textwidget"
                          value="${acctmgr.name}" />
                 </label>
+                <input type="image" name="delete_name" class="delete"
+                       src="${href.chrome('/acct_mgr/delete.png')}"
+                       alt="${dgettext('acct_mgr', 'Delete value')}"
+                       py:if="acctmgr.name" />
               </div>
               <div class="field">
                 <label>Email Address:<br />
                   <input type="text" name="email" class="textwidget"
                          value="${acctmgr.email}" />
-                </label><br />
+                </label>
+                <input type="image" name="delete_email" class="delete"
+                       src="${href.chrome('/acct_mgr/delete.png')}"
+                       alt="${dgettext('acct_mgr', 'Delete value')}"
+                       py:if="acctmgr.email" />
+                <br />
                 <label py:if="verify_enabled">
                   <input type="checkbox" name="email_approved" value="true"
                          checked="${email_approved and 'checked' or None}" />
