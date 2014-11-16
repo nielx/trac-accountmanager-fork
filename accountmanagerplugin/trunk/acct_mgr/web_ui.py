@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2005 Matthew Good <trac@matt-good.net>
-# Copyright (C) 2010-2013 Steffen Hoffmann <hoff.st@web.de>
+# Copyright (C) 2010-2014 Steffen Hoffmann <hoff.st@web.de>
 # All rights reserved.
 #
 # This software is licensed as described in the file COPYING, which
@@ -33,6 +33,7 @@ from trac.web.chrome import add_stylesheet, add_warning
 from acct_mgr.api import AccountManager, CommonTemplateProvider
 from acct_mgr.api import _, dgettext, ngettext, tag_
 from acct_mgr.compat import is_enabled, exception_to_unicode
+from acct_mgr.compat import ConfigurationError
 from acct_mgr.db import SessionStore
 from acct_mgr.guard import AccountGuard
 from acct_mgr.model import set_user_attribute, user_known
@@ -106,7 +107,7 @@ class AccountModule(CommonTemplateProvider):
     def _reset_password_enabled(self, log=False):
         try:
             self.store.hash_method
-        except AttributeError:
+        except (AttributeError, ConfigurationError):
             return False
         return is_enabled(self.env, self.__class__) and \
                self.reset_password and (self._write_check(log) != []) and \

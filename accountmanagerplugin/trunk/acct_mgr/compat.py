@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2005 Matthew Good <trac@matt-good.net>
-# Copyright (C) 2010-2013 Steffen Hoffmann <hoff.st@web.de>
+# Copyright (C) 2010-2014 Steffen Hoffmann <hoff.st@web.de>
 # Copyright (C) 2011 Edgewall Software
 # All rights reserved.
 #
@@ -13,6 +13,7 @@
 from genshi.builder import tag
 from tokenize import generate_tokens, COMMENT, NAME, OP, STRING
 
+from trac.core import TracError
 from trac.util.datefmt import format_datetime, pretty_timedelta
 from trac.util.text import to_unicode
 from trac.web.chrome import Chrome
@@ -271,7 +272,7 @@ def get_pretty_dateinfo(env, req):
             relative = pretty_timedelta(date)
             if format == 'absolute':
                 label = absolute
-                # TRANSLATOR: Sync with same msgid in Trac 0.13, please.
+                # TRANSLATOR: Sync with same msgid in Trac 1.0, please.
                 title = _("%(relativetime)s ago", relativetime=relative)
             else:
                 if dateonly:
@@ -295,3 +296,22 @@ def is_enabled(env, cls):
         if cls not in env.enabled:
             env.enabled[cls] = env.is_component_enabled(cls)
         return env.enabled[cls]
+
+
+try:
+    from trac.config import ConfigurationError
+# Provide the class for compatibility (available since Trac 1.0.2).
+except:
+    from acct_mgr.api import N_
+
+    class ConfigurationError(TracError):
+        """Exception raised when a value in the configuration file is not
+        valid.
+        """
+        title = N_('Configuration Error')
+
+        def __init__(self, message=None, title=None, show_traceback=False):
+            if message is None:
+                message = _("Look in the Trac log for more information.")
+            super(ConfigurationError, self).__init__(message, title,
+                                                 show_traceback)
