@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2005 Matthew Good <trac@matt-good.net>
-# Copyright (C) 2010-2013 Steffen Hoffmann <hoff.st@web.de>
+# Copyright (C) 2010-2014 Steffen Hoffmann <hoff.st@web.de>
 # All rights reserved.
 #
 # This software is licensed as described in the file COPYING, which
@@ -46,11 +46,9 @@ def fetch_user_data(env, req, filters=None):
     acctmgr = AccountManager(env)
     guard = AccountGuard(env)
     accounts = {}
-    max_per_page = as_int(req.args.get('max_per_page'), None)
     for username in acctmgr.get_users():
         if req.perm.has_permission('ACCTMGR_USER_ADMIN'):
-            url = req.href.admin('accounts', 'users', username,
-                                 max_per_page=max_per_page)
+            url = req.href.admin('accounts', 'users', username)
         else:
             url = None
         accounts[username] = {'username': username, 'url': url}
@@ -960,20 +958,21 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                 'delete_msg_confirm': _(
                     "Are you sure you want to delete these accounts?")})
 
+            # Preserve pager setting.
+            if 'max_per_page' in req.args:
+                max_per_page = req.args.get('max_per_page')
+                req.session.set('acctmgr_user.max_items', max_per_page,
+                                self.ACCTS_PER_PAGE) 
+                req.redirect(req.href.admin('accounts', 'users'))
             # Save results of submitted user list filter form to the session.
-            if 'update' in req.args:
+            elif 'update' in req.args:
                 for filter in available_filters:
                     key = 'acctmgr_user.filter.%s' % filter[0]
                     if 'filter_%s' % filter[0] in req.args:
                         req.session[key] = '1'
                     elif key in req.session:
                         del req.session[key]
-                # Preserve pager setting, if not default.
-                max_per_page = req.args.get('max_per_page')
-                max_per_page = (max_per_page != self.ACCTS_PER_PAGE and
-                                max_per_page or None)
-                req.redirect(req.href.admin('accounts', 'users',
-                                            max_per_page=max_per_page))
+                req.redirect(req.href.admin('accounts', 'users'))
             # Prevent IRequestFilter in trac.timeline.web_ui.TimelineModule
             #   of Trac 0.13 and later from adding a link to timeline by
             #   adding the function with a different key name here.
@@ -991,16 +990,14 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
         acctmgr = self.acctmgr
         guard = self.guard
 
-        max_per_page = as_int(req.args.get('max_per_page'), None)
         if not (username and acctmgr.has_user(username)):
             add_warning(req, _(
                 "Please choose account by username from the list to proceed."
                 ))
-            req.redirect(req.href.admin('accounts', 'users',
-                                        max_per_page=max_per_page))
+            req.redirect(req.href.admin('accounts', 'users'))
 
         change_uid_enabled = self.uid_changers and True or False
-        data = dict(_dgettext=dgettext, max_per_page=max_per_page,
+        data = dict(_dgettext=dgettext,
                     attr_addonly=bool(req.args.get('attr_addonly')),
                     change_uid_enabled=change_uid_enabled,
                     skip_delete=bool(req.args.get('skip_delete')),
@@ -1204,8 +1201,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
         if trac_version < '1.0':
             data['action_aside'] = True
         add_ctxtnav(req, _("Back to Accounts"),
-                    href=req.href.admin('accounts', 'users',
-                                        max_per_page=max_per_page))
+                    href=req.href.admin('accounts', 'users'))
         add_stylesheet(req, 'acct_mgr/acctmgr.css')
         return 'admin_account.html', data
 
@@ -1475,25 +1471,21 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                     attr_sel.update({account: states})
 
             add_ctxtnav(req, _("Back to Accounts"),
-                        href=req.href.admin('accounts', 'users',
-                                            max_per_page=max_per_page))
+                        href=req.href.admin('accounts', 'users'))
             add_stylesheet(req, 'acct_mgr/acctmgr.css')
-            data = dict(_dgettext=dgettext, accounts=accounts, attr=attr_sel,
-                        max_per_page=max_per_page)
+            data = dict(_dgettext=dgettext, accounts=accounts, attr=attr_sel)
             return 'admin_db_cleanup.html', data
 
     def _paginate(self, req, accounts):
-        max_per_page = as_int(req.args.get('max_per_page'), None)
-        if max_per_page is None:
-            max_per_page = self.ACCTS_PER_PAGE
+        max_per_page = as_int(req.session.get('acctmgr_user.max_items'),
+                              self.ACCTS_PER_PAGE)
         page = int(req.args.get('page', '1'))
         total = len(accounts)
         pager = Paginator(accounts, page - 1, max_per_page)
         pagedata = []
         shown_pages = pager.get_shown_pages(21)
         for shown_page in shown_pages:
-            page_href = req.href.admin('accounts', 'users', page=shown_page,
-                                       max_per_page=max_per_page)
+            page_href = req.href.admin('accounts', 'users', page=shown_page)
             pagedata.append([page_href, None, str(shown_page),
                              _("page %(num)s", num=str(shown_page))])
         # Prepare bottom and top pager navigation data.
@@ -1505,12 +1497,10 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
             # Show '# of #' instead of total count.
             total = pager.displayed_items()
         if pager.has_next_page:
-            next_href = req.href.admin('accounts', 'users', page=page + 1,
-                                       max_per_page=max_per_page)
+            next_href = req.href.admin('accounts', 'users', page=page + 1)
             add_link(req, 'next', next_href, _('Next Page'))
         if pager.has_previous_page:
-            prev_href = req.href.admin('accounts', 'users', page=page - 1,
-                                       max_per_page=max_per_page)
+            prev_href = req.href.admin('accounts', 'users', page=page - 1)
             add_link(req, 'prev', prev_href, _('Previous Page'))
         page_href = req.href.admin('accounts', 'cleanup')
         return dict(accounts=pager, displayed_items=total, page_href=page_href)
