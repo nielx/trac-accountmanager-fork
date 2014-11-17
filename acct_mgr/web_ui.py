@@ -19,7 +19,8 @@ from genshi.builder import tag
 
 from trac import perm, util
 from trac.core import Component, implements
-from trac.config import Configuration, BoolOption, IntOption, Option
+from trac.config import BoolOption, Configuration, ConfigurationError
+from trac.config import IntOption, Option
 from trac.env import open_environment
 from trac.prefs import IPreferencePanelProvider
 from trac.util import hex_entropy
@@ -33,7 +34,6 @@ from trac.web.chrome import add_stylesheet, add_warning
 from acct_mgr.api import AccountManager, CommonTemplateProvider
 from acct_mgr.api import _, dgettext, ngettext, tag_
 from acct_mgr.compat import is_enabled, exception_to_unicode
-from acct_mgr.compat import ConfigurationError
 from acct_mgr.db import SessionStore
 from acct_mgr.guard import AccountGuard
 from acct_mgr.model import set_user_attribute, user_known

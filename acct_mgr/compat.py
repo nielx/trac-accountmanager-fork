@@ -13,7 +13,6 @@
 from genshi.builder import tag
 from tokenize import generate_tokens, COMMENT, NAME, OP, STRING
 
-from trac.core import TracError
 from trac.util.datefmt import format_datetime, pretty_timedelta
 from trac.util.text import to_unicode
 from trac.web.chrome import Chrome
@@ -296,22 +295,3 @@ def is_enabled(env, cls):
         if cls not in env.enabled:
             env.enabled[cls] = env.is_component_enabled(cls)
         return env.enabled[cls]
-
-
-try:
-    from trac.config import ConfigurationError
-# Provide the class for compatibility (available since Trac 1.0.2).
-except:
-    from acct_mgr.api import N_
-
-    class ConfigurationError(TracError):
-        """Exception raised when a value in the configuration file is not
-        valid.
-        """
-        title = N_('Configuration Error')
-
-        def __init__(self, message=None, title=None, show_traceback=False):
-            if message is None:
-                message = _("Look in the Trac log for more information.")
-            super(ConfigurationError, self).__init__(message, title,
-                                                 show_traceback)
