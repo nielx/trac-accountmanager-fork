@@ -80,8 +80,6 @@
   <body>
     <!--! Account property editor -->
     <form id="account-editor" class="addnew" method="post">
-      <input type="hidden" name="max_per_page"
-             value="${accounts and accounts.max_per_page or None}" />
       <fieldset>
         <legend>Add New Account:</legend>
         <div class="field">
@@ -162,8 +160,6 @@
       </h2>
 
       <form id="filter" method="get" action="">
-        <input type="hidden" name="max_per_page"
-               value="${accounts.max_per_page}" />
         <fieldset id="filters">
           <legend class="foldable">Filters</legend>
           <table summary="Account filters">
@@ -191,8 +187,6 @@
         <xi:include py:with="paginator = accounts" href="page_index.html" />
 
         <div class="buttons">
-          <input type="hidden" name="max_per_page"
-                 value="${accounts.max_per_page}" />
           <input type="submit" id="reset" name="reset"
                  py:if="password_reset_enabled"
                  title="Send another random password"
