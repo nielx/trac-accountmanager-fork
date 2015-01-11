@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2008 Pedro Algarvio <ufs@ufsoft.org>
-# Copyright (C) 2013,2014 Steffen Hoffmann <hoff.st@web.de>
+# Copyright (C) 2013-2015 Steffen Hoffmann <hoff.st@web.de>
 # All rights reserved.
 #
 # This software is licensed as described in the file COPYING, which
@@ -44,7 +44,7 @@ class AccountChangeListener(Component):
     def user_password_changed(self, username, password):
         if 'change' in self._notify_actions:
             notifier = AccountChangeNotification(self.env)
-            notifier.notify(username, 'Password reset for user')
+            notifier.notify(username, 'Password reset')
 
     def user_deleted(self, username):
         if 'delete' in self._notify_actions:

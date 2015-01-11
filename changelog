@@ -16,6 +16,7 @@ acct_mgr-0.5 (not yet released) - branch 0.11
  * #11213: The username input doesn't have focus when the page loads
  * #11312: Variable 'user' does not exist (in api.py)
  * #11469: Exceptions in AccountModule are not trapped in Trac 1.0.2dev
+ * #11867: Incorrect body for reset password email notification
  * #11991: RegistrationError cannot initialize on Python 2.4
  * #12024: Username not inserted from admin panel
  * #12050: Ticket preferences are not saved
@@ -37,6 +38,7 @@ acct_mgr-0.5 (not yet released) - branch 0.11
  * #7426: Dynamicity of Trac (Show number of registered users)
  * #8930: Setup wizard for AcctMgr
  * #8595: Ability to ban accounts
+ * #10680: Provide confirmation when password is changed
  * #10684: Provide feedback when performing actions on the Users page
  * #10739: Move 'Back to Accounts' button to the contextual navigation
  * #10741: Provide email verification status indicator on user admin panel
@@ -46,6 +48,7 @@ acct_mgr-0.5 (not yet released) - branch 0.11
  * #11215: Set focus when admin Users page loads
  * #11894: Make (clear that) username policy (is) configurable
  * #12054: add QuestionRegisterPlugin-like functionality
+ * #12097: Provide confirmation when deleting accounts
  * add unit tests for db access functions
  * add account guard configuration to config admin panel
  * filter account list in user admin panel by account status
