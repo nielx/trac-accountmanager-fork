@@ -66,12 +66,13 @@ setup(
     },
     test_suite = 'acct_mgr.tests.suite',
     zip_safe=True,
-    install_requires = ['Genshi >= 0.5', 'Trac >= 0.11'],
+    install_requires = ['Trac >= 0.11'],
     extras_require = {
         'Babel': 'Babel>= 0.9.5',
         'Trac': 'Trac >= 0.12',
         'announcer': 'TracAnnouncer',
         'forms': 'TracForms',
+        'pyrad': 'Pyrad',
         'screenshots': 'TracScreenshots',
         'vote': 'TracVote',
     },
@@ -92,6 +93,7 @@ setup(
                 'acct_mgr.opt.announcer.uid_chg[announcer]',
             'acct_mgr.opt.tracforms.uid_chg = '
                 'acct_mgr.opt.tracforms.uid_chg[forms]',
+            'acct_mgr.opt.radius = acct_mgr.opt.radius[pyrad]',
             'acct_mgr.opt.tracscreenshots.uid_chg = '
                 'acct_mgr.opt.tracscreenshots.uid_chg[screenshots]',
             'acct_mgr.opt.tracvote.uid_chg = '

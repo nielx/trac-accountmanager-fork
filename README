@@ -40,3 +40,16 @@ password_store = HtDigestStore
 authentication_url = http://hostname/path
 password_store = HttpAuthStore
 }}}
+
+=== Radius ===
+{{{
+[account-manager]
+force_passwd_change = false
+password_store = RadiusAuthStore
+persistent_sessions = false
+radius_authport = 1812 # per IETF RFC2865, obsolete default: 1645
+radius_secret = <secret>
+radius_server = <ip-addr>
+}}}
+
+This back-end supports neither user listing nor password changes.
