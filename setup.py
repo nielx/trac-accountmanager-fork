@@ -66,7 +66,7 @@ setup(
     },
     test_suite = 'acct_mgr.tests.suite',
     zip_safe=True,
-    install_requires = ['Trac >= 0.11'],
+    install_requires = ['Trac'],
     extras_require = {
         'Babel': 'Babel>= 0.9.5',
         'Trac': 'Trac >= 0.12',
