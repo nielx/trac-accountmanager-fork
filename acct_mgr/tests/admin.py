@@ -82,7 +82,7 @@ class ExtensionOrderTestCase(_BaseTestCase):
 
         self.checks = ExtensionOrder(components=self.acctmgr.checks,
                                      list=self.acctmgr.register_checks)
-        self.check_list = ['BasicCheck', 'EmailCheck', 'BotTrapCheck', 
+        self.check_list = ['BasicCheck', 'EmailCheck', 'BotTrapCheck',
                            'RegExpCheck', 'UsernamePermCheck']
         # Mock _setorder function call.
         for c in self.checks.get_all_components():
