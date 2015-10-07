@@ -71,7 +71,7 @@ def fetch_user_data(env, req, filters=None):
             # accounts.
             account['name'] = status[1].get('name')
             account['email'] = status[1].get('email')
-            # Obfuscate email address if required. 
+            # Obfuscate email address if required.
             if account['email']:
                 account['email'] = Chrome(env).format_author(req,
                                                              account['email'])
@@ -252,8 +252,10 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
         step = int(step and step or req.args.get('active', 0))
         stores = ExtensionOrder(components=self.acctmgr.stores,
                                 list=self.acctmgr.password_stores)
+        register_checks = self.env.config.getlist('account-manager',
+                                                  'register_checks')
         checks = ExtensionOrder(components=self.acctmgr.checks,
-                                list=self.acctmgr.register_checks)
+                                list=register_checks)
 
         if req.method == 'POST':
             def _redirect(req):
@@ -430,7 +432,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                 # Refresh object after changes.
                 checks = ExtensionOrder(components=self.acctmgr.checks,
                                         list=self.acctmgr.register_checks)
-                
+
             elif step == 4:
                 acctmgr_guard = req.args.get('acctmgr_guard', False)
                 cfg.set('components', 'acct_mgr.guard.AccountGuard',
@@ -750,7 +752,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
         details.append(dict(desc=_("Password Store"), status=status, step=1))
         # Require no pending password store configuration issues.
         ready = status != 'error' and True or False
-        
+
         details.append(dict(
             desc=_("Password Reset"),
             status=not reset_password and 'disabled' or 'ok',
@@ -962,7 +964,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
             if 'max_per_page' in req.args:
                 max_per_page = req.args.get('max_per_page')
                 req.session.set('acctmgr_user.max_items', max_per_page,
-                                self.ACCTS_PER_PAGE) 
+                                self.ACCTS_PER_PAGE)
                 req.redirect(req.href.admin('accounts', 'users'))
             # Save results of submitted user list filter form to the session.
             elif 'update' in req.args:
@@ -1215,7 +1217,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                                     req.args.get('username', '').strip()))
         verify_enabled = EmailVerificationModule(env).email_enabled and \
                          EmailVerificationModule(env).verify_email
-        
+
         if acctmgr.supports('set_password'):
             if account['username']:
                 # Check request and prime account on success.

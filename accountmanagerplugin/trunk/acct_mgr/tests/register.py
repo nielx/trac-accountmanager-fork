@@ -101,6 +101,7 @@ class BasicCheckTestCase(_BaseTestCase):
         _BaseTestCase.setUp(self)
         self.env = EnvironmentStub(
                 enable=['trac.*', 'acct_mgr.admin.*',
+                        'acct_mgr.db.sessionstore',
                         'acct_mgr.pwhash.HtDigestHashMethod'])
         self.env.path = tempfile.mkdtemp()
         self.env.config.set('account-manager', 'password_store',
@@ -205,7 +206,8 @@ class EmailCheckTestCase(_BaseTestCase):
     def test_verify_conf_changes(self):
         """Registration challenges with EmailVerificationModule enabled."""
         self.env = EnvironmentStub(
-                enable=['trac.*', 'acct_mgr.admin.*', 'acct_mgr.register.*'])
+                enable=['trac.*', 'acct_mgr.admin.*', 'acct_mgr.register.*',
+                        'acct_mgr.pwhash.HtDigestHashMethod'])
         self.env.path = tempfile.mkdtemp()
         set_user_attribute(self.env, 'admin', 'email', 'admin@foo.bar')
 
@@ -228,7 +230,7 @@ class EmailCheckTestCase(_BaseTestCase):
         # 1st: Initially try with account verification disabled by setting.
         self.env.config.set('account-manager', 'verify_email', False)
         self.assertEqual(check.validate_registration(req), None)
-        # 2nd: Again no email, but now with account verification enabled. 
+        # 2nd: Again no email, but now with account verification enabled.
         self.env.config.set('account-manager', 'verify_email', True)
         self.assertRaises(RegistrationError, check.validate_registration, req)
         # 3th attempt: Valid email, but already registered with a username.
@@ -408,6 +410,7 @@ class EmailVerificationModuleTestCase(_BaseTestCase):
         self.req = Mock(authname='username', args=args, base_path='/',
                         chrome=dict(warnings=list()),
                         href=Mock(prefs=lambda x: None),
+                        get_header=lambda k: None,
                         incookie=incookie, outcookie=Cookie(),
                         redirect=lambda x: None)
         self.req.method = 'POST'
