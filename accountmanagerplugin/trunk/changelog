@@ -50,6 +50,7 @@ acct_mgr-0.5 (not yet released) - branch 0.11
  * #11894: Make (clear that) username policy (is) configurable
  * #12054: add QuestionRegisterPlugin-like functionality
  * #12097: Provide confirmation when deleting accounts
+ * #12534: Configuration admin can be disabled independent of User admin
  * add unit tests for db access functions
  * add account guard configuration to config admin panel
  * filter account list in user admin panel by account status
