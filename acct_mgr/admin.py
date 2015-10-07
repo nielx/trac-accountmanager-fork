@@ -37,8 +37,7 @@ from acct_mgr.model import change_uid, del_user_attribute, email_verified
 from acct_mgr.model import get_user_attribute, last_seen, set_user_attribute
 from acct_mgr.notification import NotificationError
 from acct_mgr.register import EmailVerificationModule, RegistrationError
-from acct_mgr.register import RegistrationModule
-from acct_mgr.web_ui import AccountModule, LoginModule
+from acct_mgr.web_ui import AccountModule
 from acct_mgr.util import pretty_precise_timedelta
 
 
@@ -47,7 +46,7 @@ def fetch_user_data(env, req, filters=None):
     guard = AccountGuard(env)
     accounts = {}
     for username in acctmgr.get_users():
-        if req.perm.has_permission('ACCTMGR_USER_ADMIN'):
+        if 'ACCTMGR_USER_ADMIN' in req.perm:
             url = req.href.admin('accounts', 'users', username)
         else:
             url = None
@@ -81,8 +80,7 @@ def fetch_user_data(env, req, filters=None):
                 del accounts[acct]
                 continue
             if account['email'] and verify_email:
-                if email_verified(env, account['username'],
-                                  account['email']) == True:
+                if email_verified(env, account['username'], account['email']):
                     if approval:
                         account['approval'] = list(approval)
                 elif approval:
@@ -105,6 +103,7 @@ def fetch_user_data(env, req, filters=None):
             account['last_visit'] = to_datetime(last_visit)
     return sorted(accounts.itervalues(), key=lambda acct: acct['username'])
 
+
 def _getoptions(cls):
     opt_cls = isinstance(cls, Component) and cls.__class__ or cls
     options = [(name, value) for name, value in inspect.getmembers(opt_cls)
@@ -125,6 +124,7 @@ def _getoptions(cls):
             options.insert(index, extent)
             index += 1
     return options
+
 
 def _setorder(req, components):
     """Pull the password store ordering out of the req object"""
@@ -195,15 +195,743 @@ class ExtensionOrder(dict):
         return len(self.get_all_components())
 
 
-class AccountManagerAdminPanel(CommonTemplateProvider):
+class UserAdminPanel(CommonTemplateProvider):
 
-    implements(IAdminPanelProvider, IAuthenticator)
+    implements(IAdminPanelProvider)
+
+    uid_changers = ExtensionPoint(IUserIdChanger)
 
     ACCTS_PER_PAGE = 20
 
+    def __init__(self):
+        self.acctmgr = AccountManager(self.env)
+        self.guard = AccountGuard(self.env)
+
+    # IAdminPanelProvider methods
+
+    def get_admin_panels(self, req):
+        if 'ACCTMGR_USER_ADMIN' in req.perm:
+            yield 'accounts', _("Accounts"), 'users', _("Users")
+
+    def render_admin_panel(self, req, cat, page, path_info):
+        if path_info:
+            return self._do_acct_details(req, path_info)
+        return self._do_users(req)
+
+    def _do_add(self, req):
+        """Add new user account on verified request."""
+        env = self.env
+        acctmgr = self.acctmgr
+        account = dict(email=req.args.get('email', '').strip(),
+                       name=req.args.get('name', '').strip(),
+                       username=acctmgr.handle_username_casing(
+                                    req.args.get('username', '').strip()))
+        verify_enabled = EmailVerificationModule(env).email_enabled and \
+                         EmailVerificationModule(env).verify_email
+
+        if acctmgr.supports('set_password'):
+            if account['username']:
+                # Check request and prime account on success.
+                try:
+                    acctmgr.validate_account(req, True)
+                    # Account email approval for authoritative action.
+                    if verify_enabled and account['email'] and \
+                            req.args.get('email_approved'):
+                        set_user_attribute(env, account['username'],
+                                           'email_verification_sent_to',
+                                           account['email'])
+                    add_notice(req, Markup(tag_(
+                               "Account %(username)s created.",
+                               username=tag.b(account['username']))))
+                    # User editor form clean-up.
+                    account = {}
+                except NotificationError, e:
+                    add_warning(req, _("Error raised while sending a change "
+                                       "notification.") +
+                                     _("You'll get details with TracLogging "
+                                       "enabled."))
+                    self.log.error('Unable to send change notification: %s',
+                                   exception_to_unicode(e, traceback=True))
+                except RegistrationError, e:
+                    # Attempt deferred translation.
+                    message = gettext(e.message)
+                    # Check for (matching number of) message arguments
+                    # before attempting string substitution.
+                    if e.msg_args and \
+                            len(e.msg_args) == len(re.findall('%s', message)):
+                        message = message % e.msg_args
+                    add_warning(req, Markup(message))
+        else:
+            add_warning(req, _(
+                "None of the configured password stores is writable."))
+        return account
+
+    def _do_db_cleanup(self, req):
+        if 'ACCTMGR_ADMIN' in req.perm:
+            env = self.env
+            changed = False
+            # Get data for all authenticated users from 'session_attributes'.
+            attr = get_user_attribute(self.env, username=None,
+                                      authenticated=1)
+            attrs = {}
+            accounts = req.args.get('accounts')
+            accounts = accounts and accounts.split(',') or []
+            sel = req.args.get('sel')
+            sel = isinstance(sel, list) and sel or [sel]
+            if req.args.get('purge') and sel:
+                sel_len = len(sel)
+                matched = []
+                for acct, states in attr.iteritems():
+                    for state in states['id'].keys():
+                        for elem, id in states[state]['id'].iteritems():
+                            if id in sel:
+                                if acct in attrs.keys():
+                                    if state in attrs[acct].keys():
+                                        attrs[acct][state] \
+                                            .append(elem)
+                                    else:
+                                        attrs[acct][state] = [elem]
+                                else:
+                                    attrs[acct] = {state: [elem]}
+                                matched.append(id)
+                                if len(matched) == sel_len:
+                                    break
+                        if len(matched) == sel_len:
+                            break
+                    if len(matched) == sel_len:
+                        break
+                for id in (frozenset(sel) - frozenset(matched)):
+                    for acct, states in attr.iteritems():
+                        for state, id_ in states['id'].iteritems():
+                            if id == id_:
+                                # Full account is marked, forget attributes.
+                                if acct in attrs.keys():
+                                    attrs[acct].update({state: []})
+                                else:
+                                    attrs[acct] = {state: []}
+                                matched.append(id)
+                                if len(matched) == sel_len:
+                                    break
+                        if len(matched) == sel_len:
+                            break
+                # DEVEL: For Python>2.4 better use defaultdict for counters.
+                del_count = {'acct': 0, 'attr': 0}
+                for account, states in attrs.iteritems():
+                    for state, elem in states.iteritems():
+                        if len(elem) == 0:
+                            del_user_attribute(env, account, state)
+                            del_count['acct'] += 1
+                        else:
+                            for attribute in elem:
+                                del_user_attribute(env, account, state,
+                                                   attribute)
+                                del_count['attr'] += 1
+                    changed = True
+
+            if changed:
+                accounts_ = attributes = ''
+                n_plural = del_count['acct']
+                if n_plural > 0:
+                    accounts_ = tag.li(tag.span(tag(ngettext(
+                        "%(count)s account",
+                        "%(count)s accounts",
+                        n_plural, count=n_plural
+                    ))))
+                n_plural = del_count['attr']
+                if n_plural > 0:
+                    attributes = tag.li(tag.span(tag(ngettext(
+                        "%(count)s account attribute",
+                        "%(count)s account attributes",
+                        n_plural, count=n_plural
+                    ))))
+                add_notice(req, Markup(tag(_("Successfully deleted:"),
+                                       tag.ul(accounts_, attributes))))
+                # Update the dict after changes.
+                attr = get_user_attribute(env, username=None,
+                                          authenticated=1)
+            if not accounts and sel:
+                # Get initial account selection from account/user list.
+                accounts = sel
+            attr_sel = dict()
+            for account, states in attr.iteritems():
+                if account in accounts:
+                    attr_sel.update({account: states})
+
+            add_ctxtnav(req, _("Back to Accounts"),
+                        href=req.href.admin('accounts', 'users'))
+            add_stylesheet(req, 'acct_mgr/acctmgr.css')
+            data = dict(_dgettext=dgettext, accounts=accounts, attr=attr_sel)
+            return 'admin_db_cleanup.html', data
+
+    def _do_acct_details(self, req, username):
+        env = self.env
+        acctmgr = self.acctmgr
+        guard = self.guard
+
+        if not (username and acctmgr.has_user(username)):
+            add_warning(req, _(
+                "Please choose account by username from the list to proceed."
+                ))
+            req.redirect(req.href.admin('accounts', 'users'))
+
+        change_uid_enabled = self.uid_changers and True or False
+        data = dict(_dgettext=dgettext,
+                    attr_addonly=bool(req.args.get('attr_addonly')),
+                    change_uid_enabled=change_uid_enabled,
+                    skip_delete=bool(req.args.get('skip_delete')),
+                    uid_exists=bool(req.args.get('uid_exists')),
+                    url=req.href.admin('accounts', 'users', username),
+                    user=username)
+
+        verify_enabled = False
+        if is_enabled(env, EmailVerificationModule):
+            verify_enabled = EmailVerificationModule(env).email_enabled and \
+                             EmailVerificationModule(env).verify_email
+        email_approved = req.args.get('email_approved')
+        if verify_enabled:
+            # Preserve selection during a series of requests.
+            data['email_approved'] = email_approved
+            data['verify_enabled'] = verify_enabled
+
+        if req.method == 'POST':
+            action = req.args.get('action', '')
+
+            # Change attributes and or password of existing user account.
+            if action == 'edit':
+                labels = {
+                    'email': _("Email Address"),
+                    'name': _("Pre-/Surname (Nickname)"),
+                    'password': _("Password")
+                    }
+                attributes = get_user_attribute(self.env, username=username,
+                                                authenticated=1)
+                old_values = {}
+                if username in attributes:
+                    old_values['name'] = attributes[username][1].get('name')
+                    old_values['email'] = attributes[username][1].get('email')
+                success = []
+
+                # Delete a single user account attribute value.
+                if any([k.startswith('delete_email')
+                        for k in req.args.keys()]):
+                    del_user_attribute(env, username, attribute='email')
+                    add_notice(req, Markup(_(
+                               "Deleted %(attribute)s for %(username)s.",
+                               attribute=tag.b(labels.get('email')),
+                               username=tag.b(username))))
+                elif any([k.startswith('delete_name')
+                          for k in req.args.keys()]):
+                    del_user_attribute(env, username, attribute='name')
+                    add_notice(req, Markup(_(
+                               "Deleted %(attribute)s for %(username)s.",
+                               attribute=tag.b(labels.get('name')),
+                               username=tag.b(username))))
+
+                password = req.args.get('password')
+                if password and (password.strip() != ''):
+                    if password != req.args.get('password_confirm'):
+                        add_warning(req, _("The passwords must match."))
+                    else:
+                        self._set_password(req, username, password)
+                        success.append(labels.get('password'))
+                for attribute in ('name', 'email'):
+                    value = req.args.get(attribute, '').strip()
+                    if (old_values.get(attribute) or '') != value:
+                        # Save changes.
+                        keys = dict(sent='email_verification_sent_to',
+                                    token='email_verification_token')
+                        if value:
+                            set_user_attribute(env, username, attribute,
+                                               value)
+                            # Account email approval for authoritative action.
+                            if attribute == 'email' and verify_enabled and \
+                                    email_approved:
+                                set_user_attribute(env, username, keys['sent'],
+                                                   value)
+                                del_user_attribute(env, username,
+                                                   attribute=keys['token'])
+                        else:
+                            del_user_attribute(env, username,
+                                               attribute=attribute)
+                            if attribute == 'email':
+                                for key in keys:
+                                    del_user_attribute(env, username,
+                                                       attribute=keys[key])
+                        success.append(labels.get(attribute))
+                if success:
+                    attributes = tag.b(', '.join(success))
+                    add_notice(req, Markup(_(
+                               "Updated %(attributes)s for %(username)s.",
+                               attributes=attributes,
+                               username=tag.b(username))))
+
+            # Change user ID of existing user account.
+            elif action == 'uid':
+                new_uid = req.args.get('new_uid', '').strip()
+                results = None
+                if new_uid:
+                    results = self._do_change_uid(req, username, new_uid)
+                if results:
+                    if 'error' in results:
+                        add_warning(req, _(
+                            "Update error in table %(table)s: %(message)s",
+                            table=results['error'].keys()[0][0],
+                            message=results['error'].values()[0]))
+                    else:
+                        result_list = sorted([(k, v) for k, v in
+                                              results.iteritems()])
+                        add_notice(req, Markup(tag.ul(
+                                   [tag.li(Markup(ngettext(
+                                        "Table %(table)s column %(column)s"
+                                        "%(constraint)s: %(result)s change",
+                                        "Table %(table)s column %(column)s"
+                                        "%(constraint)s: %(result)s changes",
+                                        result[1], table=tag.b(result[0][0]),
+                                        column=tag.b(result[0][1]),
+                                        constraint=result[0][2] and
+                                        '(' + result[0][2] + ')' or '',
+                                        result=tag.b(result[1]))))
+                                    for result in result_list]
+                                   )))
+                        # Switch to display information for new user ID.
+                        username = new_uid
+                        data.update(
+                            dict(url=req.href.admin('accounts', 'users',
+                                                    username),
+                                 user=username)
+                        )
+
+        # Get account attributes and account status information.
+        stores = ExtensionOrder(components=acctmgr.stores,
+                                list=acctmgr.password_stores)
+        user_store = acctmgr.find_user_store(username)
+        if user_store:
+            data['user_store'] = user_store.__class__.__name__
+            data['store_order_num'] = stores[user_store]
+            if hasattr(user_store, 'set_password'):
+                data['password_change_enabled'] = True
+        data['ignore_auth_case'] = \
+            self.config.getbool('trac', 'ignore_auth_case')
+
+        approval = email = name = None
+        # Fetch data from 'session_attributes'.
+        attributes = get_user_attribute(self.env, username=username,
+                                        authenticated=1)
+        if username in attributes:
+            name = attributes[username][1].get('name')
+            email = attributes[username][1].get('email')
+            if self.config.getbool('account-manager', 'require_approval'):
+                approval = attributes[username][1].get('approval')
+        data['acctmgr'] = dict(email=email, name=name)
+
+        if email and verify_enabled:
+            data['verification'] = 'enabled'
+            data['email_verified'] = email_verified(env, username, email)
+            self.log.debug('AcctMgr:admin:_do_acct_details for user \"' +
+                           username + '\", email \"' + str(email) + '\": ' +
+                           str(data['email_verified']))
+
+        if req.args.get('delete') or req.args.get('release'):
+            if approval and req.args.get('release'):
+                # Admit authenticated/registered session.
+                del_user_attribute(env, username, attribute='approval')
+                add_notice(req, Markup(_(
+                    "Account lock (%(condition)s) for user %(user)s cleared",
+                    condition=gettext(approval), user=tag.b(username))))
+                approval = None
+            # Delete failed login attempts, evaluating attempts count.
+            if guard.failed_count(username, reset=True) > 0:
+                add_notice(req, Markup(_(
+                    "Failed login attempts for user %(user)s deleted",
+                    user=tag.b(username))))
+        data['approval'] = approval
+
+        # Get access history.
+        ts_seen = last_seen(env, username)
+        if ts_seen and ts_seen[0][1]:
+            data['last_visit'] = format_datetime(ts_seen[0][1], tzinfo=req.tz)
+
+        if is_enabled(self.env, AccountGuard):
+            attempts = []
+            attempts_count = guard.failed_count(username, reset=None)
+            if attempts_count > 0:
+                for attempt in guard.get_failed_log(username):
+                    t = format_datetime(to_datetime(
+                                             attempt['time']), tzinfo=req.tz)
+                    attempts.append({'ipnr': attempt['ipnr'], 'time': t})
+                data['attempts'] = attempts
+                data['pretty_lock_time'] = guard.pretty_lock_time(username,
+                                                                  next=True)
+            data['attempts_count'] = attempts_count
+            data['lock_count'] = guard.lock_count(username)
+            if guard.user_locked(username) is True:
+                data['user_locked'] = True
+                data['release_time'] = guard.pretty_release_time(req, username)
+
+        # TRANSLATOR: Optionally tabbed account editor's label
+        forms = [('edit', _('Modify Account Attributes'))]
+        if change_uid_enabled:
+            forms.append(('uid', _('Change User ID')))
+
+        data['forms'] = forms
+        data['active_form'] = req.args.get('action') or forms[0][0]
+        # Layout hack required for supporting older Trac concurrently.
+        if trac_version < '1.0':
+            data['action_aside'] = True
+        add_ctxtnav(req, _("Back to Accounts"),
+                    href=req.href.admin('accounts', 'users'))
+        add_stylesheet(req, 'acct_mgr/acctmgr.css')
+        return 'admin_account.html', data
+
+    def _do_users(self, req):
+        env = self.env
+        acctmgr = self.acctmgr
+        acctmod = AccountModule(env)
+        listing_enabled = acctmgr.supports('get_users')
+        password_change_enabled = acctmgr.supports('set_password')
+        password_reset_enabled = acctmod.reset_password_enabled
+        delete_enabled = acctmgr.supports('delete_user')
+        verify_enabled = (EmailVerificationModule(env).email_enabled and
+                          EmailVerificationModule(env).verify_email)
+        data = {
+            '_dgettext': dgettext,
+            'acctmgr': dict(), 'email_approved': True, 'filters': [],
+            'listing_enabled': listing_enabled,
+            'create_enabled': acctmgr.supports('set_password'),
+            'delete_enabled': delete_enabled,
+            'verify_enabled': verify_enabled,
+            'ignore_auth_case': self.config.getbool('trac',
+                                                    'ignore_auth_case'),
+            'password_change_enabled': password_change_enabled,
+            'password_reset_enabled': password_reset_enabled
+        }
+        if req.method == 'GET':
+            if req.args.get('cleanup'):
+                return self._do_db_cleanup(req)
+
+        if req.method == 'POST':
+            email_approved = req.args.get('email_approved')
+            # Preserve selection during a series of requests.
+            data['email_approved'] = email_approved
+
+            sel = req.args.get('sel')
+            sel = isinstance(sel, list) and sel or [sel]
+            if req.args.get('add'):
+                # Add new user account.
+                data['acctmgr'] = self._do_add(req)
+
+            elif req.args.get('approve') and req.args.get('sel'):
+                # Toggle approval status for selected accounts.
+                ban = []
+                unban = []
+                for username in sel:
+                    # Get account approval status.
+                    status = get_user_attribute(env, username,
+                                                attribute='approval')
+                    status = username in status and \
+                             status[username][1].get('approval') or None
+                    if status:
+                        # Admit authenticated/registered session.
+                        del_user_attribute(env, username,
+                                           attribute='approval')
+                        unban.append(username)
+                    else:
+                        # Ban the account.
+                        set_user_attribute(env, username, 'approval',
+                                           N_('revoked'))
+                        ban.append(username)
+                msg = None
+                if unban:
+                    accounts = tag.b(', '.join(unban))
+                    msg = ngettext("Approved account: %(accounts)s",
+                                   "Approved accounts: %(accounts)s",
+                                   len(unban), accounts=accounts)
+                if ban:
+                    if msg:
+                        msg = tag(Markup(msg), Markup('<br />'))
+                    else:
+                        msg = tag()
+                    accounts = tag.b(', '.join(ban))
+                    msg(Markup(ngettext("Banned account: %(accounts)s",
+                                        "Banned accounts: %(accounts)s",
+                                        len(ban), accounts=accounts)))
+                if ban or unban:
+                    add_notice(req, Markup(msg))
+            elif req.args.get('reset') and req.args.get('sel'):
+                # Password reset for one or more accounts.
+                if password_reset_enabled:
+                    for username, name, email in env.get_known_users():
+                        if username in sel:
+                            acctmod._reset_password(req, username, email)
+                    if sel:
+                        add_notice(req, Markup(_(
+                                   "Password reset for %(accounts)s.",
+                                   accounts=tag.b(', '.join(sel)))))
+                else:
+                    add_warning(req, _(
+                        "The password reset procedure is not enabled."))
+            elif req.args.get('remove') and req.args.get('sel'):
+                # Delete one or more accounts.
+                if delete_enabled:
+                    for account in sel:
+                        self._delete_user(req, account)
+                    if sel:
+                        add_notice(req, Markup(ngettext(
+                            "Deleted account: %(accounts)s",
+                            "Deleted accounts: %(accounts)s",
+                            len(sel), accounts=tag.b(', '.join(sel)))))
+                else:
+                    add_warning(req, _(
+                        "The password store does not support deleting users."))
+            elif len([action for action in req.args.iterkeys()
+                      if action in ('cleanup', 'purge',  'unselect')]) > 0:
+                return self._do_db_cleanup(req)
+
+        # (Re-)Build data for current user list.
+        available_filters = [
+            ('active', _("active")),
+            ('revoked', _("revoked"), False),  # not shown by default
+            ('pending', _("pending approval"))
+        ]
+        if verify_enabled:
+            available_filters.append(('email', _("email unverified")))
+        # Check request or session for enabled filters, or use default.
+        filters = [f[0] for f in available_filters
+                   if 'filter_%s' % f[0] in req.args]
+        key = 'acctmgr_user.filter.%s'
+        if not filters:
+            filters = [f[0] for f in available_filters
+                       if req.session.get(key % f[0]) == '1']
+        if not filters:
+            filters = [f[0] for f in available_filters
+                       if len(f) == 2 or f[2]]
+        for filter_ in available_filters:
+            data['filters'].append({'name': filter_[0], 'label': filter_[1],
+                                    'enabled': filter_[0] in filters})
+        if listing_enabled:
+            data.update({
+                'cls': 'listing',
+                'cols': ['email', 'name'],
+                'delete_msg_confirm': _(
+                    "Are you sure you want to delete these accounts?")})
+
+            # Preserve pager setting.
+            if 'max_per_page' in req.args:
+                max_per_page = req.args.get('max_per_page')
+                req.session.set('acctmgr_user.max_items', max_per_page,
+                                self.ACCTS_PER_PAGE)
+                req.redirect(req.href.admin('accounts', 'users'))
+            # Save results of submitted user list filter form to the session.
+            elif 'update' in req.args:
+                for filter in available_filters:
+                    key = 'acctmgr_user.filter.%s' % filter[0]
+                    if 'filter_%s' % filter[0] in req.args:
+                        req.session[key] = '1'
+                    elif key in req.session:
+                        del req.session[key]
+                req.redirect(req.href.admin('accounts', 'users'))
+            # Prevent IRequestFilter in trac.timeline.web_ui.TimelineModule
+            #   of Trac 0.13 and later from adding a link to timeline by
+            #   adding the function with a different key name here.
+            data['pretty_date'] = get_pretty_dateinfo(env, req)
+
+            # Read account information.
+            data.update(self._paginate(req, fetch_user_data(env, req,
+                                                            filters)))
+        add_stylesheet(req, 'acct_mgr/acctmgr.css')
+        add_stylesheet(req, 'common/css/report.css')
+        return 'admin_users.html', data
+
+    def _do_change_uid(self, req, old_uid, new_uid):
+        acctmgr = self.acctmgr
+        acctmod = AccountModule(self.env)
+        attr_overwrite = not bool(req.args.get('attr_addonly'))
+        create_user = not bool(req.args.get('uid_exists'))
+        delete_user = not bool(req.args.get('skip_delete'))
+        email = None
+
+        # Demand conditions required for a successful change.
+        store_old = acctmgr.find_user_store(old_uid)
+        if delete_user and store_old and \
+                not hasattr(store_old, 'delete_user'):
+            add_warning(req, Markup(tag_(
+                "Removing the old user is not supported by %(store)s.",
+                store=tag.b(store_old.__class__.__name__))))
+            return
+        stores = ExtensionOrder(components=acctmgr.stores,
+                                list=acctmgr.password_stores)
+        # Predict stores for old and new account.
+        keep_passwd = False
+        for store in stores.get_enabled_components():
+            if not hasattr(store, 'set_password'):
+                continue
+            if store == store_old:
+                # DEVEL: Preserve passwords for other stores too.
+                keep_passwd = store.__class__.__name__ == 'SessionStore'
+            break
+
+        if create_user:
+            if acctmgr.password_stores and \
+                    not acctmgr.supports('set_password'):
+                add_warning(req, _(
+                    "None of the configured password stores is writable."))
+                return
+            if not (acctmod.reset_password_enabled or keep_passwd):
+                add_warning(req, _(
+                    "Password reset is a required action, but disabled yet."))
+                return
+            # Ensure, that the new ID must pass basic checks.
+            checks = ExtensionOrder(components=acctmgr.checks,
+                                    list=acctmgr.register_checks)
+            required_check = 'BasicCheck'
+            if required_check not in checks.get_enabled_component_names():
+                add_warning(req, Markup(tag_(
+                    "At least %(required_check)s must be configured and "
+                    "enabled.", required_check=tag.b(required_check))))
+                return
+
+            req.args['username'] = new_uid
+            # Prime request with data to prevent input validation failures.
+            req.args['password'] = req.args['password_confirm'] = 'pass'
+            attributes = get_user_attribute(self.env, old_uid)
+            email = old_uid in attributes and \
+                    attributes[old_uid][1].get('email') or None
+            if email:
+                req.args['email'] = email
+                # Prevent account verification failure due to existing email
+                # address.
+                del_user_attribute(self.env, old_uid, attribute='email')
+
+            name = old_uid in attributes and \
+                   attributes[old_uid][1].get('name') or None
+            if name:
+                req.args['name'] = name
+
+            try:
+                acctmgr.validate_account(req)
+            except RegistrationError, e:
+                # Attempt deferred translation.
+                message = gettext(e.message)
+                # Check for (matching number of) message arguments before
+                #   attempting string substitution.
+                if e.msg_args and \
+                        len(e.msg_args) == len(re.findall('%s', message)):
+                    message = message % e.msg_args
+                add_warning(req, Markup(message))
+                if email:
+                    set_user_attribute(self.env, old_uid, 'email', email)
+                return
+            if not keep_passwd and \
+                    self._set_password(req, new_uid, acctmod._random_password,
+                                       False) is None:
+                add_warning(req, _(
+                    "Failed to save new login data to a password store."))
+                if email:
+                    set_user_attribute(self.env, old_uid, 'email', email)
+                return
+
+        # Call all user ID changers.
+        results = change_uid(self.env, old_uid, new_uid, self.uid_changers,
+                             attr_overwrite)
+        if 'error' in results:
+            if create_user:
+                # Rollback all changes including newly created account.
+                self._delete_user(req, new_uid)
+                if email:
+                    set_user_attribute(self.env, old_uid, 'email', email)
+            return results
+
+        attributes = get_user_attribute(self.env, new_uid, attribute='email')
+        email_new = new_uid in attributes and attributes[new_uid].get(1) and \
+                    attributes[new_uid][1].get('email') or None
+        if email and (create_user or attr_overwrite or not email_new):
+            set_user_attribute(self.env, new_uid, 'email', email)
+            if not keep_passwd:
+                acctmod._reset_password(req, new_uid, email)
+        elif email_new and not keep_passwd:
+            acctmod._reset_password(req, new_uid, email_new)
+        elif not keep_passwd:
+            add_warning(req, Markup(tag_(
+                "Cannot send the new password to the user, because no email "
+                "address is associated with %(username)s.",
+                username=tag.b(new_uid))))
+        if delete_user:
+            # Finally delete old user ID.
+            self._delete_user(req, old_uid)
+        # Notify listeners about successful ID change.
+        try:
+            acctmgr._notify('id_changed', old_uid, new_uid)
+        except NotificationError, e:
+            add_warning(req, _("Error raised while sending a change "
+                               "notification.") +
+                             _("You'll get details with TracLogging "
+                               "enabled."))
+            self.log.error('Unable to send user ID change notification: %s',
+                           exception_to_unicode(e, traceback=True))
+        return results
+
+    def _set_password(self, req, username, password, overwrite=True):
+        """Password saving with graceful handling of notification errors."""
+        try:
+            result = self.acctmgr.set_password(username, password,
+                                               overwrite=overwrite)
+        except NotificationError, e:
+            add_warning(req, _("Error raised while sending a change "
+                               "notification.") +
+                             _("You'll get details with TracLogging enabled."))
+            self.log.error('Unable to send password change notification: %s',
+                           exception_to_unicode(e, traceback=True))
+            result = self.acctmgr.has_user(username) or None
+        return result
+
+    def _delete_user(self, req, username):
+        """Delete method, that handles notification errors gracefully."""
+        try:
+            self.acctmgr.delete_user(username)
+        except NotificationError, e:
+            add_warning(req, _("Error raised while sending a change "
+                               "notification.") +
+                             _("You'll get details with TracLogging "
+                               "enabled."))
+            self.log.error('Unable to send user delete notification: %s',
+                           exception_to_unicode(e, traceback=True))
+
+    def _paginate(self, req, accounts):
+        max_per_page = as_int(req.session.get('acctmgr_user.max_items'),
+                              self.ACCTS_PER_PAGE)
+        page = int(req.args.get('page', '1'))
+        total = len(accounts)
+        pager = Paginator(accounts, page - 1, max_per_page)
+        pagedata = []
+        shown_pages = pager.get_shown_pages(21)
+        for shown_page in shown_pages:
+            page_href = req.href.admin('accounts', 'users', page=shown_page)
+            pagedata.append([page_href, None, str(shown_page),
+                             _("page %(num)s", num=str(shown_page))])
+        # Prepare bottom and top pager navigation data.
+        fields = ['href', 'class', 'string', 'title']
+        pager.current_page = {'href': None, 'class': 'current',
+                              'string': str(pager.page + 1), 'title': None}
+        pager.shown_pages = [dict(zip(fields, p)) for p in pagedata]
+        if pager.has_more_pages:
+            # Show '# of #' instead of total count.
+            total = pager.displayed_items()
+        if pager.has_next_page:
+            next_href = req.href.admin('accounts', 'users', page=page + 1)
+            add_link(req, 'next', next_href, _('Next Page'))
+        if pager.has_previous_page:
+            prev_href = req.href.admin('accounts', 'users', page=page - 1)
+            add_link(req, 'prev', prev_href, _('Previous Page'))
+        page_href = req.href.admin('accounts', 'cleanup')
+        return dict(accounts=pager, displayed_items=total, page_href=page_href)
+
+
+class ConfigurationAdminPanel(CommonTemplateProvider):
+
+    implements(IAdminPanelProvider, IAuthenticator)
+
     auth_init = BoolOption('account-manager', 'auth_init', True,
         doc="Launch an initial Trac authentication setup.")
-    uid_changers = ExtensionPoint(IUserIdChanger)
 
     def __init__(self):
         self.acctmgr = AccountManager(self.env)
@@ -215,18 +943,11 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
     # IAdminPanelProvider methods
 
     def get_admin_panels(self, req):
-        if req.perm.has_permission('ACCTMGR_CONFIG_ADMIN'):
-            yield ('accounts', _("Accounts"), 'config', _("Configuration"))
-        if req.perm.has_permission('ACCTMGR_USER_ADMIN'):
-            yield ('accounts', _("Accounts"), 'users', _("Users"))
+        if 'ACCTMGR_CONFIG_ADMIN' in req.perm:
+            yield 'accounts', _("Accounts"), 'config', _("Configuration")
 
     def render_admin_panel(self, req, cat, page, path_info):
-        if page == 'config':
-            return self._do_config(req)
-        elif page == 'users':
-            if path_info:
-                return self._do_acct_details(req, path_info)
-            return self._do_users(req)
+        return self._do_config(req)
 
     def _do_config(self, req):
         cfg = self.env.config
@@ -260,17 +981,17 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
         if req.method == 'POST':
             def _redirect(req):
                 # Use permission-sensitive redirection on exit.
-                if req.perm.has_permission('ACCTMGR_USER_ADMIN'):
+                if 'ACCTMGR_USER_ADMIN' in req.perm:
                     req.redirect(req.href.admin('accounts', 'users'))
                 req.redirect(req.href())
             # Rollback unsaved configuration changes.
             if req.args.get('exit'):
                 try:
-                    cfg.parse_if_needed(force=True) # Full reload
+                    cfg.parse_if_needed(force=True)  # Full reload
                 except TypeError:
                     # Attribute was introduced in Trac 0.12, so a fallback
                     # for compatibility down to 0.11 is required.
-                    cfg.touch() # Fake write access for reload
+                    cfg.touch()  # Fake write access for reload
                 _redirect(req)
             # Don't care as long as the feature is disabled.
             elif req.args.get('restart') and self.acctmgr.refresh_passwd:
@@ -348,7 +1069,8 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                         elif init_store_file == 'svn_file':
                             cfg.set(a, p, 'SvnServePasswordStore')
                             cfg.set(c,
-                                'acct_mgr.svnserve.SvnServePasswordStore', e)
+                                    'acct_mgr.svnserve.SvnServePasswordStore',
+                                    e)
                             from acct_mgr.svnserve import SvnServePasswordStore
                             assert is_enabled(env, SvnServePasswordStore)
                     elif init_store == 'http':
@@ -374,7 +1096,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                             if newval is not None:
                                 cfg.set(option.section, option.name, newval)
                     cfg.set('account-manager', 'refresh_passwd',
-                        bool(req.args.get('refresh_passwd', False)))
+                            bool(req.args.get('refresh_passwd', False)))
                 # Refresh object after changes.
                 stores = ExtensionOrder(components=self.acctmgr.stores,
                                         list=self.acctmgr.password_stores)
@@ -396,7 +1118,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
             elif step == 3:
                 change_uid_enabled = bool(req.args.get('change_uid_enabled'))
                 cfg.set('components', 'acct_mgr.model.*',
-                        change_uid_enabled and  'enabled' or 'disabled')
+                        change_uid_enabled and 'enabled' or 'disabled')
                 # Force 'disabled' status for all related components.
                 if not change_uid_enabled and cfg['components'].options():
                     for k, v in cfg['components'].options():
@@ -430,8 +1152,10 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                     'components', 'acct_mgr.register.EmailVerificationModule',
                     verify_email and 'enabled' or 'disabled')
                 # Refresh object after changes.
+                register_checks = self.env.config.getlist('account-manager',
+                                                          'register_checks')
                 checks = ExtensionOrder(components=self.acctmgr.checks,
-                                        list=self.acctmgr.register_checks)
+                                        list=register_checks)
 
             elif step == 4:
                 acctmgr_guard = req.args.get('acctmgr_guard', False)
@@ -439,17 +1163,18 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                         acctmgr_guard and 'enabled' or 'disabled')
                 cfg.set('account-manager', 'login_attempt_max_count',
                         as_int(req.args.get('login_attempt_max_count'),
-                        self.guard.login_attempt_max_count, min=0))
+                               self.guard.login_attempt_max_count, min=0))
                 user_lock_time = as_int(req.args.get('user_lock_time'),
                                         self.guard.user_lock_time, min=0)
                 cfg.set('account-manager', 'user_lock_time', user_lock_time)
                 # AccountGuard.lock_time_progression has the sanitized value.
                 cfg.set('account-manager', 'user_lock_time_progression',
-                        req.args.get('user_lock_time_progression') or \
+                        req.args.get('user_lock_time_progression') or
                         self.guard.lock_time_progression)
                 cfg.set('account-manager', 'user_lock_max_time',
                         as_int(req.args.get('user_lock_max_time'),
-                        self.guard.user_lock_max_time, min=user_lock_time))
+                               self.guard.user_lock_max_time,
+                               min=user_lock_time))
 
             if req.args.get('save') and step == 5:
                 perms = self.perms.get_user_permissions(self.authname)
@@ -492,7 +1217,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
             elif ('back' in req.args or 'prev' in req.args) and step > 0:
                 step -= 1
         steps = [
-            dict(label=_("Authentication Options"), past=step>0),
+            dict(label=_("Authentication Options"), past=step > 0),
             dict(image='users', label=_("Password Store"), past=step > 1),
             dict(image='refresh', label=_("Password Policy"), past=step > 2),
             dict(image='approval', label=_("Account Policy"), past=step > 3),
@@ -590,7 +1315,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
             data.update({
                 'init_store': 'db',
                 'init_store_hint': dict(
-                    db = cleandoc("""
+                    db=cleandoc("""
                         [account-manager]
                         db_htdigest_realm =
                         password_store = SessionStore
@@ -599,7 +1324,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                         acct_mgr.db.SessionStore = enabled
                         acct_mgr.pwhash.HtDigestHashMethod = enabled
                         """),
-                    htdigest = cleandoc("""
+                    htdigest=cleandoc("""
                         [account-manager]
                         htdigest_file = trac.htdigest
                         htdigest_realm =
@@ -608,7 +1333,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                         [components]
                         acct_mgr.htfile.HtDigestStore = enabled
                         """),
-                    htpasswd = cleandoc("""
+                    htpasswd=cleandoc("""
                         [account-manager]
                         htpasswd_file = trac.htpasswd
                         htpasswd_hash_type = md5
@@ -617,7 +1342,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                         [components]
                         acct_mgr.htfile.HtPasswdStore = enabled
                         """),
-                    svn_file = cleandoc("""
+                    svn_file=cleandoc("""
                         [account-manager]
                         password_file =
                         password_store = SvnServePasswordStore
@@ -625,7 +1350,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                         [components]
                         acct_mgr.svnserve.SvnServePasswordStore = enabled
                         """),
-                    http = cleandoc("""
+                    http=cleandoc("""
                         [account-manager]
                         auth_url =
                         password_store = HttpAuthStore
@@ -633,7 +1358,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
                         [components]
                         acct_mgr.http.HttpAuthStore = enabled
                         """),
-                    etc = cleandoc("""
+                    etc=cleandoc("""
                         [account-manager]
                         password_store =
 
@@ -645,10 +1370,10 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
         reset_password = cfg.getbool('account-manager', 'reset_password')
         data.update({
             'reset_password': reset_password,
-            'generated_password_length': cfg.getint('account-manager',
-                                             'generated_password_length'),
-            'force_passwd_change': cfg.getbool('account-manager',
-                                               'force_passwd_change'),
+            'generated_password_length':
+                cfg.getint('account-manager', 'generated_password_length'),
+            'force_passwd_change':
+                cfg.getbool('account-manager', 'force_passwd_change'),
         })
 
         # Build registration check configuration details.
@@ -827,714 +1552,8 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
         add_stylesheet(req, 'common/css/report.css')
         return 'admin_accountsconfig.html', data
 
-    def _do_users(self, req):
-        env = self.env
-        acctmgr = self.acctmgr
-        acctmod = AccountModule(env)
-        guard = self.guard
-        listing_enabled = acctmgr.supports('get_users')
-        password_change_enabled = acctmgr.supports('set_password')
-        password_reset_enabled = acctmod.reset_password_enabled
-        delete_enabled = acctmgr.supports('delete_user')
-        verify_enabled = EmailVerificationModule(env).email_enabled and \
-                         EmailVerificationModule(env).verify_email
-        data = {
-            '_dgettext': dgettext,
-            'acctmgr': dict(), 'email_approved': True, 'filters': [],
-            'listing_enabled': listing_enabled,
-            'create_enabled': acctmgr.supports('set_password'),
-            'delete_enabled': delete_enabled,
-            'verify_enabled': verify_enabled,
-            'ignore_auth_case': self.config.getbool('trac',
-                                                    'ignore_auth_case'),
-            'password_change_enabled': password_change_enabled,
-            'password_reset_enabled': password_reset_enabled
-        }
-        if req.method == 'GET':
-            if req.args.get('cleanup'):
-                return self._do_db_cleanup(req)
+    # IAuthenticator methods
 
-        if req.method == 'POST':
-            email_approved = req.args.get('email_approved')
-            # Preserve selection during a series of requests.
-            data['email_approved'] = email_approved
-
-            sel = req.args.get('sel')
-            sel = isinstance(sel, list) and sel or [sel]
-            if req.args.get('add'):
-                # Add new user account.
-                data['acctmgr'] = self._do_add(req)
-
-            elif req.args.get('approve') and req.args.get('sel'):
-                # Toggle approval status for selected accounts.
-                ban = []
-                unban = []
-                for username in sel:
-                    # Get account approval status.
-                    status = get_user_attribute(env, username,
-                                                attribute='approval')
-                    status = username in status and \
-                             status[username][1].get('approval') or None
-                    if status:
-                        # Admit authenticated/registered session.
-                        del_user_attribute(env, username,
-                                           attribute='approval')
-                        unban.append(username)
-                    else:
-                        # Ban the account.
-                        set_user_attribute(env, username, 'approval',
-                                           N_('revoked'))
-                        ban.append(username)
-                msg = None
-                if unban:
-                    accounts = tag.b(', '.join(unban))
-                    msg = ngettext("Approved account: %(accounts)s",
-                                   "Approved accounts: %(accounts)s",
-                                   len(unban), accounts=accounts)
-                if ban:
-                    if msg:
-                        msg = tag(Markup(msg), Markup('<br />'))
-                    else:
-                        msg = tag()
-                    accounts = tag.b(', '.join(ban))
-                    msg(Markup(ngettext("Banned account: %(accounts)s",
-                                        "Banned accounts: %(accounts)s",
-                                        len(ban), accounts=accounts)))
-                if ban or unban:
-                    add_notice(req, Markup(msg))
-            elif req.args.get('reset') and req.args.get('sel'):
-                # Password reset for one or more accounts.
-                if password_reset_enabled:
-                    for username, name, email in env.get_known_users():
-                        if username in sel:
-                            acctmod._reset_password(req, username, email)
-                    if sel:
-                        add_notice(req, Markup(_(
-                                   "Password reset for %(accounts)s.",
-                                   accounts=tag.b(', '.join(sel)))))
-                else:
-                    add_warning(req, _(
-                        "The password reset procedure is not enabled."))
-            elif req.args.get('remove') and req.args.get('sel'):
-                # Delete one or more accounts.
-                if delete_enabled:
-                    for account in sel:
-                        self._delete_user(req, account)
-                    if sel:
-                        add_notice(req, Markup(ngettext(
-                            "Deleted account: %(accounts)s",
-                            "Deleted accounts: %(accounts)s",
-                            len(sel), accounts=tag.b(', '.join(sel)))))
-                else:
-                    add_warning(req, _(
-                        "The password store does not support deleting users."))
-            elif len([action for action in req.args.iterkeys() \
-                      if action in ('cleanup' 'purge' 'unselect')]) > 0:
-                return self._do_db_cleanup(req)
-
-        # (Re-)Build data for current user list.
-        available_filters = [
-            ('active', _("active")),
-            ('revoked', _("revoked"), False), # not shown by default
-            ('pending', _("pending approval"))
-        ]
-        if verify_enabled:
-            available_filters.append(('email', _("email unverified")))
-        # Check request or session for enabled filters, or use default.
-        filters = [f[0] for f in available_filters
-                   if 'filter_%s' % f[0] in req.args]
-        key = 'acctmgr_user.filter.%s'
-        if not filters:
-            filters = [f[0] for f in available_filters
-                       if req.session.get(key % f[0]) == '1']
-        if not filters:
-            filters = [f[0] for f in available_filters
-                       if len(f) == 2 or f[2]]
-        for filter_ in available_filters:
-            data['filters'].append({'name': filter_[0], 'label': filter_[1],
-                                    'enabled': filter_[0] in filters})
-        if listing_enabled:
-            data.update({
-                'cls': 'listing',
-                'cols': ['email', 'name'],
-                'delete_msg_confirm': _(
-                    "Are you sure you want to delete these accounts?")})
-
-            # Preserve pager setting.
-            if 'max_per_page' in req.args:
-                max_per_page = req.args.get('max_per_page')
-                req.session.set('acctmgr_user.max_items', max_per_page,
-                                self.ACCTS_PER_PAGE)
-                req.redirect(req.href.admin('accounts', 'users'))
-            # Save results of submitted user list filter form to the session.
-            elif 'update' in req.args:
-                for filter in available_filters:
-                    key = 'acctmgr_user.filter.%s' % filter[0]
-                    if 'filter_%s' % filter[0] in req.args:
-                        req.session[key] = '1'
-                    elif key in req.session:
-                        del req.session[key]
-                req.redirect(req.href.admin('accounts', 'users'))
-            # Prevent IRequestFilter in trac.timeline.web_ui.TimelineModule
-            #   of Trac 0.13 and later from adding a link to timeline by
-            #   adding the function with a different key name here.
-            data['pretty_date'] = get_pretty_dateinfo(env, req)
-
-            # Read account information.
-            data.update(self._paginate(req, fetch_user_data(env, req,
-                                                            filters)))
-        add_stylesheet(req, 'acct_mgr/acctmgr.css')
-        add_stylesheet(req, 'common/css/report.css')
-        return 'admin_users.html', data
-
-    def _do_acct_details(self, req, username):
-        env = self.env
-        acctmgr = self.acctmgr
-        guard = self.guard
-
-        if not (username and acctmgr.has_user(username)):
-            add_warning(req, _(
-                "Please choose account by username from the list to proceed."
-                ))
-            req.redirect(req.href.admin('accounts', 'users'))
-
-        change_uid_enabled = self.uid_changers and True or False
-        data = dict(_dgettext=dgettext,
-                    attr_addonly=bool(req.args.get('attr_addonly')),
-                    change_uid_enabled=change_uid_enabled,
-                    skip_delete=bool(req.args.get('skip_delete')),
-                    uid_exists=bool(req.args.get('uid_exists')),
-                    url=req.href.admin('accounts', 'users', username),
-                    user=username)
-
-        verify_enabled = False
-        if is_enabled(env, EmailVerificationModule):
-            verify_enabled = EmailVerificationModule(env).email_enabled and \
-                             EmailVerificationModule(env).verify_email
-        if verify_enabled:
-            email_approved = req.args.get('email_approved')
-            # Preserve selection during a series of requests.
-            data['email_approved'] = email_approved
-            data['verify_enabled'] = verify_enabled
-
-        if req.method == 'POST':
-            action = req.args.get('action', '')
-
-            # Change attributes and or password of existing user account.
-            if action == 'edit':
-                labels = {
-                    'email': _("Email Address"),
-                    'name': _("Pre-/Surname (Nickname)"),
-                    'password': _("Password")
-                    }
-                attributes = get_user_attribute(self.env, username=username,
-                                        authenticated=1)
-                old_values = {}
-                if username in attributes:
-                    old_values['name'] = attributes[username][1].get('name')
-                    old_values['email'] = attributes[username][1].get('email')
-                success = []
-
-                # Delete a single user account attribute value.
-                if any([k.startswith('delete_email')
-                        for k in req.args.keys()]):
-                    del_user_attribute(env, username, attribute='email')
-                    add_notice(req, Markup(_(
-                               "Deleted %(attribute)s for %(username)s.",
-                               attribute=tag.b(labels.get('email')),
-                               username=tag.b(username))))
-                elif any([k.startswith('delete_name')
-                          for k in req.args.keys()]):
-                    del_user_attribute(env, username, attribute='name')
-                    add_notice(req, Markup(_(
-                               "Deleted %(attribute)s for %(username)s.",
-                               attribute=tag.b(labels.get('name')),
-                               username=tag.b(username))))
-
-                password = req.args.get('password')
-                if password and (password.strip() != ''):
-                    if password != req.args.get('password_confirm'):
-                        add_warning(req, _("The passwords must match."))
-                    else:
-                        self._set_password(req, username, password)
-                        success.append(labels.get('password'))
-                for attribute in ('name', 'email'):
-                    value = req.args.get(attribute, '').strip()
-                    if (old_values.get(attribute) or '') != value:
-                        # Save changes.
-                        keys = dict(sent='email_verification_sent_to',
-                                    token='email_verification_token')
-                        if value:
-                            set_user_attribute(env, username, attribute,
-                                               value)
-                            # Account email approval for authoritative action.
-                            if attribute == 'email' and verify_enabled and \
-                                    email_approved:
-                                set_user_attribute(env, username, keys['sent'],
-                                                   value)
-                                del_user_attribute(env, username,
-                                                   attribute=keys['token'])
-                        else:
-                            del_user_attribute(env, username,
-                                               attribute=attribute)
-                            if attribute == 'email':
-                                for key in keys:
-                                    del_user_attribute(env, username,
-                                                       attribute=keys[key])
-                        success.append(labels.get(attribute))
-                if success:
-                    attributes = tag.b(', '.join(success))
-                    add_notice(req, Markup(_(
-                               "Updated %(attributes)s for %(username)s.",
-                               attributes=attributes,
-                               username=tag.b(username))))
-
-            # Change user ID of existing user account.
-            elif action == 'uid':
-                new_uid = req.args.get('new_uid', '').strip()
-                results = None
-                if new_uid:
-                    results = self._do_change_uid(req, username, new_uid)
-                if results:
-                    if 'error' in results:
-                        add_warning(req, _(
-                            "Update error in table %(table)s: %(message)s",
-                            table=results['error'].keys()[0][0],
-                            message=results['error'].values()[0]))
-                    else:
-                        result_list = sorted([(k, v) for k, v in
-                                              results.iteritems()])
-                        add_notice(req, Markup(tag.ul(
-                                   [tag.li(Markup(ngettext(
-                                        "Table %(table)s column %(column)s"
-                                        "%(constraint)s: %(result)s change",
-                                        "Table %(table)s column %(column)s"
-                                        "%(constraint)s: %(result)s changes",
-                                        result[1], table=tag.b(result[0][0]),
-                                        column=tag.b(result[0][1]),
-                                        constraint=result[0][2] and
-                                        '(' + result[0][2] + ')' or '',
-                                        result=tag.b(result[1]))))
-                                    for result in result_list]
-                                   )))
-                        # Switch to display information for new user ID.
-                        username = new_uid
-                        data.update(
-                            dict(url=req.href.admin('accounts', 'users',
-                                                    username),
-                                 user=username)
-                        )
-
-        # Get account attributes and account status information.
-        stores = ExtensionOrder(components=acctmgr.stores,
-                                list=acctmgr.password_stores)
-        user_store = acctmgr.find_user_store(username)
-        if user_store:
-            data['user_store'] = user_store.__class__.__name__
-            data['store_order_num'] = stores[user_store]
-            if hasattr(user_store, 'set_password'):
-                data['password_change_enabled'] = True
-        data['ignore_auth_case'] = \
-            self.config.getbool('trac', 'ignore_auth_case')
-
-        approval = email = name = None
-        # Fetch data from 'session_attributes'.
-        attributes = get_user_attribute(self.env, username=username,
-                                        authenticated=1)
-        if username in attributes:
-            name = attributes[username][1].get('name')
-            email = attributes[username][1].get('email')
-            if self.config.getbool('account-manager', 'require_approval'):
-                approval = attributes[username][1].get('approval')
-        data['acctmgr'] = dict(email=email, name=name)
-
-        if email and verify_enabled:
-            data['verification'] = 'enabled'
-            data['email_verified'] = email_verified(env, username, email)
-            self.log.debug('AcctMgr:admin:_do_acct_details for user \"' + \
-                username + '\", email \"' + str(email) + '\": ' + \
-                str(data['email_verified']))
-
-        if req.args.get('delete') or req.args.get('release'):
-            if approval and req.args.get('release'):
-                # Admit authenticated/registered session.
-                del_user_attribute(env, username, attribute='approval')
-                add_notice(req, Markup(_(
-                    "Account lock (%(condition)s) for user %(user)s cleared",
-                    condition=gettext(approval), user=tag.b(username))))
-                approval = None
-            # Delete failed login attempts, evaluating attempts count.
-            if guard.failed_count(username, reset=True) > 0:
-                add_notice(req, Markup(_(
-                    "Failed login attempts for user %(user)s deleted",
-                    user=tag.b(username))))
-        data['approval'] = approval
-
-        # Get access history.
-        ts_seen = last_seen(env, username)
-        if ts_seen and ts_seen[0][1]:
-            data['last_visit'] = format_datetime(ts_seen[0][1], tzinfo=req.tz)
-
-        if is_enabled(self.env, AccountGuard):
-            attempts = []
-            attempts_count = guard.failed_count(username, reset=None)
-            if attempts_count > 0:
-                for attempt in guard.get_failed_log(username):
-                    t = format_datetime(to_datetime(
-                                             attempt['time']), tzinfo=req.tz)
-                    attempts.append({'ipnr': attempt['ipnr'], 'time': t})
-                data['attempts'] = attempts
-                data['pretty_lock_time'] = guard.pretty_lock_time(username,
-                                                                  next=True)
-            data['attempts_count'] = attempts_count
-            data['lock_count'] = guard.lock_count(username)
-            if guard.user_locked(username) is True:
-                data['user_locked'] = True
-                data['release_time'] = guard.pretty_release_time(req, username)
-
-        # TRANSLATOR: Optionally tabbed account editor's label
-        forms = [('edit', _('Modify Account Attributes'))]
-        if change_uid_enabled:
-            forms.append(('uid', _('Change User ID')))
-
-        data['forms'] = forms
-        data['active_form'] = req.args.get('action') or forms[0][0]
-        # Layout hack required for supporting older Trac concurrently.
-        if trac_version < '1.0':
-            data['action_aside'] = True
-        add_ctxtnav(req, _("Back to Accounts"),
-                    href=req.href.admin('accounts', 'users'))
-        add_stylesheet(req, 'acct_mgr/acctmgr.css')
-        return 'admin_account.html', data
-
-    def _do_add(self, req):
-        """Add new user account on verified request."""
-        env = self.env
-        acctmgr = self.acctmgr
-        account = dict(email=req.args.get('email', '').strip(),
-                       name=req.args.get('name', '').strip(),
-                       username=acctmgr.handle_username_casing(
-                                    req.args.get('username', '').strip()))
-        verify_enabled = EmailVerificationModule(env).email_enabled and \
-                         EmailVerificationModule(env).verify_email
-
-        if acctmgr.supports('set_password'):
-            if account['username']:
-                # Check request and prime account on success.
-                try:
-                    acctmgr.validate_account(req, True)
-                    # Account email approval for authoritative action.
-                    if verify_enabled and account['email'] and \
-                            req.args.get('email_approved'):
-                        set_user_attribute(env, account['username'],
-                            'email_verification_sent_to', account['email'])
-                    add_notice(req, Markup(tag_(
-                               "Account %(username)s created.",
-                               username=tag.b(account['username']))))
-                    # User editor form clean-up.
-                    account = {}
-                except NotificationError, e:
-                    add_warning(req, _("Error raised while sending a change "
-                                       "notification.") + _("You'll get "
-                                       "details with TracLogging enabled."))
-                    self.log.error('Unable to send change notification: %s',
-                                   exception_to_unicode(e, traceback=True))
-                except RegistrationError, e:
-                    # Attempt deferred translation.
-                    message = gettext(e.message)
-                    # Check for (matching number of) message arguments
-                    #   before attempting string substitution.
-                    if e.msg_args and \
-                            len(e.msg_args) == len(re.findall('%s', message)):
-                        message = message % e.msg_args
-                    add_warning(req, Markup(message))
-        else:
-            add_warning(req, _(
-                "None of the configured password stores is writable."))
-        return account
-
-    def _do_change_uid(self, req, old_uid, new_uid):
-        acctmgr = self.acctmgr
-        acctmod = AccountModule(self.env)
-        attr_overwrite = not bool(req.args.get('attr_addonly'))
-        create_user = not bool(req.args.get('uid_exists'))
-        delete_user = not bool(req.args.get('skip_delete'))
-        email = None
-
-        # Demand conditions required for a successful change.
-        store_old = acctmgr.find_user_store(old_uid)
-        if delete_user and store_old and \
-                not hasattr(store_old, 'delete_user'):
-            add_warning(req, Markup(tag_(
-                "Removing the old user is not supported by %(store)s.",
-                store=tag.b(store_old.__class__.__name__))))
-            return
-        stores = ExtensionOrder(components=acctmgr.stores,
-                                list=acctmgr.password_stores)
-        # Predict stores for old and new account.
-        keep_passwd = False
-        for store in stores.get_enabled_components():
-            if not hasattr(store, 'set_password'):
-                continue
-            if store == store_old:
-               # DEVEL: Preserve passwords for other stores too.
-                keep_passwd = store.__class__.__name__ == 'SessionStore'
-            break
-
-        if create_user:
-            if acctmgr.password_stores and \
-                    not acctmgr.supports('set_password'):
-                add_warning(req, _(
-                    "None of the configured password stores is writable."))
-                return
-            if not (acctmod.reset_password_enabled or keep_passwd):
-                add_warning(req, _(
-                    "Password reset is a required action, but disabled yet."))
-                return
-            # Ensure, that the new ID must pass basic checks.
-            checks = ExtensionOrder(components=acctmgr.checks,
-                                    list=acctmgr.register_checks)
-            required_check = 'BasicCheck'
-            if not required_check in checks.get_enabled_component_names():
-                add_warning(req, Markup(tag_(
-                    "At least %(required_check)s must be configured and "
-                    "enabled.", required_check=tag.b(required_check))))
-                return
-
-            req.args['username'] = new_uid
-            # Prime request with data to prevent input validation failures.
-            req.args['password'] = req.args['password_confirm'] = 'pass'
-            attributes = get_user_attribute(self.env, old_uid)
-            email = old_uid in attributes and \
-                    attributes[old_uid][1].get('email') or None
-            if email:
-                req.args['email'] = email
-                # Prevent account verification failure due to existing email
-                # address.
-                del_user_attribute(self.env, old_uid, attribute='email')
-
-            name = old_uid in attributes and \
-                   attributes[old_uid][1].get('name') or None
-            if name:
-                req.args['name'] = name
-
-            try:
-                acctmgr.validate_account(req)
-            except RegistrationError, e:
-                # Attempt deferred translation.
-                message = gettext(e.message)
-                # Check for (matching number of) message arguments before
-                #   attempting string substitution.
-                if e.msg_args and \
-                        len(e.msg_args) == len(re.findall('%s', message)):
-                    message = message % e.msg_args
-                add_warning(req, Markup(message))
-                if email:
-                    set_user_attribute(self.env, old_uid, 'email', email)
-                return
-            if not keep_passwd and \
-                    self._set_password(req, new_uid, acctmod._random_password,
-                                       False) is None:
-                add_warning(req, _(
-                    "Failed to save new login data to a password store."))
-                if email:
-                    set_user_attribute(self.env, old_uid, 'email', email)
-                return
-
-        # Call all user ID changers.
-        results = change_uid(self.env, old_uid, new_uid, self.uid_changers,
-                             attr_overwrite)
-        if 'error' in results:
-            if create_user:
-                # Rollback all changes including newly created account.
-                self._delete_user(req, new_uid)
-                if email:
-                    set_user_attribute(self.env, old_uid, 'email', email)
-            return results
-
-        attributes = get_user_attribute(self.env, new_uid, attribute='email')
-        email_new = new_uid in attributes and attributes[new_uid].get(1) and \
-                    attributes[new_uid][1].get('email') or None
-        if email and (create_user or attr_overwrite or not email_new):
-            set_user_attribute(self.env, new_uid, 'email', email)
-            if not keep_passwd:
-                acctmod._reset_password(req, new_uid, email)
-        elif email_new and not keep_passwd:
-            acctmod._reset_password(req, new_uid, email_new)
-        elif not keep_passwd:
-            add_warning(req, Markup(tag_(
-                "Cannot send the new password to the user, because no email "
-                "address is associated with %(username)s.",
-                username=tag.b(new_uid))))
-        if delete_user:
-            # Finally delete old user ID.
-            self._delete_user(req, old_uid)
-        # Notify listeners about successful ID change.
-        try:
-            acctmgr._notify('id_changed', old_uid, new_uid)
-        except NotificationError, e:
-            add_warning(req, _("Error raised while sending a change "
-                               "notification.") + _("You'll get details "
-                               "with TracLogging enabled."))
-            self.log.error('Unable to send user ID change notification: %s',
-                           exception_to_unicode(e, traceback=True))
-        return results
-
-    def _do_db_cleanup(self, req):
-        if req.perm.has_permission('ACCTMGR_ADMIN'):
-            env = self.env
-            changed = False
-            # Get data for all authenticated users from 'session_attributes'.
-            attr = get_user_attribute(self.env, username=None,
-                                      authenticated=1)
-            attrs = {}
-            accounts = req.args.get('accounts')
-            accounts = accounts and accounts.split(',') or []
-            max_per_page = as_int(req.args.get('max_per_page'), None)
-            sel = req.args.get('sel')
-            sel = isinstance(sel, list) and sel or [sel]
-            if req.args.get('purge') and sel:
-                sel_len = len(sel)
-                matched = []
-                for acct, states in attr.iteritems():
-                    for state in states['id'].keys():
-                        for elem, id in states[state]['id'].iteritems():
-                            if id in sel:
-                                if acct in attrs.keys():
-                                    if state in attrs[acct].keys():
-                                        attrs[acct][state] \
-                                            .append(elem)
-                                    else:
-                                        attrs[acct][state] = [elem]
-                                else:
-                                    attrs[acct] = {state: [elem]}
-                                matched.append(id)
-                                if len(matched) == sel_len:
-                                    break
-                        if len(matched) == sel_len:
-                            break
-                    if len(matched) == sel_len:
-                        break
-                for id in (frozenset(sel) - frozenset(matched)):
-                    for acct, states in attr.iteritems():
-                        for state, id_ in states['id'].iteritems():
-                            if id == id_:
-                                # Full account is marked, forget attributes.
-                                if acct in attrs.keys():
-                                    attrs[acct].update({state: []})
-                                else:
-                                    attrs[acct] = {state: []}
-                                matched.append(id)
-                                if len(matched) == sel_len:
-                                    break
-                        if len(matched) == sel_len:
-                            break
-                # DEVEL: For Python>2.4 better use defaultdict for counters.
-                del_count = {'acct': 0, 'attr': 0}
-                for account, states in attrs.iteritems():
-                    for state, elem in states.iteritems():
-                        if len(elem) == 0:
-                            del_user_attribute(env, account, state)
-                            del_count['acct'] += 1
-                        else:
-                            for attribute in elem:
-                                del_user_attribute(env, account, state,
-                                                   attribute)
-                                del_count['attr'] += 1
-                    changed = True
-
-            if changed == True:
-                accounts_ = attributes = ''
-                n_plural=del_count['acct']
-                if n_plural > 0:
-                    accounts_ = tag.li(tag.span(tag(ngettext(
-                    "%(count)s account",
-                    "%(count)s accounts",
-                    n_plural, count=n_plural
-                ))))
-                n_plural=del_count['attr']
-                if n_plural > 0:
-                    attributes = tag.li(tag.span(tag(ngettext(
-                    "%(count)s account attribute",
-                    "%(count)s account attributes",
-                    n_plural, count=n_plural
-                ))))
-                add_notice(req, Markup(tag(_("Successfully deleted:"),
-                                       tag.ul(accounts_, attributes))))
-                # Update the dict after changes.
-                attr = get_user_attribute(env, username=None,
-                                          authenticated=1)
-            if not accounts and sel:
-                # Get initial account selection from account/user list.
-                accounts = sel
-            attr_sel = dict()
-            for account, states in attr.iteritems():
-                if account in accounts:
-                    attr_sel.update({account: states})
-
-            add_ctxtnav(req, _("Back to Accounts"),
-                        href=req.href.admin('accounts', 'users'))
-            add_stylesheet(req, 'acct_mgr/acctmgr.css')
-            data = dict(_dgettext=dgettext, accounts=accounts, attr=attr_sel)
-            return 'admin_db_cleanup.html', data
-
-    def _paginate(self, req, accounts):
-        max_per_page = as_int(req.session.get('acctmgr_user.max_items'),
-                              self.ACCTS_PER_PAGE)
-        page = int(req.args.get('page', '1'))
-        total = len(accounts)
-        pager = Paginator(accounts, page - 1, max_per_page)
-        pagedata = []
-        shown_pages = pager.get_shown_pages(21)
-        for shown_page in shown_pages:
-            page_href = req.href.admin('accounts', 'users', page=shown_page)
-            pagedata.append([page_href, None, str(shown_page),
-                             _("page %(num)s", num=str(shown_page))])
-        # Prepare bottom and top pager navigation data.
-        fields = ['href', 'class', 'string', 'title']
-        pager.current_page = {'href': None, 'class': 'current',
-                              'string': str(pager.page + 1), 'title':None}
-        pager.shown_pages = [dict(zip(fields, p)) for p in pagedata]
-        if pager.has_more_pages:
-            # Show '# of #' instead of total count.
-            total = pager.displayed_items()
-        if pager.has_next_page:
-            next_href = req.href.admin('accounts', 'users', page=page + 1)
-            add_link(req, 'next', next_href, _('Next Page'))
-        if pager.has_previous_page:
-            prev_href = req.href.admin('accounts', 'users', page=page - 1)
-            add_link(req, 'prev', prev_href, _('Previous Page'))
-        page_href = req.href.admin('accounts', 'cleanup')
-        return dict(accounts=pager, displayed_items=total, page_href=page_href)
-
-    def _set_password(self, req, username, password, overwrite=True):
-        """Password saving with graceful handling of notification errors."""
-        result = None
-        try:
-            result = self.acctmgr.set_password(username, password,
-                                               overwrite=overwrite)
-        except NotificationError, e:
-            add_warning(req, _("Error raised while sending a change "
-                               "notification.") + _("You'll get details "
-                               "with TracLogging enabled."))
-            self.log.error('Unable to send password change notification: %s',
-                           exception_to_unicode(e, traceback=True))
-            result = self.acctmgr.has_user(username) or None
-        return result
-
-    def _delete_user(self, req, username):
-        """Delete method, that handles notification errors gracefully."""
-        try:
-            self.acctmgr.delete_user(username)
-        except NotificationError, e:
-            add_warning(req, _("Error raised while sending a change "
-                               "notification.") + _("You'll get details "
-                               "with TracLogging enabled."))
-            self.log.error('Unable to send user delete notification: %s',
-                           exception_to_unicode(e, traceback=True))
-
-
-    # IAuthenticator method
     def authenticate(self, req):
         """Launch an initial Trac authentication setup.
 
@@ -1551,7 +1570,7 @@ class AccountManagerAdminPanel(CommonTemplateProvider):
             self.env.config.set('account-manager', 'auth_init', False)
             # Initialize a setup session.
             req.environ['REMOTE_USER'] = remote_user = self.authname
-            if not self.authname in \
+            if self.authname not in \
                     self.perms.get_users_with_permission(self.cfg_action):
                 self.perms.grant_permission(self.authname, self.cfg_action)
             # Do not grant anything but the required configuration permission.

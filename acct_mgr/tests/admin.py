@@ -9,21 +9,16 @@
 # Author: Steffen Hoffmann <hoff.st@web.de>
 
 import shutil
-import string
 import tempfile
 import unittest
-
-from Cookie import SimpleCookie as Cookie
-from genshi.core import Markup
 
 from trac.core import Component, implements
 from trac.perm import PermissionCache, PermissionSystem
 from trac.test import EnvironmentStub, Mock, MockPerm
-from trac.web.session import Session
 
-from acct_mgr.admin import ExtensionOrder, AccountManagerAdminPanel
+from acct_mgr.admin import ExtensionOrder, ConfigurationAdminPanel, \
+                           UserAdminPanel
 from acct_mgr.api import AccountManager, IAccountRegistrationInspector
-from acct_mgr.api import gettext
 from acct_mgr.db import SessionStore
 from acct_mgr.register import BasicCheck, GenericRegistrationInspector
 
@@ -122,13 +117,10 @@ class ExtensionOrderTestCase(_BaseTestCase):
 class AccountManagerAdminPanelTestCase(_BaseTestCase):
     def setUp(self):
         _BaseTestCase.setUp(self)
-
         self.cfg_panel_template = 'admin_accountsconfig.html'
-        self.user_panel_template = 'admin_users.html'
-
         self.env.config.set('account-manager', 'password_store',
                             'SessionStore')
-        self.admin = AccountManagerAdminPanel(self.env)
+        self.admin = ConfigurationAdminPanel(self.env)
         self.bad_check = BadCheck(self.env)
         self.basic_check = BasicCheck(self.env)
         self.dummy_check = DummyCheck(self.env)
@@ -172,6 +164,18 @@ class AccountManagerAdminPanelTestCase(_BaseTestCase):
         self.assertEqual(response[0], self.cfg_panel_template)
         self._assert_no_msg(self.req)
 
+    def _assert_no_msg(self, req):
+        self.assertEqual(req.chrome['notices'], [])
+        self.assertEqual(req.chrome['warnings'], [])
+
+
+class UserAdminPanelTestCase(_BaseTestCase):
+
+    def setUp(self):
+        _BaseTestCase.setUp(self)
+        self.user_panel_template = 'admin_users.html'
+        self.admin = UserAdminPanel(self.env)
+
     def test_render_user_admin_panel(self):
         response = self.admin.render_admin_panel(self.req, 'accounts',
                                                  'users', '')
@@ -186,9 +190,11 @@ class AccountManagerAdminPanelTestCase(_BaseTestCase):
 
 def suite():
     suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(ExtensionOrderTestCase, 'test'))
-    suite.addTest(unittest.makeSuite(AccountManagerAdminPanelTestCase, 'test'))
+    suite.addTest(unittest.makeSuite(ExtensionOrderTestCase))
+    suite.addTest(unittest.makeSuite(AccountManagerAdminPanelTestCase))
+    suite.addTest(unittest.makeSuite(UserAdminPanelTestCase))
     return suite
+
 
 if __name__ == '__main__':
     unittest.main(defaultTest='suite')
