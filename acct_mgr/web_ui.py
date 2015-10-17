@@ -144,7 +144,8 @@ class AccountModule(CommonTemplateProvider):
         return handler
 
     def post_process_request(self, req, template, data, content_type):
-        if req.authname and req.authname != 'anonymous':
+        if template is not None and \
+                req.authname and req.authname != 'anonymous':
             if req.session.get('force_change_passwd', False):
                 # Prevent authenticated usage before another password change.
                 redirect_url = req.href.prefs('account')
@@ -324,7 +325,7 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
 
     auth_cookie_lifetime = IntOption('trac', 'auth_cookie_lifetime', 0,
         """Lifetime of the authentication cookie, in seconds.
-        
+
         This value determines how long the browser will cache
         authentication information, and therefore, after how much
         inactivity a user will have to log in again. The default value
@@ -336,7 +337,7 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
         base path of several Trac instances if you want them to share
         the cookie.  (''since 0.12'')""")
 
-    # Options dedicated to acct_mgr.web_ui.LoginModule. 
+    # Options dedicated to acct_mgr.web_ui.LoginModule.
     login_opt_list = BoolOption(
         'account-manager', 'login_opt_list', False,
         """Set to True, to switch login page style showing alternative actions
@@ -513,9 +514,9 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
             # Persistent sessions enabled, the user is logged in
             # ('name' exists) and has actually decided to use this feature
             # (indicated by the 'trac_auth_session' cookie existing).
-            # 
+            #
             # NOTE: This method is called on every request.
-            
+
             # Refresh session cookie
             # Update the timestamp of the session so that it doesn't expire.
             self.env.log.debug('Updating session %s for user %s' %
@@ -598,9 +599,9 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
             # Check for properties to be set in auth cookie.
             cookie_lifetime = self.cookie_lifetime
             req.outcookie['trac_auth']['expires'] = cookie_lifetime
-            
+
             # This cookie is used to indicate that the user is actually using
-            # the "Remember me" feature. This is necessary for 
+            # the "Remember me" feature. This is necessary for
             # '_get_name_for_cookie()'.
             req.outcookie['trac_auth_session'] = 1
             req.outcookie['trac_auth_session']['path'] = cookie_path
