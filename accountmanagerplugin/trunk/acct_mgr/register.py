@@ -63,7 +63,7 @@ class GenericRegistrationInspector(Component):
     def render_registration_fields(self, req, data):
         """Emit one or multiple additional fields for registration form built.
 
-        Returns a dict containing a 'required' and/or 'optional' tuple of 
+        Returns a dict containing a 'required' and/or 'optional' tuple of
          * Genshi Fragment or valid XHTML markup for registration form
          * modified or unchanged data object (used to render `register.html`)
         If the return value is just a single tuple, its fragment or markup
@@ -109,7 +109,7 @@ class BasicCheck(GenericRegistrationInspector):
         if not username:
             raise RegistrationError(N_("Username cannot be empty."))
 
-        # Always exclude some special characters, i.e. 
+        # Always exclude some special characters, i.e.
         #   ':' can't be used in HtPasswdStore
         #   '[' and ']' can't be used in SvnServePasswordStore
         blacklist = acctmgr.username_char_blacklist
@@ -131,7 +131,7 @@ class BasicCheck(GenericRegistrationInspector):
             raise RegistrationError(N_(
                 "A username with only upper-cased characters is not allowed.")
             )
- 
+
         # Prohibit some user names, that are important for Trac and therefor
         # reserved, even if not in the permission store for some reason.
         if username.lower() in ['anonymous', 'authenticated']:
@@ -534,7 +534,7 @@ class EmailVerificationModule(CommonTemplateProvider):
 
     Anonymous users should register and perms should be tweaked, so that
     anonymous users can't edit wiki pages and change or create tickets.
-    So this email verification code won't be used on them. 
+    So this email verification code won't be used on them.
     """
 
     implements(IRequestFilter, IRequestHandler)
@@ -550,7 +550,7 @@ class EmailVerificationModule(CommonTemplateProvider):
             self.email_enabled = False
             if is_enabled(self.env, self.__class__) == True:
                 self.env.log.warn(
-                    ' '.join([self.__class__.__name__, 
+                    ' '.join([self.__class__.__name__,
                               "can't work because of missing email setup."])
                 )
 
@@ -596,7 +596,7 @@ class EmailVerificationModule(CommonTemplateProvider):
         return handler
 
     def post_process_request(self, req, template, data, content_type):
-        if not req.session.authenticated:
+        if template is None or not req.session.authenticated:
             # Don't start the email verification procedure on anonymous users.
             return template, data, content_type
 
@@ -609,8 +609,8 @@ class EmailVerificationModule(CommonTemplateProvider):
             req.session['email_verification_sent_to'] = email
             try:
                 AccountManager(self.env)._notify(
-                    'email_verification_requested', 
-                    req.authname, 
+                    'email_verification_requested',
+                    req.authname,
                     req.session['email_verification_token']
                 )
             except NotificationError, e:
@@ -647,8 +647,8 @@ class EmailVerificationModule(CommonTemplateProvider):
         elif req.method == 'POST' and 'resend' in req.args:
             try:
                 AccountManager(self.env)._notify(
-                    'email_verification_requested', 
-                    req.authname, 
+                    'email_verification_requested',
+                    req.authname,
                     req.session['email_verification_token']
                 )
             except NotificationError, e:
