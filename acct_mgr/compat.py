@@ -37,7 +37,7 @@ except ImportError:
         return value
 
 # inspect.cleandoc() was introduced in Python 2.6, and this compatibility
-# code replicates source in trac.util.compat 
+# code replicates source in trac.util.compat
 try:
     from inspect import cleandoc
 except ImportError:
@@ -46,7 +46,7 @@ except ImportError:
     # Taken from Python 2.6
     def cleandoc(doc):
         """De-indent a multi-line text.
-    
+
         Any whitespace that can be uniformly removed from the second line
         onwards is removed."""
         try:
@@ -233,13 +233,13 @@ try:
                 funcname = value
                 func_kwargs_map = kwargs_maps.get(funcname, {})
                 kwarg_name = None
-except:
+except ImportError:
     pass
 
 try:
     from trac.util.text import exception_to_unicode
 # Provide the function for compatibility (available since Trac 0.11.3).
-except:
+except ImportError:
     def exception_to_unicode(e, traceback=False):
         """Convert an `Exception` to an `unicode` object.
 
