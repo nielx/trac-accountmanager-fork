@@ -16,7 +16,8 @@ from trac.config import Option, OrderedExtensionsOption
 from trac.core import Component, ExtensionPoint, Interface, TracError
 from trac.core import implements
 from trac.perm import IPermissionRequestor, PermissionCache
-from trac.web.chrome import ITemplateProvider
+from trac.util.translation import _
+from trac.web.chrome import ITemplateProvider, add_warning
 from trac.web.main import IRequestFilter
 
 # Import i18n methods.  Fallback modules maintain compatibility to Trac 0.11
@@ -479,6 +480,8 @@ class AccountManager(Component):
         if 'approval' in req.session:
             # Account approval not granted, remove elevated permissions.
             req.perm = PermissionCache(self.env)
+            add_warning(req, _("Account is pending approval."
+                              " You may need to contact your administrator."))
             self.log.debug(
                 "AccountManager.pre_process_request: Permissions for '%s' "
                 "stripped (account approval %s)"

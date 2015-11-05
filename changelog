@@ -16,6 +16,7 @@ acct_mgr-0.5 (not yet released) - branch 0.11
  * #11213: The username input doesn't have focus when the page loads
  * #11312: Variable 'user' does not exist (in api.py)
  * #11469: Exceptions in AccountModule are not trapped in Trac 1.0.2dev
+ * #11798: Display message when account is pending approval
  * #11867: Incorrect body for reset password email notification
  * #11991: RegistrationError cannot initialize on Python 2.4
  * #12024: Username not inserted from admin panel
