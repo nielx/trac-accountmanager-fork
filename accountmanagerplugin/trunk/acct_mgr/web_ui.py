@@ -633,7 +633,7 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
     def _distribute_auth(self, req, trac_auth, name=None):
         # Single Sign On authentication distribution between multiple
         #   Trac environments managed by AccountManager.
-        local_environ = req.environ.get('SCRIPT_NAME', '').lstrip('/')
+        local_environ = req.base_path.lstrip('/')
 
         for environ, path in get_environments(req.environ).iteritems():
             if environ != local_environ:
