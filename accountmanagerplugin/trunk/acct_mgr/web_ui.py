@@ -84,7 +84,7 @@ class AccountModule(CommonTemplateProvider):
             except ValueError:
                 # ResetPwStore is not enabled.
                 if log:
-                    self.log.warn("ResetPwStore is disabled, therefor "
+                    self.log.warn("ResetPwStore is disabled, therefore "
                                   "password reset won't work.")
         # Require at least one more write-enabled password store.
         if not writable and log:
