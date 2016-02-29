@@ -678,8 +678,7 @@ class UserAdminPanel(CommonTemplateProvider):
                     if sel:
                         add_notice(req, tag_(
                             "Deleted account: %(accounts)s",
-                            "Deleted accounts: %(accounts)s",
-                            len(sel), accounts=tag.b(', '.join(sel))))
+                            accounts=tag.b(', '.join(sel))))
                 else:
                     add_warning(req, _(
                         "The password store does not support deleting users."))
