@@ -11,7 +11,6 @@
 
 import base64
 import re
-import time
 
 from genshi.builder import tag
 from genshi.core import Markup
@@ -20,7 +19,6 @@ from os import urandom
 from trac import perm, util
 from trac.core import Component, TracError, implements
 from trac.config import BoolOption, Option
-from trac.env import open_environment
 from trac.web import auth, chrome
 from trac.web.main import IRequestHandler, IRequestFilter
 

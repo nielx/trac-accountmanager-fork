@@ -10,7 +10,6 @@
 
 import re
 
-from trac.core import TracError
 from trac.db.api import DatabaseManager
 from trac.util.text import to_unicode
 
