@@ -9,9 +9,6 @@
 #
 # Author: Pedro Algarvio <ufs@ufsoft.org>
 
-import re
-
-from trac import __version__
 from trac.core import Component, TracError, implements
 from trac.admin import IAdminPanelProvider
 from trac.config import Option, ListOption

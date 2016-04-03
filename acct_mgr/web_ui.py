@@ -13,11 +13,9 @@ import random
 import string
 import time
 
-from datetime import timedelta
 from genshi.core import Markup
 from genshi.builder import tag
 
-from trac import perm, util
 from trac.core import Component, implements
 from trac.config import BoolOption, Configuration, ConfigurationError
 from trac.config import IntOption, Option
@@ -25,7 +23,6 @@ from trac.env import open_environment
 from trac.prefs import IPreferencePanelProvider
 from trac.util import hex_entropy
 from trac.util.presentation import separated
-from trac.util.text import to_unicode
 from trac.web import auth
 from trac.web.main import IRequestHandler, IRequestFilter, get_environments
 from trac.web.chrome import INavigationContributor, add_notice, add_script

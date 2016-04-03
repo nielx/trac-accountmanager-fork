@@ -15,7 +15,6 @@ from trac.core import Component
 from trac.util.datefmt import format_datetime, pretty_timedelta
 from trac.util.datefmt import to_datetime, to_timestamp
 
-from acct_mgr.api import AccountManager
 from acct_mgr.model import del_user_attribute, get_user_attribute
 from acct_mgr.model import set_user_attribute, user_known
 
