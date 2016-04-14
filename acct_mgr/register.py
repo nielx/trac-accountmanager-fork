@@ -429,9 +429,9 @@ class RegistrationModule(CommonTemplateProvider):
         username = acctmgr.handle_username_casing(req.args.get('username',
                                                                '').strip())
         data = {
-                '_dgettext': dgettext,
-                  'acctmgr': dict(name=name, username=username),
-         'ignore_auth_case': self.config.getbool('trac', 'ignore_auth_case')
+            '_dgettext': dgettext,
+            'acctmgr': {'name': name, 'username': username},
+            'ignore_auth_case': self.config.getbool('trac', 'ignore_auth_case')
         }
         verify_enabled = is_enabled(self.env, EmailVerificationModule) and \
                          EmailVerificationModule(self.env).verify_email
