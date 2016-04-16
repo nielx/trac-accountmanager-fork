@@ -20,6 +20,7 @@ from trac import perm, util
 from trac.core import Component, TracError, implements
 from trac.config import BoolOption, Option
 from trac.web import auth, chrome
+from trac.web.api import HTTPBadRequest
 from trac.web.main import IRequestHandler, IRequestFilter
 
 from acct_mgr.api import AccountManager, CommonTemplateProvider
@@ -425,9 +426,14 @@ class RegistrationModule(CommonTemplateProvider):
         if req.authname != 'anonymous':
             req.redirect(req.href.prefs('account'))
         action = req.args.get('action')
-        name = req.args.get('name', '').strip()
-        username = acctmgr.handle_username_casing(req.args.get('username',
-                                                               '').strip())
+        name = req.args.get('name', '')
+        if isinstance(name, list):
+            raise HTTPBadRequest(_("Invalid request arguments."))
+        name = name.strip()
+        username = req.args.get('username', '')
+        if isinstance(username, list):
+            raise HTTPBadRequest(_("Invalid request arguments."))
+        username = acctmgr.handle_username_casing(username.strip())
         data = {
             '_dgettext': dgettext,
             'acctmgr': {'name': name, 'username': username},
