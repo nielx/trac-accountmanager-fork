@@ -550,15 +550,9 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
             req.outcookie['trac_auth_session'] = int(time.time())
             req.outcookie['trac_auth_session']['path'] = cookie_path
             req.outcookie['trac_auth_session']['expires'] = cookie_lifetime
-            try:
-                if self.env.secure_cookies:
-                    req.outcookie['trac_auth']['secure'] = True
-                    req.outcookie['trac_auth_session']['secure'] = True
-            except AttributeError:
-                # Report details about Trac compatibility for the feature.
-                self.env.log.debug("Restricting cookies to HTTPS connections "
-                                   "is requested, but is supported only by "
-                                   "Trac 0.11.2 or later version.")
+            if self.env.secure_cookies:
+                req.outcookie['trac_auth']['secure'] = True
+                req.outcookie['trac_auth_session']['secure'] = True
         return name
 
     # overrides
@@ -596,14 +590,8 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
             req.outcookie['trac_auth_session'] = 1
             req.outcookie['trac_auth_session']['path'] = cookie_path
             req.outcookie['trac_auth_session']['expires'] = cookie_lifetime
-            try:
-                if self.env.secure_cookies:
-                    req.outcookie['trac_auth_session']['secure'] = True
-            except AttributeError:
-                # Report details about Trac compatibility for the feature.
-                self.env.log.debug("Restricting cookies to HTTPS connections "
-                                   "is requested, but is supported only by "
-                                   "Trac 0.11.2 or later version.")
+            if self.env.secure_cookies:
+                req.outcookie['trac_auth_session']['secure'] = True
         else:
             # In Trac 0.12 the built-in authentication module may have already
             # set cookie's expires attribute, so because the user did not
@@ -700,14 +688,8 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
         req.outcookie['trac_auth_session'] = ''
         req.outcookie['trac_auth_session']['path'] = cookie_path
         req.outcookie['trac_auth_session']['expires'] = -10000
-        try:
-            if self.env.secure_cookies:
-                req.outcookie['trac_auth_session']['secure'] = True
-        except AttributeError:
-            # Report details about Trac compatibility for the feature.
-            self.env.log.debug("Restricting cookies to HTTPS connections is "
-                               "requested, but is supported only by Trac "
-                               "0.11.2 or later version.")
+        if self.env.secure_cookies:
+            req.outcookie['trac_auth_session']['secure'] = True
 
     def _remote_user(self, req):
         """The real authentication using configured providers and stores."""
