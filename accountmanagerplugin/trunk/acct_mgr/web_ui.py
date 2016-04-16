@@ -148,7 +148,7 @@ class AccountModule(CommonTemplateProvider):
                 redirect_url = req.href.prefs('account')
                 if req.href(req.path_info) != redirect_url:
                     req.redirect(redirect_url)
-        return (template, data, content_type)
+        return template, data, content_type
 
     # IRequestHandler methods
 
@@ -174,10 +174,11 @@ class AccountModule(CommonTemplateProvider):
         action = req.args.get('action')
         delete_enabled = self.acctmgr.supports('delete_user') and \
                              self.acctmgr.allow_delete_account
-        data = {'delete_enabled': delete_enabled,
-                'delete_msg_confirm': _(
-                    "Are you sure you want to delete your account?"),
-               }
+        data = {
+            'delete_enabled': delete_enabled,
+            'delete_msg_confirm':
+                _("Are you sure you want to delete your account?"),
+        }
         force_change_password = req.session.get('force_change_passwd', False)
         if req.method == 'POST':
             if action == 'save':
@@ -235,9 +236,8 @@ class AccountModule(CommonTemplateProvider):
                 self.acctmgr.delete_user(username)
             except NotificationError, e:
                 # User wont care for notification, only care for logging here.
-                self.log.error(
-                       'Unable to send account deletion notification: %s',
-                       exception_to_unicode(e, traceback=True))
+                self.log.error("Unable to send account deletion notification: "
+                               "%s", exception_to_unicode(e, traceback=True))
             # Delete the whole session, since records in session_attribute
             # would get restored on logout otherwise.
             req.session.clear()
@@ -285,12 +285,12 @@ class AccountModule(CommonTemplateProvider):
             else:
                 msg += _("You should report that issue to a Trac admin.")
             add_warning(req, msg)
-            self.log.error('Unable to send password reset notification: %s',
+            self.log.error("Unable to send password reset notification: %s",
                            exception_to_unicode(e, traceback=True))
         except Exception, e:
             add_warning(req, _("Cannot reset password: %(error)s",
                                error=exception_to_unicode(e)))
-            self.log.error('Unable to reset password: %s',
+            self.log.error("Unable to reset password: %s",
                            exception_to_unicode(e, traceback=True))
             return
         else:
@@ -373,7 +373,7 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
             # interrupting a rewrite in progress by another thread and causing
             # a DoS condition by truncating the configuration file.
             self.env.log.info("trac.web.auth.LoginModule disabled, "
-                              "giving preference to %s." % self.__class__)
+                              "giving preference to %s.", self.__class__)
 
         self.cookie_lifetime = self.auth_cookie_lifetime
         if not self.cookie_lifetime > 0:
@@ -406,19 +406,19 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
                     req.args['user_locked'] = False
                     if req.args.get('failed_logins') is None:
                         # Reset failed login attempts counter.
-                        req.args['failed_logins'] = guard.failed_count(
-                                                        username, reset=True)
+                        req.args['failed_logins'] = \
+                            guard.failed_count(username, reset=True)
             else:
                 req.args['user_locked'] = False
-            if not 'REMOTE_USER' in req.environ or self.environ_auth_overwrite:
+            if 'REMOTE_USER' not in req.environ or self.environ_auth_overwrite:
                 if 'REMOTE_USER' in req.environ:
                     # Complain about another component setting environment
                     # variable for authenticated user.
                     self.env.log.warn("LoginModule.authenticate: "
-                                      "'REMOTE_USER' was set to '%s'"
-                                      % req.environ['REMOTE_USER'])
+                                      "'REMOTE_USER' was set to '%s'",
+                                      req.environ['REMOTE_USER'])
                 self.env.log.debug("LoginModule.authenticate: Set "
-                                   "'REMOTE_USER' = '%s'" % username)
+                                   "'REMOTE_USER' = '%s'", username)
                 req.environ['REMOTE_USER'] = username
         return auth.LoginModule.authenticate(self, req)
 
@@ -440,17 +440,16 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
             data = {
                 '_dgettext': dgettext,
                 'login_opt_list': self.login_opt_list,
-                'persistent_sessions': AccountManager(self.env
-                                       ).persistent_sessions,
+                'persistent_sessions':
+                    AccountManager(self.env).persistent_sessions,
                 'referer': referer,
                 'registration_enabled': RegistrationModule(self.env).enabled,
-                'reset_password_enabled': AccountModule(self.env
-                                          ).reset_password_enabled
+                'reset_password_enabled':
+                    AccountModule(self.env).reset_password_enabled
             }
             if req.method == 'POST':
-                self.log.debug(
-                    "LoginModule.process_request: 'user_locked' = %s"
-                    % req.args.get('user_locked'))
+                self.log.debug("LoginModule.process_request: 'user_locked' "
+                               "= %s", req.args.get('user_locked'))
                 if not req.args.get('user_locked'):
                     # TRANSLATOR: Intentionally obfuscated login error
                     data['login_error'] = _("Invalid username or password")
@@ -458,16 +457,15 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
                     f_user = req.args.get('username')
                     release_time = AccountGuard(self.env
                                    ).pretty_release_time(req, f_user)
-                    if not release_time is None:
-                        data['login_error'] = _(
-                            """Account locked, please try again after
-                            %(release_time)s
-                            """, release_time=release_time)
+                    if release_time is not None:
+                        data['login_error'] = \
+                            _("Account locked, please try again after % "
+                              "(release_time)s", release_time=release_time)
                     else:
                         data['login_error'] = _("Account locked")
             return 'login.html', data, None
         else:
-            n_plural=req.args.get('failed_logins')
+            n_plural = req.args.get('failed_logins')
             if n_plural > 0:
                 add_warning(req, Markup(tag.span(tag(ngettext(
                     "Login after %(attempts)s failed attempt",
@@ -516,15 +514,13 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
 
             # Refresh session cookie
             # Update the timestamp of the session so that it doesn't expire.
-            self.env.log.debug('Updating session %s for user %s' %
-                                (cookie.value, name))
+            self.env.log.debug("Updating session %s for user %s",
+                               cookie.value, name)
             # Refresh in database
             db = self.env.get_db_cnx()
             cursor = db.cursor()
             cursor.execute("""
-                UPDATE  auth_cookie
-                    SET time=%s
-                WHERE   cookie=%s
+                UPDATE auth_cookie SET time=%s WHERE cookie=%s
                 """, (int(time.time()), cookie.value))
             db.commit()
 
@@ -535,14 +531,12 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
                 old_cookie = cookie.value
                 # Update auth cookie value
                 cookie.value = hex_entropy()
-                self.env.log.debug('Changing session id for user %s to %s'
-                                    % (name, cookie.value))
+                self.env.log.debug("Changing session id for user %s to %s",
+                                   name, cookie.value)
                 db = self.env.get_db_cnx()
                 cursor = db.cursor()
                 cursor.execute("""
-                    UPDATE  auth_cookie
-                        SET cookie=%s
-                    WHERE   cookie=%s
+                    UPDATE auth_cookie SET cookie=%s WHERE cookie=%s
                     """, (cookie.value, old_cookie))
                 db.commit()
                 if self.auth_cookie_path:
@@ -562,10 +556,9 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
                     req.outcookie['trac_auth_session']['secure'] = True
             except AttributeError:
                 # Report details about Trac compatibility for the feature.
-                self.env.log.debug(
-                    """Restricting cookies to HTTPS connections is requested,
-                    but is supported only by Trac 0.11.2 or later version.
-                    """)
+                self.env.log.debug("Restricting cookies to HTTPS connections "
+                                   "is requested, but is supported only by "
+                                   "Trac 0.11.2 or later version.")
         return name
 
     # overrides
@@ -608,10 +601,9 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
                     req.outcookie['trac_auth_session']['secure'] = True
             except AttributeError:
                 # Report details about Trac compatibility for the feature.
-                self.env.log.debug(
-                    """Restricting cookies to HTTPS connections is requested,
-                    but is supported only by Trac 0.11.2 or later version.
-                    """)
+                self.env.log.debug("Restricting cookies to HTTPS connections "
+                                   "is requested, but is supported only by "
+                                   "Trac 0.11.2 or later version.")
         else:
             # In Trac 0.12 the built-in authentication module may have already
             # set cookie's expires attribute, so because the user did not
@@ -648,30 +640,27 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
                         #   there is no other session (or worst: session ID)
                         #   associated to it.
                         cursor.execute("""
-                            DELETE FROM auth_cookie
-                            WHERE  cookie=%s
+                            DELETE FROM auth_cookie WHERE cookie=%s
                             """, (trac_auth,))
                         if not name:
                             db.commit()
-                            env.log.debug('Auth data revoked from: %s'
-                                          % local_environ)
+                            env.log.debug("Auth data revoked from: %s",
+                                          local_environ)
                             continue
                         cursor.execute("""
-                            INSERT INTO auth_cookie
-                                   (cookie,name,ipnr,time)
+                            INSERT INTO auth_cookie (cookie,name,ipnr,time)
                             VALUES (%s,%s,%s,%s)
                             """, (trac_auth, name, req.remote_addr,
                                   int(time.time())))
                         db.commit()
-                        env.log.debug('Auth data received from: %s'
-                                      % local_environ)
-                        self.log.debug('Auth distribution success: %s'
-                                       % environ)
+                        env.log.debug("Auth data received from: %s",
+                                      local_environ)
+                        self.log.debug("Auth distribution success: %s",
+                                       environ)
                 except Exception, e:
-                    self.log.debug('Auth distribution skipped for env %s: %s'
-                                   % (environ,
-                                      exception_to_unicode(e, traceback=True))
-                    )
+                    self.log.debug("Auth distribution skipped for env %s: %s",
+                                   environ,
+                                   exception_to_unicode(e, traceback=True))
 
     def _get_cookie_path(self, req):
         """Determine "path" cookie property from setting or request object."""
@@ -716,46 +705,44 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
                 req.outcookie['trac_auth_session']['secure'] = True
         except AttributeError:
             # Report details about Trac compatibility for the feature.
-            self.env.log.debug(
-                """Restricting cookies to HTTPS connections is requested,
-                but is supported only by Trac 0.11.2 or later version.
-                """)
+            self.env.log.debug("Restricting cookies to HTTPS connections is "
+                               "requested, but is supported only by Trac "
+                               "0.11.2 or later version.")
 
     def _remote_user(self, req):
         """The real authentication using configured providers and stores."""
         username = req.args.get('username')
         self.env.log.debug("LoginModule._remote_user: Authentication "
-                           "attempted for '%s'" % username)
+                           "attempted for '%s'", username)
         password = req.args.get('password')
         if not username:
             return None
         acctmgr = AccountManager(self.env)
         acctmod = AccountModule(self.env)
-        if acctmod.reset_password_enabled == True:
+        if acctmod.reset_password_enabled is True:
             reset_store = acctmod.store
         else:
             reset_store = None
-        if acctmgr.check_password(username, password) == True:
+        if acctmgr.check_password(username, password) is True:
             if reset_store:
                 # Purge any temporary password set for this user before,
                 # to avoid DOS by continuously triggered resets from
                 # a malicious third party.
-                if reset_store.delete_user(username) == True and \
+                if reset_store.delete_user(username) is True and \
                         'PASSWORD_RESET' not in req.environ:
                     db = self.env.get_db_cnx()
                     cursor = db.cursor()
                     cursor.execute("""
-                        DELETE
-                        FROM    session_attribute
-                        WHERE   sid=%s
-                            AND name='force_change_passwd'
-                            AND authenticated=1
+                        DELETE FROM session_attribute
+                        WHERE sid=%s
+                          AND name='force_change_passwd'
+                          AND authenticated=1
                         """, (username,))
                     db.commit()
             return username
         # Alternative authentication provided by password reset procedure
         elif reset_store:
-            if reset_store.check_password(username, password) == True:
+            if reset_store.check_password(username, password) is True:
                 # Lock, required to prevent another authentication
                 # (spawned by `set_password()`) from possibly deleting
                 # a 'force_change_passwd' db entry for this user.
@@ -769,12 +756,12 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
         """Prepare context navigation items for display on login page."""
         return list(separated(items, '|'))
 
+    @property
     def enabled(self):
         # Trac built-in authentication must be disabled to use this one.
         return is_enabled(self.env, self.__class__) and \
-                not is_enabled(self.env, auth.LoginModule)
+               not is_enabled(self.env, auth.LoginModule)
 
-    enabled = property(enabled)
 
 def _set_password(env, req, username, password, old_password=None):
     try:
@@ -782,7 +769,7 @@ def _set_password(env, req, username, password, old_password=None):
                                          old_password=old_password)
     except NotificationError, e:
         add_warning(req, _("Error raised while sending a change "
-                           "notification.") + _("You should report "
-                           "that issue to a Trac admin."))
+                           "notification.") +
+                        _("You should report that issue to a Trac admin."))
         env.log.error('Unable to send password change notification: %s',
                       exception_to_unicode(e, traceback=True))
