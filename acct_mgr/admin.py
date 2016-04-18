@@ -13,7 +13,6 @@ import inspect
 import re
 
 from genshi.builder import tag
-from genshi.core import Markup
 
 from trac import __version__ as trac_version
 from trac.admin import IAdminPanelProvider
@@ -240,9 +239,9 @@ class UserAdminPanel(CommonTemplateProvider):
                         set_user_attribute(env, account['username'],
                                            'email_verification_sent_to',
                                            account['email'])
-                    add_notice(req, Markup(tag_(
+                    add_notice(req, tag_(
                                "Account %(username)s created.",
-                               username=tag.b(account['username']))))
+                               username=tag.b(account['username'])))
                     # User editor form clean-up.
                     account = {}
                 except NotificationError, e:
@@ -253,14 +252,7 @@ class UserAdminPanel(CommonTemplateProvider):
                     self.log.error('Unable to send change notification: %s',
                                    exception_to_unicode(e, traceback=True))
                 except RegistrationError, e:
-                    # Attempt deferred translation.
-                    message = gettext(e.message)
-                    # Check for (matching number of) message arguments
-                    # before attempting string substitution.
-                    if e.msg_args and \
-                            len(e.msg_args) == len(re.findall('%s', message)):
-                        message = message % e.msg_args
-                    add_warning(req, Markup(message))
+                    add_warning(req, e)
         else:
             add_warning(req, _(
                 "None of the configured password stores is writable."))
@@ -344,8 +336,8 @@ class UserAdminPanel(CommonTemplateProvider):
                         "%(count)s account attributes",
                         n_plural, count=n_plural
                     ))))
-                add_notice(req, Markup(tag(_("Successfully deleted:"),
-                                       tag.ul(accounts_, attributes))))
+                add_notice(req, tag_("Successfully deleted: %(account)s"),
+                                     account=tag.ul(accounts_, attributes))
                 # Update the dict after changes.
                 attr = get_user_attribute(env, username=None,
                                           authenticated=1)
@@ -415,17 +407,17 @@ class UserAdminPanel(CommonTemplateProvider):
                 if any([k.startswith('delete_email')
                         for k in req.args.keys()]):
                     del_user_attribute(env, username, attribute='email')
-                    add_notice(req, Markup(_(
-                               "Deleted %(attribute)s for %(username)s.",
-                               attribute=tag.b(labels.get('email')),
-                               username=tag.b(username))))
+                    add_notice(req, tag_(
+                        "Deleted %(attribute)s for %(username)s.",
+                        attribute=tag.b(labels.get('email')),
+                        username=tag.b(username)))
                 elif any([k.startswith('delete_name')
                           for k in req.args.keys()]):
                     del_user_attribute(env, username, attribute='name')
-                    add_notice(req, Markup(_(
-                               "Deleted %(attribute)s for %(username)s.",
-                               attribute=tag.b(labels.get('name')),
-                               username=tag.b(username))))
+                    add_notice(req, tag_(
+                        "Deleted %(attribute)s for %(username)s.",
+                        attribute=tag.b(labels.get('name')),
+                        username=tag.b(username)))
 
                 password = req.args.get('password')
                 if password and (password.strip() != ''):
@@ -460,10 +452,10 @@ class UserAdminPanel(CommonTemplateProvider):
                         success.append(labels.get(attribute))
                 if success:
                     attributes = tag.b(', '.join(success))
-                    add_notice(req, Markup(_(
+                    add_notice(req, tag_(
                                "Updated %(attributes)s for %(username)s.",
                                attributes=attributes,
-                               username=tag.b(username))))
+                               username=tag.b(username)))
 
             # Change user ID of existing user account.
             elif action == 'uid':
@@ -480,8 +472,8 @@ class UserAdminPanel(CommonTemplateProvider):
                     else:
                         result_list = sorted([(k, v) for k, v in
                                               results.iteritems()])
-                        add_notice(req, Markup(tag.ul(
-                                   [tag.li(Markup(ngettext(
+                        add_notice(req, tag.ul(
+                                   [tag.li(ngettext(
                                         "Table %(table)s column %(column)s"
                                         "%(constraint)s: %(result)s change",
                                         "Table %(table)s column %(column)s"
@@ -490,9 +482,9 @@ class UserAdminPanel(CommonTemplateProvider):
                                         column=tag.b(result[0][1]),
                                         constraint=result[0][2] and
                                         '(' + result[0][2] + ')' or '',
-                                        result=tag.b(result[1]))))
+                                        result=tag.b(result[1])))
                                     for result in result_list]
-                                   )))
+                                   ))
                         # Switch to display information for new user ID.
                         username = new_uid
                         data.update(
@@ -535,15 +527,15 @@ class UserAdminPanel(CommonTemplateProvider):
             if approval and req.args.get('release'):
                 # Admit authenticated/registered session.
                 del_user_attribute(env, username, attribute='approval')
-                add_notice(req, Markup(_(
+                add_notice(req, tag_(
                     "Account lock (%(condition)s) for user %(user)s cleared",
-                    condition=gettext(approval), user=tag.b(username))))
+                    condition=gettext(approval), user=tag.b(username)))
                 approval = None
             # Delete failed login attempts, evaluating attempts count.
             if guard.failed_count(username, reset=True) > 0:
-                add_notice(req, Markup(_(
+                add_notice(req, tag_(
                     "Failed login attempts for user %(user)s deleted",
-                    user=tag.b(username))))
+                    user=tag.b(username)))
         data['approval'] = approval
 
         # Get access history.
@@ -648,15 +640,15 @@ class UserAdminPanel(CommonTemplateProvider):
                                    len(unban), accounts=accounts)
                 if ban:
                     if msg:
-                        msg = tag(Markup(msg), Markup('<br />'))
+                        msg = tag(msg, tag.br())
                     else:
                         msg = tag()
                     accounts = tag.b(', '.join(ban))
-                    msg(Markup(ngettext("Banned account: %(accounts)s",
-                                        "Banned accounts: %(accounts)s",
-                                        len(ban), accounts=accounts)))
+                    msg(ngettext("Banned account: %(accounts)s",
+                                 "Banned accounts: %(accounts)s",
+                                 len(ban), accounts=accounts))
                 if ban or unban:
-                    add_notice(req, Markup(msg))
+                    add_notice(req, msg)
             elif req.args.get('reset') and req.args.get('sel'):
                 # Password reset for one or more accounts.
                 if password_reset_enabled:
@@ -664,9 +656,9 @@ class UserAdminPanel(CommonTemplateProvider):
                         if username in sel:
                             acctmod._reset_password(req, username, email)
                     if sel:
-                        add_notice(req, Markup(_(
+                        add_notice(req, tag_(
                                    "Password reset for %(accounts)s.",
-                                   accounts=tag.b(', '.join(sel)))))
+                                   accounts=tag.b(', '.join(sel))))
                 else:
                     add_warning(req, _(
                         "The password reset procedure is not enabled."))
@@ -753,9 +745,9 @@ class UserAdminPanel(CommonTemplateProvider):
         store_old = acctmgr.find_user_store(old_uid)
         if delete_user and store_old and \
                 not hasattr(store_old, 'delete_user'):
-            add_warning(req, Markup(tag_(
+            add_warning(req, tag_(
                 "Removing the old user is not supported by %(store)s.",
-                store=tag.b(store_old.__class__.__name__))))
+                store=tag.b(store_old.__class__.__name__)))
             return
         stores = ExtensionOrder(components=acctmgr.stores,
                                 list=acctmgr.password_stores)
@@ -784,9 +776,9 @@ class UserAdminPanel(CommonTemplateProvider):
                                     list=acctmgr.register_checks)
             required_check = 'BasicCheck'
             if required_check not in checks.get_enabled_component_names():
-                add_warning(req, Markup(tag_(
+                add_warning(req, tag_(
                     "At least %(required_check)s must be configured and "
-                    "enabled.", required_check=tag.b(required_check))))
+                    "enabled.", required_check=tag.b(required_check)))
                 return
 
             req.args['username'] = new_uid
@@ -809,14 +801,7 @@ class UserAdminPanel(CommonTemplateProvider):
             try:
                 acctmgr.validate_account(req)
             except RegistrationError, e:
-                # Attempt deferred translation.
-                message = gettext(e.message)
-                # Check for (matching number of) message arguments before
-                #   attempting string substitution.
-                if e.msg_args and \
-                        len(e.msg_args) == len(re.findall('%s', message)):
-                    message = message % e.msg_args
-                add_warning(req, Markup(message))
+                add_warning(req, e)
                 if email:
                     set_user_attribute(self.env, old_uid, 'email', email)
                 return
@@ -850,10 +835,10 @@ class UserAdminPanel(CommonTemplateProvider):
         elif email_new and not keep_passwd:
             acctmod._reset_password(req, new_uid, email_new)
         elif not keep_passwd:
-            add_warning(req, Markup(tag_(
+            add_warning(req, tag_(
                 "Cannot send the new password to the user, because no email "
                 "address is associated with %(username)s.",
-                username=tag.b(new_uid))))
+                username=tag.b(new_uid)))
         if delete_user:
             # Finally delete old user ID.
             self._delete_user(req, old_uid)

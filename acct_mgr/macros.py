@@ -8,7 +8,7 @@
 #
 # Author: Steffen Hoffmann <hoff.st@web.de>
 
-from genshi.builder import Markup, tag
+from genshi.builder import tag
 
 from trac.core import Component, implements
 from trac.perm import PermissionSystem
@@ -18,7 +18,7 @@ from trac.wiki.api import IWikiMacroProvider, WikiSystem, parse_args
 from trac.wiki.formatter import format_to_oneliner
 
 from acct_mgr.admin import fetch_user_data
-from acct_mgr.api import AccountManager, CommonTemplateProvider, _
+from acct_mgr.api import AccountManager, CommonTemplateProvider, _, tag_
 from acct_mgr.compat import get_pretty_dateinfo
 from acct_mgr.guard import AccountGuard
 
@@ -91,8 +91,8 @@ A misc placeholder with this statement is presented to unprivileged users.
                 if kw['wiki'] == 'count' or 'count' in args:
                     return tag(sum(1 for page in wiki.get_pages(prefix)))
         elif name == 'UserQuery':
-            msg_no_perm = tag.p(Markup(_("(required %(perm)s missing)",
-                                         perm=tag.strong('USER_VIEW'))),
+            msg_no_perm = tag.p(tag_("(required %(perm)s missing)",
+                                     perm=tag.strong('USER_VIEW')),
                                 class_='hint')
             users = []
             if 'perm' in kw.keys():
