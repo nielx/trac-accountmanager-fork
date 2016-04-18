@@ -16,8 +16,8 @@ import time
 from genshi.core import Markup
 from genshi.builder import tag
 
-from trac.core import Component, implements
-from trac.config import BoolOption, Configuration, ConfigurationError
+from trac.core import implements
+from trac.config import BoolOption, ConfigurationError
 from trac.config import IntOption, Option
 from trac.env import open_environment
 from trac.prefs import IPreferencePanelProvider
@@ -25,8 +25,8 @@ from trac.util import hex_entropy
 from trac.util.presentation import separated
 from trac.web import auth
 from trac.web.main import IRequestHandler, IRequestFilter, get_environments
-from trac.web.chrome import INavigationContributor, add_notice, add_script
-from trac.web.chrome import add_stylesheet, add_warning
+from trac.web.chrome import INavigationContributor, add_notice
+from trac.web.chrome import add_warning
 
 from acct_mgr.api import AccountManager, CommonTemplateProvider
 from acct_mgr.api import _, dgettext, ngettext, tag_
@@ -610,13 +610,13 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
     def _distribute_auth(self, req, trac_auth, name=None):
         # Single Sign On authentication distribution between multiple
         #   Trac environments managed by AccountManager.
-        local_environ = req.base_path.lstrip('/')
+        local_env_name = req.base_path.lstrip('/')
 
-        for environ, path in get_environments(req.environ).iteritems():
-            if environ != local_environ:
+        for env_name, env_path in get_environments(req.environ).iteritems():
+            if env_name != local_env_name:
                 try:
                     # Cache environment for subsequent invocations.
-                    env = open_environment(path, use_cache=True)
+                    env = open_environment(env_path, use_cache=True)
                     auth_cookie_path = env.config.get('trac',
                                                       'auth_cookie_path')
                     # Consider only Trac environments with equal, non-default
@@ -633,7 +633,7 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
                         if not name:
                             db.commit()
                             env.log.debug("Auth data revoked from: %s",
-                                          local_environ)
+                                          local_env_name)
                             continue
                         cursor.execute("""
                             INSERT INTO auth_cookie (cookie,name,ipnr,time)
@@ -642,12 +642,12 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
                                   int(time.time())))
                         db.commit()
                         env.log.debug("Auth data received from: %s",
-                                      local_environ)
+                                      local_env_name)
                         self.log.debug("Auth distribution success: %s",
-                                       environ)
+                                       env_name)
                 except Exception, e:
                     self.log.debug("Auth distribution skipped for env %s: %s",
-                                   environ,
+                                   env_name,
                                    exception_to_unicode(e, traceback=True))
 
     def _get_cookie_path(self, req):
