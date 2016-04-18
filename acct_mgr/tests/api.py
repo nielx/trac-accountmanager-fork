@@ -55,6 +55,7 @@ class AccountManagerTestCase(_BaseTestCase):
         incookie['trac_session'] = '123456'
         self.req = Mock(authname='', args=args, authenticated=True,
                         base_path='/', callbacks=dict(),
+                        chrome={'warnings': [], 'notices': []},
                         href=Mock(prefs=lambda x: None),
                         incookie=incookie, outcookie=Cookie(),
                         redirect=lambda x: None)

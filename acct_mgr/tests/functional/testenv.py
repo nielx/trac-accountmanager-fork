@@ -16,21 +16,21 @@ from subprocess import call, Popen
 
 from trac.admin import console
 from trac.web import standalone
-from trac.env import open_environment
-from trac.tests.functional.compat import rmtree, close_fds
+from trac.tests.functional.compat import close_fds
 
-from trac.tests.functional.testenv import FunctionalTestEnvironment
-from trac.tests.notification import SMTPThreadedServer
+from trac.tests.functional.svntestenv import SvnFunctionalTestEnvironment
 
-from acct_mgr.pwhash import htpasswd
+from acct_mgr.pwhash import mkhtpasswd
 from acct_mgr.tests.functional import logfile
 from acct_mgr.tests.functional import tc, ConnectError
 from acct_mgr.tests.functional.smtpd import AcctMgrSMTPThreadedServer
 
-class AcctMgrFuntionalTestEnvironment(FunctionalTestEnvironment):
+
+class AcctMgrFuntionalTestEnvironment(SvnFunctionalTestEnvironment):
     
     def __init__(self, dirname, port, url):
-        FunctionalTestEnvironment.__init__(self, dirname, port, url)
+        super(AcctMgrFuntionalTestEnvironment, self).__init__(dirname, port,
+                                                              url)
         self.smtp_port = self.port + os.getpid() % 1000
         self.smtpd = AcctMgrSMTPThreadedServer(self.smtp_port)
         
@@ -84,7 +84,7 @@ class AcctMgrFuntionalTestEnvironment(FunctionalTestEnvironment):
         self.smtpd.start()
         
     def stop(self):
-        FunctionalTestEnvironment.stop(self)
+        super(AcctMgrFuntionalTestEnvironment, self).stop()
         self.smtpd.stop()
         
     def create(self):
@@ -92,11 +92,12 @@ class AcctMgrFuntionalTestEnvironment(FunctionalTestEnvironment):
         authentication."""
         if os.mkdir(self.dirname):
             raise Exception('unable to create test environment')
-        if call(["svnadmin", "create", self.repodir], stdout=logfile,
+        repodir = self.repo_path_for_initenv()
+        if call(["svnadmin", "create", repodir], stdout=logfile,
                 stderr=logfile, close_fds=close_fds):
             raise Exception('unable to create subversion repository')
         self._tracadmin('initenv', 'testenv%s' % self.port,
-                        'sqlite:db/trac.db', 'svn', self.repodir)
+                        'sqlite:db/trac.db', 'svn', repodir)
         
         if os.path.exists(self.htpasswd):
             os.unlink(self.htpasswd)
@@ -111,7 +112,7 @@ class AcctMgrFuntionalTestEnvironment(FunctionalTestEnvironment):
     def adduser(self, user):
         """Add a user to the environment.  Password is the username."""
         f = open(self.htpasswd, 'a')
-        f.write("%s:%s\n" % (user, htpasswd(user)))
+        f.write('%s:%s\n' % (user, mkhtpasswd(user)))
         f.close()
         
     def _tracadmin(self, *args):

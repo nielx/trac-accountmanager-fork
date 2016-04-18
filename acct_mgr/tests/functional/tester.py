@@ -13,7 +13,7 @@ from acct_mgr.tests.functional import *
 class AcctMgrFunctionalTester(FunctionalTester):
     
     def __init__(self, url, repo_url):
-        FunctionalTester.__init__(self, url, repo_url)
+        super(AcctMgrFunctionalTester, self).__init__(url)
         # Don't stay logged in as admin.
         self.logout()
 
