@@ -13,7 +13,6 @@ import base64
 import re
 
 from genshi.builder import tag
-from genshi.core import Markup
 from os import urandom
 
 from trac import perm, util
@@ -147,10 +146,10 @@ class BasicCheck(GenericRegistrationInspector):
         for store_user in acctmgr.get_users():
             # Do it carefully by disregarding case.
             if store_user.lower() == username.lower():
-                raise RegistrationError(N_(
+                raise RegistrationError(tag_(
                     "Another account or group already exists, who's name "
-                    "differs from %s only by case or is identical."),
-                    tag.b(username)
+                    "differs from %(username)s only by case or is identical.",
+                    username=tag.b(username))
                 )
 
         # Password consistency checks follow.
@@ -196,10 +195,10 @@ class BotTrapCheck(GenericRegistrationInspector):
             else:
                 # TRANSLATOR: Verbatim token hint for visible bot trap
                 # registration input field.
-                hint = tag.p(Markup(_(
-                    """Please type [%(token)s] as verification token,
-                    exactly replicating everything within the braces.""",
-                    token=tag.b(self.reg_basic_token))), class_='hint')
+                hint = tag.p(tag_(
+                    "Please type [%(token)s] as verification token, "
+                    "exactly replicating everything within the braces.",
+                    token=tag.b(self.reg_basic_token)), class_='hint')
             insert = tag(
                 tag.label(_("Parole:"),
                           tag.input(type='text', name='basic_token', size=20,
@@ -363,10 +362,10 @@ class UsernamePermCheck(GenericRegistrationInspector):
         for (perm_user, perm_action) in \
                 perm.PermissionSystem(self.env).get_all_permissions():
             if perm_user.lower() == username.lower():
-                raise RegistrationError(N_(
+                raise RegistrationError(tag_(
                     "Another account or group already exists, who's name "
-                    "differs from %s only by case or is identical."),
-                    tag.b(username)
+                    "differs from %(username)s only by case or is identical.",
+                    username=tag.b(username))
                 )
 
 
@@ -455,14 +454,7 @@ class RegistrationModule(CommonTemplateProvider):
                         'Unable to send registration notification: %s',
                         exception_to_unicode(e, traceback=True))
             except RegistrationError, e:
-                # Attempt deferred translation.
-                message = gettext(e.message)
-                # Check for (matching number of) message arguments before
-                #   attempting string substitution.
-                if e.msg_args and \
-                        len(e.msg_args) == len(re.findall('%s', message)):
-                    message = message % e.msg_args
-                chrome.add_warning(req, Markup(message))
+                chrome.add_warning(req, e)
             else:
                 if self.require_approval:
                     set_user_attribute(self.env, username, 'approval',
@@ -474,30 +466,27 @@ class RegistrationModule(CommonTemplateProvider):
                     except NotificationError, e:
                         chrome.add_warning(req, _(
                             "Error raised while sending a change "
-                            "notification.") + _("You should report that "
-                            "issue to a Trac admin."))
+                            "notification.") + _(
+                            "You should report that issue to a Trac admin."))
                         self.log.error('Unable to send admin notification: %s',
                                        exception_to_unicode(e, traceback=True))
                     else:
-                        chrome.add_notice(req, Markup(tag.span(Markup(_(
+                        chrome.add_notice(req, tag_(
                             "Your username has been registered successfully, "
                             "but your account requires administrative "
                             "approval. Please proceed according to local "
-                            "policy."))))
-                    )
+                            "policy."))
                 if verify_enabled:
-                    chrome.add_notice(req, Markup(tag.span(Markup(_(
-                        """Your username has been successfully registered but
-                        your account still requires activation. Please login
-                        as user %(user)s, and follow the instructions.""",
-                        user=tag.b(username)))))
-                    )
+                    chrome.add_notice(req, tag_(
+                        "Your username has been successfully registered but "
+                        "your account still requires activation. Please "
+                        "login as user %(user)s, and follow the "
+                        "instructions.", user=tag.b(username)))
                     req.redirect(req.href.login())
-                chrome.add_notice(req, Markup(tag.span(Markup(_(
-                     """Registration has been finished successfully.
-                     You may log in as user %(user)s now.""",
-                     user=tag.b(username)))))
-                )
+                chrome.add_notice(req, tag_(
+                    "Registration has been finished successfully. "
+                    "You may log in as user %(user)s now.",
+                    user=tag.b(username)))
                 req.redirect(req.href.login())
         # Collect additional fields from IAccountRegistrationInspector's.
         fragments = dict(required=[], optional=[])
@@ -572,8 +561,7 @@ class EmailVerificationModule(CommonTemplateProvider):
                 # Check passed without error: New email address seems good.
             except RegistrationError, e:
                 # Always warn about issues.
-                chrome.add_warning(
-                    req, Markup(gettext(e.message)))
+                chrome.add_warning(req, e)
                 # Look, if the issue existed before.
                 attributes = get_user_attribute(self.env, req.authname,
                                                 attribute='email')
@@ -592,10 +580,9 @@ class EmailVerificationModule(CommonTemplateProvider):
                          href=req.href.verify_email()
                    )
             # TRANSLATOR: ... verify your email address
-            chrome.add_warning(req, Markup(tag.span(Markup(_(
+            chrome.add_warning(req, tag_(
                 "Your permissions have been limited until you %(link)s.",
-                link=link))))
-            )
+                link=link))
             req.perm = perm.PermissionCache(self.env, 'anonymous')
         return handler
 
@@ -629,10 +616,9 @@ class EmailVerificationModule(CommonTemplateProvider):
                 link = tag.a(_("verify your new email address"),
                              href=req.href.verify_email())
                 # TRANSLATOR: ... verify your new email address
-                chrome.add_notice(req, Markup(tag.span(Markup(_(
+                chrome.add_notice(req, tag_(
                     "An email has been sent to <%(email)s> with a token to "
-                    "%(link)s.", email=tag(email), link=link))))
-                )
+                    "%(link)s.", email=tag(email), link=link))
         return template, data, content_type
 
     # IRequestHandler methods
@@ -642,9 +628,8 @@ class EmailVerificationModule(CommonTemplateProvider):
 
     def process_request(self, req):
         if not req.session.authenticated:
-            chrome.add_warning(req, Markup(tag.span(tag_(
-                "Please log in to finish email verification procedure.")))
-            )
+            chrome.add_warning(req, tag_(
+                "Please log in to finish email verification procedure."))
             req.redirect(req.href.login())
         if 'email_verification_token' not in req.session:
             chrome.add_notice(req, _("Your email is already verified."))

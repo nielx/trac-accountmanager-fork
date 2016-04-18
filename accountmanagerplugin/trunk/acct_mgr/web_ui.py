@@ -13,7 +13,6 @@ import random
 import string
 import time
 
-from genshi.core import Markup
 from genshi.builder import tag
 
 from trac.core import implements
@@ -159,11 +158,11 @@ class AccountModule(CommonTemplateProvider):
     def process_request(self, req):
         data = dict(_dgettext=dgettext)
         if req.authname and req.authname != 'anonymous':
-            add_notice(req, Markup(tag_(
+            add_notice(req, tag_(
                 "You're already logged in. If you need to change your "
                 "password please use the %(prefs_href)s page.",
                 prefs_href=tag.a(_("Account Preferences"),
-                                 href=req.href.prefs('account')))))
+                                 href=req.href.prefs('account'))))
             data['authenticated'] = True
         if req.method == 'POST':
             self._do_reset_password(req)
@@ -191,10 +190,10 @@ class AccountModule(CommonTemplateProvider):
             elif action == 'delete' and delete_enabled:
                 self._do_delete(req)
         if force_change_password:
-            add_warning(req, Markup(_(
+            add_warning(req, tag_(
                 "You are required to change password because of a recent "
                 "password change request. %(invitation)s",
-                invitation=tag.b(_("Please change your password now.")))))
+                invitation=tag.b(_("Please change your password now."))))
         return data
 
     def _do_change_password(self, req):
@@ -467,11 +466,11 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
         else:
             n_plural = req.args.get('failed_logins')
             if n_plural > 0:
-                add_warning(req, Markup(tag.span(tag(ngettext(
+                add_warning(req, tag(ngettext(
                     "Login after %(attempts)s failed attempt",
                     "Login after %(attempts)s failed attempts",
                     n_plural, attempts=n_plural
-                )))))
+                )))
         return auth.LoginModule.process_request(self, req)
 
     # overrides
