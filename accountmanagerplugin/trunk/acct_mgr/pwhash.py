@@ -39,7 +39,7 @@ class HtPasswdHashMethod(Component):
     implements(IPasswordHashMethod)
 
     hash_type = Option('account-manager', 'db_htpasswd_hash_type', 'crypt',
-        doc = N_("Default hash type of new/updated passwords"))
+        doc=N_("Default hash type of new/updated passwords"))
 
     def generate_hash(self, user, password):
         password = password.encode('utf-8')
@@ -55,10 +55,10 @@ class HtDigestHashMethod(Component):
     implements(IPasswordHashMethod)
 
     realm = Option('account-manager', 'db_htdigest_realm', '',
-        doc = N_("Realm to select relevant htdigest db entries"))
+        doc=N_("Realm to select relevant htdigest db entries"))
 
     def generate_hash(self, user, password):
-        user,password,realm = _encode(user, password, self.realm)
+        user, password, realm = _encode(user, password, self.realm)
         return ':'.join([realm, htdigest(user, realm, password)])
 
     def check_hash(self, user, password, hash):
@@ -76,13 +76,16 @@ try:
 except ImportError:
     crypt = None
 
+
 def salt(salt_char_count=8):
     s = ''
-    v = long(hexlify(urandom(int(salt_char_count/8*6))), 16)
+    v = long(hexlify(urandom(int(salt_char_count / 8 * 6))), 16)
     itoa64 = './0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
     for i in range(int(salt_char_count)):
-        s += itoa64[v & 0x3f]; v >>= 6
+        s += itoa64[v & 0x3f]
+        v >>= 6
     return s
+
 
 def hash_prefix(hash_type):
     """Map hash type to salt prefix."""
@@ -97,6 +100,7 @@ def hash_prefix(hash_type):
     else:
         # use 'crypt' hash by default anyway
         return ''
+
 
 def htpasswd(password, hash):
     if hash.startswith('$apr1$'):
@@ -113,8 +117,8 @@ def htpasswd(password, hash):
                                     rounds=5000, salt=hash[3:].split('$')[0])
     elif crypt is None:
         # crypt passwords are only supported on Unix-like systems
-        raise NotImplementedError(_("""The \"crypt\" module is unavailable
-                                    on this platform."""))
+        raise NotImplementedError(_("The \"crypt\" module is unavailable "
+                                    "on this platform."))
     else:
         if hash.startswith('$5$') or hash.startswith('$6$'):
             # Import of passlib failed, now check, if crypt is capable.
@@ -125,6 +129,7 @@ def htpasswd(password, hash):
                     \"crypt\" module on this platform nor is \"passlib\"
                     available."""))
         return crypt(password, hash)
+
 
 def mkhtpasswd(password, hash_type=''):
     hash_prefix_ = hash_prefix(hash_type)
@@ -139,6 +144,7 @@ def mkhtpasswd(password, hash_type=''):
     else:
         salt_ = hash_prefix_ + salt_
     return htpasswd(password, salt_)
+
 
 def htdigest(user, realm, password):
     p = ':'.join([user, realm, password])
