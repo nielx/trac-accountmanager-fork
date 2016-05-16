@@ -14,8 +14,7 @@ import os
 import sys
 
 from trac.config import Option
-from trac.util.datefmt import format_datetime, pretty_timedelta
-from trac.util.datefmt import to_datetime, utc
+from trac.util.datefmt import format_datetime, to_datetime, utc
 
 from acct_mgr.api import _, ngettext
 
@@ -74,12 +73,14 @@ def containsAny(str, set):
             return True
     return False
 
+
 def if_enabled(func):
     def wrap(self, *args, **kwds):
         if not self.enabled:
             return None
         return func(self, *args, **kwds)
     return wrap
+
 
 def pretty_precise_timedelta(time1, time2=None, resolution=None, diff=0):
     """Calculate time delta between two `datetime` objects and format
@@ -111,7 +112,7 @@ def pretty_precise_timedelta(time1, time2=None, resolution=None, diff=0):
         return ''
     # Show seconds for small time values, even in timedeltas > 1 day.
     t = age_s - age_d * 86400
-    if t > 0 and t < 120:
+    if 0 < t < 120:
         t = ngettext('%(num)i second', '%(num)i seconds', t)
         if age_d == 0:
             return t
@@ -119,6 +120,7 @@ def pretty_precise_timedelta(time1, time2=None, resolution=None, diff=0):
         t = format_datetime(age_s - age_d * 86400, format='%X', tzinfo=utc)
         if age_d == 0:
             return t
-    # TRANSLATOR: Pretty datetime representation, time part provided by string substitution.
+    # TRANSLATOR: Pretty datetime representation, time part provided by
+    # string substitution.
     return (ngettext("%(num)i day %%s", "%(num)i days %%s", age_d)
             % (str(t) != '0' and t or '')).rstrip()
