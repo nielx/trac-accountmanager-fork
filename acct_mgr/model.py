@@ -7,13 +7,12 @@
 # you should have received as part of this distribution.
 #
 
+import hashlib
 import re
 
 from acct_mgr.api import GenericUserIdChanger
-from acct_mgr.compat import as_int, exception_to_unicode
-from acct_mgr.hashlib_compat import md5
 
-from trac.db.api import DatabaseManager
+from trac.util import as_int, exception_to_unicode
 from trac.util.text import to_unicode
 
 
@@ -21,45 +20,6 @@ _USER_KEYS = {
     'auth_cookie': 'name',
     'permission': 'username',
 }
-
-
-def _db_exc(env):
-    """Return an object (typically a module) containing all the
-    backend-specific exception types as attributes, named
-    according to the Python Database API
-    (http://www.python.org/dev/peps/pep-0249/).
-
-    This is derived from code found in trac.env.Environment.db_exc (Trac 1.0).
-    """
-    try:
-        module = DatabaseManager(env).get_exceptions()
-    except AttributeError:
-        module = None
-        dburi = env.config.get('trac', 'database')
-        if dburi.startswith('sqlite:'):
-            try:
-                import pysqlite2.dbapi2 as sqlite
-                module = sqlite
-            except ImportError:
-                try:
-                    import sqlite3 as sqlite
-                    module = sqlite
-                except ImportError:
-                    pass
-        elif dburi.startswith('postgres:'):
-            try:
-                import psycopg2 as psycopg
-                module = psycopg
-            except ImportError:
-                pass
-        elif dburi.startswith('mysql:'):
-            try:
-                import MySQLdb
-                module = MySQLdb
-            except ImportError:
-                pass
-        # Do not need more alternatives, because otherwise we wont get here.
-    return module
 
 
 def _get_cc_list(cc_value):
@@ -75,8 +35,8 @@ def _get_cc_list(cc_value):
 
 
 def _get_db_exc(env):
-    return (_db_exc(env).InternalError, _db_exc(env).OperationalError,
-            _db_exc(env).ProgrammingError)
+    exc = env.db_exc
+    return exc.InternalError, exc.OperationalError, exc.ProgrammingError
 
 
 class PrimitiveUserIdChanger(GenericUserIdChanger):
@@ -103,7 +63,7 @@ class PrimitiveUserIdChanger(GenericUserIdChanger):
                 result = int(exists[0])
                 self.log.debug(self.msg(old_uid, new_uid, self.table,
                                self.column, result='%s time(s)' % result))
-        except (_get_db_exc(self.env)), e:
+        except _get_db_exc(self.env), e:
             result = exception_to_unicode(e)
             self.log.debug(self.msg(old_uid, new_uid, self.table,
                            self.column, result='failed: %s'
@@ -125,7 +85,7 @@ class UniqueUserIdChanger(PrimitiveUserIdChanger):
         try:
             cursor.execute("DELETE FROM %s WHERE %s=%%s"
                            % (self.table, self.column), (new_uid,))
-        except (_get_db_exc(self.env)), e:
+        except _get_db_exc(self.env), e:
             result = exception_to_unicode(e)
             self.log.debug(self.msg(old_uid, new_uid, self.table,
                            self.column, result='failed: %s'
@@ -210,7 +170,7 @@ class TicketUserIdChanger(PrimitiveUserIdChanger):
                     cursor.execute("UPDATE ticket SET cc=%s WHERE id=%s",
                                    (', '.join(cc), int(row[0])))
                     result += 1
-                except (_get_db_exc(self.env)), e:
+                except _get_db_exc(self.env), e:
                     result = exception_to_unicode(e)
                     self.log.debug(self.msg(old_uid, new_uid, self.table, 'cc',
                                    result='failed: %s'
@@ -250,7 +210,7 @@ class TicketUserIdChanger(PrimitiveUserIdChanger):
                            AND (field='owner'
                                 OR field='reporter')
                     """ % (table, column, column), (new_uid, old_uid))
-                except (_get_db_exc(self.env)), e:
+                except _get_db_exc(self.env), e:
                     result = exception_to_unicode(e)
                     self.log.debug(
                         self.msg(old_uid, new_uid, table, column,
@@ -287,7 +247,7 @@ class TicketUserIdChanger(PrimitiveUserIdChanger):
                         """ % (table, column),
                             (', '.join(cc), int(row[0]), int(row[1])))
                         result += 1
-                    except (_get_db_exc(self.env)), e:
+                    except _get_db_exc(self.env), e:
                         result = exception_to_unicode(e)
                         self.log.debug(
                             self.msg(old_uid, new_uid, table, column,
@@ -512,7 +472,7 @@ def get_user_attribute(env, username=None, authenticated=1, attribute=None,
         account = res_row.pop('sid')
         authenticated = res_row.pop('authenticated')
         # Create single unique attribute ID.
-        m = md5()
+        m = hashlib.md5()
         m.update(''.join([account, str(authenticated),
                            res_row.get('name')]).encode('utf-8'))
         row_id = m.hexdigest()
@@ -530,13 +490,13 @@ def get_user_attribute(env, username=None, authenticated=1, attribute=None,
                     'id': {res_row['name']: row_id}
                 }
                 # Create account ID for additional authentication state.
-                m = md5()
+                m = hashlib.md5()
                 m.update(''.join([account,
                                   str(authenticated)]).encode('utf-8'))
                 res[account]['id'][authenticated] = m.hexdigest()
         else:
             # Create account ID for authentication state.
-            m = md5()
+            m = hashlib.md5()
             m.update(''.join([account, str(authenticated)]).encode('utf-8'))
             res[account] = {
                 authenticated: {
