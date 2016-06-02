@@ -6,22 +6,21 @@
 # This software is licensed as described in the file COPYING, which
 # you should have received as part of this distribution.
 #
-# Author: Steffen Hoffmann <hoff.st@web.de>
 
 import re
-
-from trac.db.api import DatabaseManager
-from trac.util.text import to_unicode
 
 from acct_mgr.api import GenericUserIdChanger
 from acct_mgr.compat import as_int, exception_to_unicode
 from acct_mgr.hashlib_compat import md5
 
+from trac.db.api import DatabaseManager
+from trac.util.text import to_unicode
+
 
 _USER_KEYS = {
     'auth_cookie': 'name',
     'permission': 'username',
-    }
+}
 
 
 def _db_exc(env):
@@ -36,6 +35,7 @@ def _db_exc(env):
         module = DatabaseManager(env).get_exceptions()
     except AttributeError:
         module = None
+        dburi = env.config.get('trac', 'database')
         if dburi.startswith('sqlite:'):
             try:
                 import pysqlite2.dbapi2 as sqlite
@@ -61,6 +61,7 @@ def _db_exc(env):
         # Do not need more alternatives, because otherwise we wont get here.
     return module
 
+
 def _get_cc_list(cc_value):
     """Parse cc list.
 
@@ -71,6 +72,7 @@ def _get_cc_list(cc_value):
         if cc and cc not in cclist:
             cclist.append(cc)
     return cclist
+
 
 def _get_db_exc(env):
     return (_db_exc(env).InternalError, _db_exc(env).OperationalError,
@@ -179,7 +181,7 @@ class TicketUserIdChanger(PrimitiveUserIdChanger):
 
     # IUserIdChanger method
     def replace(self, old_uid, new_uid, db):
-        results=dict()
+        results = {}
 
         self.column = 'owner'
         result = super(TicketUserIdChanger,
@@ -202,7 +204,7 @@ class TicketUserIdChanger(PrimitiveUserIdChanger):
         result = 0
         for row in cursor.fetchall():
             cc = _get_cc_list(row[1])
-            for i in [i for i,r in enumerate(cc) if r == old_uid]:
+            for i in [i for i, r in enumerate(cc) if r == old_uid]:
                 cc[i] = new_uid
                 try:
                     cursor.execute("UPDATE ticket SET cc=%s WHERE id=%s",
@@ -274,7 +276,7 @@ class TicketUserIdChanger(PrimitiveUserIdChanger):
             result = 0
             for row in cursor.fetchall():
                 cc = _get_cc_list(row[2])
-                for i in [i for i,r in enumerate(cc) if r == old_uid]:
+                for i in [i for i, r in enumerate(cc) if r == old_uid]:
                     cc[i] = new_uid
                     try:
                         cursor.execute("""
@@ -290,8 +292,7 @@ class TicketUserIdChanger(PrimitiveUserIdChanger):
                         self.log.debug(
                             self.msg(old_uid, new_uid, table, column,
                                      constraint, result='failed: %s'
-                                     % exception_to_unicode(e, traceback=True)
-                        ))
+                                     % exception_to_unicode(e, traceback=True)))
                         return dict(error={(self.table, column,
                                             constraint): result})
             self.log.debug(self.msg(old_uid, new_uid, table, column,
@@ -323,6 +324,7 @@ def email_associated(env, email, db=None):
         return True
     return False
 
+
 def email_verified(env, user, email, db=None):
     """Returns whether the account and email has been verified.
 
@@ -340,8 +342,8 @@ def email_verified(env, user, email, db=None):
          WHERE sid=%s AND name='email_verification_sent_to'
         """, (user,))
     for row in cursor:
-        env.log.debug('AcctMgr:model:email_verified for user \"' + \
-            user + '\", email \"' + str(email) + '\": ' + str(row[0]))
+        env.log.debug('AcctMgr:model:email_verified for user "%s", email '
+                      '"%s": %s', user, email, row[0])
         if row[0] != email:
             # verification has been sent to different email address
             return None
@@ -352,10 +354,11 @@ def email_verified(env, user, email, db=None):
         """, (user,))
     for row in cursor:
         # verification token still unverified
-        env.log.debug('AcctMgr:model:email_verified for user \"' + \
-            user + '\", email \"' + str(email) + '\": ' + str(row[0]))
+        env.log.debug('AcctMgr:model:email_verified for user "%s", email '
+                      '"%s": %s', user, email, row[0])
         return row[0]
     return True
+
 
 def user_known(env, user, db=None):
     """Returns whether the user has ever been authenticated before."""
@@ -415,6 +418,7 @@ def change_uid(env, old_uid, new_uid, changers, attr_overwrite):
     db.commit()
     return results
 
+
 def copy_user_attributes(env, username, new_uid, overwrite, db=None):
     """Duplicate attributes for another user, optionally preserving existing
     values.
@@ -427,7 +431,7 @@ def copy_user_attributes(env, username, new_uid, overwrite, db=None):
 
     if attrs and username in attrs and attrs[username].get(1):
         attrs_new = get_user_attribute(env, new_uid, db=db)
-        if not (attrs_new and new_uid in attrs_new and \
+        if not (attrs_new and new_uid in attrs_new and
                 attrs_new[new_uid].get(1)):
             # No attributes found.
             attrs_new = None
@@ -453,10 +457,11 @@ def copy_user_attributes(env, username, new_uid, overwrite, db=None):
                 count += 1
     return count
 
+
 def get_user_attribute(env, username=None, authenticated=1, attribute=None,
                        value=None, db=None):
     """Return user attributes."""
-    ALL_COLS = ('sid', 'authenticated', 'name', 'value')
+    all_cols = ('sid', 'authenticated', 'name', 'value')
     columns = []
     constraints = []
     if username is not None:
@@ -471,7 +476,7 @@ def get_user_attribute(env, username=None, authenticated=1, attribute=None,
     if value is not None:
         columns.append('value')
         constraints.append(to_unicode(value))
-    sel_columns = [col for col in ALL_COLS if col not in columns]
+    sel_columns = [col for col in all_cols if col not in columns]
     if len(sel_columns) == 0:
         # No variable left, so only COUNTing is as a sensible task here. 
         sel_stmt = 'COUNT(*)'
@@ -533,10 +538,15 @@ def get_user_attribute(env, username=None, authenticated=1, attribute=None,
             # Create account ID for authentication state.
             m = md5()
             m.update(''.join([account, str(authenticated)]).encode('utf-8'))
-            res[account] = {authenticated: {res_row['name']: res_row['value'],
-                                            'id': {res_row['name']: row_id}},
-                            'id': {authenticated: m.hexdigest()}}
+            res[account] = {
+                authenticated: {
+                    res_row['name']: res_row['value'],
+                    'id': {res_row['name']: row_id}
+                },
+                'id': {authenticated: m.hexdigest()}
+            }
     return res
+
 
 def prime_auth_session(env, username, db=None):
     """Prime session for registered users before initial login.
@@ -563,6 +573,7 @@ def prime_auth_session(env, username, db=None):
             """, (username,))
         db.commit()
 
+
 def set_user_attribute(env, username, attribute, value, db=None):
     """Set or update a Trac user attribute within an atomic db transaction."""
     db = _get_db(env, db)
@@ -587,6 +598,7 @@ def set_user_attribute(env, username, attribute, value, db=None):
             VALUES  (%s,1,%s,%s)
             """, (username, attribute, value))
     db.commit()
+
 
 def del_user_attribute(env, username=None, authenticated=1, attribute=None,
                        db=None):
@@ -618,14 +630,15 @@ def del_user_attribute(env, username=None, authenticated=1, attribute=None,
     cursor.execute(sql, sql_args)
     db.commit()
 
+
 def delete_user(env, user, db=None):
     # Delete session attributes, session and any custom permissions
     # set for the user.
     db = _get_db(env, db)
     cursor = db.cursor()
     for table in ['auth_cookie', 'session_attribute', 'session', 'permission']:
-        # Preseed, since variable table and column names aren't allowed
-        # as SQL arguments (security measure agains SQL injections).
+        # Pre-seed, since variable table and column names aren't allowed
+        # as SQL arguments (security measure against SQL injections).
         sql = """
             DELETE
               FROM %s
@@ -635,7 +648,8 @@ def delete_user(env, user, db=None):
     db.commit()
     # DEVEL: Is this really needed?
     db.close()
-    env.log.debug("Purged session data and permissions for user '%s'" % user)
+    env.log.debug("Purged session data and permissions for user '%s'", user)
+
 
 def last_seen(env, user=None, db=None):
     db = _get_db(env, db)
