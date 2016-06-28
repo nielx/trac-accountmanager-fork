@@ -64,7 +64,7 @@ setup(
             'templates/*.html', 'templates/*.txt'
         ]
     },
-    test_suite = 'acct_mgr.tests.suite',
+    test_suite = 'acct_mgr.tests.test_suite',
     zip_safe=True,
     install_requires = ['Trac'],
     extras_require = {

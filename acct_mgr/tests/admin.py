@@ -188,7 +188,7 @@ class UserAdminPanelTestCase(_BaseTestCase):
         self.assertEqual(req.chrome['warnings'], [])
 
 
-def suite():
+def test_suite():
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(ExtensionOrderTestCase))
     suite.addTest(unittest.makeSuite(AccountManagerAdminPanelTestCase))
@@ -197,4 +197,4 @@ def suite():
 
 
 if __name__ == '__main__':
-    unittest.main(defaultTest='suite')
+    unittest.main(defaultTest='test_suite')

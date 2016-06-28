@@ -104,11 +104,11 @@ class HtPasswdTestCase(_BaseTestCase):
                             'HtPasswdHashMethod')
 
 
-def suite():
+def test_suite():
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(HtDigestTestCase))
     suite.addTest(unittest.makeSuite(HtPasswdTestCase))
     return suite
 
 if __name__ == '__main__':
-    unittest.main(defaultTest='suite')
+    unittest.main(defaultTest='test_suite')

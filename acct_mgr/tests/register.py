@@ -441,7 +441,7 @@ class EmailVerificationModuleTestCase(_BaseTestCase):
         self.assertEqual(str(warnings and warnings[0] or ''), '')
 
 
-def suite():
+def test_suite():
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(DummyRegInspectorTestCase))
     suite.addTest(unittest.makeSuite(BasicCheckTestCase))
@@ -454,4 +454,4 @@ def suite():
     return suite
 
 if __name__ == '__main__':
-    unittest.main(defaultTest='suite')
+    unittest.main(defaultTest='test_suite')

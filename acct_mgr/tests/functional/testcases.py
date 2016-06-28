@@ -282,7 +282,7 @@ class NoEmailVerificationForAnonymousUsers(FunctionalTestCaseSetup):
                    'address</a></span>')
 
 
-def suite():
+def test_suite():
     suite = FunctionalTestSuite()
     suite.addTest(TestFormLoginAdmin())
     suite.addTest(TestFormLoginUser())
@@ -306,5 +306,5 @@ def suite():
 
 
 if __name__ == '__main__':
-    unittest.main(defaultTest='suite')
+    unittest.main(defaultTest='test_suite')
 

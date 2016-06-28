@@ -17,20 +17,20 @@ try:
 except ImportError:
     INCLUDE_FUNCTIONAL_TESTS = False
 
-def suite():
+def test_suite():
     from acct_mgr.tests import admin, api, db, guard, htfile, model, register
     from acct_mgr.tests import util
-    from acct_mgr.opt.tests import suite as opt_test_suite
+    from acct_mgr.opt.tests import test_suite as opt_test_suite
 
     suite = unittest.TestSuite()
-    suite.addTest(admin.suite())
-    suite.addTest(api.suite())
-    suite.addTest(db.suite())
-    suite.addTest(guard.suite())
-    suite.addTest(htfile.suite())
-    suite.addTest(model.suite())
-    suite.addTest(register.suite())
-    suite.addTest(util.suite())
+    suite.addTest(admin.test_suite())
+    suite.addTest(api.test_suite())
+    suite.addTest(db.test_suite())
+    suite.addTest(guard.test_suite())
+    suite.addTest(htfile.test_suite())
+    suite.addTest(model.test_suite())
+    suite.addTest(register.test_suite())
+    suite.addTest(util.test_suite())
     suite.addTest(opt_test_suite())
 
     if INCLUDE_FUNCTIONAL_TESTS:
@@ -43,4 +43,4 @@ if __name__ == '__main__':
     if '--skip-functional-tests' in sys.argv:
         sys.argv.remove('--skip-functional-tests')
         INCLUDE_FUNCTIONAL_TESTS = False
-    unittest.main(defaultTest='suite')
+    unittest.main(defaultTest='test_suite')
