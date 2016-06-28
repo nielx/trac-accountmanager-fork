@@ -142,10 +142,10 @@ class ModelTestCase(unittest.TestCase):
         self.assertEqual(cursor.fetchall(), [('attribute1', '0')])
 
 
-def suite():
+def test_suite():
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(ModelTestCase))
     return suite
 
 if __name__ == '__main__':
-    unittest.main(defaultTest='suite')
+    unittest.main(defaultTest='test_suite')

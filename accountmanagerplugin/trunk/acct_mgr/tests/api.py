@@ -208,11 +208,11 @@ class PermissionTestCase(_BaseTestCase):
                                                             user))
 
 
-def suite():
+def test_suite():
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(AccountManagerTestCase))
     suite.addTest(unittest.makeSuite(PermissionTestCase))
     return suite
 
 if __name__ == '__main__':
-    unittest.main(defaultTest='suite')
+    unittest.main(defaultTest='test_suite')
