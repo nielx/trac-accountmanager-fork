@@ -92,7 +92,7 @@ class HtDigestTestCase(_BaseTestCase):
                          'user:TestRealm:752b304cc7cf011d69ee9b79e2cd0866')
 
     def test_file(self):
-        self._do_password_test(self.flavor, 'test_file', 
+        self._do_password_test(self.flavor, 'test_file',
                          'user:TestRealm:752b304cc7cf011d69ee9b79e2cd0866')
 
     def test_update_password(self):
@@ -194,8 +194,8 @@ class HtPasswdTestCase(_BaseTestCase):
 
 def suite():
     suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(HtDigestTestCase, 'test'))
-    suite.addTest(unittest.makeSuite(HtPasswdTestCase, 'test'))
+    suite.addTest(unittest.makeSuite(HtDigestTestCase))
+    suite.addTest(unittest.makeSuite(HtPasswdTestCase))
     return suite
 
 if __name__ == '__main__':

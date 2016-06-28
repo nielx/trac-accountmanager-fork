@@ -27,13 +27,13 @@ from acct_mgr.tests.functional.smtpd import AcctMgrSMTPThreadedServer
 
 
 class AcctMgrFuntionalTestEnvironment(SvnFunctionalTestEnvironment):
-    
+
     def __init__(self, dirname, port, url):
         super(AcctMgrFuntionalTestEnvironment, self).__init__(dirname, port,
                                                               url)
         self.smtp_port = self.port + os.getpid() % 1000
         self.smtpd = AcctMgrSMTPThreadedServer(self.smtp_port)
-        
+
         config = self.get_trac_environment().config
         # Enabled Account Manager
         config.set('components', 'acct_mgr.*', 'enabled')
@@ -51,9 +51,9 @@ class AcctMgrFuntionalTestEnvironment(SvnFunctionalTestEnvironment):
         config.set('project', 'url', self.url)
         config.set('project', 'admin', 'testenv%s@localhost' % self.port)
         config.set('trac', 'base_url', self.url)
-               
+
         config.save()
-        
+
     def start(self):
         """Starts the webserver"""
         if 'FIGLEAF' in os.environ:
@@ -82,11 +82,11 @@ class AcctMgrFuntionalTestEnvironment(SvnFunctionalTestEnvironment):
             raise Exception('Timed out waiting for server to start.')
         tc.url(self.url)
         self.smtpd.start()
-        
+
     def stop(self):
         super(AcctMgrFuntionalTestEnvironment, self).stop()
         self.smtpd.stop()
-        
+
     def create(self):
         """Create a new test environment; Trac, Subversion,
         authentication."""
@@ -98,10 +98,10 @@ class AcctMgrFuntionalTestEnvironment(SvnFunctionalTestEnvironment):
             raise Exception('unable to create subversion repository')
         self._tracadmin('initenv', 'testenv%s' % self.port,
                         'sqlite:db/trac.db', 'svn', repodir)
-        
+
         if os.path.exists(self.htpasswd):
             os.unlink(self.htpasswd)
-        self.adduser('admin')        
+        self.adduser('admin')
         self.adduser('user')
         self._tracadmin('permission', 'add', 'admin', 'TRAC_ADMIN')
         # Setup Trac logging
@@ -114,7 +114,7 @@ class AcctMgrFuntionalTestEnvironment(SvnFunctionalTestEnvironment):
         f = open(self.htpasswd, 'a')
         f.write('%s:%s\n' % (user, mkhtpasswd(user)))
         f.close()
-        
+
     def _tracadmin(self, *args):
         """Internal utility method for calling trac-admin"""
         retval = call([sys.executable, console.__file__, self.tracdir]

@@ -14,7 +14,7 @@ import unittest
 try:
     import twill, subprocess
     INCLUDE_FUNCTIONAL_TESTS = True
-except ImportError:    
+except ImportError:
     INCLUDE_FUNCTIONAL_TESTS = False
 
 def suite():

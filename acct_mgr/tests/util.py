@@ -49,7 +49,7 @@ class UtilTestCase(unittest.TestCase):
 
 def suite():
     suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(UtilTestCase, 'test'))
+    suite.addTest(unittest.makeSuite(UtilTestCase))
     return suite
 
 if __name__ == '__main__':
