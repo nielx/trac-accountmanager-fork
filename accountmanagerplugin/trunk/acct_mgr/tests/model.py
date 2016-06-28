@@ -144,7 +144,7 @@ class ModelTestCase(unittest.TestCase):
 
 def suite():
     suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(ModelTestCase, 'test'))
+    suite.addTest(unittest.makeSuite(ModelTestCase))
     return suite
 
 if __name__ == '__main__':

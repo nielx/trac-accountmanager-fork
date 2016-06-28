@@ -208,7 +208,7 @@ class AccountGuardTestCase(unittest.TestCase):
 
 def suite():
     suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(AccountGuardTestCase, 'test'))
+    suite.addTest(unittest.makeSuite(AccountGuardTestCase))
     return suite
 
 if __name__ == '__main__':

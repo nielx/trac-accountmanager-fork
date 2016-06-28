@@ -8,8 +8,8 @@
 #
 # Author: Pedro Algarvio <ufs@ufsoft.org>
 
-from trac.tests.notification import SMTPThreadedServer, SMTPServerStore       
-        
+from trac.tests.notification import SMTPThreadedServer, SMTPServerStore
+
 class NonForgetingSMTPServerStore(SMTPServerStore):
     """
     Non forgetting store for SMTP data.
@@ -18,23 +18,23 @@ class NonForgetingSMTPServerStore(SMTPServerStore):
     # the last message when a new one arrives.
     # Account Manager at times sends more than one email and we need to be
     # able to test both
-     
+
     sender = None
     message = None
     recipients = None
-    
+
     messages = {}
     def reset(self, args):
         if self.message:
             for recipient in self.recipients:
                 self.messages[recipient] = {}
-                self.messages[recipient]['recipients'] = self.recipients                
-                self.messages[recipient]['sender'] = self.sender                
+                self.messages[recipient]['recipients'] = self.recipients
+                self.messages[recipient]['sender'] = self.sender
                 self.messages[recipient]['message'] = self.message
         self.sender = None
         self.recipients = []
         self.message = None
-        
+
     def full_reset(self):
         self.messages = {}
         self.sender = None
@@ -45,7 +45,7 @@ class AcctMgrSMTPThreadedServer(SMTPThreadedServer):
     """
     Run a SMTP server for a single connection, within a dedicated thread
     """
-    
+
     # We override trac's SMTPThreadedServer in order to use our own mail store
 
     def __init__(self, port):
@@ -78,7 +78,7 @@ class AcctMgrSMTPThreadedServer(SMTPThreadedServer):
             return self.store.messages[recipient]['message']
         except KeyError:
             return self.store.message
-    
+
     def get_message_parts(self, recipient):
         """Return the message parts(dict). If recipient is passed, return
         the parts for the message sent to that recipient, else, send the parts
@@ -87,7 +87,6 @@ class AcctMgrSMTPThreadedServer(SMTPThreadedServer):
             return self.store.messages[recipient]
         except KeyError:
             return None
-        
+
     def full_reset(self):
         self.store.full_reset()
-

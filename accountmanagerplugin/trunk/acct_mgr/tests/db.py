@@ -106,8 +106,8 @@ class HtPasswdTestCase(_BaseTestCase):
 
 def suite():
     suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(HtDigestTestCase, 'test'))
-    suite.addTest(unittest.makeSuite(HtPasswdTestCase, 'test'))
+    suite.addTest(unittest.makeSuite(HtDigestTestCase))
+    suite.addTest(unittest.makeSuite(HtPasswdTestCase))
     return suite
 
 if __name__ == '__main__':

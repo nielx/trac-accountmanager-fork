@@ -443,14 +443,14 @@ class EmailVerificationModuleTestCase(_BaseTestCase):
 
 def suite():
     suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(DummyRegInspectorTestCase, 'test'))
-    suite.addTest(unittest.makeSuite(BasicCheckTestCase, 'test'))
-    suite.addTest(unittest.makeSuite(BotTrapCheckTestCase, 'test'))
-    suite.addTest(unittest.makeSuite(EmailCheckTestCase, 'test'))
-    suite.addTest(unittest.makeSuite(RegExpCheckTestCase, 'test'))
-    suite.addTest(unittest.makeSuite(UsernamePermCheckTestCase, 'test'))
-    suite.addTest(unittest.makeSuite(RegistrationModuleTestCase, 'test'))
-    suite.addTest(unittest.makeSuite(EmailVerificationModuleTestCase, 'test'))
+    suite.addTest(unittest.makeSuite(DummyRegInspectorTestCase))
+    suite.addTest(unittest.makeSuite(BasicCheckTestCase))
+    suite.addTest(unittest.makeSuite(BotTrapCheckTestCase))
+    suite.addTest(unittest.makeSuite(EmailCheckTestCase))
+    suite.addTest(unittest.makeSuite(RegExpCheckTestCase))
+    suite.addTest(unittest.makeSuite(UsernamePermCheckTestCase))
+    suite.addTest(unittest.makeSuite(RegistrationModuleTestCase))
+    suite.addTest(unittest.makeSuite(EmailVerificationModuleTestCase))
     return suite
 
 if __name__ == '__main__':
