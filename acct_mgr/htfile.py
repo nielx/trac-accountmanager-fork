@@ -65,23 +65,15 @@ class AbstractPasswordFileStore(Component):
         user = user.encode('utf-8')
         password = password.encode('utf-8')
         prefix = self.prefix(user)
-        f = None
         try:
-            # Python<2.5: Can't have 'except' and 'finally' in same 'try'
-            #   statement together, but we still need to care for Python 2.4
-            #   (RHEL5.x) for now.
-            try:
-                f = open(filename, 'rU')
+            with open(filename, 'rU') as f:
                 for line in f:
                     if line.startswith(prefix):
                         return self._check_userline(user, password,
                                line[len(prefix):].rstrip('\n'))
-            except:
-                self.log.error('acct_mgr: check_password() -- '
-                               'Can\'t read password file "%s"' % filename)
-        finally:
-            if f:
-                f.close()
+        except (OSError, IOError):
+            self.log.error('acct_mgr: check_password() -- '
+                           'Can\'t read password file "%s"' % filename)
         return None
 
     def _update_file(self, prefix, userline, overwrite=True):
