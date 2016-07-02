@@ -128,19 +128,19 @@ class HtPasswdTestCase(_BaseTestCase):
     def test_sha256(self):
         try:
             self._do_password_test(self.flavor, 'test_sha256',
-                                   'user:$5$saltsaltsaltsalt$'
-                                   'WsFBeg1qQ90JL3VkUTuM7xV'
-                                   'V/5njhLngIVm6ftSnBR2\n')
+                                   'user:$5$rounds=535000$saltsaltsaltsalt$'
+                                   'wfx3LZ09XA7qrZB.ttuCbBidMXt51Kgu5YQ.YFq'
+                                   'zxA7\n')
         except NotImplementedError:
             pass
 
     def test_sha512(self):
         try:
             self._do_password_test(self.flavor, 'test_sha512',
-                                   'user:$6$saltsaltsaltsalt$'
-                                   'bcXJ8qxwY5sQ4v8MTl.0B1jeZ0z0JlA9jj'
-                                   'mbUoCJZ.1wYXiLTU.q2ILyrDJLm890lyfuF'
-                                   '7sWAeli0yjOyFPkf0\n')
+                                   'user:$6$rounds=535000$saltsaltsaltsalt$'
+                                   '9ExQK2S3YXW7/FlfUcw2vy7WF.NH5ZF6SIT14Dj'
+                                   'ngOGkcx.5mINko67cLRrqFFh1AltOT4uPnET7Bs'
+                                   'JXuI56H/\n')
         except NotImplementedError:
             pass
 

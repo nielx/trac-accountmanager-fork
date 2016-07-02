@@ -9,6 +9,8 @@
 #
 # Author: Matthew Good <trac@matt-good.net>
 
+import re
+
 from binascii import hexlify
 from os import urandom
 
@@ -103,18 +105,26 @@ def hash_prefix(hash_type):
 
 
 def htpasswd(password, hash):
+    def from_hash(hash):
+        match = re.match(r'\$[5,6]\$(?:rounds=(\d+)\$)?(\w+)', hash)
+        groups = match.groups()
+        rounds = int(groups[0]) if groups[0] is not None else 5000
+        salt = groups[1]
+        return rounds, salt
     if hash.startswith('$apr1$'):
         return md5crypt(password, hash[6:].split('$')[0], '$apr1$')
     elif hash.startswith('{SHA}'):
         return '{SHA}' + sha1(password).digest().encode('base64')[:-1]
     elif passlib_ctxt is not None and hash.startswith('$5$') and \
             'sha256_crypt' in passlib_ctxt.policy.schemes():
-        return passlib_ctxt.encrypt(password, scheme="sha256_crypt",
-                                    rounds=5000, salt=hash[3:].split('$')[0])
+        rounds, salt = from_hash(hash)
+        return passlib_ctxt.encrypt(password, scheme='sha256_crypt',
+                                    rounds=rounds, salt=salt)
     elif passlib_ctxt is not None and hash.startswith('$6$') and \
             'sha512_crypt' in passlib_ctxt.policy.schemes():
-        return passlib_ctxt.encrypt(password, scheme="sha512_crypt",
-                                    rounds=5000, salt=hash[3:].split('$')[0])
+        rounds, salt = from_hash(hash)
+        return passlib_ctxt.encrypt(password, scheme='sha512_crypt',
+                                    rounds=rounds, salt=salt)
     elif crypt is None:
         # crypt passwords are only supported on Unix-like systems
         raise NotImplementedError(_("The \"crypt\" module is unavailable "
