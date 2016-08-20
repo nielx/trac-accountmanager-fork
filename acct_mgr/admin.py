@@ -219,44 +219,7 @@ class UserAdminPanel(CommonTemplateProvider):
 
     def _do_add(self, req):
         """Add new user account on verified request."""
-        env = self.env
-        acctmgr = self.acctmgr
-        account = dict(email=req.args.get('email', '').strip(),
-                       name=req.args.get('name', '').strip(),
-                       username=acctmgr.handle_username_casing(
-                                    req.args.get('username', '').strip()))
-        verify_enabled = EmailVerificationModule(env).email_enabled and \
-                         EmailVerificationModule(env).verify_email
-
-        if acctmgr.supports('set_password'):
-            if account['username']:
-                # Check request and prime account on success.
-                try:
-                    acctmgr.validate_account(req, True)
-                    # Account email approval for authoritative action.
-                    if verify_enabled and account['email'] and \
-                            req.args.get('email_approved'):
-                        set_user_attribute(env, account['username'],
-                                           'email_verification_sent_to',
-                                           account['email'])
-                    add_notice(req, tag_(
-                               "Account %(username)s created.",
-                               username=tag.b(account['username'])))
-                    # User editor form clean-up.
-                    account = {}
-                except NotificationError, e:
-                    add_warning(req, _("Error raised while sending a change "
-                                       "notification.") +
-                                     _("You'll get details with TracLogging "
-                                       "enabled."))
-                    self.log.error('Unable to send change notification: %s',
-                                   exception_to_unicode(e, traceback=True))
-                except RegistrationError, e:
-                    add_warning(req, e)
-        else:
-            add_warning(req, _(
-                "None of the configured password stores is writable."))
-        return account
+        return _add_user_account(self.env, req)
 
     def _do_db_cleanup(self, req):
         if 'ACCTMGR_ADMIN' in req.perm:
@@ -1188,7 +1151,7 @@ class ConfigurationAdminPanel(CommonTemplateProvider):
 
         if req.method == 'POST' and req.args.get('add'):
             # Initial admin account requested.
-            account = self._do_add(req)
+            account = _add_user_account(self.env, req)
             username = self.acctmgr.handle_username_casing(
                            req.args.get('username', '').strip())
             if not account and username:
@@ -1568,3 +1531,44 @@ class ConfigurationAdminPanel(CommonTemplateProvider):
             # Set referer without interfering with redirect to '/login'.
             req.args['referer'] = req.href.admin('accounts', 'config')
         return remote_user
+
+
+def _add_user_account(env, req):
+    acctmgr = AccountManager(env)
+    account = dict(email=req.args.get('email', '').strip(),
+                   name=req.args.get('name', '').strip(),
+                   username=acctmgr.handle_username_casing(
+                                req.args.get('username', '').strip()))
+    verify_enabled = EmailVerificationModule(env).email_enabled and \
+                     EmailVerificationModule(env).verify_email
+
+    if acctmgr.supports('set_password'):
+        if account['username']:
+            # Check request and prime account on success.
+            try:
+                acctmgr.validate_account(req, True)
+                # Account email approval for authoritative action.
+                if verify_enabled and account['email'] and \
+                        req.args.get('email_approved'):
+                    set_user_attribute(env, account['username'],
+                                       'email_verification_sent_to',
+                                       account['email'])
+            except NotificationError, e:
+                add_warning(req, _("Error raised while sending a change "
+                                   "notification.") +
+                                 _("You'll get details with TracLogging "
+                                   "enabled."))
+                env.log.error('Unable to send change notification: %s',
+                               exception_to_unicode(e, traceback=True))
+            except RegistrationError, e:
+                add_warning(req, e)
+            else:
+                add_notice(req, tag_(
+                           "Account %(username)s created.",
+                           username=tag.b(account['username'])))
+                # User editor form clean-up.
+                account = {}
+    else:
+        add_warning(req, _(
+            "None of the configured password stores is writable."))
+    return account
