@@ -87,6 +87,11 @@ class AbstractPasswordFileStore(Component):
         Returns `True` if a line matching `prefix` was updated,
         `False` otherwise.
         """
+        if not self.filename:
+            option = self.__class__.filename
+            raise TracError(_("[%(section)s] %(name)s option for the password "
+                              "file is not configured",
+                              section=option.section, name=option.name))
         f = None
         filename = str(self.filename)
         matched = False
