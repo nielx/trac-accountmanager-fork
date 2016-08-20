@@ -1446,7 +1446,6 @@ class ConfigurationAdminPanel(CommonTemplateProvider):
             step=4)
         )
         admin_available = self.perms.get_users_with_permission('TRAC_ADMIN')
-        print(admin_available)
         status = not admin_available and 'error' or 'ok'
         details.append(dict(desc=_("Admin user account"), status=status))
         # Require at least one admin account.
