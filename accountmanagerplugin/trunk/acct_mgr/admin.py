@@ -1423,7 +1423,7 @@ class ConfigurationAdminPanel(CommonTemplateProvider):
                   'disabled' or 'ok')
         details.append(dict(desc=_("Password Store"), status=status, step=1))
         # Require no pending password store configuration issues.
-        ready = status != 'error' and True or False
+        ready = status != 'error'
 
         details.append(dict(
             desc=_("Password Reset"),
@@ -1437,7 +1437,7 @@ class ConfigurationAdminPanel(CommonTemplateProvider):
             dict(desc=_("Account Registration"), status=status, step=3)
         )
         # Require no pending registration check configuration issues.
-        ready = ready and status != 'error' and True or False
+        ready = ready and status != 'error'
 
         details.append(dict(
             desc=_("Account Guard"),
@@ -1445,12 +1445,12 @@ class ConfigurationAdminPanel(CommonTemplateProvider):
                     'disabled' or 'ok'),
             step=4)
         )
-        admin_available = self.perms.get_users_with_permission(
-                              'TRAC_ADMIN') and True or False
+        admin_available = self.perms.get_users_with_permission('TRAC_ADMIN')
+        print(admin_available)
         status = not admin_available and 'error' or 'ok'
         details.append(dict(desc=_("Admin user account"), status=status))
         # Require at least one admin account.
-        ready = ready and status != 'error' and True or False
+        ready = ready and status != 'error'
 
         details.append(dict(desc=_("Configuration Review"), status='unknown'))
         data.update({
