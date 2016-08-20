@@ -438,7 +438,7 @@ def get_user_attribute(env, username=None, authenticated=1, attribute=None,
         constraints.append(to_unicode(value))
     sel_columns = [col for col in all_cols if col not in columns]
     if len(sel_columns) == 0:
-        # No variable left, so only COUNTing is as a sensible task here. 
+        # No variable left, so only COUNTing is as a sensible task here.
         sel_stmt = 'COUNT(*)'
     else:
         if 'sid' not in sel_columns:
@@ -532,6 +532,8 @@ def prime_auth_session(env, username, db=None):
             VALUES  (%s,1,0)
             """, (username,))
         db.commit()
+    if hasattr(env, 'invalidate_known_users_cache'):
+        env.invalidate_known_users_cache()
 
 
 def set_user_attribute(env, username, attribute, value, db=None):
@@ -558,6 +560,8 @@ def set_user_attribute(env, username, attribute, value, db=None):
             VALUES  (%s,1,%s,%s)
             """, (username, attribute, value))
     db.commit()
+    if hasattr(env, 'invalidate_known_users_cache'):
+        env.invalidate_known_users_cache()
 
 
 def del_user_attribute(env, username=None, authenticated=1, attribute=None,
@@ -589,6 +593,8 @@ def del_user_attribute(env, username=None, authenticated=1, attribute=None,
     cursor = db.cursor()
     cursor.execute(sql, sql_args)
     db.commit()
+    if hasattr(env, 'invalidate_known_users_cache'):
+        env.invalidate_known_users_cache()
 
 
 def delete_user(env, user, db=None):
@@ -609,6 +615,8 @@ def delete_user(env, user, db=None):
     # DEVEL: Is this really needed?
     db.close()
     env.log.debug("Purged session data and permissions for user '%s'", user)
+    if hasattr(env, 'invalidate_known_users_cache'):
+        env.invalidate_known_users_cache()
 
 
 def last_seen(env, user=None, db=None):
