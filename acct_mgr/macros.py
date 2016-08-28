@@ -89,12 +89,11 @@ A misc placeholder with this statement is presented to unprivileged users.
                 prefix = 'prefix' in kw.keys() and kw['prefix'] or None
                 wiki = WikiSystem(env)
                 if kw['wiki'] == 'count' or 'count' in args:
-                    return tag(sum(1 for page in wiki.get_pages(prefix)))
+                    return tag(len(list(wiki.get_pages(prefix))))
         elif name == 'UserQuery':
             msg_no_perm = tag.p(tag_("(required %(perm)s missing)",
                                      perm=tag.strong('USER_VIEW')),
                                 class_='hint')
-            users = []
             if 'perm' in kw.keys():
                 perm_sys = PermissionSystem(self.env)
                 users = perm_sys.get_users_with_permission(kw['perm'].upper())
@@ -115,9 +114,7 @@ A misc placeholder with this statement is presented to unprivileged users.
                 if not 'USER_VIEW' in req.perm:
                     return msg_no_perm
                 cols = []
-                data = {}
-                data['accounts'] = fetch_user_data(env, req)
-                data['cls'] = 'wiki'
+                data = {'accounts': fetch_user_data(env, req), 'cls': 'wiki'}
                 for col in ('email', 'name'):
                     if col in args:
                         cols.append(col)
