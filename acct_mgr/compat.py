@@ -17,25 +17,6 @@ from trac.util.datefmt import format_datetime, pretty_timedelta
 from trac.util.text import to_unicode
 from trac.web.chrome import Chrome
 
-
-try:
-    from trac.util import as_int
-# Provide the function for compatibility (available since Trac 0.12).
-except ImportError:
-    def as_int(s, default, min=None, max=None):
-        """Convert s to an int and limit it to the given range, or
-        return default if unsuccessful (copied verbatim from Trac0.12dev).
-        """
-        try:
-            value = int(s)
-        except (TypeError, ValueError):
-            return default
-        if min is not None and value < min:
-            value = min
-        if max is not None and value > max:
-            value = max
-        return value
-
 # inspect.cleandoc() was introduced in Python 2.6, and this compatibility
 # code replicates source in trac.util.compat
 try:
