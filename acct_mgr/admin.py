@@ -19,6 +19,7 @@ from trac.admin import IAdminPanelProvider
 from trac.core import Component, ExtensionPoint, TracError, implements
 from trac.config import BoolOption, Option
 from trac.perm import PermissionCache, PermissionSystem
+from trac.util import as_int
 from trac.util.datefmt import format_datetime, to_datetime
 from trac.util.presentation import Paginator
 from trac.web.api import IAuthenticator
@@ -29,7 +30,7 @@ from trac.wiki.formatter import format_to_html
 from acct_mgr.api import AccountManager, CommonTemplateProvider
 from acct_mgr.api import IUserIdChanger, cleandoc
 from acct_mgr.api import _, N_, dgettext, gettext, ngettext, tag_
-from acct_mgr.compat import as_int, exception_to_unicode
+from acct_mgr.compat import exception_to_unicode
 from acct_mgr.compat import get_pretty_dateinfo, is_enabled
 from acct_mgr.guard import AccountGuard
 from acct_mgr.model import change_uid, del_user_attribute, email_verified
