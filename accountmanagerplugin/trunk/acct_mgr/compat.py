@@ -217,24 +217,6 @@ try:
 except ImportError:
     pass
 
-try:
-    from trac.util.text import exception_to_unicode
-# Provide the function for compatibility (available since Trac 0.11.3).
-except ImportError:
-    def exception_to_unicode(e, traceback=False):
-        """Convert an `Exception` to an `unicode` object.
-
-        In addition to `to_unicode`, this representation of the exception
-        also contains the class name and optionally the traceback.
-        This replicates the Trac core function for backwards-compatibility.
-        """
-        message = '%s: %s' % (e.__class__.__name__, to_unicode(e))
-        if traceback:
-            from trac.util import get_last_traceback
-            traceback_only = get_last_traceback().split('\n')[:-2]
-            message = '\n%s\n%s' % (to_unicode('\n'.join(traceback_only)),
-                                    message)
-        return message
 
 # Compatibility code for `pretty_dateinfo` from template data dict
 # (available since Trac 1.0)

@@ -16,6 +16,7 @@ from trac.config import Option, OrderedExtensionsOption
 from trac.core import Component, ExtensionPoint, Interface, TracError
 from trac.core import implements
 from trac.perm import IPermissionRequestor, PermissionCache
+from trac.util.text import exception_to_unicode
 from trac.util.translation import _
 from trac.web.chrome import ITemplateProvider, add_warning
 from trac.web.main import IRequestFilter
@@ -48,7 +49,7 @@ except ImportError:
                 pass
         return string
 
-from acct_mgr.compat import cleandoc, exception_to_unicode
+from acct_mgr.compat import cleandoc
 cleandoc_ = cleandoc
 
 

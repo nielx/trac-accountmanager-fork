@@ -12,8 +12,8 @@ import re
 
 from acct_mgr.api import GenericUserIdChanger
 
-from trac.util import as_int, exception_to_unicode
-from trac.util.text import to_unicode
+from trac.util import as_int
+from trac.util.text import exception_to_unicode, to_unicode
 
 
 _USER_KEYS = {
