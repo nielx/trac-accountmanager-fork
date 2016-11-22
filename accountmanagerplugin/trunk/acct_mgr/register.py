@@ -24,7 +24,7 @@ from trac.web.main import IRequestFilter, IRequestHandler
 
 from acct_mgr.api import AccountManager, CommonTemplateProvider
 from acct_mgr.api import IAccountRegistrationInspector
-from acct_mgr.api import _, N_, cleandoc_, dgettext, gettext, tag_
+from acct_mgr.api import _, N_, cleandoc_, dgettext, tag_
 from acct_mgr.compat import is_enabled
 from acct_mgr.model import email_associated, get_user_attribute
 from acct_mgr.model import set_user_attribute
