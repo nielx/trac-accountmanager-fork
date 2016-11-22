@@ -51,15 +51,7 @@ Arguments:
           </td>
           <td py:if="'name' in cols">${acct.name}</td>
           <td py:if="'email' in cols">${acct.email}</td>
-          <!--! Trac >= 1.0: 'pretty_dateinfo' calls 'user_time' here -->
-          <py:if test="pretty_dateinfo">
-            <td>${acct.last_visit and pretty_date(acct.last_visit) or ''}</td>
-          </py:if>
-          <!--! Trac < 1.0 fallback: always show absolute time here -->
-          <py:if test="not pretty_dateinfo">
-            <td>${acct.last_visit and \
-                  pretty_date(acct.last_visit, format='absolute') or ''}</td>
-          </py:if>
+          <td>${acct.last_visit and pretty_dateinfo(acct.last_visit) or ''}</td>
         </tr>
       </py:for>
     </tbody>

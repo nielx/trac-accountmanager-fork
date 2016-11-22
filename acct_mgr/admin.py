@@ -32,7 +32,6 @@ from trac.wiki.formatter import format_to_html
 from acct_mgr.api import AccountManager, CommonTemplateProvider
 from acct_mgr.api import IUserIdChanger
 from acct_mgr.api import _, N_, dgettext, gettext, ngettext, tag_
-from acct_mgr.compat import get_pretty_dateinfo
 from acct_mgr.guard import AccountGuard
 from acct_mgr.model import change_uid, del_user_attribute, email_verified
 from acct_mgr.model import get_user_attribute, last_seen, set_user_attribute
@@ -686,10 +685,6 @@ class UserAdminPanel(CommonTemplateProvider):
                     elif key in req.session:
                         del req.session[key]
                 req.redirect(req.href.admin('accounts', 'users'))
-            # Prevent IRequestFilter in trac.timeline.web_ui.TimelineModule
-            #   of Trac 0.13 and later from adding a link to timeline by
-            #   adding the function with a different key name here.
-            data['pretty_date'] = get_pretty_dateinfo(env, req)
 
             # Read account information.
             data.update(self._paginate(req, fetch_user_data(env, req,
