@@ -178,31 +178,3 @@ try:
                 kwarg_name = None
 except ImportError:
     pass
-
-
-# Compatibility code for `pretty_dateinfo` from template data dict
-# (available since Trac 1.0)
-def get_pretty_dateinfo(env, req):
-    """Return the function defined in trac.web.chrome.Chrome.populate_data .
-
-    For Trac 0.11 and 0.12 it still provides a slightly simplified version.
-    """
-    # Function is not a class attribute, must be extracted from data dict.
-    fn = Chrome(env).populate_data(req, {}).get('pretty_dateinfo')
-    if not fn:
-        from acct_mgr.api import _
-        def _pretty_dateinfo(date, format=None, dateonly=False):
-            absolute = format_datetime(date, tzinfo=req.tz)
-            relative = pretty_timedelta(date)
-            if format == 'absolute':
-                label = absolute
-                # TRANSLATOR: Sync with same msgid in Trac 1.0, please.
-                title = _("%(relativetime)s ago", relativetime=relative)
-            else:
-                if dateonly:
-                    label = relative
-                else:
-                    label = _("%(relativetime)s ago", relativetime=relative)
-                title = absolute
-            return tag.span(label, title=title)
-    return fn and fn or _pretty_dateinfo
