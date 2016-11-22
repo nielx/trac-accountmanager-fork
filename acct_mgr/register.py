@@ -17,6 +17,7 @@ from trac import perm
 from trac.config import BoolOption, Option
 from trac.core import Component, TracError, implements
 from trac.util.html import tag
+from trac.util.text import exception_to_unicode
 from trac.web import auth, chrome
 from trac.web.api import HTTPBadRequest
 from trac.web.main import IRequestFilter, IRequestHandler
@@ -24,7 +25,7 @@ from trac.web.main import IRequestFilter, IRequestHandler
 from acct_mgr.api import AccountManager, CommonTemplateProvider
 from acct_mgr.api import IAccountRegistrationInspector
 from acct_mgr.api import _, N_, cleandoc_, dgettext, gettext, tag_
-from acct_mgr.compat import exception_to_unicode, is_enabled
+from acct_mgr.compat import is_enabled
 from acct_mgr.model import email_associated, get_user_attribute
 from acct_mgr.model import set_user_attribute
 from acct_mgr.notification import NotificationError
