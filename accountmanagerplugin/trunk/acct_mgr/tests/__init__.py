@@ -17,6 +17,7 @@ try:
 except ImportError:
     INCLUDE_FUNCTIONAL_TESTS = False
 
+
 def test_suite():
     from acct_mgr.tests import admin, api, db, guard, htfile, model, register
     from acct_mgr.tests import util
@@ -33,9 +34,9 @@ def test_suite():
     suite.addTest(util.test_suite())
     suite.addTest(opt_test_suite())
 
-    if INCLUDE_FUNCTIONAL_TESTS:
-        from acct_mgr.tests.functional import suite as functional_suite
-        suite.addTest(functional_suite())
+    # if INCLUDE_FUNCTIONAL_TESTS:
+    #     from acct_mgr.tests.functional import suite as functional_suite
+    #     suite.addTest(functional_suite())
     return suite
 
 if __name__ == '__main__':

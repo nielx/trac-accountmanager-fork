@@ -21,16 +21,19 @@ class TestFormLoginAdmin(FunctionalTwillTestCaseSetup):
         self._tester.login('admin')
         self._tester.logout()
 
+
 class TestFormLoginUser(FunctionalTwillTestCaseSetup):
     def runTest(self):
         """Login with test user 'user'"""
         self._tester.login('user')
         self._tester.logout()
 
+
 class TestRegisterNewUser(FunctionalTestCaseSetup):
     def runTest(self):
         """Register 'testuser'"""
         self._tester.register('testuser')
+
 
 class TestLoginNewUser(FunctionalTestCaseSetup):
     def runTest(self):
@@ -51,6 +54,7 @@ class TestFailRegisterPasswdConfirmNotPassed(FunctionalTestCaseSetup):
         tc.submit()
         tc.find("The passwords must match.")
 
+
 class TestFailRegisterDuplicateUsername(FunctionalTestCaseSetup):
     def runTest(self):
         """Fail if username exists"""
@@ -63,6 +67,7 @@ class TestFailRegisterDuplicateUsername(FunctionalTestCaseSetup):
         tc.formvalue(reg_form_name, 'password_confirm', username)
         tc.submit()
         tc.find("Another account with that name already exists.")
+
 
 class TestNewAccountNotification(FunctionalTestCaseSetup):
     def runTest(self):
@@ -89,6 +94,7 @@ class TestNewAccountNotification(FunctionalTestCaseSetup):
                                             new_username))
         self.assertEqual(headers['X-URL'], self._testenv.url)
 
+
 class TestNewAccountEmailVerification(FunctionalTestCaseSetup):
     def runTest(self):
         """User is shown info that he needs to verify his address"""
@@ -102,6 +108,7 @@ class TestNewAccountEmailVerification(FunctionalTestCaseSetup):
         tc.find('<strong>Warning:</strong> <span>Your permissions have been '
                 'limited until you <a href="/verify_email">verify your email '
                 'address</a></span>')
+
 
 class VerifyNewAccountEmailAddress(FunctionalTestCaseSetup):
     def runTest(self):
@@ -169,6 +176,7 @@ class PasswdResetsNotifiesUser(FunctionalTestCaseSetup):
                                             'testenv%s' % self._testenv.port,
                                             username))
 
+
 class UserLoginWithMailedPassword(PasswdResetsNotifiesUser):
     def runTest(self):
         """User is able to login with the new password"""
@@ -183,6 +191,7 @@ class UserLoginWithMailedPassword(PasswdResetsNotifiesUser):
                   body.splitlines() if 'Password:' in l][0]
 
         self._tester.login(username, passwd)
+
 
 class UserIsForcedToChangePassword(FunctionalTestCaseSetup):
     def runTest(self):
@@ -228,6 +237,7 @@ class UserCantBrowseUntilPasswdChange(PasswdResetsNotifiesUser):
         # Clear the mailstore
         self._smtpd.full_reset()
 
+
 class DeleteAccountNotifiesAdmin(FunctionalTestCaseSetup):
     def runTest(self):
         """Delete account notifies admin"""
@@ -245,6 +255,7 @@ class DeleteAccountNotifiesAdmin(FunctionalTestCaseSetup):
                          '[%s] Deleted User: %s' % (
                                 'testenv%s' % self._testenv.port, 'foo'))
 
+
 class UserNoLongerLogins(FunctionalTestCaseSetup):
     def runTest(self):
         """Deleted user can't login"""
@@ -256,6 +267,7 @@ class UserNoLongerLogins(FunctionalTestCaseSetup):
         tc.find("Invalid username or password")
         tc.notfind('Logout')
 
+
 class UserIsAbleToRegisterWithSameUserName(FunctionalTestCaseSetup):
     def runTest(self):
         """Register with deleted username (session and session_attributes clean)"""
@@ -263,6 +275,7 @@ class UserIsAbleToRegisterWithSameUserName(FunctionalTestCaseSetup):
         self._tester.login('foo')
         self._tester.logout()
         self._smtpd.full_reset()
+
 
 class NoEmailVerificationForAnonymousUsers(FunctionalTestCaseSetup):
     def runTest(self):

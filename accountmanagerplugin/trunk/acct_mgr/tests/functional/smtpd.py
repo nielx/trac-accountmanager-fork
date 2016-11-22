@@ -10,6 +10,7 @@
 
 from trac.tests.notification import SMTPThreadedServer, SMTPServerStore
 
+
 class NonForgetingSMTPServerStore(SMTPServerStore):
     """
     Non forgetting store for SMTP data.

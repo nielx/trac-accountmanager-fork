@@ -20,7 +20,7 @@ from trac.perm import PermissionCache, PermissionSystem
 from trac.test import EnvironmentStub, Mock, MockPerm
 from trac.web.session import Session
 
-from acct_mgr.api import AccountManager, IAccountRegistrationInspector
+from acct_mgr.api import AccountManager
 from acct_mgr.db import SessionStore
 from acct_mgr.htfile import HtPasswdStore
 from acct_mgr.model import set_user_attribute

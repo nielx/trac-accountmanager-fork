@@ -14,7 +14,7 @@ import shutil
 import tempfile
 import unittest
 
-from trac.test import EnvironmentStub, Mock
+from trac.test import EnvironmentStub
 
 from acct_mgr.htfile import HtDigestStore, HtPasswdStore
 

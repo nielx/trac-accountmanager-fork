@@ -10,13 +10,10 @@
 # Author: Matthew Good <trac@matt-good.net>
 
 import errno
-import os # to get not only os.path method but os.linesep too
-# DEVEL: Use `with` statement for better file access code,
-#   taking care of Python 2.5, but not needed for Python >= 2.6
-#from __future__ import with_statement
+import os
 
-from trac.core import Component, TracError, implements
 from trac.config import Option
+from trac.core import Component, TracError, implements
 
 from acct_mgr.api import IPasswordStore, _, N_
 from acct_mgr.pwhash import htpasswd, mkhtpasswd, htdigest

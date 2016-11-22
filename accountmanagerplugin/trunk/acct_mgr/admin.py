@@ -16,8 +16,8 @@ from genshi.builder import tag
 
 from trac import __version__ as trac_version
 from trac.admin import IAdminPanelProvider
-from trac.core import Component, ExtensionPoint, TracError, implements
 from trac.config import BoolOption, Option
+from trac.core import Component, ExtensionPoint, implements
 from trac.perm import PermissionCache, PermissionSystem
 from trac.util import as_int
 from trac.util.datefmt import format_datetime, to_datetime
