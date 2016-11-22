@@ -49,7 +49,7 @@ except ImportError:
                 pass
         return string
 
-from acct_mgr.compat import cleandoc
+from trac.util.compat import cleandoc
 cleandoc_ = cleandoc
 
 

@@ -13,47 +13,9 @@
 from genshi.builder import tag
 from tokenize import generate_tokens, COMMENT, NAME, OP, STRING
 
+from trac.util.compat import cleandoc
 from trac.util.datefmt import format_datetime, pretty_timedelta
-from trac.util.text import to_unicode
 from trac.web.chrome import Chrome
-
-# inspect.cleandoc() was introduced in Python 2.6, and this compatibility
-# code replicates source in trac.util.compat
-try:
-    from inspect import cleandoc
-except ImportError:
-    import sys
-
-    # Taken from Python 2.6
-    def cleandoc(doc):
-        """De-indent a multi-line text.
-
-        Any whitespace that can be uniformly removed from the second line
-        onwards is removed."""
-        try:
-            lines = doc.expandtabs().split('\n')
-        except UnicodeError:
-            return None
-        else:
-            # Find minimum indentation of any non-blank lines after first line
-            margin = sys.maxint
-            for line in lines[1:]:
-                content = len(line.lstrip())
-                if content:
-                    indent = len(line) - content
-                    margin = min(margin, indent)
-            # Remove indentation
-            if lines:
-                lines[0] = lines[0].lstrip()
-            if margin < sys.maxint:
-                for i in range(1, len(lines)):
-                    lines[i] = lines[i][margin:]
-            # Remove any trailing or leading blank lines
-            while lines and not lines[-1]:
-                lines.pop()
-            while lines and not lines[0]:
-                lines.pop(0)
-            return '\n'.join(lines)
 
 # Provide the function for compatibility (available since Trac 1.0).
 try:
