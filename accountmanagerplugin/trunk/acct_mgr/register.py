@@ -25,7 +25,6 @@ from trac.web.main import IRequestFilter, IRequestHandler
 from acct_mgr.api import AccountManager, CommonTemplateProvider
 from acct_mgr.api import IAccountRegistrationInspector
 from acct_mgr.api import _, N_, cleandoc_, dgettext, tag_
-from acct_mgr.compat import is_enabled
 from acct_mgr.model import email_associated, get_user_attribute
 from acct_mgr.model import set_user_attribute
 from acct_mgr.notification import NotificationError
@@ -240,7 +239,7 @@ class EmailCheck(GenericRegistrationInspector):
         # Deferred import required to aviod circular import dependencies.
         from acct_mgr.web_ui import AccountModule
         reset_password = AccountModule(self.env).reset_password_enabled
-        verify_account = is_enabled(self.env, EmailVerificationModule) and \
+        verify_account = self.env.is_enabled(EmailVerificationModule) and \
                          EmailVerificationModule(self.env).verify_email
         if verify_account:
             # TRANSLATOR: Registration form hints for a mandatory input field.
@@ -266,7 +265,7 @@ class EmailCheck(GenericRegistrationInspector):
 
     def validate_registration(self, req):
         email = req.args.get('email', '').strip()
-        if is_enabled(self.env, EmailVerificationModule) and \
+        if self.env.is_enabled(EmailVerificationModule) and \
                 EmailVerificationModule(self.env).verify_email:
             # Initial configuration case.
             if not email and not req.args.get('active'):
@@ -320,8 +319,8 @@ class RegExpCheck(GenericRegistrationInspector):
             )
 
         email = req.args.get('email', '').strip()
-        if is_enabled(self.env, EmailCheck) and \
-                is_enabled(self.env, EmailVerificationModule) and \
+        if self.env.is_enabled(EmailCheck) and \
+                self.env.is_enabled(EmailVerificationModule) and \
                 EmailVerificationModule(self.env).verify_email:
             if self.email_regexp.strip() != '' and \
                     not re.match(self.email_regexp.strip(), email) and \
@@ -396,7 +395,7 @@ class RegistrationModule(CommonTemplateProvider):
                                'usernames only and convert them forcefully '
                                'as required, while \'ignore_auth_case\' is '
                                'enabled in [trac] section of your trac.ini.')
-        return is_enabled(env, self.__class__) and writable
+        return env.is_enabled(self.__class__) and writable
 
     enabled = property(_enable_check)
 
@@ -435,7 +434,7 @@ class RegistrationModule(CommonTemplateProvider):
             'acctmgr': {'name': name, 'username': username},
             'ignore_auth_case': self.config.getbool('trac', 'ignore_auth_case')
         }
-        verify_enabled = is_enabled(self.env, EmailVerificationModule) and \
+        verify_enabled = self.env.is_enabled(EmailVerificationModule) and \
                          EmailVerificationModule(self.env).verify_email
         data['verify_account_enabled'] = verify_enabled
         if req.method == 'POST' and action == 'create':
@@ -538,7 +537,7 @@ class EmailVerificationModule(CommonTemplateProvider):
         if self.config.getbool('announcer', 'email_enabled') != True and \
                 self.config.getbool('notification', 'smtp_enabled') != True:
             self.email_enabled = False
-            if is_enabled(self.env, self.__class__) is True:
+            if self.env.is_enabled(self.__class__) is True:
                 self.env.log.warn(
                     ' '.join([self.__class__.__name__,
                               "can't work because of missing email setup."]))

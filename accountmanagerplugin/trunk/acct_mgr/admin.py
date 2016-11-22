@@ -32,7 +32,7 @@ from trac.wiki.formatter import format_to_html
 from acct_mgr.api import AccountManager, CommonTemplateProvider
 from acct_mgr.api import IUserIdChanger
 from acct_mgr.api import _, N_, dgettext, gettext, ngettext, tag_
-from acct_mgr.compat import get_pretty_dateinfo, is_enabled
+from acct_mgr.compat import get_pretty_dateinfo
 from acct_mgr.guard import AccountGuard
 from acct_mgr.model import change_uid, del_user_attribute, email_verified
 from acct_mgr.model import get_user_attribute, last_seen, set_user_attribute
@@ -60,7 +60,7 @@ def fetch_user_data(env, req, filters=None):
                 accounts[username]['release_hint'] = _(
                         "Locked until %(t_release)s",
                         t_release=t_release)
-    verify_email = is_enabled(env, EmailVerificationModule) and \
+    verify_email = env.is_enabled(EmailVerificationModule) and \
                    EmailVerificationModule(env).email_enabled and \
                    EmailVerificationModule(env).verify_email
     for acct, status in get_user_attribute(env, username=None,
@@ -341,7 +341,7 @@ class UserAdminPanel(CommonTemplateProvider):
                     user=username)
 
         verify_enabled = False
-        if is_enabled(env, EmailVerificationModule):
+        if env.is_enabled(EmailVerificationModule):
             verify_enabled = EmailVerificationModule(env).email_enabled and \
                              EmailVerificationModule(env).verify_email
         email_approved = req.args.get('email_approved')
@@ -508,7 +508,7 @@ class UserAdminPanel(CommonTemplateProvider):
         if ts_seen and ts_seen[0][1]:
             data['last_visit'] = format_datetime(ts_seen[0][1], tzinfo=req.tz)
 
-        if is_enabled(self.env, AccountGuard):
+        if self.env.is_enabled(AccountGuard):
             attempts = []
             attempts_count = guard.failed_count(username, reset=None)
             if attempts_count > 0:
@@ -999,34 +999,34 @@ class ConfigurationAdminPanel(CommonTemplateProvider):
                         cfg.set(c, 'acct_mgr.pwhash.HtDigestHashMethod', e)
                         from acct_mgr.db import SessionStore
                         from acct_mgr.pwhash import HtDigestHashMethod
-                        assert is_enabled(env, HtDigestHashMethod)
-                        assert is_enabled(env, SessionStore)
+                        assert env.is_enabled(HtDigestHashMethod)
+                        assert env.is_enabled(SessionStore)
                     elif init_store == 'file':
                         if init_store_file == 'htdigest':
                             cfg.set(a, 'htdigest_file', 'trac.htdigest')
                             cfg.set(a, p, 'HtDigestStore')
                             cfg.set(c, 'acct_mgr.htfile.HtDigestStore', e)
                             from acct_mgr.htfile import HtDigestStore
-                            assert is_enabled(env, HtDigestStore)
+                            assert env.is_enabled(HtDigestStore)
                         elif init_store_file == 'htpasswd':
                             cfg.set(a, 'htpasswd_file', 'trac.htpasswd')
                             cfg.set(a, 'htpasswd_hash_type', 'md5')
                             cfg.set(a, p, 'HtPasswdStore')
                             cfg.set(c, 'acct_mgr.htfile.HtPasswdStore', e)
                             from acct_mgr.htfile import HtPasswdStore
-                            assert is_enabled(env, HtPasswdStore)
+                            assert env.is_enabled(HtPasswdStore)
                         elif init_store_file == 'svn_file':
                             cfg.set(a, p, 'SvnServePasswordStore')
                             cfg.set(c,
                                     'acct_mgr.svnserve.SvnServePasswordStore',
                                     e)
                             from acct_mgr.svnserve import SvnServePasswordStore
-                            assert is_enabled(env, SvnServePasswordStore)
+                            assert env.is_enabled(SvnServePasswordStore)
                     elif init_store == 'http':
                         cfg.set(a, p, 'HttpAuthStore')
                         cfg.set(c, 'acct_mgr.http.HttpAuthStore', e)
                         from acct_mgr.http import HttpAuthStore
-                        assert is_enabled(env, HttpAuthStore)
+                        assert env.is_enabled(HttpAuthStore)
                     # ToDo
                     #elif init_store == 'etc':
                     #    [account-manager]

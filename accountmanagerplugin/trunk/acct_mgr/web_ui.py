@@ -30,7 +30,6 @@ from trac.web.chrome import add_warning
 
 from acct_mgr.api import AccountManager, CommonTemplateProvider
 from acct_mgr.api import _, dgettext, ngettext, tag_
-from acct_mgr.compat import is_enabled
 from acct_mgr.db import SessionStore
 from acct_mgr.guard import AccountGuard
 from acct_mgr.model import set_user_attribute
@@ -106,9 +105,9 @@ class AccountModule(CommonTemplateProvider):
             self.store.hash_method
         except (AttributeError, ConfigurationError):
             return False
-        return is_enabled(self.env, self.__class__) and \
+        return self.env.is_enabled(self.__class__) and \
                self.reset_password and (self._write_check(log) != []) and \
-               is_enabled(self.env, self.store.__class__) and \
+               self.env.is_enabled(self.store.__class__) and \
                self.store.hash_method and True or False
 
     reset_password_enabled = property(_reset_password_enabled)
@@ -362,8 +361,8 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
 
     def __init__(self):
         cfg = self.config
-        if is_enabled(self.env, self.__class__) and \
-                is_enabled(self.env, auth.LoginModule):
+        if self.env.is_enabled(self.__class__) and \
+                self.env.is_enabled(auth.LoginModule):
             # Disable auth.LoginModule to handle login requests alone.
             self.env.log.info("Concurrent enabled login modules found, "
                               "fixing configuration ...")
@@ -741,8 +740,8 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
     @property
     def enabled(self):
         # Trac built-in authentication must be disabled to use this one.
-        return is_enabled(self.env, self.__class__) and \
-               not is_enabled(self.env, auth.LoginModule)
+        return self.env.is_enabled(self.__class__) and \
+               not self.env.is_enabled(auth.LoginModule)
 
 
 def _set_password(env, req, username, password, old_password=None):
