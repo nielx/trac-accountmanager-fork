@@ -9,6 +9,7 @@
 #
 # Author: Matthew Good <trac@matt-good.net>
 
+import hashlib
 import re
 
 from binascii import hexlify
@@ -18,7 +19,6 @@ from trac.core import Component, Interface, implements
 from trac.config import Option
 
 from acct_mgr.api import _, N_
-from acct_mgr.hashlib_compat import md5, sha1
 from acct_mgr.md5crypt import md5crypt
 
 try:
@@ -114,7 +114,7 @@ def htpasswd(password, hash):
     if hash.startswith('$apr1$'):
         return md5crypt(password, hash[6:].split('$')[0], '$apr1$')
     elif hash.startswith('{SHA}'):
-        return '{SHA}' + sha1(password).digest().encode('base64')[:-1]
+        return '{SHA}' + hashlib.sha1(password).digest().encode('base64')[:-1]
     elif passlib_ctxt is not None and hash.startswith('$5$') and \
             'sha256_crypt' in passlib_ctxt.policy.schemes():
         rounds, salt = from_hash(hash)
@@ -158,4 +158,4 @@ def mkhtpasswd(password, hash_type=''):
 
 def htdigest(user, realm, password):
     p = ':'.join([user, realm, password])
-    return md5(p).hexdigest()
+    return hashlib.md5(p).hexdigest()
