@@ -32,9 +32,9 @@ from acct_mgr.api import _, dgettext, ngettext, tag_
 from acct_mgr.compat import is_enabled, exception_to_unicode
 from acct_mgr.db import SessionStore
 from acct_mgr.guard import AccountGuard
-from acct_mgr.model import set_user_attribute, user_known
+from acct_mgr.model import set_user_attribute
 from acct_mgr.notification import NotificationError
-from acct_mgr.register import EmailVerificationModule, RegistrationModule
+from acct_mgr.register import RegistrationModule
 from acct_mgr.util import if_enabled
 
 

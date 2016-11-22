@@ -13,15 +13,13 @@ import tempfile
 import time
 import unittest
 
-from Cookie  import SimpleCookie as Cookie
+from Cookie import SimpleCookie as Cookie
 
-from trac.test  import EnvironmentStub, Mock
-from trac.web.session  import Session
+from trac.test import EnvironmentStub, Mock
+from trac.web.session import Session
 
-from acct_mgr.model  import delete_user, email_associated, email_verified, \
-                            del_user_attribute, get_user_attribute, \
-                            set_user_attribute, last_seen, user_known, \
-                            prime_auth_session
+from acct_mgr.model import get_user_attribute, set_user_attribute, \
+                           last_seen, user_known
 
 
 class ModelTestCase(unittest.TestCase):

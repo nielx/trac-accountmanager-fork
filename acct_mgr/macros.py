@@ -10,7 +10,7 @@
 
 from genshi.builder import tag
 
-from trac.core import Component, implements
+from trac.core import implements
 from trac.perm import PermissionSystem
 from trac.util.compat import sorted
 from trac.web.chrome import Chrome
@@ -27,7 +27,7 @@ class AccountManagerWikiMacros(CommonTemplateProvider):
     """Provides wiki macros related to Trac accounts/authenticated users."""
 
     implements(IWikiMacroProvider)
-	
+
     # IWikiMacroProvider
 
     def get_macros(self):

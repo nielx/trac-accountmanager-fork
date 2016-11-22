@@ -14,7 +14,7 @@ import unittest
 
 from trac.core import Component, implements
 from trac.perm import PermissionCache, PermissionSystem
-from trac.test import EnvironmentStub, Mock, MockPerm
+from trac.test import EnvironmentStub, Mock
 
 from acct_mgr.admin import ExtensionOrder, ConfigurationAdminPanel, \
                            UserAdminPanel

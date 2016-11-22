@@ -9,14 +9,12 @@
 #
 # Author: Matthew Good <trac@matt-good.net>
 
-import os.path
-import shutil
-import tempfile
 import unittest
 
-from trac.test import EnvironmentStub, Mock
+from trac.test import EnvironmentStub
 
 from acct_mgr.db import SessionStore
+
 
 class _BaseTestCase(unittest.TestCase):
     def setUp(self):

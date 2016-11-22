@@ -17,7 +17,6 @@ from Cookie import SimpleCookie as Cookie
 from trac.core import TracError
 from trac.perm import PermissionCache, PermissionSystem
 from trac.test import EnvironmentStub, Mock
-from trac.web.main import RequestDispatcher
 from trac.web.session import Session
 
 from acct_mgr.api import AccountManager

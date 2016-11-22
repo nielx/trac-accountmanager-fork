@@ -9,6 +9,7 @@
 
 from acct_mgr.hashlib_compat import md5
 
+
 def md5crypt(password, salt, magic='$1$'):
     # /* The password first, since that is what is most unknown */ /* Then our magic string */ /* Then the raw salt */
     m = md5()

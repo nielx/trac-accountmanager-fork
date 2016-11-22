@@ -17,7 +17,7 @@ from os import urandom
 from trac.core import Component, Interface, implements
 from trac.config import Option
 
-from acct_mgr.api import AccountManager, _, N_
+from acct_mgr.api import _, N_
 from acct_mgr.hashlib_compat import md5, sha1
 from acct_mgr.md5crypt import md5crypt
 

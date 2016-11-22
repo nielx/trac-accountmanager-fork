@@ -13,8 +13,8 @@ from urllib2 import build_opener, HTTPDigestAuthHandler, \
                     HTTPPasswordMgrWithDefaultRealm
 from urlparse import urlparse
 
-from trac.core import Component, implements
 from trac.config import Option
+from trac.core import Component, implements
 from trac.web.href import Href
 
 from acct_mgr.api import IPasswordStore, _, N_

@@ -11,7 +11,7 @@
 
 from pkg_resources import resource_filename
 
-from trac.config import BoolOption, Configuration, ExtensionOption
+from trac.config import BoolOption
 from trac.config import Option, OrderedExtensionsOption
 from trac.core import Component, ExtensionPoint, Interface, TracError
 from trac.core import implements
