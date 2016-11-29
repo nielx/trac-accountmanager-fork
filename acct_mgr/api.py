@@ -148,7 +148,7 @@ class IPasswordStore(Interface):
 
     def check_password(user, password):
         """Checks if the password is valid for the user.
-    
+
         Returns True, if the correct user and password are specfied.
         Returns False, if the incorrect password was specified.
         Returns None, if the user doesn't exist in this password store.
@@ -300,7 +300,8 @@ class AccountManager(Component):
         for store in self.password_stores:
             valid = store.check_password(user, password)
             if valid:
-                if valid == True and (self.refresh_passwd == True) and \
+                if valid is True and \
+                        self.refresh_passwd is True and \
                         self.get_supporting_store('set_password'):
                     self._maybe_update_hash(user, password)
                 break
@@ -321,7 +322,7 @@ class AccountManager(Component):
 
     def supports(self, operation):
         try:
-            stores = self.password_stores
+            self.password_stores
         except AttributeError:
             return False
         else:
@@ -427,9 +428,9 @@ class AccountManager(Component):
             self.log.debug("Refresh password for user: %s" % user)
             store = self.find_user_store(user)
             pwstore = self.get_supporting_store('set_password')
-            if pwstore.set_password(user, password) == True:
+            if pwstore.set_password(user, password) is True:
                 # Account re-created according to current settings.
-                if store and not (store.delete_user(user) == True):
+                if store and not (store.delete_user(user) is True):
                     self.log.warn(
                         "Failed to remove old entry for user: %s" % user)
             set_user_attribute(self.env, user, 'password_refreshed', 1)
@@ -464,7 +465,7 @@ class AccountManager(Component):
 
     def user_password_reset(self, user, email, password):
         self.log.info("Password reset for user: %s, %s" % (user, email))
-        
+
     def user_email_verification_requested(self, user, token):
         self.log.info("Email verification requested for user: %s" % user)
 

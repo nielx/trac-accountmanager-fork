@@ -52,7 +52,7 @@
         </div>
         <div id="login_options" class="buttons central nav">
           <input type="submit" value="${dgettext('acct_mgr', 'Login')}" />
-          <ul py:if="login_opt_list == True">
+          <ul py:if="login_opt_list is True">
             <py:choose py:if="registration_enabled">
               <li class="first" py:when="reset_password_enabled">
                 <a href="${href.register()}">Register</a>

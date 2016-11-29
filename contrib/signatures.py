@@ -76,7 +76,7 @@ def sign(action='r'):
         s = sha1()
         s.update(''.join(lines))
         hashes[path]['sha1'] = s.hexdigest()
-    
+
     if action == 'r':
         if md5sums:
             for line in md5sums.readlines():
@@ -114,7 +114,7 @@ def sign(action='r'):
     for f in [md5sums, sha1sums]:
         if isinstance(f, file):
             f.close()
-    if action == 'r' and md5sums and sha1sums and passed == True:
+    if action == 'r' and md5sums and sha1sums and passed is True:
         print('Check passed.')
 
 if __name__ == '__main__':
