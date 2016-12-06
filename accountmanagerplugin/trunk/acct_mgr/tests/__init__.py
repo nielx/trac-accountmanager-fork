@@ -9,7 +9,6 @@
 #
 # Author: Matthew Good <trac@matt-good.net>
 
-import doctest
 import unittest
 try:
     import twill, subprocess

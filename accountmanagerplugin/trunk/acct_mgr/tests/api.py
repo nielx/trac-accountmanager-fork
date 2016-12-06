@@ -14,6 +14,7 @@ import unittest
 
 from Cookie import SimpleCookie as Cookie
 
+import trac.wiki.web_ui
 from trac.core import TracError
 from trac.perm import PermissionCache, PermissionSystem
 from trac.test import EnvironmentStub, Mock
@@ -21,6 +22,7 @@ from trac.web.session import Session
 
 from acct_mgr.api import AccountManager
 from acct_mgr.db import SessionStore
+from acct_mgr.htfile import HtDigestStore, HtPasswdStore
 
 
 class _BaseTestCase(unittest.TestCase):
@@ -32,10 +34,8 @@ class _BaseTestCase(unittest.TestCase):
         )
         self.env.path = tempfile.mkdtemp()
         self.perm = PermissionSystem(self.env)
-        self.db = self.env.get_db_cnx()
 
     def tearDown(self):
-        self.db.close()
         # Really close db connections.
         self.env.shutdown()
         shutil.rmtree(self.env.path)
@@ -68,7 +68,7 @@ class AccountManagerTestCase(_BaseTestCase):
         self.env.config.set(
             'account-manager', 'password_store', 'SessionStore')
         self.mgr.set_password('user', 'passwd')
-        # Refuse to overwrite existing credetialy, if requested.
+        # Refuse to overwrite existing credentials, if requested.
         self.assertRaises(TracError, self.mgr.set_password, 'user', 'passwd',
                           overwrite=False)
 
@@ -118,49 +118,52 @@ class AccountManagerTestCase(_BaseTestCase):
         self.env.config.set('account-manager', 'password_store',
                             'HtDigestStore, SessionStore')
         self.env.config.set('account-manager', 'htdigest_file', '.htdigest')
-        cursor = self.db.cursor()
-        cursor.execute("""
-            INSERT INTO session_attribute
-                   (sid,authenticated,name,value)
-            VALUES (%s,%s,%s,%s)
-        """, ('user', 1, 'password_refreshed', '1'))
+
+        self.env.db_transaction("""
+                INSERT INTO session_attribute (sid,authenticated,name,value)
+                VALUES (%s,%s,%s,%s)
+                """, ('user', 1, 'password_refreshed', '1'))
 
         # Refresh not happening due to 'password_refreshed' attribute.
         self.mgr._maybe_update_hash('user', 'passwd')
-        cursor.execute("""
-            SELECT value
-            FROM   session_attribute
-            WHERE  sid='user'
-            AND    authenticated=1
-            AND    name='password'
-        """)
-        self.assertNotEqual(cursor.fetchall(), [])
+        for _, in self.env.db_query("""
+                SELECT value FROM session_attribute
+                WHERE sid='user'
+                 AND authenticated=1
+                 AND name='password'
+                """):
+            break
+        else:
+            self.fail("Session attribute 'password' not found.")
 
-        cursor.execute("""
-            DELETE
-            FROM   session_attribute
-            WHERE  sid='user'
-            AND    authenticated=1
-            AND    name='password_refreshed'
-        """)
+        self.env.db_transaction("""
+            DELETE FROM session_attribute
+            WHERE sid='user'
+             AND authenticated=1
+             AND name='password_refreshed'
+            """)
         # Refresh (and effectively migrate) user credentials.
         self.mgr._maybe_update_hash('user', 'passwd')
-        cursor.execute("""
-            SELECT value
-            FROM   session_attribute
-            WHERE  sid='user'
-            AND    authenticated=1
-            AND    name='password'
-        """)
-        self.assertEqual(cursor.fetchall(), [])
-        cursor.execute("""
-            SELECT value
-            FROM   session_attribute
-            WHERE  sid='user'
-            AND    authenticated=1
-            AND    name='password_refreshed'
-        """)
-        self.assertEqual(cursor.fetchall(), [('1',)])
+        for _, in self.env.db_query("""
+                SELECT value
+                FROM session_attribute
+                WHERE sid='user'
+                 AND authenticated=1
+                 AND name='password'
+                """):
+            self.fail("Session attribute 'password' should not be found.")
+
+        for value, in self.env.db_query("""
+                SELECT value
+                FROM session_attribute
+                WHERE sid='user'
+                 AND authenticated=1
+                 AND name='password_refreshed'
+                """):
+            self.assertEqual('1', value)
+            break
+        else:
+            self.fail("Session attribute 'password_refreshed' not found.")
 
 
 class PermissionTestCase(_BaseTestCase):
