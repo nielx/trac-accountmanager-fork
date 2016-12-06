@@ -12,9 +12,10 @@ import os
 
 from trac.config import Configuration
 from trac.core import Component, implements
-from trac.versioncontrol import RepositoryManager
+from trac.versioncontrol.api import RepositoryManager
+from trac.versioncontrol.cache import CachedRepository
 
-from acct_mgr.api import IPasswordStore, _, N_
+from acct_mgr.api import IPasswordStore, N_
 from acct_mgr.util import EnvRelativePathOption
 
 
@@ -26,19 +27,15 @@ class SvnServePasswordStore(Component):
 
     filename = EnvRelativePathOption('account-manager', 'password_file',
         doc=N_("""Path to the users file; leave blank to locate
-               the users file by reading svnserve.conf"""))
+               the users file by reading svnserve.conf from the default
+               repository.
+               """))
 
-    def __init__(self):
-        repo_dir = RepositoryManager(self.env).repository_dir
-        self._svnserve_conf = Configuration(
-            os.path.join(os.path.join(repo_dir, 'conf'), 'svnserve.conf'))
-        self._userconf = None
+    _userconf = None
 
+    @property
     def _config(self):
-        filename = self.filename
-        if not filename:
-            self._svnserve_conf.parse_if_needed()
-            filename = self._svnserve_conf['general'].getpath('password-db')
+        filename = self.filename or self._get_password_file()
         if self._userconf is None or filename != self._userconf.filename:
             self._userconf = Configuration(filename)
             # Overwrite default with str class to preserve case.
@@ -47,7 +44,17 @@ class SvnServePasswordStore(Component):
         else:
             self._userconf.parse_if_needed()
         return self._userconf
-    _config = property(_config)
+
+    def _get_password_file(self):
+        repos = RepositoryManager(self.env).get_repository('')
+        if not repos:
+            return None
+        if isinstance(repos, CachedRepository):
+            repos = repos.repos
+        if repos.params['type'] in ('svn', 'svnfs', 'direct-svnfs'):
+            conf = Configuration(os.path.join(repos.path, 'conf',
+                                              'svnserve.conf'))
+            return conf['general'].getpath('password-db')
 
     # IPasswordStore methods
 
