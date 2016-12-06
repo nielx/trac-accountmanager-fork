@@ -29,15 +29,12 @@ class AccountGuardTestCase(unittest.TestCase):
                 enable=['trac.*', 'acct_mgr.guard.*'])
         self.env.path = tempfile.mkdtemp()
         self.env.config.set('account-manager', 'login_attempt_max_count', 1)
-        self.db = self.env.get_db_cnx()
 
         self.user = 'user'
         self.session = self._create_session(self.user)
         self.guard = AccountGuard(self.env)
 
     def tearDown(self):
-        self.db.close()
-        # Really close db connections.
         self.env.shutdown()
         shutil.rmtree(self.env.path)
 

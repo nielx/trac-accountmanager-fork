@@ -34,13 +34,11 @@ password_file = os.path.join(env.path, env.config.get('account-manager',
 hashes = [line.strip().split(':', 1) for line in open(password_file)]
 hashes = [(u,p) for u,p in hashes if p.startswith(prefix)]
 if hashes:
-    db = env.get_db_cnx()
-    cursor = db.cursor()
-    cursor.executemany("INSERT INTO session_attribute "
-                       "(sid,authenticated,name,value) "
-                       "VALUES (%s,1,'password',%s)",
-                       hashes)
-    db.commit()
+    with env.db_transaction as db:
+        db.executemany("""
+            INSERT INTO session_attribute (sid,authenticated,name,value)
+            VALUES (%s,1,'password',%s)
+            """, hashes)
 
 env.config.set('account-manager', 'password_store', 'SessionStore')
 env.config.save()

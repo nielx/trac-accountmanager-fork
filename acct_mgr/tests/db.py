@@ -17,33 +17,27 @@ from acct_mgr.db import SessionStore
 
 
 class _BaseTestCase(unittest.TestCase):
+
     def setUp(self):
-        #self.basedir = os.path.realpath(tempfile.mkdtemp())
         self.env = EnvironmentStub(enable=['trac.*', 'acct_mgr.*'])
         self.env.config.set('account-manager', 'password_store',
                             'SessionStore')
         self.store = SessionStore(self.env)
-        #self.env.path = os.path.join(self.basedir, 'trac-tempenv')
-        #os.mkdir(self.env.path)
 
     def test_get_users(self):
-        db = self.env.get_db_cnx()
-        cursor = db.cursor()
-        cursor.executemany("INSERT INTO session_attribute "
-                       "(sid,authenticated,name,value) "
-                       "VALUES (%s,1,'password',%s)",
-                       [('a', 'a'),
-                        ('b', 'b'),
-                        ('c', 'c')])
+        with self.env.db_transaction as db:
+            db.executemany("""
+                INSERT INTO session_attribute (sid,authenticated,name,value)
+                VALUES (%s,1,'password',%s)
+                """, [('a', 'a'), ('b', 'b'), ('c', 'c')])
+
         self.assertEqual(set(['a', 'b', 'c']), set(self.store.get_users()))
 
     def test_has_user(self):
-        db = self.env.get_db_cnx()
-        cursor = db.cursor()
-        cursor.execute("INSERT INTO session_attribute "
-                       "(sid,authenticated,name,value) "
-                       "VALUES (%s,1,'password',%s)",
-                       ('bar', 'bar'))
+        self.env.db_transaction("""
+            INSERT INTO session_attribute (sid,authenticated,name,value)
+            VALUES (%s,'1','password',%s)
+            """, ('bar', 'bar'))
 
         self.assertFalse(self.store.has_user('foo'))
         self.assertTrue(self.store.has_user('bar'))
@@ -88,7 +82,7 @@ class _BaseTestCase(unittest.TestCase):
 
 class HtDigestTestCase(_BaseTestCase):
     def setUp(self):
-        _BaseTestCase.setUp(self)
+        super(HtDigestTestCase, self).setUp()
         self.env.config.set('account-manager', 'hash_method',
                             'HtDigestHashMethod')
         self.env.config.set('account-manager', 'db_htdigest_realm',
@@ -97,7 +91,7 @@ class HtDigestTestCase(_BaseTestCase):
 
 class HtPasswdTestCase(_BaseTestCase):
     def setUp(self):
-        _BaseTestCase.setUp(self)
+        super(HtPasswdTestCase, self).setUp()
         self.env.config.set('account-manager', 'hash_method',
                             'HtPasswdHashMethod')
 

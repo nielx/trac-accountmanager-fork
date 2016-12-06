@@ -27,10 +27,8 @@ class ModelTestCase(unittest.TestCase):
     def setUp(self):
         self.env = EnvironmentStub(default_data=True, enable=['trac.*'])
         self.env.path = tempfile.mkdtemp()
-        self.db = self.env.get_db_cnx()
 
     def tearDown(self):
-        self.db.close()
         # Really close db connections.
         self.env.shutdown()
         shutil.rmtree(self.env.path)
@@ -79,18 +77,17 @@ class ModelTestCase(unittest.TestCase):
 
     def test_get_user_attribute(self):
         self.assertEqual(get_user_attribute(self.env, authenticated=None), {})
-        cursor = self.db.cursor()
-        cursor.executemany("""
-            INSERT INTO session_attribute
-                   (sid,authenticated,name,value)
-            VALUES (%s,%s,%s,%s)
-        """, [
-        ('user', 0, 'attribute1', 'value1'),
-        ('user', 0, 'attribute2', 'value2'),
-        ('user', 1, 'attribute1', 'value1'),
-        ('user', 1, 'attribute2', 'value2'),
-        ('another', 1, 'attribute2', 'value3')]
-        )
+
+        with self.env.db_transaction as db:
+            db.executemany("""
+                INSERT INTO session_attribute (sid,authenticated,name,value)
+                VALUES (%s,%s,%s,%s)
+                """, [('user', 0, 'attribute1', 'value1'),
+                      ('user', 0, 'attribute2', 'value2'),
+                      ('user', 1, 'attribute1', 'value1'),
+                      ('user', 1, 'attribute2', 'value2'),
+                      ('another', 1, 'attribute2', 'value3')])
+
         no_constraints = get_user_attribute(self.env, authenticated=None)
         # Distinct session IDs form top-level keys.
         self.assertEqual(set(no_constraints.keys()),
@@ -110,34 +107,29 @@ class ModelTestCase(unittest.TestCase):
 
     def test_set_user_attribute(self):
         set_user_attribute(self.env, 'user', 'attribute1', 'value1')
-        cursor = self.db.cursor()
-        cursor.execute("""
-            SELECT name,value
-            FROM   session_attribute
-            WHERE  sid='user'
-            AND    authenticated=1
-        """)
-        self.assertEqual(cursor.fetchall(), [('attribute1', 'value1')])
-        # Setting an attribute twice will eventually just update the value.
-        set_user_attribute(self.env, 'user', 'attribute1', 'value2')
-        cursor.execute("""
-            SELECT name,value
-            FROM   session_attribute
-            WHERE  sid='user'
-            AND    authenticated=1
-        """)
-        self.assertEqual(cursor.fetchall(), [('attribute1', 'value2')])
-        # All values are stored as strings internally, but the function
-        # should take care to handle forseeable abuse gracefully.
-        # This is a test for possible regressions of #10772.
-        set_user_attribute(self.env, 'user', 'attribute1', 0)
-        cursor.execute("""
-            SELECT name,value
-            FROM   session_attribute
-            WHERE  sid='user'
-            AND    authenticated=1
-        """)
-        self.assertEqual(cursor.fetchall(), [('attribute1', '0')])
+
+        with self.env.db_query as db:
+            for name, value in db("""
+                    SELECT name,value FROM session_attribute
+                    WHERE sid='user' AND authenticated=1
+                    """):
+                self.assertEqual(('attribute1', 'value1'), (name, value))
+            # Setting an attribute twice will just update the value.
+            set_user_attribute(self.env, 'user', 'attribute1', 'value2')
+            for name, value in db("""
+                    SELECT name,value FROM session_attribute
+                    WHERE sid='user' AND authenticated=1
+                    """):
+                self.assertEqual(('attribute1', 'value2'), (name, value))
+            # All values are stored as strings internally, but the function
+            # should take care to handle foreseeable abuse gracefully.
+            # This is a test for possible regressions of #10772.
+            set_user_attribute(self.env, 'user', 'attribute1', 0)
+            for name, value in db("""
+                    SELECT name,value FROM session_attribute
+                    WHERE  sid='user' AND authenticated=1
+                    """):
+                self.assertEqual(('attribute1', '0'), (name, value))
 
 
 def test_suite():

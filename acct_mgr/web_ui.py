@@ -488,16 +488,14 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
         # a dynamic IP adress and this would lead to the user being logged out
         # due to an IP address conflict.
         if 'trac_auth_session' in req.incookie or True:
-            db = self.env.get_db_cnx()
-            cursor = db.cursor()
             sql = "SELECT name FROM auth_cookie WHERE cookie=%s AND ipnr=%s"
             args = (cookie.value, req.remote_addr)
             if acctmgr.persistent_sessions or not self.check_ip:
                 sql = "SELECT name FROM auth_cookie WHERE cookie=%s"
                 args = (cookie.value,)
-            cursor.execute(sql, args)
-            name = cursor.fetchone()
-            name = name and name[0] or None
+            name = None
+            for name, in self.env.db_query(sql, args):
+                break
         if name is None:
             self._expire_cookie(req)
 
@@ -516,12 +514,9 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
             self.env.log.debug("Updating session %s for user %s",
                                cookie.value, name)
             # Refresh in database
-            db = self.env.get_db_cnx()
-            cursor = db.cursor()
-            cursor.execute("""
+            self.env.db_transaction("""
                 UPDATE auth_cookie SET time=%s WHERE cookie=%s
                 """, (int(time.time()), cookie.value))
-            db.commit()
 
             # Change session ID (cookie.value) now and then as it otherwise
             #   never would change at all (i.e. stay the same indefinitely and
@@ -532,12 +527,11 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
                 cookie.value = hex_entropy()
                 self.env.log.debug("Changing session id for user %s to %s",
                                    name, cookie.value)
-                db = self.env.get_db_cnx()
-                cursor = db.cursor()
-                cursor.execute("""
+
+                self.env.db_transaction("""
                     UPDATE auth_cookie SET cookie=%s WHERE cookie=%s
                     """, (cookie.value, old_cookie))
-                db.commit()
+
                 if self.auth_cookie_path:
                     self._distribute_auth(req, cookie.value, name)
 
@@ -619,27 +613,26 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
                     auth_cookie_path = env.config.get('trac',
                                                       'auth_cookie_path')
                     # Consider only Trac environments with equal, non-default
-                    #   'auth_cookie_path', which enables cookies to be shared.
+                    # 'auth_cookie_path', which enables cookies to be shared.
                     if auth_cookie_path == self.auth_cookie_path:
-                        db = env.get_db_cnx()
-                        cursor = db.cursor()
-                        # Authentication cookie values must be unique. Ensure,
-                        #   there is no other session (or worst: session ID)
-                        #   associated to it.
-                        cursor.execute("""
-                            DELETE FROM auth_cookie WHERE cookie=%s
-                            """, (trac_auth,))
-                        if not name:
-                            db.commit()
-                            env.log.debug("Auth data revoked from: %s",
-                                          local_env_name)
-                            continue
-                        cursor.execute("""
-                            INSERT INTO auth_cookie (cookie,name,ipnr,time)
-                            VALUES (%s,%s,%s,%s)
-                            """, (trac_auth, name, req.remote_addr,
-                                  int(time.time())))
-                        db.commit()
+                        with env.db_transaction as db:
+                            # Authentication cookie values must be unique.
+                            # Ensure, there is no other session (or worse:
+                            # session ID) associated to it.
+                            db("""
+                                DELETE FROM auth_cookie WHERE cookie=%s
+                                """, (trac_auth,))
+                            if not name:
+                                env.log.debug("Auth data revoked from: %s",
+                                              local_env_name)
+                                continue
+
+                            db("""
+                                INSERT INTO auth_cookie (cookie,name,ipnr,time)
+                                VALUES (%s,%s,%s,%s)
+                                """, (trac_auth, name, req.remote_addr,
+                                      int(time.time())))
+
                         env.log.debug("Auth data received from: %s",
                                       local_env_name)
                         self.log.debug("Auth distribution success: %s",
@@ -711,15 +704,12 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
                 # a malicious third party.
                 if reset_store.delete_user(username) is True and \
                         'PASSWORD_RESET' not in req.environ:
-                    db = self.env.get_db_cnx()
-                    cursor = db.cursor()
-                    cursor.execute("""
+                    self.env.db_transaction("""
                         DELETE FROM session_attribute
                         WHERE sid=%s
-                          AND name='force_change_passwd'
-                          AND authenticated=1
+                         AND name='force_change_passwd'
+                         AND authenticated=1
                         """, (username,))
-                    db.commit()
             return username
         # Alternative authentication provided by password reset procedure
         elif reset_store:
