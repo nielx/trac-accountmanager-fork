@@ -73,20 +73,17 @@ class AccountModule(CommonTemplateProvider):
 
     def _write_check(self, log=False):
         """Returns all configured write-enabled password stores."""
-        writable = self.acctmgr.get_all_supporting_stores('set_password')
-        if writable:
-            try:
-                writable = writable.remove(self.store)
-            except ValueError:
-                # ResetPwStore is not enabled.
-                if log:
-                    self.log.warn("ResetPwStore is disabled, therefore "
-                                  "password reset won't work.")
-        # Require at least one more write-enabled password store.
-        if not writable and log:
-            self.log.warn("AccountModule is disabled because no configured "
-                          "password store supports writing.")
-        return writable
+        writable_stores = \
+            self.acctmgr.get_all_supporting_stores('set_password')
+        if log:
+            if not writable_stores:
+                self.log.warning("AccountModule is disabled because no "
+                                 "configured password store supports "
+                                 "writing.")
+            elif self.store not in writable_stores:
+                self.log.warning("ResetPwStore is disabled, therefore "
+                                 "password reset won't work.")
+        return writable_stores
 
     # INavigationContributor methods
 
@@ -94,11 +91,12 @@ class AccountModule(CommonTemplateProvider):
         return 'reset_password'
 
     def get_navigation_items(self, req):
-        if not self.reset_password_enabled or LoginModule(self.env).enabled:
-            return
-        if req.authname == 'anonymous':
-            yield 'metanav', 'reset_password', tag.a(
-                _("Forgot your password?"), href=req.href.reset_password())
+        if self.reset_password_enabled and \
+                LoginModule(self.env).enabled and \
+                req.authname == 'anonymous':
+            yield 'metanav', 'reset_password', \
+                  tag.a(_("Forgot your password?"),
+                        href=req.href.reset_password())
 
     def _reset_password_enabled(self, log=False):
         try:
@@ -106,7 +104,8 @@ class AccountModule(CommonTemplateProvider):
         except (AttributeError, ConfigurationError):
             return False
         return self.env.is_enabled(self.__class__) and \
-               self.reset_password and (self._write_check(log) != []) and \
+               self.reset_password and \
+               self._write_check(log) and \
                self.env.is_enabled(self.store.__class__) and \
                self.store.hash_method and True or False
 
@@ -115,12 +114,12 @@ class AccountModule(CommonTemplateProvider):
     # IPreferencePanelProvider methods
 
     def get_preference_panels(self, req):
-        writable = self._write_check()
-        if not writable:
+        writable_stores = self._write_check()
+        if not writable_stores:
             return
         if req.authname and req.authname != 'anonymous':
             user_store = self.acctmgr.find_user_store(req.authname)
-            if user_store in writable:
+            if user_store in writable_stores:
                 yield 'account', _("Account")
 
     def render_preference_panel(self, req, panel):
