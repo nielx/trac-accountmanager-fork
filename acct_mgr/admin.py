@@ -1035,8 +1035,8 @@ class ConfigurationAdminPanel(CommonTemplateProvider):
                         for attr, option in _getoptions(store):
                             cls_name = store.__class__.__name__
                             newval = req.args.get('%s.%s' % (cls_name, attr))
-                            self.log.debug("%s.%s: %s"
-                                           % (cls_name, attr, newval))
+                            self.log.debug("%s.%s: %s", cls_name, attr,
+                                           newval)
                             if newval is not None:
                                 cfg.set(option.section, option.name, newval)
                     cfg.set('account-manager', 'refresh_passwd',
@@ -1081,7 +1081,7 @@ class ConfigurationAdminPanel(CommonTemplateProvider):
                     for attr, option in _getoptions(check):
                         cls_name = check.__class__.__name__
                         newval = req.args.get('%s.%s' % (cls_name, attr))
-                        self.log.debug("%s.%s: %s" % (cls_name, attr, newval))
+                        self.log.debug("%s.%s: %s", cls_name, attr, newval)
                         if newval is not None:
                             cfg.set(option.section, option.name, newval)
                 if acctmgr_register:

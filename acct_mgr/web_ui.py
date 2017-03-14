@@ -412,9 +412,9 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
                 if 'REMOTE_USER' in req.environ:
                     # Complain about another component setting environment
                     # variable for authenticated user.
-                    self.env.log.warn("LoginModule.authenticate: "
-                                      "'REMOTE_USER' was set to '%s'",
-                                      req.environ['REMOTE_USER'])
+                    self.env.log.warning("LoginModule.authenticate: "
+                                         "'REMOTE_USER' was set to '%s'",
+                                         req.environ['REMOTE_USER'])
                 self.env.log.debug("LoginModule.authenticate: Set "
                                    "'REMOTE_USER' = '%s'", username)
                 req.environ['REMOTE_USER'] = username

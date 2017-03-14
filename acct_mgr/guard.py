@@ -60,14 +60,14 @@ class AccountGuard(Component):
                        'user_lock_time_progression']
             for option in options:
                 cfg.remove('account-manager', option)
-            self.env.log.warn(
-                "AccountGuard disabled by option, obsoleting other options.")
+            self.env.log.warning("AccountGuard disabled by option, "
+                                 "obsoleting other options.")
         elif self.user_lock_max_time < 1:
             cfg.set('account-manager', 'user_lock_max_time',
                     cfg.defaults().get(
                     'account-manager')['user_lock_max_time'])
-            self.env.log.warn(
-                "AccountGuard option fixed, please check your configuration.")
+            self.env.log.warning("AccountGuard option fixed, please check "
+                                 "your configuration.")
         else:
             return
         # Changes are intentionally not written to file for persistence.
@@ -165,8 +165,8 @@ class AccountGuard(Component):
         # Limit maximum lock time.
         if t_lock > self.user_lock_max_time:
             t_lock = self.user_lock_max_time
-        self.log.debug("AccountGuard.lock_time(%s) = %s%s"
-                       % (user, t_lock, next and ' (preview)' or ''))
+        self.log.debug("AccountGuard.lock_time(%s) = %s%s",
+                       user, t_lock, next and ' (preview)' or '')
         return t_lock
 
     @property
