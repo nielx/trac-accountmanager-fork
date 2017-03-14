@@ -425,14 +425,14 @@ class AccountManager(Component):
         from acct_mgr.model import get_user_attribute, set_user_attribute
         if get_user_attribute(self.env, user, 1,
                               'password_refreshed', 1) == [0]:
-            self.log.debug("Refresh password for user: %s" % user)
+            self.log.debug("Refresh password for user: %s", user)
             store = self.find_user_store(user)
             pwstore = self.get_supporting_store('set_password')
             if pwstore.set_password(user, password) is True:
                 # Account re-created according to current settings.
                 if store and not (store.delete_user(user) is True):
-                    self.log.warn(
-                        "Failed to remove old entry for user: %s" % user)
+                    self.log.warning("Failed to remove old entry for user: "
+                                     "%s", user)
             set_user_attribute(self.env, user, 'password_refreshed', 1)
 
     def _notify(self, mod, *args):
@@ -440,14 +440,12 @@ class AccountManager(Component):
         for listener in self.change_listeners:
             # Support divergent account change listener implementations too.
             try:
-                self.log.debug(
-                    'CHANGE_LISTENER: %s(%s)' % (repr(listener), mod))
+                self.log.debug("CHANGE_LISTENER: %s(%s)", repr(listener), mod)
                 getattr(listener, mod)(*args)
             except AttributeError, e:
-                self.log.warn(
-                    'IAccountChangeListener %s does not support method %s: %s'
-                     % (listener.__class__.__name__, mod,
-                        exception_to_unicode(e)))
+                self.log.warning("IAccountChangeListener %s does not support "
+                                 "method %s: %s", listener.__class__.__name__,
+                                 mod, exception_to_unicode(e))
 
     # IAccountChangeListener methods
 
@@ -486,8 +484,8 @@ class AccountManager(Component):
                               " You may need to contact your administrator."))
             self.log.debug(
                 "AccountManager.pre_process_request: Permissions for '%s' "
-                "stripped (account approval %s)"
-                % (req.authname, req.session['approval']))
+                "stripped (account approval %s)", req.authname,
+                req.session['approval'])
         return handler
 
     def post_process_request(self, req, template, data, content_type):

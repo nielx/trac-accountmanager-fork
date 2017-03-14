@@ -388,13 +388,13 @@ class RegistrationModule(CommonTemplateProvider):
         ignore_case = auth.LoginModule(env).ignore_case
         if log:
             if not writable:
-                self.log.warn('RegistrationModule is disabled because the '
-                              'password store does not support writing.')
+                self.log.warning("RegistrationModule is disabled because the "
+                                 "password store does not support writing.")
             if ignore_case:
-                self.log.debug('RegistrationModule will allow lowercase '
-                               'usernames only and convert them forcefully '
-                               'as required, while \'ignore_auth_case\' is '
-                               'enabled in [trac] section of your trac.ini.')
+                self.log.debug("RegistrationModule will allow lowercase "
+                               "usernames only and convert them forcefully "
+                               "as required, while 'ignore_auth_case' is "
+                               "enabled in [trac] section of your trac.ini.")
         return env.is_enabled(self.__class__) and writable
 
     enabled = property(_enable_check)
@@ -492,8 +492,8 @@ class RegistrationModule(CommonTemplateProvider):
                                                                         data)
             except TypeError, e:
                 # Add some robustness by logging the most likely errors.
-                self.env.log.warn("%s.render_registration_fields failed: %s"
-                                  % (inspector.__class__.__name__, e))
+                self.env.log.warning("%s.render_registration_fields failed: "
+                                     "%s", inspector.__class__.__name__, e)
                 fragment = None
             if fragment:
                 try:
@@ -534,13 +534,13 @@ class EmailVerificationModule(CommonTemplateProvider):
 
     def __init__(self, *args, **kwargs):
         self.email_enabled = True
-        if self.config.getbool('announcer', 'email_enabled') != True and \
-                self.config.getbool('notification', 'smtp_enabled') != True:
+        if self.config.getbool('announcer', 'email_enabled') and \
+                self.config.getbool('notification', 'smtp_enabled'):
             self.email_enabled = False
-            if self.env.is_enabled(self.__class__) is True:
-                self.env.log.warn(
-                    ' '.join([self.__class__.__name__,
-                              "can't work because of missing email setup."]))
+            if self.env.is_enabled(self.__class__):
+                self.env.log.warning(
+                    ' '.join(self.__class__.__name__,
+                             "can't work because of missing email setup."))
 
     # IRequestFilter methods
 
