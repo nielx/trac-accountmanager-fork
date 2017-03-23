@@ -20,7 +20,8 @@ from acct_mgr.admin import ExtensionOrder, ConfigurationAdminPanel, \
                            UserAdminPanel
 from acct_mgr.api import AccountManager, IAccountRegistrationInspector
 from acct_mgr.db import SessionStore
-from acct_mgr.register import BasicCheck, GenericRegistrationInspector
+from acct_mgr.register import BasicCheck, GenericRegistrationInspector, \
+                              RegistrationError
 
 
 class BadCheck(Component):
@@ -34,7 +35,7 @@ class DisabledCheck(BadCheck):
 
 class DummyCheck(GenericRegistrationInspector):
     _description = \
-    """A dummy check for unit-testing the interface."""
+        """A dummy check for unit-testing the interface."""
 
     def validate_registration(self, req):
         if req.args.get('username') == 'dummy':
@@ -45,12 +46,12 @@ class DummyCheck(GenericRegistrationInspector):
 class _BaseTestCase(unittest.TestCase):
     def setUp(self):
         self.env = EnvironmentStub(enable=[
-                       'trac.*', 'acct_mgr.api.*', 'acct_mgr.admin.*',
-                       'acct_mgr.db.*', 'acct_mgr.register.*',
-                       'acct_mgr.pwhash.HtDigestHashMethod',
-                       'acct_mgr.tests.admin.BadCheck',
-                       'acct_mgr.tests.admin.DummyCheck'
-                   ])
+            'trac.*', 'acct_mgr.api.*', 'acct_mgr.admin.*',
+            'acct_mgr.db.*', 'acct_mgr.register.*',
+            'acct_mgr.pwhash.HtDigestHashMethod',
+            'acct_mgr.tests.admin.BadCheck',
+            'acct_mgr.tests.admin.DummyCheck'
+        ])
         self.env.path = tempfile.mkdtemp()
         self.perm = PermissionSystem(self.env)
 
@@ -58,11 +59,11 @@ class _BaseTestCase(unittest.TestCase):
         self.perm.grant_permission('admin', 'ACCTMGR_ADMIN')
         # Prepare a generic request object for admin actions.
         self.req = Mock(authname='admin', method='GET',
-                   args=dict(), abs_href=self.env.abs_href,
-                   chrome=dict(notices=[], warnings=[]),
-                   href=self.env.abs_href, locale='',
-                   redirect=lambda x: None, session=dict(), tz=''
-        )
+                        args=dict(), abs_href=self.env.abs_href,
+                        chrome=dict(notices=[], warnings=[]),
+                        href=self.env.abs_href, locale='',
+                        redirect=lambda x: None, session=dict(), tz=''
+                        )
         self.req.perm = PermissionCache(self.env, 'admin')
 
         self.acctmgr = AccountManager(self.env)
@@ -93,7 +94,7 @@ class ExtensionOrderTestCase(_BaseTestCase):
         enabled_components_count = 0
         for c in self.checks.get_enabled_components():
             c_name = c.__class__.__name__
-            self.assertTrue(c_name in self.check_list + \
+            self.assertTrue(c_name in self.check_list +
                             ['BadCheck', 'DummyCheck'])
             self.assertFalse(c_name in ['DisabledCheck'])
             enabled_components_count += 1
@@ -107,7 +108,7 @@ class ExtensionOrderTestCase(_BaseTestCase):
         all_components_count = 0
         for c in self.checks.get_all_components():
             c_name = c.__class__.__name__
-            self.assertTrue(c_name in self.check_list + \
+            self.assertTrue(c_name in self.check_list +
                             ['BadCheck', 'DummyCheck'])
             self.assertFalse(c_name in ['DisabledCheck'])
             all_components_count += 1
@@ -170,7 +171,6 @@ class AccountManagerAdminPanelTestCase(_BaseTestCase):
 
 
 class UserAdminPanelTestCase(_BaseTestCase):
-
     def setUp(self):
         _BaseTestCase.setUp(self)
         self.user_panel_template = 'admin_users.html'

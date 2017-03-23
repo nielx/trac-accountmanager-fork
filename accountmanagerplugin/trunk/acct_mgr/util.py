@@ -13,14 +13,12 @@
 import os
 import sys
 
+from acct_mgr.api import _, ngettext
 from trac.config import Option
 from trac.util.datefmt import format_datetime, to_datetime, utc
 
-from acct_mgr.api import _, ngettext
-
 
 class EnvRelativePathOption(Option):
-
     def __get__(self, instance, owner):
         if instance is None:
             return self
@@ -35,6 +33,7 @@ class EnvRelativePathOption(Option):
 if sys.version_info[:2] == (2, 6):
     import urllib2
     import base64
+
 
     class HTTPBasicAuthHandler(urllib2.HTTPBasicAuthHandler):
         """Patched version of Python 2.6's HTTPBasicAuthHandler.
@@ -62,12 +61,12 @@ if sys.version_info[:2] == (2, 6):
                 return None
 
 else:
-    from urllib2 import HTTPBasicAuthHandler
+    pass
 
 
 # taken from a comment of Horst Hansen
 # at http://code.activestate.com/recipes/65441
-def containsAny(str, set):
+def contains_any(str, set):
     for c in set:
         if c in str:
             return True
@@ -79,6 +78,7 @@ def if_enabled(func):
         if not self.enabled:
             return None
         return func(self, *args, **kwds)
+
     return wrap
 
 

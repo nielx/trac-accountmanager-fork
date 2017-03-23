@@ -11,14 +11,7 @@
 
 import os
 import sys
-
-try:
-    from hashlib import md5, sha1
-except ImportError:
-    import md5
-    md5 = md5.new
-    import sha
-    sha1 = sha.new
+from hashlib import md5, sha1
 
 
 def walktree(top, filter):
@@ -29,13 +22,14 @@ def walktree(top, filter):
             continue
         for filename in items[2]:
             path = ''.join([top, items[0].lstrip('.'), '/', filename])
-            if not path in filter:
+            if path not in filter:
                 files.append(path)
     return files
 
+
 def _open(path, mode='rb'):
     f = None
-    if not 'w' in mode and not os.path.exists(path):
+    if 'w' not in mode and not os.path.exists(path):
         print('Can\'t locate "%s"' % path)
     else:
         try:
@@ -45,23 +39,25 @@ def _open(path, mode='rb'):
             pass
     return f
 
+
 def sign(action='r'):
-    filter = []
+    filter_ = []
     passed = True
     top = os.path.abspath('.')
     if action in ['r', 'w']:
         md5sums = _open(''.join([top, '/', 'acct_mgr-md5sums']), action)
         if md5sums:
             # Skip recursive operation on hash files.
-            filter.append(md5sums.name)
+            filter_.append(md5sums.name)
         sha1sums = _open(''.join([top, '/', 'acct_mgr-sha1sums']), action)
         if sha1sums:
-            filter.append(sha1sums.name)
+            filter_.append(sha1sums.name)
     else:
         print('Error: Unsupported operation "%s".' % action)
         return
     hashes = {}
-    for path in walktree(top, filter):
+    f = None
+    for path in walktree(top, filter_):
         f = _open(path, 'rb')
         lines = f.readlines()
         path = path[len(top) + 1:]
@@ -80,20 +76,20 @@ def sign(action='r'):
     if action == 'r':
         if md5sums:
             for line in md5sums.readlines():
-                sum, path = line.strip(' \n').split(' ')
-                if not path in hashes.keys():
+                sum_, path = line.strip(' \n').split(' ')
+                if path not in hashes.keys():
                     print('md5: "%s" missing' % path)
                     passed = False
-                elif not hashes[path].pop('md5') == sum:
+                elif not hashes[path].pop('md5') == sum_:
                     print('md5: "%s" changed' % path)
                     passed = False
         if sha1sums:
             for line in sha1sums.readlines():
-                sum, path = line.strip(' \n').split(' ')
-                if not path in hashes.keys():
+                sum_, path = line.strip(' \n').split(' ')
+                if path not in hashes.keys():
                     print('sha1: "%s" missing' % path)
                     passed = False
-                elif not hashes[path].pop('sha1') == sum:
+                elif not hashes[path].pop('sha1') == sum_:
                     print('sha1: "%s" changed' % path)
                     passed = False
         for path in hashes.keys():
@@ -116,6 +112,7 @@ def sign(action='r'):
             f.close()
     if action == 'r' and md5sums and sha1sums and passed is True:
         print('Check passed.')
+
 
 if __name__ == '__main__':
     if len(sys.argv) > 1:

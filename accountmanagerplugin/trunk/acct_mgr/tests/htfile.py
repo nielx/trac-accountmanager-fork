@@ -61,7 +61,7 @@ class _BaseTestCase(unittest.TestCase):
                                                  overwrite=False))
         self.assertTrue(self.store.check_password('user1', 'password1'))
         self.assertTrue(self.store.set_password('user2', 'password',
-                                                 overwrite=False))
+                                                overwrite=False))
 
     def test_unicode(self):
         self.env.config.set('account-manager', 'htdigest_realm',
@@ -78,7 +78,6 @@ class _BaseTestCase(unittest.TestCase):
 
 
 class HtDigestTestCase(_BaseTestCase):
-
     flavor = 'htdigest'
 
     def setUp(self):
@@ -92,8 +91,9 @@ class HtDigestTestCase(_BaseTestCase):
                          'user:TestRealm:752b304cc7cf011d69ee9b79e2cd0866')
 
     def test_file(self):
-        self._do_password_test(self.flavor, 'test_file',
-                         'user:TestRealm:752b304cc7cf011d69ee9b79e2cd0866')
+        self._do_password_test(
+            self.flavor, 'test_file',
+            'user:TestRealm:752b304cc7cf011d69ee9b79e2cd0866')
 
     def test_update_password(self):
         self._init_password_file(self.flavor, 'test_passwdupd')
@@ -106,7 +106,6 @@ class HtDigestTestCase(_BaseTestCase):
 
 
 class HtPasswdTestCase(_BaseTestCase):
-
     flavor = 'htpasswd'
 
     def setUp(self):
@@ -149,9 +148,9 @@ class HtPasswdTestCase(_BaseTestCase):
                                'user:$apr1$xW/09...$fb150dT95SoL1HwXtHS/I0')
 
     def test_add_with_no_trailing_newline(self):
-        filename = self._create_file('test_add_with_no_trailing_newline',
-                                     content='user:$apr1$'
-                                             'xW/09...$fb150dT95SoL1HwXtHS/I0')
+        filename = self._create_file(
+            'test_add_with_no_trailing_newline',
+            content='user:$apr1$xW/09...$fb150dT95SoL1HwXtHS/I0')
         self.env.config.set('account-manager', 'htpasswd_file', filename)
         self.assertTrue(self.store.check_password('user', 'password'))
         self.store.set_password('user2', 'password2')
@@ -173,25 +172,25 @@ class HtPasswdTestCase(_BaseTestCase):
         self.assertTrue(self.store.userline('user',
                                             'password').startswith('user:'))
         self.assertFalse(self.store.userline('user', 'password'
-                                            ).startswith('user:$apr1$'))
+                                             ).startswith('user:$apr1$'))
         self.assertFalse(self.store.userline('user', 'password'
-                                            ).startswith('user:{SHA}'))
+                                             ).startswith('user:{SHA}'))
         self.store.set_password('user', 'password')
         self.assertTrue(self.store.check_password('user', 'password'))
         self.env.config.set('account-manager', 'htpasswd_hash_type', 'md5')
         self.assertTrue(self.store.userline('user', 'password'
-                                           ).startswith('user:$apr1$'))
+                                            ).startswith('user:$apr1$'))
         self.store.set_password('user', 'password')
         self.assertTrue(self.store.check_password('user', 'password'))
         self.env.config.set('account-manager', 'htpasswd_hash_type', 'sha')
         self.assertTrue(self.store.userline('user', 'password'
-                                           ).startswith('user:{SHA}'))
+                                            ).startswith('user:{SHA}'))
         self.store.set_password('user', 'password')
         self.assertTrue(self.store.check_password('user', 'password'))
         self.env.config.set('account-manager', 'htpasswd_hash_type', 'sha256')
         try:
             self.assertTrue(self.store.userline('user', 'password'
-                                               ).startswith('user:$5$'))
+                                                ).startswith('user:$5$'))
         except NotImplementedError:
             pass
         else:
@@ -201,7 +200,7 @@ class HtPasswdTestCase(_BaseTestCase):
                             'sha512')
         try:
             self.assertTrue(self.store.userline('user', 'password'
-                                               ).startswith('user:$6$'))
+                                                ).startswith('user:$6$'))
         except NotImplementedError:
             pass
         else:
@@ -214,6 +213,7 @@ def test_suite():
     suite.addTest(unittest.makeSuite(HtDigestTestCase))
     suite.addTest(unittest.makeSuite(HtPasswdTestCase))
     return suite
+
 
 if __name__ == '__main__':
     unittest.main(defaultTest='test_suite')

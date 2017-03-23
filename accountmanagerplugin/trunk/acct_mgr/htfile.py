@@ -12,12 +12,11 @@
 import errno
 import os
 
-from trac.config import Option
-from trac.core import Component, TracError, implements
-
-from acct_mgr.api import IPasswordStore, _, N_
+from acct_mgr.api import IPasswordStore, _
 from acct_mgr.pwhash import htpasswd, mkhtpasswd, htdigest
 from acct_mgr.util import EnvRelativePathOption
+from trac.config import Option
+from trac.core import Component, TracError, implements
 
 
 class AbstractPasswordFileStore(Component):
@@ -38,7 +37,7 @@ class AbstractPasswordFileStore(Component):
         filename = str(self.filename)
         if not os.path.exists(filename):
             self.log.error('acct_mgr: get_users() -- '
-                           'Can\'t locate password file "%s"' % filename)
+                           'Can\'t locate password file "%s"', filename)
             return []
         return self._get_users(filename)
 
@@ -57,7 +56,7 @@ class AbstractPasswordFileStore(Component):
         filename = str(self.filename)
         if not os.path.exists(filename):
             self.log.error('acct_mgr: check_password() -- '
-                           'Can\'t locate password file "%s"' % filename)
+                           'Can\'t locate password file "%s"', filename)
             return False
         user = user.encode('utf-8')
         password = password.encode('utf-8')
@@ -66,11 +65,11 @@ class AbstractPasswordFileStore(Component):
             with open(filename, 'rU') as f:
                 for line in f:
                     if line.startswith(prefix):
-                        return self._check_userline(user, password,
-                               line[len(prefix):].rstrip('\n'))
+                        line = line[len(prefix):].rstrip('\n')
+                        return self._check_userline(user, password, line)
         except (OSError, IOError):
             self.log.error('acct_mgr: check_password() -- '
-                           'Can\'t read password file "%s"' % filename)
+                           'Can\'t read password file "%s"', filename)
         return None
 
     def _update_file(self, prefix, userline, overwrite=True):
@@ -86,20 +85,20 @@ class AbstractPasswordFileStore(Component):
         """
         if not self.filename:
             option = self.__class__.filename
-            raise TracError(_("[%(section)s] %(name)s option for the password "
-                              "file is not configured",
-                              section=option.section, name=option.name))
-        f = None
+            raise TracError(
+                _("[%(section)s] %(name)s option for the password "
+                  "file is not configured",
+                  section=option.section, name=option.name))
         filename = str(self.filename)
         matched = False
         new_lines = []
+        eol = '\n'
         try:
             # Open existing file read-only to read old content.
             # DEVEL: Use `with` statement available in Python >= 2.5
             #   as soon as we don't need to support 2.4 anymore.
-            eol = '\n'
-            f = open(filename, 'r')
-            lines = f.readlines()
+            with open(filename) as f:
+                lines = f.readlines()
 
             # DEVEL: Beware, in shared use there is a race-condition,
             #   since file changes by other programs that occure from now on
@@ -152,8 +151,8 @@ class AbstractPasswordFileStore(Component):
 
         # Try to (re-)open file write-only now and save new content.
         try:
-            f = open(filename, 'w')
-            f.writelines(new_lines)
+            with open(filename, 'w') as f:
+                f.writelines(new_lines)
         except EnvironmentError, e:
             if e.errno == errno.EACCES or e.errno == errno.EROFS:
                 raise TracError(_(
@@ -167,7 +166,7 @@ class AbstractPasswordFileStore(Component):
             f.close()
             if not f.closed:
                 self.log.debug('acct_mgr: _update_file() -- '
-                               'Closing password file "%s" failed' % filename)
+                               'Closing password file "%s" failed', filename)
         return matched
 
 
@@ -190,10 +189,10 @@ class HtPasswdStore(AbstractPasswordFileStore):
     implements(IPasswordStore)
 
     filename = EnvRelativePathOption('account-manager', 'htpasswd_file', '',
-        doc = N_("""Path relative to Trac environment or full host machine
-                path to password file"""))
+        doc="Path relative to Trac environment or full host machine path "
+            "to password file")
     hash_type = Option('account-manager', 'htpasswd_hash_type', 'crypt',
-        doc = N_("Default hash type of new/updated passwords"))
+        doc="Default hash type of new/updated passwords")
 
     def config_key(self):
         return 'htpasswd'
@@ -208,11 +207,11 @@ class HtPasswdStore(AbstractPasswordFileStore):
         return suffix == htpasswd(password, suffix)
 
     def _get_users(self, filename):
-        f = open(filename, 'rU')
-        for line in f:
-            user = line.split(':', 1)[0]
-            if user:
-                yield user.decode('utf-8')
+        with open(filename, 'rU') as f:
+            for line in f:
+                user = line.split(':', 1)[0]
+                if user:
+                    yield user.decode('utf-8')
 
 
 class HtDigestStore(AbstractPasswordFileStore):
@@ -231,10 +230,10 @@ class HtDigestStore(AbstractPasswordFileStore):
     implements(IPasswordStore)
 
     filename = EnvRelativePathOption('account-manager', 'htdigest_file', '',
-        doc = N_("""Path relative to Trac environment or full host machine
-                path to password file"""))
+        doc="""Path relative to Trac environment or full host machine
+            path to password file""")
     realm = Option('account-manager', 'htdigest_realm', '',
-        doc = N_("Realm to select relevant htdigest file entries"))
+        doc="Realm to select relevant htdigest file entries")
 
     def config_key(self):
         return 'htdigest'
@@ -243,17 +242,18 @@ class HtDigestStore(AbstractPasswordFileStore):
         return '%s:%s:' % (user, self.realm.encode('utf-8'))
 
     def userline(self, user, password):
-        return self.prefix(user) + htdigest(user, self.realm.encode('utf-8'), password)
+        return self.prefix(user) + htdigest(user, self.realm.encode('utf-8'),
+                                            password)
 
     def _check_userline(self, user, password, suffix):
         return suffix == htdigest(user, self.realm.encode('utf-8'), password)
 
     def _get_users(self, filename):
         _realm = self.realm.encode('utf-8')
-        f = open(filename)
-        for line in f:
-            args = line.split(':')[:2]
-            if len(args) == 2:
-                user, realm = args
-                if realm == _realm and user:
-                    yield user.decode('utf-8')
+        with open(filename) as f:
+            for line in f:
+                args = line.split(':')[:2]
+                if len(args) == 2:
+                    user, realm = args
+                    if realm == _realm and user:
+                        yield user.decode('utf-8')

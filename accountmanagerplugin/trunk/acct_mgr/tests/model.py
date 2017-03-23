@@ -12,7 +12,6 @@ import shutil
 import tempfile
 import time
 import unittest
-
 from Cookie import SimpleCookie as Cookie
 
 from trac.test import EnvironmentStub, Mock
@@ -23,7 +22,6 @@ from acct_mgr.model import get_user_attribute, set_user_attribute, \
 
 
 class ModelTestCase(unittest.TestCase):
-
     def setUp(self):
         self.env = EnvironmentStub(default_data=True, enable=['trac.*'])
         self.env.path = tempfile.mkdtemp()
@@ -136,6 +134,7 @@ def test_suite():
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(ModelTestCase))
     return suite
+
 
 if __name__ == '__main__':
     unittest.main(defaultTest='test_suite')

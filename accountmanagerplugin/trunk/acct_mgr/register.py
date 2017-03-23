@@ -13,6 +13,13 @@ import base64
 import os
 import re
 
+from acct_mgr.api import AccountManager, CommonTemplateProvider
+from acct_mgr.api import IAccountRegistrationInspector
+from acct_mgr.api import _, N_, cleandoc_, dgettext, tag_
+from acct_mgr.model import email_associated, get_user_attribute
+from acct_mgr.model import set_user_attribute
+from acct_mgr.notification import NotificationError
+from acct_mgr.util import contains_any
 from trac import perm
 from trac.config import BoolOption, Option
 from trac.core import Component, TracError, implements
@@ -21,14 +28,6 @@ from trac.util.text import exception_to_unicode
 from trac.web import auth, chrome
 from trac.web.api import HTTPBadRequest
 from trac.web.main import IRequestFilter, IRequestHandler
-
-from acct_mgr.api import AccountManager, CommonTemplateProvider
-from acct_mgr.api import IAccountRegistrationInspector
-from acct_mgr.api import _, N_, cleandoc_, dgettext, tag_
-from acct_mgr.model import email_associated, get_user_attribute
-from acct_mgr.model import set_user_attribute
-from acct_mgr.notification import NotificationError
-from acct_mgr.util import containsAny
 
 
 class RegistrationError(TracError):
@@ -110,7 +109,7 @@ class BasicCheck(GenericRegistrationInspector):
         #   ':' can't be used in HtPasswdStore
         #   '[' and ']' can't be used in SvnServePasswordStore
         blacklist = acctmgr.username_char_blacklist
-        if containsAny(username, blacklist):
+        if contains_any(username, blacklist):
             pretty_blacklist = ''
             for c in blacklist:
                 if pretty_blacklist == '':
@@ -216,7 +215,7 @@ class BotTrapCheck(GenericRegistrationInspector):
         # Unlike the former, the hidden bot-trap input field must stay empty.
         keep_empty = req.args.get('sentinel', '')
         if keep_empty or self.reg_basic_token and \
-                self.reg_basic_token != basic_token:
+                        self.reg_basic_token != basic_token:
             raise RegistrationError(N_("Are you human? If so, try harder!"))
 
 
@@ -274,7 +273,7 @@ class EmailCheck(GenericRegistrationInspector):
                 )
             # User preferences case.
             elif req.path_info == '/prefs' and \
-                    email == req.session.get('email'):
+                            email == req.session.get('email'):
                 return
             elif email_associated(self.env, email):
                 raise RegistrationError(N_(
@@ -289,19 +288,20 @@ class RegExpCheck(GenericRegistrationInspector):
     A collection of checks based on regular expressions.
 
     ''It depends on !EmailCheck being enabled too for using it's input field.
-    Likewise email checking is bypassed, if account verification is disabled.''
+    Likewise email checking is bypassed, if account verification is 
+    disabled.''
     """)
 
     username_regexp = Option('account-manager', 'username_regexp',
-        r'(?i)^[A-Z0-9.\-_]{5,}$', doc="""
+                             r'(?i)^[A-Z0-9.\-_]{5,}$', doc="""
         A validation regular expression describing new usernames. Define
         constraints for allowed user names corresponding to local naming
         policy.
         """)
 
     email_regexp = Option('account-manager', 'email_regexp',
-        r'(?i)^[A-Z0-9._%+-]+@(?:[A-Z0-9-]+\.)+[A-Z0-9-]{2,63}$', doc="""
-        A validation regular expression describing new account emails.
+        r'(?i)^[A-Z0-9._%+-]+@(?:[A-Z0-9-]+\.)+[A-Z0-9-]{2,63}$',
+        doc="""A validation regular expression describing new account emails.
         Define constraints for a valid email address. A custom pattern can
         narrow or widen scope i.e. to accept UTF-8 characters.
         """)
@@ -432,7 +432,8 @@ class RegistrationModule(CommonTemplateProvider):
         data = {
             '_dgettext': dgettext,
             'acctmgr': {'name': name, 'username': username},
-            'ignore_auth_case': self.config.getbool('trac', 'ignore_auth_case')
+            'ignore_auth_case': self.config.getbool('trac',
+                                                    'ignore_auth_case')
         }
         verify_enabled = self.env.is_enabled(EmailVerificationModule) and \
                          EmailVerificationModule(self.env).verify_email
@@ -445,7 +446,7 @@ class RegistrationModule(CommonTemplateProvider):
                 except NotificationError, e:
                     chrome.add_warning(req, _(
                         "Error raised while sending a change notification."
-                        ) + _("You should report that issue to a Trac admin."))
+                    ) + _("You should report that issue to a Trac admin."))
                     self.log.error(
                         'Unable to send registration notification: %s',
                         exception_to_unicode(e, traceback=True))
@@ -464,8 +465,9 @@ class RegistrationModule(CommonTemplateProvider):
                             "Error raised while sending a change "
                             "notification.") + _(
                             "You should report that issue to a Trac admin."))
-                        self.log.error('Unable to send admin notification: %s',
-                                       exception_to_unicode(e, traceback=True))
+                        self.log.error(
+                            'Unable to send admin notification: %s',
+                            exception_to_unicode(e, traceback=True))
                     else:
                         chrome.add_notice(req, tag_(
                             "Your username has been registered successfully, "
@@ -492,8 +494,8 @@ class RegistrationModule(CommonTemplateProvider):
                                                                         data)
             except TypeError, e:
                 # Add some robustness by logging the most likely errors.
-                self.env.log.warning("%s.render_registration_fields failed: "
-                                     "%s", inspector.__class__.__name__, e)
+                self.log.warning("%s.render_registration_fields failed: %s",
+                                 inspector.__class__.__name__, e)
                 fragment = None
             if fragment:
                 try:
@@ -538,9 +540,9 @@ class EmailVerificationModule(CommonTemplateProvider):
                 self.config.getbool('notification', 'smtp_enabled'):
             self.email_enabled = False
             if self.env.is_enabled(self.__class__):
-                self.env.log.warning(
-                    ' '.join(self.__class__.__name__,
-                             "can't work because of missing email setup."))
+                self.log.warning(' '.join(self.__class__.__name__,
+                                 "can't work because of missing email setup.")
+                                 )
 
     # IRequestFilter methods
 
@@ -549,9 +551,10 @@ class EmailVerificationModule(CommonTemplateProvider):
             # Permissions for anonymous users remain unchanged.
             return handler
         elif req.path_info == '/prefs' and \
-                req.method == 'POST' and \
-                'restore' not in req.args and \
-                req.get_header('X-Requested-With') != 'XMLHttpRequest':
+                        req.method == 'POST' and \
+                        'restore' not in req.args and \
+                        req.get_header(
+                            'X-Requested-With') != 'XMLHttpRequest':
             try:
                 AccountManager(self.env).validate_account(req)
                 # Check passed without error: New email address seems good.
@@ -570,14 +573,14 @@ class EmailVerificationModule(CommonTemplateProvider):
                     req.redirect(req.href.prefs(None))
         if self.verify_email and handler is not self and \
                 'email_verification_token' in req.session and \
-                not req.perm.has_permission('ACCTMGR_ADMIN'):
+                'ACCTMGR_ADMIN' not in req.perm:
             # TRANSLATOR: Your permissions have been limited until you ...
             link = tag.a(_("verify your email address"),
                          href=req.href.verify_email())
             # TRANSLATOR: ... verify your email address
-            chrome.add_warning(req, tag_(
-                "Your permissions have been limited until you %(link)s.",
-                link=link))
+            chrome.add_warning(req,
+                               tag_("Your permissions have been limited "
+                                    "until you %(link)s.", link=link))
             req.perm = perm.PermissionCache(self.env, 'anonymous')
         return handler
 
@@ -590,7 +593,7 @@ class EmailVerificationModule(CommonTemplateProvider):
         # Only send verification if the user entered an email address.
         if self.verify_email and self.email_enabled is True and email and \
                 email != req.session.get('email_verification_sent_to') and \
-                not req.perm.has_permission('ACCTMGR_ADMIN'):
+                'ACCTMGR_ADMIN' not in req.perm:
             req.session['email_verification_token'] = self._gen_token()
             req.session['email_verification_sent_to'] = email
             try:
@@ -602,7 +605,7 @@ class EmailVerificationModule(CommonTemplateProvider):
             except NotificationError, e:
                 chrome.add_warning(req, _(
                     "Error raised while sending a change notification."
-                    ) + _("You should report that issue to a Trac admin."))
+                ) + _("You should report that issue to a Trac admin."))
                 self.log.error('Unable to send registration notification: %s',
                                exception_to_unicode(e, traceback=True))
             else:
@@ -637,14 +640,15 @@ class EmailVerificationModule(CommonTemplateProvider):
                 )
             except NotificationError, e:
                 chrome.add_warning(req, _("Error raised while sending a "
-                                   "change notification.") + _("You should "
-                                   "report that issue to a Trac admin."))
+                                          "change notification.") + _(
+                    "You should "
+                    "report that issue to a Trac admin."))
                 self.log.error('Unable to send verification notification: %s',
                                exception_to_unicode(e, traceback=True))
             else:
-                chrome.add_notice(req,
-                    _("A notification email has been resent to <%s>."),
-                      req.session.get('email'))
+                chrome.add_notice(req, _("A notification email has been "
+                                         "resent to <%s>."),
+                                  req.session.get('email'))
         elif 'verify' in req.args:
             # allow via POST or GET (the latter for email links)
             if req.args['token'] == req.session['email_verification_token']:

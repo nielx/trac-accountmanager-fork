@@ -17,7 +17,6 @@ from acct_mgr.db import SessionStore
 
 
 class _BaseTestCase(unittest.TestCase):
-
     def setUp(self):
         self.env = EnvironmentStub(enable=['trac.*', 'acct_mgr.*'])
         self.env.config.set('account-manager', 'password_store',
@@ -101,6 +100,7 @@ def test_suite():
     suite.addTest(unittest.makeSuite(HtDigestTestCase))
     suite.addTest(unittest.makeSuite(HtPasswdTestCase))
     return suite
+
 
 if __name__ == '__main__':
     unittest.main(defaultTest='test_suite')

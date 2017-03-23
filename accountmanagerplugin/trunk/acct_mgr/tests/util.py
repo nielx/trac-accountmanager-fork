@@ -9,14 +9,12 @@
 # Author: Steffen Hoffmann <hoff.st@web.de>
 
 import unittest
-
 from datetime import datetime
 
 from acct_mgr.util import pretty_precise_timedelta
 
 
 class UtilTestCase(unittest.TestCase):
-
     def test_pretty_precise_timedelta(self):
         yesterday = datetime(2012, 12, 14)
         today = datetime(2012, 12, 15)
@@ -51,6 +49,7 @@ def test_suite():
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(UtilTestCase))
     return suite
+
 
 if __name__ == '__main__':
     unittest.main(defaultTest='test_suite')

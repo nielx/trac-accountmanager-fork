@@ -9,10 +9,10 @@
 #
 # Author: Matthew Good <trac@matt-good.net>
 
-from trac.core import Component, implements
 from trac.config import ExtensionOption
+from trac.core import Component, implements
 
-from acct_mgr.api import IPasswordStore, _, N_
+from acct_mgr.api import IPasswordStore
 from acct_mgr.pwhash import IPasswordHashMethod
 
 
@@ -21,7 +21,7 @@ class SessionStore(Component):
 
     hash_method = ExtensionOption('account-manager', 'hash_method',
         IPasswordHashMethod, 'HtDigestHashMethod',
-        doc = N_("IPasswordHashMethod used to create new/updated passwords"))
+        doc="IPasswordHashMethod used to create new/updated passwords")
 
     def __init__(self):
         self.key = 'password'
@@ -37,7 +37,7 @@ class SessionStore(Component):
             yield sid
 
     def has_user(self, user):
-        for row in self.env.db_query("""
+        for _ in self.env.db_query("""
                 SELECT * FROM session_attribute
                 WHERE authenticated=1 AND name=%s AND sid=%s
                 """, (self.key, user)):
@@ -53,15 +53,15 @@ class SessionStore(Component):
         """
         if not self.hash_method_enabled:
             return
-        hash = self.hash_method.generate_hash(user, password)
+        hash_ = self.hash_method.generate_hash(user, password)
         with self.env.db_transaction as db:
             sql = "WHERE authenticated=1 AND name=%s AND sid=%s"
             if overwrite:
                 db("""
                     UPDATE session_attribute SET value=%s
-                    """ + sql, (hash, self.key, user))
+                    """ + sql, (hash_, self.key, user))
             exists = False
-            for value, in db("""
+            for _ in db("""
                     SELECT value FROM session_attribute
                     """ + sql, (self.key, user)):
                 exists = True
@@ -71,7 +71,7 @@ class SessionStore(Component):
                     INSERT INTO session_attribute
                      (sid,authenticated,name,value)
                     VALUES (%s,1,%s,%s)
-                    """, (user, self.key, hash))
+                    """, (user, self.key, hash_))
 
         return not exists
 
@@ -79,11 +79,11 @@ class SessionStore(Component):
         """Checks if the password is valid for the user."""
         if not self.hash_method_enabled:
             return
-        for hash, in self.env.db_query("""
+        for hash_, in self.env.db_query("""
                 SELECT value FROM session_attribute
                 WHERE authenticated=1 AND name=%s AND sid=%s
                 """, (self.key, user)):
-            return self.hash_method.check_hash(user, password, hash)
+            return self.hash_method.check_hash(user, password, hash_)
         # Return value 'None' allows to proceed with another, chained store.
         return
 
@@ -96,16 +96,15 @@ class SessionStore(Component):
             sql = "WHERE authenticated=1 AND name=%s AND sid=%s"
             # Avoid has_user() to make this transaction atomic.
             exists = False
-            for row in db("""
-                    SELECT * FROM session_attribute
-                    """ + sql, (self.key, user)):
+            for _ in db("""
+                    SELECT * FROM session_attribute %s
+                    """ % sql, (self.key, user)):
                 exists = True
                 break
             if exists:
                 db("""
-                    DELETE
-                    FROM session_attribute
-                    """ + sql, (self.key, user))
+                    DELETE FROM session_attribute %s
+                    """ % sql, (self.key, user))
 
         return exists
 
@@ -117,9 +116,9 @@ class SessionStore(Component):
         interface configured in 'hash_method' has not been enabled.
         """
         try:
-            hash_method = self.hash_method
+            self.hash_method
         except AttributeError:
-            self.env.log.error("%s: no IPasswordHashMethod enabled "
-                               "- fatal, can't work" % self.__class__)
+            self.log.error("%s: no IPasswordHashMethod enabled - fatal, "
+                           "can't work", self.__class__)
             return
         return True

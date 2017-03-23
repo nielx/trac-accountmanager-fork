@@ -8,17 +8,15 @@
 #
 # Author: Steffen Hoffmann <hoff.st@web.de>
 
-from genshi.builder import tag
-
 from trac.core import implements
 from trac.perm import PermissionSystem
-from trac.util.compat import sorted
+from trac.util.html import tag
 from trac.web.chrome import Chrome
 from trac.wiki.api import IWikiMacroProvider, WikiSystem, parse_args
 from trac.wiki.formatter import format_to_oneliner
 
 from acct_mgr.admin import fetch_user_data
-from acct_mgr.api import AccountManager, CommonTemplateProvider, _, tag_
+from acct_mgr.api import AccountManager, CommonTemplateProvider, tag_
 from acct_mgr.guard import AccountGuard
 
 
@@ -110,7 +108,7 @@ A misc placeholder with this statement is presented to unprivileged users.
                 else:
                     users = list(set(users) - set(locked))
             elif 'visit' in kw.keys() or 'visit' in args:
-                if not 'USER_VIEW' in req.perm:
+                if 'USER_VIEW' not in req.perm:
                     return msg_no_perm
                 cols = []
                 data = {'accounts': fetch_user_data(env, req), 'cls': 'wiki'}
@@ -119,16 +117,16 @@ A misc placeholder with this statement is presented to unprivileged users.
                         cols.append(col)
                 data['cols'] = cols
                 return Chrome(env).render_template(
-                       req, 'user_table.html', data, 'text/html', True)
+                    req, 'user_table.html', data, 'text/html', True)
             if kw.get('format') == 'count' or 'count' in args:
                 return tag(len(users))
-            if not 'USER_VIEW' in req.perm:
+            if 'USER_VIEW' not in req.perm:
                 return msg_no_perm
             if 'email' in args or 'name' in args:
                 # Replace username with full name, add email if available.
                 for username, name, email in self.env.get_known_users():
                     if username in users:
-                        if not 'name' in args or name is None:
+                        if 'name' not in args or name is None:
                             name = username
                         if 'email' in args and email is not None:
                             email = ''.join(['<', email, '>'])

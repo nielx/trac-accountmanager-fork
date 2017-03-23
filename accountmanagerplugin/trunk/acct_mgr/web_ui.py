@@ -13,21 +13,6 @@ import random
 import string
 import time
 
-from genshi.builder import tag
-
-from trac.core import implements
-from trac.config import BoolOption, ConfigurationError
-from trac.config import IntOption, Option
-from trac.env import open_environment
-from trac.prefs import IPreferencePanelProvider
-from trac.util import hex_entropy
-from trac.util.presentation import separated
-from trac.util.text import exception_to_unicode
-from trac.web import auth
-from trac.web.main import IRequestHandler, IRequestFilter, get_environments
-from trac.web.chrome import INavigationContributor, add_notice
-from trac.web.chrome import add_warning
-
 from acct_mgr.api import AccountManager, CommonTemplateProvider
 from acct_mgr.api import _, dgettext, ngettext, tag_
 from acct_mgr.db import SessionStore
@@ -36,11 +21,26 @@ from acct_mgr.model import set_user_attribute
 from acct_mgr.notification import NotificationError
 from acct_mgr.register import RegistrationModule
 from acct_mgr.util import if_enabled
+from trac.config import BoolOption, ConfigurationError
+from trac.config import IntOption, Option
+from trac.core import implements
+from trac.env import open_environment
+from trac.prefs import IPreferencePanelProvider
+from trac.util import hex_entropy
+from trac.util.html import tag
+from trac.util.presentation import separated
+from trac.util.text import exception_to_unicode
+from trac.web import auth
+from trac.web.chrome import INavigationContributor, add_notice
+from trac.web.chrome import add_warning
+from trac.web.main import IRequestHandler, IRequestFilter, get_environments
 
 
 class ResetPwStore(SessionStore):
     """User password store for the 'lost password' procedure."""
+
     def __init__(self):
+        super(ResetPwStore, self).__init__()
         self.key = 'password_reset'
 
 
@@ -58,13 +58,14 @@ class AccountModule(CommonTemplateProvider):
                INavigationContributor, IRequestFilter)
 
     _password_chars = string.ascii_letters + string.digits
-    password_length = IntOption(
-        'account-manager', 'generated_password_length', 8,
+    password_length = IntOption('account-manager',
+        'generated_password_length', 8,
         """Length of the randomly-generated passwords created when resetting
         the password for an account.""")
+
     reset_password = BoolOption(
         'account-manager', 'reset_password', True,
-        'Set to False, if there is no email system setup.')
+        "Set to False, if there is no email system setup.")
 
     def __init__(self):
         self.acctmgr = AccountManager(self.env)
@@ -168,10 +169,10 @@ class AccountModule(CommonTemplateProvider):
         return 'reset_password.html', data, None
 
     def _do_account(self, req):
-        assert(req.authname and req.authname != 'anonymous')
+        assert (req.authname and req.authname != 'anonymous')
         action = req.args.get('action')
         delete_enabled = self.acctmgr.supports('delete_user') and \
-                             self.acctmgr.allow_delete_account
+                         self.acctmgr.allow_delete_account
         data = {
             'delete_enabled': delete_enabled,
             'delete_msg_confirm':
@@ -234,8 +235,9 @@ class AccountModule(CommonTemplateProvider):
                 self.acctmgr.delete_user(username)
             except NotificationError, e:
                 # User wont care for notification, only care for logging here.
-                self.log.error("Unable to send account deletion notification: "
-                               "%s", exception_to_unicode(e, traceback=True))
+                self.log.error(
+                    "Unable to send account deletion notification: "
+                    "%s", exception_to_unicode(e, traceback=True))
             # Delete the whole session, since records in session_attribute
             # would get restored on logout otherwise.
             req.session.clear()
@@ -311,16 +313,16 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
     # Trac core options, replicated here to not make them disappear by
     # disabling auth.LoginModule.
     check_ip = BoolOption('trac', 'check_auth_ip', 'false',
-         """Whether the IP address of the user should be checked for
-         authentication (''since 0.9'').""")
+                          """Whether the IP address of the user should be checked for
+                          authentication (''since 0.9'').""")
 
     ignore_case = BoolOption('trac', 'ignore_auth_case', 'false',
         """Whether login names should be converted to lower case
         (''since 0.9'').""")
 
     auth_cookie_lifetime = IntOption('trac', 'auth_cookie_lifetime', 0,
-        """Lifetime of the authentication cookie, in seconds.
-
+         """Lifetime of the authentication cookie, in seconds.
+                             
         This value determines how long the browser will cache
         authentication information, and therefore, after how much
         inactivity a user will have to log in again. The default value
@@ -363,25 +365,25 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
         if self.env.is_enabled(self.__class__) and \
                 self.env.is_enabled(auth.LoginModule):
             # Disable auth.LoginModule to handle login requests alone.
-            self.env.log.info("Concurrent enabled login modules found, "
-                              "fixing configuration ...")
+            self.log.info("Concurrent enabled login modules found, fixing "
+                          "configuration ...")
             cfg.set('components', 'trac.web.auth.loginmodule', 'disabled')
             # Changes are intentionally not written to file for persistence.
             # This could cause the environment to reload a bit too early, even
             # interrupting a rewrite in progress by another thread and causing
             # a DoS condition by truncating the configuration file.
-            self.env.log.info("trac.web.auth.LoginModule disabled, "
-                              "giving preference to %s.", self.__class__)
+            self.log.info("trac.web.auth.LoginModule disabled, giving "
+                          "preference to %s.", self.__class__)
 
         self.cookie_lifetime = self.auth_cookie_lifetime
         if not self.cookie_lifetime > 0:
             # Set the session to expire after some time and not
             #   when the browser is closed - what is Trac core default).
-            self.cookie_lifetime = 86400 * 30   # AcctMgr default = 30 days
+            self.cookie_lifetime = 86400 * 30  # AcctMgr default = 30 days
 
     def authenticate(self, req):
         if req.method == 'POST' and req.path_info.startswith('/login') and \
-                req.args.get('user_locked') is None:
+                        req.args.get('user_locked') is None:
             username = self._remote_user(req)
             acctmgr = AccountManager(self.env)
             guard = AccountGuard(self.env)
@@ -412,11 +414,11 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
                 if 'REMOTE_USER' in req.environ:
                     # Complain about another component setting environment
                     # variable for authenticated user.
-                    self.env.log.warning("LoginModule.authenticate: "
-                                         "'REMOTE_USER' was set to '%s'",
-                                         req.environ['REMOTE_USER'])
-                self.env.log.debug("LoginModule.authenticate: Set "
-                                   "'REMOTE_USER' = '%s'", username)
+                    self.log.warning("LoginModule.authenticate: "
+                                     "'REMOTE_USER' was set to '%s'",
+                                     req.environ['REMOTE_USER'])
+                self.log.debug("LoginModule.authenticate: Set 'REMOTE_USER' "
+                               "= '%s'", username)
                 req.environ['REMOTE_USER'] = username
         return auth.LoginModule.authenticate(self, req)
 
@@ -454,7 +456,8 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
                 else:
                     f_user = req.args.get('username')
                     release_time = AccountGuard(self.env
-                                   ).pretty_release_time(req, f_user)
+                                                ).pretty_release_time(req,
+                                                                      f_user)
                     if release_time is not None:
                         data['login_error'] = \
                             _("Account locked, please try again after % "
@@ -499,9 +502,9 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
             self._expire_cookie(req)
 
         if acctmgr.persistent_sessions and name and \
-                'trac_auth_session' in req.incookie and \
-                int(req.incookie['trac_auth_session'].value) < \
-                int(time.time()) - self.UPDATE_INTERVAL:
+                        'trac_auth_session' in req.incookie and \
+                        int(req.incookie['trac_auth_session'].value) < \
+                                int(time.time()) - self.UPDATE_INTERVAL:
             # Persistent sessions enabled, the user is logged in
             # ('name' exists) and has actually decided to use this feature
             # (indicated by the 'trac_auth_session' cookie existing).
@@ -510,8 +513,8 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
 
             # Refresh session cookie
             # Update the timestamp of the session so that it doesn't expire.
-            self.env.log.debug("Updating session %s for user %s",
-                               cookie.value, name)
+            self.log.debug("Updating session %s for user %s", cookie.value,
+                           name)
             # Refresh in database
             self.env.db_transaction("""
                 UPDATE auth_cookie SET time=%s WHERE cookie=%s
@@ -524,8 +527,8 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
                 old_cookie = cookie.value
                 # Update auth cookie value
                 cookie.value = hex_entropy()
-                self.env.log.debug("Changing session id for user %s to %s",
-                                   name, cookie.value)
+                self.log.debug("Changing session id for user %s to %s", name,
+                               cookie.value)
 
                 self.env.db_transaction("""
                     UPDATE auth_cookie SET cookie=%s WHERE cookie=%s
@@ -685,8 +688,8 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
     def _remote_user(self, req):
         """The real authentication using configured providers and stores."""
         username = req.args.get('username')
-        self.env.log.debug("LoginModule._remote_user: Authentication "
-                           "attempted for '%s'", username)
+        self.log.debug("LoginModule._remote_user: Authentication attempted "
+                       "for '%s'", username)
         password = req.args.get('password')
         if not username:
             return None
@@ -702,7 +705,7 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
                 # to avoid DOS by continuously triggered resets from
                 # a malicious third party.
                 if reset_store.delete_user(username) is True and \
-                        'PASSWORD_RESET' not in req.environ:
+                                'PASSWORD_RESET' not in req.environ:
                     self.env.db_transaction("""
                         DELETE FROM session_attribute
                         WHERE sid=%s
@@ -740,6 +743,6 @@ def _set_password(env, req, username, password, old_password=None):
     except NotificationError, e:
         add_warning(req, _("Error raised while sending a change "
                            "notification.") +
-                        _("You should report that issue to a Trac admin."))
+                    _("You should report that issue to a Trac admin."))
         env.log.error('Unable to send password change notification: %s',
                       exception_to_unicode(e, traceback=True))

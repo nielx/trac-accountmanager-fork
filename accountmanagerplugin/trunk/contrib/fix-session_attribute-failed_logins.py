@@ -13,7 +13,6 @@ import sys
 
 from trac.env import Environment
 
-
 env = Environment(sys.argv[1])
 
 if env:
@@ -44,7 +43,7 @@ if env:
                AND name='failed_logins'
         """, attempts)
         print >>, 'INFO: Fixed %s timestamp(s) in %s dataset(s).' \
-                             % (fixed, len(attempts))
+                  % (fixed, len(attempts))
 else:
-    print >>sys.stderr, 'Error: Trac environment %s not found.' % sys.argv[1]
+    print >> sys.stderr, 'Error: Trac environment %s not found.' % sys.argv[1]
     sys.exit(1)
