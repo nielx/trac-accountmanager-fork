@@ -9,9 +9,9 @@
 #
 # Author: Pedro Algarvio <ufs@ufsoft.org>
 
-from trac.core import Component, TracError, implements
 from trac.admin import IAdminPanelProvider
 from trac.config import Option, ListOption
+from trac.core import Component, TracError, implements
 from trac.notification import NotifyEmail
 
 from acct_mgr.api import IAccountChangeListener, CommonTemplateProvider, \
@@ -23,7 +23,6 @@ class NotificationError(TracError):
 
 
 class AccountChangeListener(Component):
-
     implements(IAccountChangeListener)
 
     _notify_actions = ListOption(
@@ -74,7 +73,7 @@ class AccountChangeNotification(NotifyEmail):
 
     def get_recipients(self, resid):
         recipients = self._recipients.split()
-        return (recipients,[])
+        return recipients, []
 
     def get_smtp_address(self, addr):
         """Overrides `get_smtp_address` in order to prevent CCing users
@@ -113,7 +112,7 @@ class SingleUserNotification(NotifyEmail):
     _username = None
 
     def get_recipients(self, resid):
-        return ([resid],[])
+        return [resid], []
 
     def get_smtp_address(self, addr):
         """Overrides `get_smtp_address` in order to prevent CCing users
@@ -128,7 +127,8 @@ class SingleUserNotification(NotifyEmail):
         # save the username for use in `get_smtp_address`
         self._username = username
         old_public_cc = self.config.getbool('notification', 'use_public_cc')
-        # override public cc option so that the user's email is included in the To: field
+        # override public cc option so that the user's email is included in
+        # the To: field
         self.config.set('notification', 'use_public_cc', 'true')
         try:
             NotifyEmail.notify(self, username, subject)
@@ -154,7 +154,8 @@ class PasswordResetNotification(SingleUserNotification):
         })
 
         projname = self.config.get('project', 'name')
-        subject = '[%s] Trac password reset for user: %s' % (projname, username)
+        subject = '[%s] Trac password reset for user: %s' \
+                  % (projname, username)
 
         SingleUserNotification.notify(self, username, subject)
 
@@ -169,25 +170,26 @@ class EmailVerificationNotification(SingleUserNotification):
                 'token': token,
             },
             'verify': {
-                'link': self.env.abs_href.verify_email(token=token,verify=1),
+                'link': self.env.abs_href.verify_email(token=token, verify=1),
             }
         })
 
-        projname = self.config.get('project', 'name')
-        subject = '[%s] Trac email verification for user: %s' % (projname, username)
+        proj_name = self.config.get('project', 'name')
+        subject = '[%s] Trac email verification for user: %s' \
+                  % (proj_name, username)
 
         SingleUserNotification.notify(self, username, subject)
 
 
 class AccountChangeNotificationAdminPanel(CommonTemplateProvider):
-
     implements(IAdminPanelProvider)
 
     # IAdminPageProvider methods
 
     def get_admin_panels(self, req):
-        if req.perm.has_permission('ACCTMGR_CONFIG_ADMIN'):
-            yield ('accounts', _("Accounts"), 'notification', _("Notification"))
+        if 'ACCTMGR_CONFIG_ADMIN' in req.perm:
+            yield ('accounts', _("Accounts"), 'notification',
+                   _("Notification"))
 
     def render_admin_panel(self, req, cat, page, path_info):
         if page == 'notification':
@@ -197,17 +199,18 @@ class AccountChangeNotificationAdminPanel(CommonTemplateProvider):
         cfg = self.config
         if req.method == 'POST':
             cfg.set('account-manager', 'account_changes_notify_addresses',
-                ' '.join(req.args.get('notify_addresses').strip('\n').split()))
+                    ' '.join(
+                        req.args.get('notify_addresses').strip('\n').split()))
             cfg.set('account-manager', 'notify_actions',
-                ','.join(req.args.getlist('notify_actions'))
-                )
+                    ','.join(req.args.getlist('notify_actions')))
             cfg.save()
 
         notify_addresses = cfg.get('account-manager',
                                    'account_changes_notify_addresses').split()
         notify_actions = cfg.getlist('account-manager', 'notify_actions')
-        data = {'_dgettext': dgettext,
-                'notify_actions': notify_actions,
-                'notify_addresses': notify_addresses
-               }
+        data = {
+            '_dgettext': dgettext,
+            'notify_actions': notify_actions,
+            'notify_addresses': notify_addresses
+        }
         return 'admin_accountsnotification.html', data

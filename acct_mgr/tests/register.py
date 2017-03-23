@@ -12,17 +12,15 @@ import shutil
 import string
 import tempfile
 import unittest
-
 from Cookie import SimpleCookie as Cookie
-from genshi.core import Markup
 
 from trac.perm import PermissionCache, PermissionSystem
+from trac.util.html import Markup
 from trac.test import EnvironmentStub, Mock, MockPerm
 from trac.web.session import Session
 
 from acct_mgr.api import AccountManager
 from acct_mgr.db import SessionStore
-from acct_mgr.htfile import HtPasswdStore
 from acct_mgr.model import set_user_attribute
 from acct_mgr.register import BasicCheck, BotTrapCheck, EmailCheck
 from acct_mgr.register import EmailVerificationModule
@@ -34,7 +32,7 @@ from acct_mgr.register import UsernamePermCheck
 class _BaseTestCase(unittest.TestCase):
     def setUp(self):
         self.env = EnvironmentStub(
-                enable=['trac.*', 'acct_mgr.api.*'])
+            enable=['trac.*', 'acct_mgr.api.*'])
         self.env.path = tempfile.mkdtemp()
         self.perm = PermissionSystem(self.env)
 
@@ -52,6 +50,7 @@ class _BaseTestCase(unittest.TestCase):
 
 class DummyRegInspectorTestCase(_BaseTestCase):
     """Check GenericRegistrationInspector properties via child classes."""
+
     def setUp(self):
         _BaseTestCase.setUp(self)
 
@@ -100,9 +99,9 @@ class BasicCheckTestCase(_BaseTestCase):
     def setUp(self):
         _BaseTestCase.setUp(self)
         self.env = EnvironmentStub(
-                enable=['trac.*', 'acct_mgr.admin.*',
-                        'acct_mgr.db.sessionstore',
-                        'acct_mgr.pwhash.HtDigestHashMethod'])
+            enable=['trac.*', 'acct_mgr.admin.*',
+                    'acct_mgr.db.sessionstore',
+                    'acct_mgr.pwhash.HtDigestHashMethod'])
         self.env.path = tempfile.mkdtemp()
         self.env.config.set('account-manager', 'password_store',
                             'SessionStore')
@@ -191,7 +190,7 @@ class EmailCheckTestCase(_BaseTestCase):
     def test_verify_mod_disabled(self):
         """Registration challenges with EmailVerificationModule disabled."""
         self.env = EnvironmentStub(
-                enable=['trac.*', 'acct_mgr.admin.*'])
+            enable=['trac.*', 'acct_mgr.admin.*'])
         self.env.path = tempfile.mkdtemp()
 
         check = EmailCheck(self.env)
@@ -206,8 +205,8 @@ class EmailCheckTestCase(_BaseTestCase):
     def test_verify_conf_changes(self):
         """Registration challenges with EmailVerificationModule enabled."""
         self.env = EnvironmentStub(
-                enable=['trac.*', 'acct_mgr.admin.*', 'acct_mgr.register.*',
-                        'acct_mgr.pwhash.HtDigestHashMethod'])
+            enable=['trac.*', 'acct_mgr.admin.*', 'acct_mgr.register.*',
+                    'acct_mgr.pwhash.HtDigestHashMethod'])
         self.env.path = tempfile.mkdtemp()
         set_user_attribute(self.env, 'admin', 'email', 'admin@foo.bar')
 
@@ -244,7 +243,7 @@ class EmailCheckTestCase(_BaseTestCase):
 class RegExpCheckTestCase(_BaseTestCase):
     def test_check(self):
         self.env = EnvironmentStub(
-                enable=['trac.*', 'acct_mgr.admin.*', 'acct_mgr.register.*'])
+            enable=['trac.*', 'acct_mgr.admin.*', 'acct_mgr.register.*'])
         self.env.path = tempfile.mkdtemp()
 
         check = RegExpCheck(self.env)
@@ -310,10 +309,10 @@ class RegistrationModuleTestCase(_BaseTestCase):
     def setUp(self):
         _BaseTestCase.setUp(self)
         self.env = EnvironmentStub(enable=[
-                       'trac.*', 'acct_mgr.api.*', 'acct_mgr.db.*',
-                       'acct_mgr.register.*',
-                       'acct_mgr.pwhash.HtDigestHashMethod'
-                   ])
+            'trac.*', 'acct_mgr.api.*', 'acct_mgr.db.*',
+            'acct_mgr.register.*',
+            'acct_mgr.pwhash.HtDigestHashMethod'
+        ])
         self.env.path = tempfile.mkdtemp()
         self.reg_template = 'register.html'
         self.req.method = 'POST'
@@ -359,7 +358,7 @@ class RegistrationModuleTestCase(_BaseTestCase):
                    chrome=dict(notices=[], warnings=[]),
                    href=self.env.abs_href, path_info='/register',
                    perm=MockPerm(), redirect=lambda x: None
-        )
+                   )
         # Fail to register the user.
         self.rmod.process_request(req)
         self.assertTrue('email address' in str(req.chrome['warnings']))
@@ -368,10 +367,12 @@ class RegistrationModuleTestCase(_BaseTestCase):
     def test_optional_email_registration(self):
         user = 'user1'
         passwd = 'test'
+
         def redirect_noop(href):
             """Log relevant information for checking registration result."""
-            #print req.chrome['notices']
+            # print req.chrome['notices']
             return
+
         # A more complete mock of a request object is required for this test.
         req = Mock(authname='anonymous', method='POST',
                    args={
@@ -384,7 +385,7 @@ class RegistrationModuleTestCase(_BaseTestCase):
                    chrome=dict(notices=[], warnings=[]),
                    href=self.env.abs_href, path_info='/register',
                    perm=MockPerm(), redirect=redirect_noop
-        )
+                   )
         self.env.config.set('account-manager', 'verify_email', False)
         # Successfully register the user.
         # Note: This would have raised an AttributeError without graceful
@@ -398,10 +399,11 @@ class RegistrationModuleTestCase(_BaseTestCase):
 
 class EmailVerificationModuleTestCase(_BaseTestCase):
     """Verify email address validation when running account verification."""
+
     def setUp(self):
         _BaseTestCase.setUp(self)
         self.env = EnvironmentStub(
-                enable=['trac.*', 'acct_mgr.api.*', 'acct_mgr.register.*'])
+            enable=['trac.*', 'acct_mgr.api.*', 'acct_mgr.register.*'])
         self.env.path = tempfile.mkdtemp()
 
         args = dict(username='username', name='', email='')
@@ -452,6 +454,7 @@ def test_suite():
     suite.addTest(unittest.makeSuite(RegistrationModuleTestCase))
     suite.addTest(unittest.makeSuite(EmailVerificationModuleTestCase))
     return suite
+
 
 if __name__ == '__main__':
     unittest.main(defaultTest='test_suite')

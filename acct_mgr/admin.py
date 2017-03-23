@@ -12,23 +12,6 @@
 import inspect
 import re
 
-from genshi.builder import tag
-
-from trac import __version__ as trac_version
-from trac.admin import IAdminPanelProvider
-from trac.config import BoolOption, Option
-from trac.core import Component, ExtensionPoint, implements
-from trac.perm import PermissionCache, PermissionSystem
-from trac.util import as_int
-from trac.util.compat import cleandoc
-from trac.util.datefmt import format_datetime, to_datetime
-from trac.util.presentation import Paginator
-from trac.util.text import exception_to_unicode
-from trac.web.api import IAuthenticator
-from trac.web.chrome import Chrome, add_ctxtnav, add_link, add_notice
-from trac.web.chrome import add_script, add_stylesheet, add_warning
-from trac.wiki.formatter import format_to_html
-
 from acct_mgr.api import AccountManager, CommonTemplateProvider
 from acct_mgr.api import IUserIdChanger
 from acct_mgr.api import _, N_, dgettext, gettext, ngettext, tag_
@@ -37,8 +20,22 @@ from acct_mgr.model import change_uid, del_user_attribute, email_verified
 from acct_mgr.model import get_user_attribute, last_seen, set_user_attribute
 from acct_mgr.notification import NotificationError
 from acct_mgr.register import EmailVerificationModule, RegistrationError
-from acct_mgr.web_ui import AccountModule
 from acct_mgr.util import pretty_precise_timedelta
+from acct_mgr.web_ui import AccountModule
+from trac import __version__ as trac_version
+from trac.admin import IAdminPanelProvider
+from trac.config import BoolOption, Option
+from trac.core import Component, ExtensionPoint, implements
+from trac.perm import PermissionCache, PermissionSystem
+from trac.util import as_int
+from trac.util.datefmt import format_datetime, to_datetime
+from trac.util.html import tag
+from trac.util.presentation import Paginator
+from trac.util.text import cleandoc, exception_to_unicode
+from trac.web.api import IAuthenticator
+from trac.web.chrome import Chrome, add_ctxtnav, add_link, add_notice
+from trac.web.chrome import add_script, add_stylesheet, add_warning
+from trac.wiki.formatter import format_to_html
 
 
 def fetch_user_data(env, req, filters=None):
@@ -57,8 +54,8 @@ def fetch_user_data(env, req, filters=None):
             if t_lock > 0:
                 t_release = guard.pretty_release_time(req, username)
                 accounts[username]['release_hint'] = _(
-                        "Locked until %(t_release)s",
-                        t_release=t_release)
+                    "Locked until %(t_release)s",
+                    t_release=t_release)
     verify_email = env.is_enabled(EmailVerificationModule) and \
                    EmailVerificationModule(env).email_enabled and \
                    EmailVerificationModule(env).verify_email
@@ -138,16 +135,17 @@ class ExtensionOrder(dict):
 
     instance = 0
 
-    def __init__(self, d={}, components=[], list=[]):
+    def __init__(self, d=None, components=None, list=None):
+        super(ExtensionOrder, self).__init__()
         self.instance += 1
-        self.d = {}
+        self.d = d or {}
         self.sxref = {}
-        for c in components:
+        for c in components or []:
             self.d[c] = 0
             self[0] = c
             self.sxref[c.__class__.__name__] = c
             continue
-        for i, c in enumerate(list):
+        for i, c in enumerate(list or []):
             self.d[c] = i + 1
             self[i + 1] = c
 
@@ -168,7 +166,7 @@ class ExtensionOrder(dict):
             self.d[key].append(value)
         else:
             raise KeyError(_("Invalid key type (%s) for ExtensionOrder")
-                             % str(type(key)))
+                           % str(type(key)))
         pass
 
     def get_enabled_components(self):
@@ -196,7 +194,6 @@ class ExtensionOrder(dict):
 
 
 class UserAdminPanel(CommonTemplateProvider):
-
     implements(IAdminPanelProvider)
 
     uid_changers = ExtensionPoint(IUserIdChanger)
@@ -300,8 +297,8 @@ class UserAdminPanel(CommonTemplateProvider):
                         "%(count)s account attributes",
                         n_plural, count=n_plural
                     ))))
-                add_notice(req, tag_("Successfully deleted: %(account)s"),
-                                     account=tag.ul(accounts_, attributes))
+                add_notice(req, tag_("Successfully deleted: %(account)s",
+                                     account=tag.ul(accounts_, attributes)))
                 # Update the dict after changes.
                 attr = get_user_attribute(env, username=None,
                                           authenticated=1)
@@ -327,7 +324,7 @@ class UserAdminPanel(CommonTemplateProvider):
         if not (username and acctmgr.has_user(username)):
             add_warning(req, _(
                 "Please choose account by username from the list to proceed."
-                ))
+            ))
             req.redirect(req.href.admin('accounts', 'users'))
 
         change_uid_enabled = self.uid_changers and True or False
@@ -358,7 +355,7 @@ class UserAdminPanel(CommonTemplateProvider):
                     'email': _("Email Address"),
                     'name': _("Pre-/Surname (Nickname)"),
                     'password': _("Password")
-                    }
+                }
                 attributes = get_user_attribute(self.env, username=username,
                                                 authenticated=1)
                 old_values = {}
@@ -402,7 +399,8 @@ class UserAdminPanel(CommonTemplateProvider):
                             # Account email approval for authoritative action.
                             if attribute == 'email' and verify_enabled and \
                                     email_approved:
-                                set_user_attribute(env, username, keys['sent'],
+                                set_user_attribute(env, username,
+                                                   keys['sent'],
                                                    value)
                                 del_user_attribute(env, username,
                                                    attribute=keys['token'])
@@ -417,9 +415,9 @@ class UserAdminPanel(CommonTemplateProvider):
                 if success:
                     attributes = tag.b(', '.join(success))
                     add_notice(req, tag_(
-                               "Updated %(attributes)s for %(username)s.",
-                               attributes=attributes,
-                               username=tag.b(username)))
+                        "Updated %(attributes)s for %(username)s.",
+                        attributes=attributes,
+                        username=tag.b(username)))
 
             # Change user ID of existing user account.
             elif action == 'uid':
@@ -437,18 +435,18 @@ class UserAdminPanel(CommonTemplateProvider):
                         result_list = sorted([(k, v) for k, v in
                                               results.iteritems()])
                         add_notice(req, tag.ul(
-                                   [tag.li(ngettext(
-                                        "Table %(table)s column %(column)s"
-                                        "%(constraint)s: %(result)s change",
-                                        "Table %(table)s column %(column)s"
-                                        "%(constraint)s: %(result)s changes",
-                                        result[1], table=tag.b(result[0][0]),
-                                        column=tag.b(result[0][1]),
-                                        constraint=result[0][2] and
-                                        '(' + result[0][2] + ')' or '',
-                                        result=tag.b(result[1])))
-                                    for result in result_list]
-                                   ))
+                            [tag.li(ngettext(
+                                "Table %(table)s column %(column)s"
+                                "%(constraint)s: %(result)s change",
+                                "Table %(table)s column %(column)s"
+                                "%(constraint)s: %(result)s changes",
+                                result[1], table=tag.b(result[0][0]),
+                                column=tag.b(result[0][1]),
+                                constraint=result[0][2] and
+                                           '(' + result[0][2] + ')' or '',
+                                result=tag.b(result[1])))
+                                for result in result_list]
+                        ))
                         # Switch to display information for new user ID.
                         username = new_uid
                         data.update(
@@ -483,9 +481,9 @@ class UserAdminPanel(CommonTemplateProvider):
         if email and verify_enabled:
             data['verification'] = 'enabled'
             data['email_verified'] = email_verified(env, username, email)
-            self.log.debug('AcctMgr:admin:_do_acct_details for user \"' +
-                           username + '\", email \"' + str(email) + '\": ' +
-                           str(data['email_verified']))
+            self.log.debug('AcctMgr:admin:_do_acct_details for user \"%s\" ' 
+                           'email \"%s\": %s', user, email,
+                           data['email_verified'])
 
         if req.args.get('delete') or req.args.get('release'):
             if approval and req.args.get('release'):
@@ -513,7 +511,7 @@ class UserAdminPanel(CommonTemplateProvider):
             if attempts_count > 0:
                 for attempt in guard.get_failed_log(username):
                     t = format_datetime(to_datetime(
-                                             attempt['time']), tzinfo=req.tz)
+                        attempt['time']), tzinfo=req.tz)
                     attempts.append({'ipnr': attempt['ipnr'], 'time': t})
                 data['attempts'] = attempts
                 data['pretty_lock_time'] = guard.pretty_lock_time(username,
@@ -522,7 +520,8 @@ class UserAdminPanel(CommonTemplateProvider):
             data['lock_count'] = guard.lock_count(username)
             if guard.user_locked(username) is True:
                 data['user_locked'] = True
-                data['release_time'] = guard.pretty_release_time(req, username)
+                data['release_time'] = guard.pretty_release_time(req,
+                                                                 username)
 
         # TRANSLATOR: Optionally tabbed account editor's label
         forms = [('edit', _('Modify Account Attributes'))]
@@ -621,8 +620,8 @@ class UserAdminPanel(CommonTemplateProvider):
                             acctmod._reset_password(req, username, email)
                     if sel:
                         add_notice(req, tag_(
-                                   "Password reset for %(accounts)s.",
-                                   accounts=tag.b(', '.join(sel))))
+                            "Password reset for %(accounts)s.",
+                            accounts=tag.b(', '.join(sel))))
                 else:
                     add_warning(req, _(
                         "The password reset procedure is not enabled."))
@@ -636,10 +635,10 @@ class UserAdminPanel(CommonTemplateProvider):
                             "Deleted account: %(accounts)s",
                             accounts=tag.b(', '.join(sel))))
                 else:
-                    add_warning(req, _(
-                        "The password store does not support deleting users."))
+                    add_warning(req, _("The password store does not support "
+                                       "deleting users."))
             elif len([action for action in req.args.iterkeys()
-                      if action in ('cleanup', 'purge',  'unselect')]) > 0:
+                      if action in ('cleanup', 'purge', 'unselect')]) > 0:
                 return self._do_db_cleanup(req)
 
         # (Re-)Build data for current user list.
@@ -661,8 +660,11 @@ class UserAdminPanel(CommonTemplateProvider):
             filters = [f[0] for f in available_filters
                        if len(f) == 2 or f[2]]
         for filter_ in available_filters:
-            data['filters'].append({'name': filter_[0], 'label': filter_[1],
-                                    'enabled': filter_[0] in filters})
+            data['filters'].append({
+                'name': filter_[0],
+                'label': filter_[1],
+                'enabled': filter_[0] in filters
+            })
         if listing_enabled:
             data.update({
                 'cls': 'listing',
@@ -678,9 +680,9 @@ class UserAdminPanel(CommonTemplateProvider):
                 req.redirect(req.href.admin('accounts', 'users'))
             # Save results of submitted user list filter form to the session.
             elif 'update' in req.args:
-                for filter in available_filters:
-                    key = 'acctmgr_user.filter.%s' % filter[0]
-                    if 'filter_%s' % filter[0] in req.args:
+                for filter_ in available_filters:
+                    key = 'acctmgr_user.filter.%s' % filter_[0]
+                    if 'filter_%s' % filter_[0] in req.args:
                         req.session[key] = '1'
                     elif key in req.session:
                         del req.session[key]
@@ -766,8 +768,9 @@ class UserAdminPanel(CommonTemplateProvider):
                     set_user_attribute(self.env, old_uid, 'email', email)
                 return
             if not keep_passwd and \
-                    self._set_password(req, new_uid, acctmod._random_password,
-                                       False) is None:
+                            self._set_password(req, new_uid,
+                                               acctmod._random_password,
+                                               False) is None:
                 add_warning(req, _(
                     "Failed to save new login data to a password store."))
                 if email:
@@ -808,8 +811,8 @@ class UserAdminPanel(CommonTemplateProvider):
         except NotificationError, e:
             add_warning(req, _("Error raised while sending a change "
                                "notification.") +
-                             _("You'll get details with TracLogging "
-                               "enabled."))
+                        _("You'll get details with TracLogging "
+                          "enabled."))
             self.log.error('Unable to send user ID change notification: %s',
                            exception_to_unicode(e, traceback=True))
         return results
@@ -822,7 +825,7 @@ class UserAdminPanel(CommonTemplateProvider):
         except NotificationError, e:
             add_warning(req, _("Error raised while sending a change "
                                "notification.") +
-                             _("You'll get details with TracLogging enabled."))
+                        _("You'll get details with TracLogging enabled."))
             self.log.error('Unable to send password change notification: %s',
                            exception_to_unicode(e, traceback=True))
             result = self.acctmgr.has_user(username) or None
@@ -835,8 +838,8 @@ class UserAdminPanel(CommonTemplateProvider):
         except NotificationError, e:
             add_warning(req, _("Error raised while sending a change "
                                "notification.") +
-                             _("You'll get details with TracLogging "
-                               "enabled."))
+                        _("You'll get details with TracLogging "
+                          "enabled."))
             self.log.error('Unable to send user delete notification: %s',
                            exception_to_unicode(e, traceback=True))
 
@@ -867,15 +870,15 @@ class UserAdminPanel(CommonTemplateProvider):
             prev_href = req.href.admin('accounts', 'users', page=page - 1)
             add_link(req, 'prev', prev_href, _('Previous Page'))
         page_href = req.href.admin('accounts', 'cleanup')
-        return dict(accounts=pager, displayed_items=total, page_href=page_href)
+        return dict(accounts=pager, displayed_items=total,
+                    page_href=page_href)
 
 
 class ConfigurationAdminPanel(CommonTemplateProvider):
-
     implements(IAdminPanelProvider, IAuthenticator)
 
     auth_init = BoolOption('account-manager', 'auth_init', True,
-        doc="Launch an initial Trac authentication setup.")
+                           doc="Launch an initial Trac authentication setup.")
 
     def __init__(self):
         self.acctmgr = AccountManager(self.env)
@@ -894,7 +897,7 @@ class ConfigurationAdminPanel(CommonTemplateProvider):
         return self._do_config(req)
 
     def _do_config(self, req):
-        cfg = self.env.config
+        cfg = self.config
         env = self.env
 
         def safe_wiki_to_html(context, text):
@@ -917,17 +920,18 @@ class ConfigurationAdminPanel(CommonTemplateProvider):
         step = int(step and step or req.args.get('active', 0))
         stores = ExtensionOrder(components=self.acctmgr.stores,
                                 list=self.acctmgr.password_stores)
-        register_checks = self.env.config.getlist('account-manager',
-                                                  'register_checks')
+        register_checks = self.config.getlist('account-manager',
+                                              'register_checks')
         checks = ExtensionOrder(components=self.acctmgr.checks,
                                 list=register_checks)
 
+        def _redirect(req):
+            # Use permission-sensitive redirection on exit.
+            if 'ACCTMGR_USER_ADMIN' in req.perm:
+                req.redirect(req.href.admin('accounts', 'users'))
+            req.redirect(req.href())
+
         if req.method == 'POST':
-            def _redirect(req):
-                # Use permission-sensitive redirection on exit.
-                if 'ACCTMGR_USER_ADMIN' in req.perm:
-                    req.redirect(req.href.admin('accounts', 'users'))
-                req.redirect(req.href())
             # Rollback unsaved configuration changes.
             if req.args.get('exit'):
                 try:
@@ -940,12 +944,13 @@ class ConfigurationAdminPanel(CommonTemplateProvider):
             # Don't care as long as the feature is disabled.
             elif req.args.get('restart') and self.acctmgr.refresh_passwd:
                 del_user_attribute(self.env, attribute='password_refreshed')
-                add_notice(req, _("Password hash refresh procedure restarted."))
+                add_notice(req,
+                           _("Password hash refresh procedure restarted."))
 
         account = dict()
         if req.method == 'POST' and (req.args.get('back') or
-                                     req.args.get('next') or
-                                     req.args.get('save')):
+                                         req.args.get('next') or
+                                         req.args.get('save')):
             # Handling only values for the current page is important.
             if step == 0:
                 cfg.set('trac', 'auth_cookie_lifetime',
@@ -1015,18 +1020,19 @@ class ConfigurationAdminPanel(CommonTemplateProvider):
                             cfg.set(c,
                                     'acct_mgr.svnserve.SvnServePasswordStore',
                                     e)
-                            from acct_mgr.svnserve import SvnServePasswordStore
+                            from acct_mgr.svnserve import \
+                                SvnServePasswordStore
                             assert env.is_enabled(SvnServePasswordStore)
                     elif init_store == 'http':
                         cfg.set(a, p, 'HttpAuthStore')
                         cfg.set(c, 'acct_mgr.http.HttpAuthStore', e)
                         from acct_mgr.http import HttpAuthStore
                         assert env.is_enabled(HttpAuthStore)
-                    # ToDo
-                    #elif init_store == 'etc':
-                    #    [account-manager]
-                    #    password_store =
-                    #    [components]
+                        # ToDo
+                        # elif init_store == 'etc':
+                        #    [account-manager]
+                        #    password_store =
+                        #    [components]
                 else:
                     _setorder(req, stores)
                     cfg.set('account-manager', 'password_store',
@@ -1050,7 +1056,7 @@ class ConfigurationAdminPanel(CommonTemplateProvider):
                 # Enable the required hash method for this SessionStore too.
                 hash_method = cfg.get('account-manager', 'hash_method')
                 cfg.set('components', 'acct_mgr.pwhash.%s'
-                                      % hash_method, 'enabled')
+                        % hash_method, 'enabled')
                 cfg.set('components', 'acct_mgr.web_ui.ResetPwStore',
                         reset_password and 'enabled' or 'disabled')
                 cfg.set('account-manager', 'reset_password', reset_password)
@@ -1067,7 +1073,7 @@ class ConfigurationAdminPanel(CommonTemplateProvider):
                 if not change_uid_enabled and cfg['components'].options():
                     for k, v in cfg['components'].options():
                         if k.startswith('acct_mgr.model.') and \
-                                k != 'acct_mgr.model.*':
+                                        k != 'acct_mgr.model.*':
                             cfg.remove('components', k)
                 acctmgr_register = req.args.get('acctmgr_register', False)
                 cfg.set('components', 'acct_mgr.register.RegistrationModule',
@@ -1096,8 +1102,8 @@ class ConfigurationAdminPanel(CommonTemplateProvider):
                     'components', 'acct_mgr.register.EmailVerificationModule',
                     verify_email and 'enabled' or 'disabled')
                 # Refresh object after changes.
-                register_checks = self.env.config.getlist('account-manager',
-                                                          'register_checks')
+                register_checks = self.config.getlist('account-manager',
+                                                      'register_checks')
                 checks = ExtensionOrder(components=self.acctmgr.checks,
                                         list=register_checks)
 
@@ -1131,8 +1137,10 @@ class ConfigurationAdminPanel(CommonTemplateProvider):
                     for action in perms:
                         # Filter actions inherited from 'anonymous'.
                         if perms[action] and \
-                                action not in PermissionCache(self.env):
-                            self.perms.grant_permission('authenticated', action)
+                                        action not in PermissionCache(
+                                    self.env):
+                            self.perms.grant_permission('authenticated',
+                                                        action)
                             self.perms.revoke_permission('auth_moved', action)
                 # Prevent to run another initial setup later.
                 cfg.set('account-manager', 'auth_init', False)
@@ -1150,7 +1158,7 @@ class ConfigurationAdminPanel(CommonTemplateProvider):
             # Initial admin account requested.
             account = _add_user_account(self.env, req)
             username = self.acctmgr.handle_username_casing(
-                           req.args.get('username', '').strip())
+                req.args.get('username', '').strip())
             if not account and username:
                 self.perms.grant_permission(username, 'TRAC_ADMIN')
 
@@ -1184,7 +1192,7 @@ class ConfigurationAdminPanel(CommonTemplateProvider):
             'cookie_refresh_pct': cfg.getint('account-manager',
                                              'cookie_refresh_pct'),
             'auth_cookie_path': cfg.get('trac', 'auth_cookie_path'),
-            })
+        })
 
         # Build password store configuration details.
         disabled_store = None
@@ -1217,11 +1225,12 @@ class ConfigurationAdminPanel(CommonTemplateProvider):
                                 opt_val.__class__.__name__ or opt_val
                     opt_sel = None
                     try:
-                        interface = option.xtnpt.interface
-                        opt_sel = {'options': [], 'selected': None}
+                        option.xtnpt.interface
                     except AttributeError:
                         # No ExtensionOption / Interface undefined.
                         pass
+                    else:
+                        opt_sel = {'options': [], 'selected': None}
                     if opt_sel:
                         for impl in option.xtnpt.extensions(env):
                             extension = impl.__class__.__name__
@@ -1247,7 +1256,7 @@ class ConfigurationAdminPanel(CommonTemplateProvider):
                 continue
             store_list = sorted(store_list, key=lambda i: i['order'])
             disabled_store = frozenset(password_store).difference(frozenset(
-                             [store['classname'] for store in store_list]))
+                [store['classname'] for store in store_list]))
             data.update({
                 'store_count': store_count,
                 'disabled_store': disabled_store,
@@ -1344,11 +1353,12 @@ class ConfigurationAdminPanel(CommonTemplateProvider):
                             opt_val.__class__.__name__ or opt_val
                 opt_sel = None
                 try:
-                    interface = option.xtnpt.interface
-                    opt_sel = {'options': [], 'selected': None}
+                    option.xtnpt.interface
                 except AttributeError:
                     # No ExtensionOption / Interface undefined.
                     pass
+                else:
+                    opt_sel = {'options': [], 'selected': None}
                 if opt_sel:
                     for impl in option.xtnpt.extensions(env):
                         extension = impl.__class__.__name__
@@ -1383,7 +1393,7 @@ class ConfigurationAdminPanel(CommonTemplateProvider):
         check_count = range(0, checks.component_count() + 1)
         register_check = cfg.getlist('account-manager', 'register_check')
         disabled_check = frozenset(register_check).difference(frozenset(
-                         [check['classname'] for check in check_list]))
+            [check['classname'] for check in check_list]))
         data.update({
             'change_uid_enabled': [k for k, v in cfg['components'].options()
                                    if k.startswith('acct_mgr.model.') and
@@ -1426,7 +1436,7 @@ class ConfigurationAdminPanel(CommonTemplateProvider):
             desc=_("Password Reset"),
             status=not reset_password and 'disabled' or 'ok',
             step=2
-            )
+        )
         )
         status = (disabled_check and 'error' or not register_check and
                   'unknown' or not acctmgr_register and 'disabled' or 'ok')
@@ -1483,7 +1493,7 @@ class ConfigurationAdminPanel(CommonTemplateProvider):
             defaults = cfg.defaults().get(section)
             for option in roundup[section]:
                 if defaults and option[0] in defaults and \
-                        defaults[option[0]] == option[1]:
+                                defaults[option[0]] == option[1]:
                     if section in roundup_defaults:
                         roundup_defaults[section].append(option[0])
                     else:
@@ -1504,13 +1514,13 @@ class ConfigurationAdminPanel(CommonTemplateProvider):
         load as setup session, while no user has full permissions, but can
         be locked by configuration to never authenticate at all.
         """
-        init = self.env.config.getbool('account-manager', 'auth_init')
+        init = self.config.getbool('account-manager', 'auth_init')
         remote_user = None
 
         if init and req.path_info == '/login' and not req.remote_user and \
                 not self.perms.get_users_with_permission('TRAC_ADMIN'):
             # Prevent to run another initial setup in parallel.
-            self.env.config.set('account-manager', 'auth_init', False)
+            self.config.set('account-manager', 'auth_init', False)
             # Initialize a setup session.
             req.environ['REMOTE_USER'] = remote_user = self.authname
             if self.authname not in \
@@ -1534,7 +1544,7 @@ def _add_user_account(env, req):
     account = dict(email=req.args.get('email', '').strip(),
                    name=req.args.get('name', '').strip(),
                    username=acctmgr.handle_username_casing(
-                                req.args.get('username', '').strip()))
+                       req.args.get('username', '').strip()))
     verify_enabled = EmailVerificationModule(env).email_enabled and \
                      EmailVerificationModule(env).verify_email
 
@@ -1552,16 +1562,16 @@ def _add_user_account(env, req):
             except NotificationError, e:
                 add_warning(req, _("Error raised while sending a change "
                                    "notification.") +
-                                 _("You'll get details with TracLogging "
-                                   "enabled."))
+                            _("You'll get details with TracLogging "
+                              "enabled."))
                 env.log.error('Unable to send change notification: %s',
-                               exception_to_unicode(e, traceback=True))
+                              exception_to_unicode(e, traceback=True))
             except RegistrationError, e:
                 add_warning(req, e)
             else:
                 add_notice(req, tag_(
-                           "Account %(username)s created.",
-                           username=tag.b(account['username'])))
+                    "Account %(username)s created.",
+                    username=tag.b(account['username'])))
                 # User editor form clean-up.
                 account = {}
     else:

@@ -111,9 +111,8 @@ class AcctMgrFuntionalTestEnvironment(SvnFunctionalTestEnvironment):
 
     def adduser(self, user):
         """Add a user to the environment.  Password is the username."""
-        f = open(self.htpasswd, 'a')
-        f.write('%s:%s\n' % (user, mkhtpasswd(user)))
-        f.close()
+        with open(self.htpasswd, 'a') as f:
+            f.write('%s:%s\n' % (user, mkhtpasswd(user)))
 
     def _tracadmin(self, *args):
         """Internal utility method for calling trac-admin"""

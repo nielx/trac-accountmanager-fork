@@ -200,7 +200,7 @@
                  value="${dgettext('acct_mgr',
                                    'Remove selected items')}" />
           <input type="submit" id="cleanup" name="cleanup"
-                 py:if="req.perm.has_permission('ACCTMGR_ADMIN')"
+                 py:if="'ACCTMGR_ADMIN' in req.perm"
                  value="${dgettext('acct_mgr',
                                    'Review account attributes')}" />
         </div>

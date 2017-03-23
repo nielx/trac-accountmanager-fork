@@ -16,40 +16,15 @@ from trac.config import Option, OrderedExtensionsOption
 from trac.core import Component, ExtensionPoint, Interface, TracError
 from trac.core import implements
 from trac.perm import IPermissionRequestor, PermissionCache
-from trac.util.text import exception_to_unicode
-from trac.util.translation import _
+from trac.util.text import exception_to_unicode, cleandoc
+from trac.util.translation import dgettext, domain_functions
 from trac.web.chrome import ITemplateProvider, add_warning
 from trac.web.main import IRequestFilter
 
-# Import i18n methods.  Fallback modules maintain compatibility to Trac 0.11
-# by keeping Babel optional here.
-try:
-    from trac.util.translation import dgettext, domain_functions
-    add_domain, _, N_, gettext, ngettext, tag_ = \
-        domain_functions('acct_mgr', ('add_domain', '_', 'N_', 'gettext',
-                                      'ngettext', 'tag_'))
-except ImportError:
-    from genshi.builder import tag as tag_
-    from trac.util.translation import gettext
-    _ = gettext
-    N_ = lambda text: text
-    def add_domain(a,b,c=None):
-        pass
-    def dgettext(domain, string, **kwargs):
-        return safefmt(string, kwargs)
-    def ngettext(singular, plural, num, **kwargs):
-        string = num == 1 and singular or plural
-        kwargs.setdefault('num', num)
-        return safefmt(string, kwargs)
-    def safefmt(string, kwargs):
-        if kwargs:
-            try:
-                return string % kwargs
-            except KeyError:
-                pass
-        return string
+add_domain, _, N_, gettext, ngettext, tag_ = \
+    domain_functions('acct_mgr', ('add_domain', '_', 'N_', 'gettext',
+                                  'ngettext', 'tag_'))
 
-from trac.util.compat import cleandoc
 cleandoc_ = cleandoc
 
 
@@ -164,12 +139,13 @@ class IPasswordStore(Interface):
         Returns True, if the account existed and was deleted, False otherwise.
         """
 
+
 class IUserIdChanger(Interface):
     """An interface for Components, that will participate in changing user
     IDs inside a Trac environment consistently.
     """
 
-    def replace(old_uid, new_uid, db):
+    def replace(old_uid, new_uid):
         """Change the user ID.
 
         A db connection is provided, so that all components may share the same
@@ -179,6 +155,7 @@ class IUserIdChanger(Interface):
         A dict is expected with realm(s) as key and message value to give
         feedback on failure or success per Trac realm.
         """
+
 
 class AccountManager(Component):
     """The AccountManager component handles all user account management methods
@@ -194,12 +171,15 @@ class AccountManager(Component):
     implements(IAccountChangeListener, IPermissionRequestor, IRequestFilter)
 
     change_listeners = ExtensionPoint(IAccountChangeListener)
+
     # All checks, not only the configured ones (see self.register_checks).
     checks = ExtensionPoint(IAccountRegistrationInspector)
+
     password_stores = OrderedExtensionsOption(
         'account-manager', 'password_store', IPasswordStore,
         include_missing=False,
-        doc = N_("Ordered list of password stores, queried in turn."))
+        doc="Ordered list of password stores, queried in turn.")
+
     register_checks = OrderedExtensionsOption(
         'account-manager', 'register_check', IAccountRegistrationInspector,
         default="""BasicCheck, EmailCheck, BotTrapCheck, RegExpCheck,
@@ -207,26 +187,32 @@ class AccountManager(Component):
         include_missing=False,
         doc="""Ordered list of IAccountRegistrationInspector's to use for
         registration checks.""")
+
     # All stores, not only the configured ones (see self.password_stores).
     stores = ExtensionPoint(IPasswordStore)
+
     allow_delete_account = BoolOption(
         'account-manager', 'allow_delete_account', True,
         doc="Allow users to delete their own account.")
+
     force_passwd_change = BoolOption(
         'account-manager', 'force_passwd_change', True,
         doc="Force the user to change password when it's reset.")
+
     persistent_sessions = BoolOption(
         'account-manager', 'persistent_sessions', False,
         doc="""Allow the user to be remembered across sessions without
             needing to re-authenticate. This is, user checks a
             \"Remember Me\" checkbox and, next time he visits the site,
             he'll be remembered.""")
+
     refresh_passwd = BoolOption(
         'account-manager', 'refresh_passwd', False,
         doc="""Re-set passwords on successful authentication.
             This is most useful to move users to a new password store or
             enforce new store configuration (i.e. changed hash type),
             but should be disabled/unset otherwise.""")
+
     username_char_blacklist = Option(
         'account-manager', 'username_char_blacklist', ':[]',
         doc="""Always exclude some special characters from usernames.
@@ -265,10 +251,9 @@ class AccountManager(Component):
         user = self.handle_username_casing(user)
         store = self.find_user_store(user)
         if store and not hasattr(store, 'set_password'):
-            raise TracError(_(
-                """The authentication backend for user %s does not support
-                setting the password.
-                """ % user))
+            raise TracError(_("The authentication backend for user %(user)s "
+                              "does not support setting the password.",
+                              user=user))
         elif not store:
             store = self.get_supporting_store('set_password')
         if store:
@@ -337,6 +322,7 @@ class AccountManager(Component):
         None is returned if no supporting store can be found.
         """
         supports = False
+        store = None
         for store in self.password_stores:
             if hasattr(store, operation):
                 supports = True
@@ -362,8 +348,8 @@ class AccountManager(Component):
         """
         user_stores = []
         for store in self.password_stores:
-            userlist = store.get_users()
-            user_stores.append((store, userlist))
+            user_list = store.get_users()
+            user_stores.append((store, user_list))
             continue
         user = self.handle_username_casing(user)
         for store in user_stores:
@@ -393,10 +379,8 @@ class AccountManager(Component):
 
     def _create_user(self, req):
         """Set password and prime a new authenticated Trac session."""
-        email = req.args.get('email', '').strip()
-        name = req.args.get('name', '').strip()
-        username = self.handle_username_casing(
-                       req.args.get('username', '').strip())
+        username = req.args.get('username', '').strip()
+        username = self.handle_username_casing(username)
         # Result of a successful account creation request is a made-up
         # authenticated session, that a new user can refer to later on.
         # Strictly required to create a primary key for additional attributes,
@@ -450,38 +434,37 @@ class AccountManager(Component):
     # IAccountChangeListener methods
 
     def user_created(self, user, password):
-        self.log.info("Created new user: %s" % user)
+        self.log.info("Created new user: %s", user)
 
     def user_id_changed(self, old_uid, new_uid):
-        self.log.info("Changed user id: from '%s' to '%s'" % (old_uid, new_uid))
+        self.log.info("Changed user id: from '%s' to '%s'", old_uid, new_uid)
 
     def user_password_changed(self, user, password):
-        self.log.info("Updated password for user: %s" % user)
+        self.log.info("Updated password for user: %s", user)
 
     def user_deleted(self, user):
-        self.log.info("Deleted user: %s" % user)
+        self.log.info("Deleted user: %s", user)
 
     def user_password_reset(self, user, email, password):
-        self.log.info("Password reset for user: %s, %s" % (user, email))
+        self.log.info("Password reset for user: %s, %s", user, email)
 
     def user_email_verification_requested(self, user, token):
-        self.log.info("Email verification requested for user: %s" % user)
+        self.log.info("Email verification requested for user: %s", user)
 
     def user_registration_approval_required(self, user):
-        self.log.info("Registration approval required for user: %s" % user)
+        self.log.info("Registration approval required for user: %s", user)
 
     # IRequestFilter methods
 
     def pre_process_request(self, req, handler):
-        if not req.session.authenticated or \
-                req.perm.has_permission('ACCTMGR_USER_ADMIN'):
+        if not req.session.authenticated or 'ACCTMGR_USER_ADMIN' in req.perm:
             # Permissions for anonymous and admin users remain unchanged.
             return handler
         if 'approval' in req.session:
             # Account approval not granted, remove elevated permissions.
             req.perm = PermissionCache(self.env)
-            add_warning(req, _("Account is pending approval."
-                              " You may need to contact your administrator."))
+            add_warning(req, _("Account is pending approval. You may need "
+                               "to contact your administrator."))
             self.log.debug(
                 "AccountManager.pre_process_request: Permissions for '%s' "
                 "stripped (account approval %s)", req.authname,
@@ -538,5 +521,5 @@ class GenericUserIdChanger(Component):
                 % (old_uid, new_uid, table, column, constraint, result))
 
     # IUserIdChanger method
-    def replace(self, old_uid, new_uid, db):
+    def replace(self, old_uid, new_uid):
         raise NotImplementedError

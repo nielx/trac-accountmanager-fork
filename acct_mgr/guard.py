@@ -10,13 +10,12 @@
 
 from datetime import timedelta
 
+from acct_mgr.model import del_user_attribute, get_user_attribute
+from acct_mgr.model import set_user_attribute, user_known
 from trac.config import IntOption, Option
 from trac.core import Component
 from trac.util.datefmt import format_datetime, pretty_timedelta
 from trac.util.datefmt import to_datetime, to_timestamp
-
-from acct_mgr.model import del_user_attribute, get_user_attribute
-from acct_mgr.model import set_user_attribute, user_known
 
 
 class AccountGuard(Component):
@@ -53,27 +52,27 @@ class AccountGuard(Component):
     def __init__(self):
         # Adjust related values to promote a sane configuration, because the
         # combination of some default values is not meaningful.
-        cfg = self.env.config
+        cfg = self.config
         if self.login_attempt_max_count < 0:
             cfg.set('account-manager', 'login_attempt_max_count', 0)
             options = ['user_lock_time', 'user_lock_max_time',
                        'user_lock_time_progression']
             for option in options:
                 cfg.remove('account-manager', option)
-            self.env.log.warning("AccountGuard disabled by option, "
-                                 "obsoleting other options.")
+            self.log.warning("AccountGuard disabled by option, obsoleting "
+                             "other options.")
         elif self.user_lock_max_time < 1:
             cfg.set('account-manager', 'user_lock_max_time',
                     cfg.defaults().get(
-                    'account-manager')['user_lock_max_time'])
-            self.env.log.warning("AccountGuard option fixed, please check "
-                                 "your configuration.")
+                        'account-manager')['user_lock_max_time'])
+            self.log.warning("AccountGuard option fixed, please check your "
+                             "configuration.")
         else:
             return
-        # Changes are intentionally not written to file for persistence.
-        # This could cause the environment to reload a bit too early, even
-        # interrupting a rewrite in progress by another thread and causing
-        # a DoS condition by truncating the configuration file.
+            # Changes are intentionally not written to file for persistence.
+            # This could cause the environment to reload a bit too early, even
+            # interrupting a rewrite in progress by another thread and causing
+            # a DoS condition by truncating the configuration file.
 
     def failed_count(self, user, ipnr=None, reset=False):
         """Report number of previously logged failed login attempts.
@@ -105,8 +104,7 @@ class AccountGuard(Component):
             # Update or create attempts counter and list.
             set_user_attribute(self.env, user, 'failed_logins', str(attempts))
             set_user_attribute(self.env, user, key, count)
-            self.log.debug(
-                "AccountGuard.failed_count(%s) = %s" % (user, count))
+            self.log.debug("AccountGuard.failed_count(%s) = %s", user, count)
         else:
             # Delete existing attempts counter and list.
             del_user_attribute(self.env, user, 1, 'failed_logins')
@@ -172,24 +170,24 @@ class AccountGuard(Component):
     @property
     def lock_time_progression(self):
         try:
-            progression = float(self.env.config.get('account-manager',
-                                         'user_lock_time_progression'))
+            progression = float(self.config.get('account-manager',
+                                                'user_lock_time_progression'))
             if progression == int(progression):
                 progression = int(progression)
             # Prevent unintended decreasing lock time.
             if progression < 1:
                 progression = 1
         except (TypeError, ValueError):
-            progression = float(self.env.config.defaults().get(
-                          'account-manager')['user_lock_time_progression'])
+            progression = float(self.config.defaults().get('account-manager')
+                                ['user_lock_time_progression'])
         return progression
 
     def pretty_lock_time(self, user, next=False):
         """Convenience method for formatting lock time to string."""
         t_lock = self.lock_time(user, next)
         return (t_lock > 0) and \
-            (pretty_timedelta(to_datetime(None) - \
-             timedelta(seconds = t_lock))) or None
+               (pretty_timedelta(to_datetime(None) -
+                                 timedelta(seconds=t_lock))) or None
 
     def pretty_release_time(self, req, user):
         """Convenience method for formatting lock time to string."""
@@ -206,7 +204,7 @@ class AccountGuard(Component):
             # Logged attempts required for further checking.
             attempts = self.get_failed_log(user)
             if attempts:
-                return (attempts[-1]['time'] + self.lock_time(user))
+                return attempts[-1]['time'] + self.lock_time(user)
 
     def user_locked(self, user):
         """Returns whether the user account is currently locked.
@@ -215,26 +213,24 @@ class AccountGuard(Component):
         """
         if self.login_attempt_max_count < 1 or not user or \
                 not user_known(self.env, user):
-            self.log.debug(
-                "AccountGuard.user_locked(%s) = None (%s)"
-                % (user, self.login_attempt_max_count < 1 and \
-                   'disabled by configuration' or 'anonymous user'))
+            self.log.debug("AccountGuard.user_locked(%s) = None (%s)",
+                            user, self.login_attempt_max_count < 1 and
+                            'disabled by configuration' or 'anonymous user')
             return None
         count = self.failed_count(user, reset=None)
         if count < self.login_attempt_max_count:
-            self.log.debug(
-                "AccountGuard.user_locked(%s) = False (try left)" % user)
+            self.log.debug("AccountGuard.user_locked(%s) = False (try left)",
+                           user)
             return False
         ts_release = self.release_time(user)
         if ts_release == 0:
             # Account locked permanently.
-            self.log.debug(
-                "AccountGuard.user_locked(%s) = True (permanently)" % user)
+            self.log.debug("AccountGuard.user_locked(%s) = True "
+                           "(permanently)", user)
             return True
         # Time-locked or time-lock expired.
         ts_now = to_timestamp(to_datetime(None))
         locked = ts_release - ts_now > 0
-        self.log.debug(
-            "AccountGuard.user_locked(%s) = %s (%s)"
-            % (user, locked, locked and 'time-lock' or 'lock expired'))
+        self.log.debug("AccountGuard.user_locked(%s) = %s (%s)",
+                       user, locked, locked and 'time-lock' or 'lock expired')
         return locked

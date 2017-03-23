@@ -8,10 +8,10 @@
 #
 # Author: Steffen Hoffmann <hoff.st@web.de>
 
+from announcer.api import AnnouncementSystem
+
 from acct_mgr.api import _
 from acct_mgr.model import PrimitiveUserIdChanger
-
-from announcer.api import AnnouncementSystem
 
 
 class TracAnnouncerUserIdChanger(PrimitiveUserIdChanger):
@@ -33,26 +33,26 @@ class TracAnnouncerUserIdChanger(PrimitiveUserIdChanger):
             pass
 
     # IUserIdChanger method
-    def replace(self, old_uid, new_uid, db):
+    def replace(self, old_uid, new_uid):
         if not self.enabled:
             plugin = 'TracAnnouncer'
             result = _("Unsupported db schema version, please update "
                        "%(plugin)s to a recent version.", plugin=plugin)
             return dict(error={('subscriptions', 'sid', None): result})
-        results=dict()
+        results = {}
 
         self.column = 'sid'
         self.table = 'subscription'
-        result = super(TracAnnouncerUserIdChanger,
-                       self).replace(old_uid, new_uid, db)
+        result = super(TracAnnouncerUserIdChanger, self).\
+                 replace(old_uid, new_uid)
 
         if 'error' in result:
             return result
         results.update(result)
 
         self.table = 'subscription_attribute'
-        result = super(TracAnnouncerUserIdChanger,
-                       self).replace(old_uid, new_uid, db)
+        result = super(TracAnnouncerUserIdChanger, self).\
+                 replace(old_uid, new_uid)
 
         if 'error' in result:
             return result

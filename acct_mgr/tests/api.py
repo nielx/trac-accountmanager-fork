@@ -11,10 +11,8 @@
 import shutil
 import tempfile
 import unittest
-
 from Cookie import SimpleCookie as Cookie
 
-import trac.wiki.web_ui
 from trac.core import TracError
 from trac.perm import PermissionCache, PermissionSystem
 from trac.test import EnvironmentStub, Mock
@@ -22,16 +20,16 @@ from trac.web.session import Session
 
 from acct_mgr.api import AccountManager
 from acct_mgr.db import SessionStore
-from acct_mgr.htfile import HtDigestStore, HtPasswdStore
 
 
 class _BaseTestCase(unittest.TestCase):
     def setUp(self):
         self.env = EnvironmentStub(default_data=True,
-                enable=['trac.*', 'acct_mgr.api.*',
-                        'acct_mgr.db.SessionStore', 'acct_mgr.pwhash.*',
-                        'acct_mgr.htfile.HtDigestStore']
-        )
+                                   enable=['trac.*', 'acct_mgr.api.*',
+                                           'acct_mgr.db.SessionStore',
+                                           'acct_mgr.pwhash.*',
+                                           'acct_mgr.htfile.HtDigestStore']
+                                   )
         self.env.path = tempfile.mkdtemp()
         self.perm = PermissionSystem(self.env)
 
@@ -42,7 +40,6 @@ class _BaseTestCase(unittest.TestCase):
 
 
 class AccountManagerTestCase(_BaseTestCase):
-
     def setUp(self):
         _BaseTestCase.setUp(self)
         self.mgr = AccountManager(self.env)
@@ -60,7 +57,7 @@ class AccountManagerTestCase(_BaseTestCase):
                         redirect=lambda x: None)
         self.req.path_info = '/'
 
-   # Tests
+        # Tests
 
     def test_set_password(self):
         # Can't work without at least one password store.
@@ -167,14 +164,13 @@ class AccountManagerTestCase(_BaseTestCase):
 
 
 class PermissionTestCase(_BaseTestCase):
-
     def setUp(self):
         _BaseTestCase.setUp(self)
         self.req = Mock()
         self.actions = ['ACCTMGR_ADMIN', 'ACCTMGR_CONFIG_ADMIN',
                         'ACCTMGR_USER_ADMIN', 'EMAIL_VIEW', 'USER_VIEW']
 
-   # Tests
+        # Tests
 
     def test_available_actions(self):
         for action in self.actions:
@@ -200,7 +196,8 @@ class PermissionTestCase(_BaseTestCase):
             self.assertFalse(self.perm.check_permission(action, user))
 
     def test_available_actions_full_perms(self):
-        perm_map = dict(acctmgr_admin='ACCTMGR_ADMIN', trac_admin='TRAC_ADMIN')
+        perm_map = dict(acctmgr_admin='ACCTMGR_ADMIN',
+                        trac_admin='TRAC_ADMIN')
         for user in perm_map:
             self.perm.grant_permission(user, perm_map[user])
             for action in self.actions:
@@ -215,6 +212,7 @@ def test_suite():
     suite.addTest(unittest.makeSuite(AccountManagerTestCase))
     suite.addTest(unittest.makeSuite(PermissionTestCase))
     return suite
+
 
 if __name__ == '__main__':
     unittest.main(defaultTest='test_suite')

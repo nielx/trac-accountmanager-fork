@@ -11,15 +11,13 @@
 
 import hashlib
 import re
-
 from binascii import hexlify
 from os import urandom
 
-from trac.core import Component, Interface, implements
-from trac.config import Option
-
-from acct_mgr.api import _, N_
+from acct_mgr.api import _
 from acct_mgr.md5crypt import md5crypt
+from trac.config import Option
+from trac.core import Component, Interface, implements
 
 try:
     from passlib.apps import custom_app_context as passlib_ctxt
@@ -41,7 +39,7 @@ class HtPasswdHashMethod(Component):
     implements(IPasswordHashMethod)
 
     hash_type = Option('account-manager', 'db_htpasswd_hash_type', 'crypt',
-        doc=N_("Default hash type of new/updated passwords"))
+        doc="Default hash type of new/updated passwords")
 
     def generate_hash(self, user, password):
         password = password.encode('utf-8')
@@ -57,7 +55,7 @@ class HtDigestHashMethod(Component):
     implements(IPasswordHashMethod)
 
     realm = Option('account-manager', 'db_htdigest_realm', '',
-        doc=N_("Realm to select relevant htdigest db entries"))
+        doc="Realm to select relevant htdigest db entries")
 
     def generate_hash(self, user, password):
         user, password, realm = _encode(user, password, self.realm)
@@ -69,6 +67,7 @@ class HtDigestHashMethod(Component):
 
 def _encode(*args):
     return [a.encode('utf-8') for a in args]
+
 
 # check for the availability of the "crypt" module for checking passwords on
 # Unix-like platforms
@@ -111,17 +110,18 @@ def htpasswd(password, hash):
         rounds = int(groups[0]) if groups[0] is not None else 5000
         salt = groups[1]
         return rounds, salt
+
     if hash.startswith('$apr1$'):
         return md5crypt(password, hash[6:].split('$')[0], '$apr1$')
     elif hash.startswith('{SHA}'):
         return '{SHA}' + hashlib.sha1(password).digest().encode('base64')[:-1]
     elif passlib_ctxt is not None and hash.startswith('$5$') and \
-            'sha256_crypt' in passlib_ctxt.policy.schemes():
+                    'sha256_crypt' in passlib_ctxt.policy.schemes():
         rounds, salt = from_hash(hash)
         return passlib_ctxt.encrypt(password, scheme='sha256_crypt',
                                     rounds=rounds, salt=salt)
     elif passlib_ctxt is not None and hash.startswith('$6$') and \
-            'sha512_crypt' in passlib_ctxt.policy.schemes():
+                    'sha512_crypt' in passlib_ctxt.policy.schemes():
         rounds, salt = from_hash(hash)
         return passlib_ctxt.encrypt(password, scheme='sha512_crypt',
                                     rounds=rounds, salt=salt)

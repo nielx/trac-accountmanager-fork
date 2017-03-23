@@ -11,12 +11,10 @@
 
 from StringIO import StringIO
 
+from acct_mgr.api import IPasswordStore
 from trac.config import IntOption, Option
 from trac.core import Component, implements
 from trac.util.text import unicode_passwd
-
-from acct_mgr.api import IPasswordStore
-
 
 DICTIONARY = u"""
 ATTRIBUTE User-Name     1 string
@@ -39,9 +37,10 @@ class RadiusAuthStore(Component):
 
     radius_server = Option('account-manager', 'radius_server',
         doc="RADIUS server IP address, required.")
-    radius_authport = IntOption(
-        'account-manager', 'radius_authport', 1812,
+
+    radius_authport = IntOption('account-manager', 'radius_authport', 1812,
         doc="RADIUS server authentication port, defaults to 1812.")
+
     # Conceal shared secret.
     radius_secret = unicode_passwd(Option('account-manager', 'radius_secret',
         doc="RADIUS server shared secret, required."))
@@ -67,11 +66,11 @@ class RadiusAuthStore(Component):
                            "need to install the egg: %s", e)
             return
 
-        self.log.debug("RADIUS server=%s:%s (authport), secret='%s'" % (
+        self.log.debug("RADIUS server=%s:%s (authport), secret='%s'",
                        self.radius_server, self.radius_authport,
-                       self.radius_secret))
-        self.log.debug("RADIUS auth callenge for username=%s password=%s" % (
-                       username, unicode_passwd(password)))
+                       self.radius_secret)
+        self.log.debug("RADIUS auth callenge for username=%s password=%s",
+                       username, unicode_passwd(password))
 
         client = Client(server=self.radius_server,
                         authport=self.radius_authport,
@@ -81,37 +80,37 @@ class RadiusAuthStore(Component):
 
         req = client.CreateAuthPacket(code=pyrad.packet.AccessRequest,
                                       User_Name=username.encode('utf-8'))
-        req["User-Password"] = req.PwCrypt(password)
+        req['User-Password'] = req.PwCrypt(password)
 
-        self.log.debug("RADIUS auth sending packet req=%s" % req)
+        self.log.debug("RADIUS auth sending packet req=%s", req)
         try:
             reply = client.SendPacket(req)
         except Timeout, e:
-            self.log.error("RADIUS timeout contacting server=%s:%s (%s)" % (
-                           self.radius_server, self.radius_authport, e))
+            self.log.error("RADIUS timeout contacting server=%s:%s (%s)",
+                           self.radius_server, self.radius_authport, e)
             return
         # DEVEL: Too broad, narrow down that exception handler scope.
         except Exception, e:
-            self.log.error("RADIUS error while using server=%s:%s: (%s)" % (
-                           self.radius_server, self.radius_authport, e))
+            self.log.error("RADIUS error while using server=%s:%s: (%s)",
+                           self.radius_server, self.radius_authport, e)
             return
-        self.log.debug("RADIUS authentication reply code=%s" % reply.code)
+        self.log.debug("RADIUS authentication reply code=%s", reply.code)
 
         if pyrad.packet.AccessAccept == reply.code:
-            self.log.debug("RADIUS Accept for username=%s" % username)
+            self.log.debug("RADIUS Accept for username=%s", username)
             return True
         # Rejection of login attempt, stopping further auth store interation.
         elif pyrad.packet.AccessReject == reply.code:
-            self.log.debug("RADIUS Reject for username=%s" % username)
+            self.log.debug("RADIUS Reject for username=%s", username)
             return False
         # DEVEL: Any way to alert users that RSA token is in 'Next Token' mode
         #        so they know to fix it?
         elif pyrad.packet.AccessChallenge == reply.code:
             self.log.info("RADIUS returned Challenge for username=%s; "
-                          "on RSA servers this indicates 'Next Token' mode."
-                          % username)
+                          "on RSA servers this indicates 'Next Token' mode.",
+                          username)
             return
         else:
-            self.log.warning("RADIUS Unknown reply code (%s) for username=%s"
-                             % (reply.code, username))
+            self.log.warning("RADIUS Unknown reply code (%s) for username=%s",
+                             reply.code, username)
         return

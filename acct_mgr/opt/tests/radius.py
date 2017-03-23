@@ -13,32 +13,24 @@ import shutil
 import tempfile
 import unittest
 
-from trac.test import EnvironmentStub
-
 from acct_mgr.opt.radius import RadiusAuthStore
+from trac.test import EnvironmentStub
 
 
 class _BaseTestCase(unittest.TestCase):
     def setUp(self):
         self.basedir = os.path.realpath(tempfile.mkdtemp())
-        self.env = EnvironmentStub(default_data=True,
-                enable=['trac.*', 'acct_mgr.api.*',
-                        'acct_mgr.opt.radius.RadiusAuthStore']
-        )
+        self.env = EnvironmentStub(default_data=True, enable=
+            ['trac.*', 'acct_mgr.api.*',
+             'acct_mgr.opt.radius.RadiusAuthStore'])
         self.env.path = os.path.join(self.basedir, 'trac-tempenv')
         os.mkdir(self.env.path)
 
     def tearDown(self):
         shutil.rmtree(self.basedir)
 
-    # Helpers
-
-
-    # Tests
-
 
 class RadiusAuthTestCase(_BaseTestCase):
-
     def setUp(self):
         _BaseTestCase.setUp(self)
         self.env.config.set('account-manager', 'password_store',
@@ -68,6 +60,7 @@ def test_suite():
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(RadiusAuthTestCase))
     return suite
+
 
 if __name__ == '__main__':
     unittest.main(defaultTest='test_suite')

@@ -11,7 +11,6 @@
 import shutil
 import tempfile
 import unittest
-
 from Cookie import SimpleCookie as Cookie
 from time import sleep
 
@@ -23,10 +22,9 @@ from acct_mgr.guard import AccountGuard
 
 
 class AccountGuardTestCase(unittest.TestCase):
-
     def setUp(self):
         self.env = EnvironmentStub(default_data=True,
-                enable=['trac.*', 'acct_mgr.guard.*'])
+                                   enable=['trac.*', 'acct_mgr.guard.*'])
         self.env.path = tempfile.mkdtemp()
         self.env.config.set('account-manager', 'login_attempt_max_count', 1)
 
@@ -60,13 +58,13 @@ class AccountGuardTestCase(unittest.TestCase):
         attempts = eval(self.session.get('failed_logins', '[]'))
         count = int(self.session.get('failed_logins_count', 0))
         lock_count = int(self.session.get('lock_count', 0))
-        max = self.env.config.getint('account-manager',
+        max_ = self.env.config.getint('account-manager',
                                      'login_attempt_max_count')
         for r in range(requests):
-            attempts.append(dict(ipnr=ipnr,time=ts))
+            attempts.append(dict(ipnr=ipnr, time=ts))
             count += 1
             # Assume, that every lock is enforced.
-            if not count < max:
+            if not count < max_:
                 lock_count += 1
         self.session['failed_logins'] = str(attempts)
         self.session['failed_logins_count'] = count
@@ -122,7 +120,8 @@ class AccountGuardTestCase(unittest.TestCase):
 
         self.assertEqual(self.guard.lock_time(user), 2)
         self.assertEqual(self.guard.lock_time(user, True), 2)
-        self.env.config.set('account-manager', 'user_lock_time_progression', 3)
+        self.env.config.set('account-manager', 'user_lock_time_progression',
+                            3)
         self.assertEqual(self.guard.lock_time(user, True), 6)
         # Switch-back to permanent locking.
         self.env.config.set('account-manager', 'user_lock_time', 0)
@@ -141,7 +140,8 @@ class AccountGuardTestCase(unittest.TestCase):
 
     def test_lock_time(self):
         self.env.config.set('account-manager', 'user_lock_time', 30)
-        self.env.config.set('account-manager', 'user_lock_time_progression', 1)
+        self.env.config.set('account-manager', 'user_lock_time_progression',
+                            1)
 
         # Won't track anonymous sessions and unknown accounts/users.
         self.assertEqual(self.guard.lock_time(None), 0)
@@ -156,7 +156,8 @@ class AccountGuardTestCase(unittest.TestCase):
         # Preview calculation.
         self.assertEqual(self.guard.lock_time(user, True), 30)
         # Progression with base 3.
-        self.env.config.set('account-manager', 'user_lock_time_progression', 3)
+        self.env.config.set('account-manager', 'user_lock_time_progression',
+                            3)
         self.assertEqual(self.guard.lock_time(user, True), 30 * 3 ** 5)
         self.env.config.set('account-manager', 'user_lock_max_time', 1800)
         self.assertEqual(self.guard.lock_time(user, True), 1800)
@@ -164,7 +165,8 @@ class AccountGuardTestCase(unittest.TestCase):
     def test_release_time(self):
         lock_time = 30
         self.env.config.set('account-manager', 'user_lock_time', lock_time)
-        self.env.config.set('account-manager', 'user_lock_time_progression', 1)
+        self.env.config.set('account-manager', 'user_lock_time_progression',
+                            1)
 
         # Won't track anonymous sessions and unknown accounts/users.
         self.assertEqual(self.guard.release_time(None), None)
@@ -207,6 +209,7 @@ def test_suite():
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(AccountGuardTestCase))
     return suite
+
 
 if __name__ == '__main__':
     unittest.main(defaultTest='test_suite')

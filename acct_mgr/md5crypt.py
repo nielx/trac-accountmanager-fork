@@ -11,7 +11,8 @@ import hashlib
 
 
 def md5crypt(password, salt, magic='$1$'):
-    # /* The password first, since that is what is most unknown */ /* Then our magic string */ /* Then the raw salt */
+    # /* The password first, since that is what is most unknown */ /*
+    # Then our magic string */ /* Then the raw salt */
     m = hashlib.md5()
     m.update(password + magic + salt)
 
@@ -58,16 +59,20 @@ def md5crypt(password, salt, magic='$1$'):
     itoa64 = './0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
 
     rearranged = ''
-    for a, b, c in ((0, 6, 12), (1, 7, 13), (2, 8, 14), (3, 9, 15), (4, 10, 5)):
+    for a, b, c in (
+            (0, 6, 12), (1, 7, 13), (2, 8, 14), (3, 9, 15), (4, 10, 5)):
         v = ord(final[a]) << 16 | ord(final[b]) << 8 | ord(final[c])
         for i in range(4):
-            rearranged += itoa64[v & 0x3f]; v >>= 6
+            rearranged += itoa64[v & 0x3f]
+            v >>= 6
 
     v = ord(final[11])
     for i in range(2):
-        rearranged += itoa64[v & 0x3f]; v >>= 6
+        rearranged += itoa64[v & 0x3f]
+        v >>= 6
 
     return magic + salt + '$' + rearranged
+
 
 if __name__ == '__main__':
 
@@ -76,13 +81,15 @@ if __name__ == '__main__':
         magic = '$' + magic + '$'
         return md5crypt(clear_password, salt, magic) == the_hash
 
+
     test_cases = (
         (' ', '$1$yiiZbNIH$YiCsHZjcTkYd31wkgW8JF.'),
         ('pass', '$1$YeNsbWdH$wvOF8JdqsoiLix754LTW90'),
         ('____fifteen____', '$1$s9lUWACI$Kk1jtIVVdmT01p0z3b/hw1'),
         ('____sixteen_____', '$1$dL3xbVZI$kkgqhCanLdxODGq14g/tW1'),
         ('____seventeen____', '$1$NaH5na7J$j7y8Iss0hcRbu3kzoJs5V.'),
-        ('__________thirty-three___________', '$1$HO7Q6vzJ$yGwp2wbL5D7eOVzOmxpsy.'),
+        ('__________thirty-three___________',
+         '$1$HO7Q6vzJ$yGwp2wbL5D7eOVzOmxpsy.'),
         ('apache', '$apr1$J.w5a/..$IW9y6DR0oO/ADuhlMF5/X1')
     )
 

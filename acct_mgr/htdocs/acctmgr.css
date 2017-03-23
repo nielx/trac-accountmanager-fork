@@ -1,116 +1,275 @@
 /* CSS definitions for AccountManagerPlugin */
 
-fieldset.collapsed { border-width: 0; padding: 0 0.5em; }
-
+fieldset.collapsed {
+ border-width: 0;
+ padding: 0 0.5em;
+}
 
 /* styles for configuration admin page */
-div.compact { width: 48em; }
-div.compact pre { background-color: #ffffff; }
-div.compact textarea { height: 12em; }
-div.ini {
-    background-color: #ffffff; font-family: Courier, Monospace;
-    max-height: 640px; overflow: auto; padding: 1em;
-} 
-div.ini span.defaults { color: #998; }
-div#tabcontent form#cfg_wiz { clear: right; overflow: visible; }
-form#cfg_wiz fieldset legend.step { font-size: 110%; }
-form#cfg_wiz tt { border: 1px none #ffffff }
-fieldset img.icon { float: right; }
-input.numwidget { text-align: right; width: 7em; }
-input[name$=filename], input[name$=_regexp], form#cfg_wiz textarea {
-    width: 48em;
+div.compact {
+ width: 48em;
 }
-li.disabled { list-style-image: url(../acct_mgr/status_disabled.png); }
-li.error { list-style-image: url(../acct_mgr/status_error.png); }
-li.ok { list-style-image: url(../acct_mgr/status_ok.png); }
-li.unknown { list-style-image: url(../acct_mgr/status_unknown.png); }
+
+div.compact pre {
+ background-color: #ffffff;
+}
+
+div.compact textarea {
+ height: 12em;
+}
+
+div.ini {
+ background-color: #ffffff;
+ font-family: Courier, Monospace, serif;
+ max-height: 640px;
+ overflow: auto;
+ padding: 1em;
+}
+
+div.ini span.defaults {
+ color: #998;
+}
+
+div#tabcontent form#cfg_wiz {
+ clear: right;
+ overflow: visible;
+}
+
+form#cfg_wiz fieldset legend.step {
+ font-size: 110%;
+}
+
+form#cfg_wiz tt {
+ border: 1px none #ffffff
+}
+
+fieldset img.icon {
+ float: right;
+}
+
+input.numwidget {
+ text-align: right;
+ width: 7em;
+}
+
+input[name$=filename], input[name$=_regexp], form#cfg_wiz textarea {
+ width: 48em;
+}
+
+li.disabled {
+ list-style-image: url(../acct_mgr/status_disabled.png);
+}
+
+li.error {
+ list-style-image: url(../acct_mgr/status_error.png);
+}
+
+li.ok {
+ list-style-image: url(../acct_mgr/status_ok.png);
+}
+
+li.unknown {
+ list-style-image: url(../acct_mgr/status_unknown.png);
+}
 
 /* progress display derived from Easy CSS Progress Bar 1.0
    by Juergen Koller [www.kollermedia.at] */
 ul#progress {
-    width: 600px; list-style: none; margin: 10px; float: right;
+ width: 600px;
+ list-style: none;
+ margin: 10px;
+ float: right;
 }
-ul#progress a { text-decoration: none; color: #a9a9a9; }
+
+ul#progress a {
+ text-decoration: none;
+ color: #a9a9a9;
+}
+
 ul#progress li {
-    float: left; background: url(../acct_mgr/arrow.png) repeat-x right 6px;
-    text-align: left;
+ float: left;
+ background: url(../acct_mgr/arrow.png) repeat-x right 6px;
+ text-align: left;
 }
+
 ul#progress li span {
-    display: block; margin: auto; margin-right: 45%; text-align: center;
-    border: 1px solid #a9a9a9; border-radius: 10px; width: 20px; height: 20px;
-    line-height: 20px; background-color: #ffffff;
-} 
-ul#progress li span a {
-    display: block; margin: 0; border-radius: 10px; width: 20px; height: 20px;
+ display: block;
+ margin: auto 45% auto auto;
+ text-align: center;
+ border: 1px solid #a9a9a9;
+ border-radius: 10px;
+ width: 20px;
+ height: 20px;
+ line-height: 20px;
+ background-color: #ffffff;
 }
+
+ul#progress li span a {
+ display: block;
+ margin: 0;
+ border-radius: 10px;
+ width: 20px;
+ height: 20px;
+}
+
 ul#progress li span a.active, ul#progress li.active span a,
 ul#progress li.past span a:hover, ul.progress li.past:hover span a {
-    border-radius: 10px; background-color: #990000; color: #ffffff;
-}
-ul#progress li a {
-    display: block; margin: 0.2em 11% 0 0; text-align: center;
-}
-ul#progress li.past { background-position: right -174px; }
-ul#progress li.active { background-position: right -84px; }
-ul#progress li#last { background-position: right -354px; }
-ul#progress li#last.active { background-position: right -264px; }
-ul#progress li.active a:hover, ul.progress li.past a:hover,
-ul#progress li.past a, ul#progress li.active a { color: #990000; }
-ul#progress li.active span a:hover { color: #ffffff; }
-ul#progress li.past:hover { cursor: hand; cursor: pointer; }
-ul#progress li.past span, ul#progress li.active span {
-    border: 1px solid #990000;
+ border-radius: 10px;
+ background-color: #990000;
+ color: #ffffff;
 }
 
+ul#progress li a {
+ display: block;
+ margin: 0.2em 11% 0 0;
+ text-align: center;
+}
+
+ul#progress li.past {
+ background-position: right -174px;
+}
+
+ul#progress li.active {
+ background-position: right -84px;
+}
+
+ul#progress li#last {
+ background-position: right -354px;
+}
+
+ul#progress li#last.active {
+ background-position: right -264px;
+}
+
+ul#progress li.active a:hover, ul.progress li.past a:hover,
+ul#progress li.past a, ul#progress li.active a {
+ color: #990000;
+}
+
+ul#progress li.active span a:hover {
+ color: #ffffff;
+}
+
+ul#progress li.past:hover {
+ cursor: pointer;
+}
+
+ul#progress li.past span, ul#progress li.active span {
+ border: 1px solid #990000;
+}
 
 /* styles for users admin page */
-.holdingbox { position: relative; top: -0.8em; }
-.panel { position: relative; overflow: hidden; height: 6em; }
-div#accountlist { max-height: 640px; overflow: auto; }
-div#tabcontent form#prefs { clear: right; overflow: hidden; }
-tr.missing td, tr.missing td a { color: #998; }
+.holdingbox {
+ position: relative;
+ top: -0.8em;
+}
 
+.panel {
+ position: relative;
+ overflow: hidden;
+ height: 6em;
+}
+
+div#accountlist {
+ max-height: 640px;
+ overflow: auto;
+}
+
+div#tabcontent form#prefs {
+ clear: right;
+ overflow: hidden;
+}
+
+tr.missing td, tr.missing td a {
+ color: #998;
+}
 
 /* styles for account details admin page */
-div#user_locked p span img { vertical-align: middle; }
-div#failed_attempts p.tableheader {
-    color: #999; font-size: 90%; font-weight: bold;
-    margin: 0pt; padding: 1em 5px 0;
+div#user_locked p span img {
+ vertical-align: middle;
 }
-input.delete { position:relative; right: 16px; }
-table#login_attempts { width: 480px; }
-td a img { vertical-align: middle; }
-p span.buttons input { margin-top: 0; vertical-align: baseline; }
+
+div#failed_attempts p.tableheader {
+ color: #999;
+ font-size: 90%;
+ font-weight: bold;
+ margin: 0;
+ padding: 1em 5px 0;
+}
+
+input.delete {
+ position: relative;
+ right: 16px;
+}
+
+table#login_attempts {
+ width: 480px;
+}
+
+td a img {
+ vertical-align: middle;
+}
+
+p span.buttons input {
+ margin-top: 0;
+ vertical-align: baseline;
+}
 
 /* tabs */
-#account_details div.field { margin-bottom: 1em; }
-#account_details #forms { list-style: none; }
-#account_details #forms li {
-    background: #e6e6e6; border: 1px solid;
-    border-color: #ccc #666 #ccc #ccc;
-    border-top-left-radius: .5em;
-    border-top-right-radius: .5em;
-    color: #666; position: relative; bottom: -1px; float: left;
-    font-size: 90%; margin: 0 .3em; padding: .2em 1em .3em;
+#account_details div.field {
+ margin-bottom: 1em;
 }
-#account_details #forms :link, #account_details #forms :visited {
-    border: none; color: #999;
-}
-#account_details #forms :link:hover, #account_details #forms :visited:hover {
-    background: transparent; color: #333;
-}
-#account_details #forms li.active {
-    background: #fff; border-bottom: 1px solid #fff;
-}
-#account_details #formcontent {
-    background: url(../vgradient.png) 0 1px repeat-x;
-    border-top: 1px solid #ccc; float: right; width: 100%;
-}
-* html #account_details #formcontent { padding-top: 0; }
 
+#account_details #forms {
+ list-style: none;
+}
+
+#account_details #forms li {
+ background: #e6e6e6;
+ border: 1px solid;
+ border-color: #ccc #666 #ccc #ccc;
+ border-top-left-radius: .5em;
+ border-top-right-radius: .5em;
+ color: #666;
+ position: relative;
+ bottom: -1px;
+ float: left;
+ font-size: 90%;
+ margin: 0 .3em;
+ padding: .2em 1em .3em;
+}
+
+#account_details #forms :link, #account_details #forms :visited {
+ border: none;
+ color: #999;
+}
+
+#account_details #forms :link:hover, #account_details #forms :visited:hover {
+ background: transparent;
+ color: #333;
+}
+
+#account_details #forms li.active {
+ background: #fff;
+ border-bottom: 1px solid #fff;
+}
+
+#account_details #formcontent {
+ background: url(../vgradient.png) 0 1px repeat-x;
+ border-top: 1px solid #ccc;
+ float: right;
+ width: 100%;
+}
+
+* html #account_details #formcontent {
+ padding-top: 0;
+}
 
 /* style for compatibility with Trac < 1.0 */
 h2 .trac-count {
-    margin-left: .2em; vertical-align: baseline; color: #999;
-    font-size: 90%; font-weight: normal;
+ margin-left: .2em;
+ vertical-align: baseline;
+ color: #999;
+ font-size: 90%;
+ font-weight: normal;
 }

@@ -11,10 +11,8 @@ import hashlib
 import re
 
 from acct_mgr.api import GenericUserIdChanger
-
 from trac.util import as_int
 from trac.util.text import exception_to_unicode, to_unicode
-
 
 _USER_KEYS = {
     'auth_cookie': 'name',
@@ -48,7 +46,7 @@ class PrimitiveUserIdChanger(GenericUserIdChanger):
     table = None
 
     # IUserIdChanger method
-    def replace(self, old_uid, new_uid, db):
+    def replace(self, old_uid, new_uid):
         result = 0
 
         try:
@@ -62,12 +60,13 @@ class PrimitiveUserIdChanger(GenericUserIdChanger):
                            (new_uid, old_uid))
                     result = int(count)
                 self.log.debug(self.msg(old_uid, new_uid, self.table,
-                               self.column, result='%s time(s)' % result))
+                                        self.column,
+                                        result='%s time(s)' % result))
         except _get_db_exc(self.env), e:
             result = exception_to_unicode(e)
+            msg = 'failed: %s' % exception_to_unicode(e, traceback=True)
             self.log.debug(self.msg(old_uid, new_uid, self.table,
-                           self.column, result='failed: %s'
-                           % exception_to_unicode(e, traceback=True)))
+                                    self.column, result=msg))
             return dict(error={(self.table, self.column, None): result})
         return {(self.table, self.column, None): result}
 
@@ -80,18 +79,18 @@ class UniqueUserIdChanger(PrimitiveUserIdChanger):
     column = 'sid'
 
     # IUserIdChanger method
-    def replace(self, old_uid, new_uid, db):
+    def replace(self, old_uid, new_uid):
         try:
             self.env.db_transaction("""
                 DELETE FROM %s WHERE %s=%%s
                 """ % (self.table, self.column), (new_uid,))
         except _get_db_exc(self.env), e:
             result = exception_to_unicode(e)
+            msg = 'failed: %s' % exception_to_unicode(e, traceback=True)
             self.log.debug(self.msg(old_uid, new_uid, self.table,
-                           self.column, result='failed: %s'
-                           % exception_to_unicode(e, traceback=True)))
+                                    self.column, result=msg))
             return dict(error={(self.table, self.column, None): result})
-        return super(UniqueUserIdChanger, self).replace(old_uid, new_uid, db)
+        return super(UniqueUserIdChanger, self).replace(old_uid, new_uid)
 
 
 class AttachmentUserIdChanger(PrimitiveUserIdChanger):
@@ -139,20 +138,20 @@ class TicketUserIdChanger(PrimitiveUserIdChanger):
     table = 'ticket'
 
     # IUserIdChanger method
-    def replace(self, old_uid, new_uid, db):
+    def replace(self, old_uid, new_uid):
         results = {}
 
         with self.env.db_transaction as db:
             self.column = 'owner'
-            result = super(TicketUserIdChanger,
-                           self).replace(old_uid, new_uid)
+            result = super(TicketUserIdChanger, self).\
+                     replace(old_uid, new_uid)
             if 'error' in result:
                 return result
             results.update(result)
 
             self.column = 'reporter'
-            result = super(TicketUserIdChanger, self).replace(old_uid,
-                                                              new_uid)
+            result = super(TicketUserIdChanger, self).\
+                     replace(old_uid, new_uid)
             if 'error' in result:
                 return result
             results.update(result)
@@ -171,10 +170,11 @@ class TicketUserIdChanger(PrimitiveUserIdChanger):
                         result += 1
                     except _get_db_exc(self.env), e:
                         result = exception_to_unicode(e)
+                        msg = 'failed: %s' \
+                              % exception_to_unicode(e, traceback=True)
                         self.log.debug(
                             self.msg(old_uid, new_uid, self.table, 'cc',
-                                     result='failed: %s'
-                                     % exception_to_unicode(e, traceback=True)))
+                                     result=msg))
                         return dict(error={(self.table, 'cc', None): result})
             self.log.debug(self.msg(old_uid, new_uid, self.table, 'cc',
                                     result='%s time(s)' % result))
@@ -200,18 +200,21 @@ class TicketUserIdChanger(PrimitiveUserIdChanger):
                     try:
                         db("""
                             UPDATE %s SET %s=%%s
-                            WHERE %s=%%s AND (field='owner' OR field='reporter')
+                            WHERE %s=%%s AND 
+                             (field='owner' OR field='reporter')
                             """ % (table, column, column), (new_uid, old_uid))
                     except _get_db_exc(self.env), e:
                         result = exception_to_unicode(e)
+                        msg = 'failed: %s' % \
+                              exception_to_unicode(e, traceback=True)
                         self.log.debug(
                             self.msg(old_uid, new_uid, table, column,
-                                     constraint, result='failed: %s'
-                                     % exception_to_unicode(e, traceback=True)))
+                                     constraint, result=msg))
                         return dict(error={(self.table, column,
                                             constraint): result})
                 self.log.debug(self.msg(old_uid, new_uid, table, column,
-                                        constraint, result='%s time(s)' % result))
+                                        constraint,
+                                        result='%s time(s)' % result))
                 results.update({(table, column, constraint): result})
 
             # Replace user ID in Cc ticket field changes too.
@@ -231,14 +234,15 @@ class TicketUserIdChanger(PrimitiveUserIdChanger):
                                 UPDATE %s SET %s=%%s
                                 WHERE ticket=%%s AND time=%%s
                                 """ % (table, column),
-                                (', '.join(cc), int(row[0]), int(row[1])))
+                               (', '.join(cc), int(row[0]), int(row[1])))
                             result += 1
                         except _get_db_exc(self.env), e:
                             result = exception_to_unicode(e)
+                            msg = 'failed: %s' % \
+                                  exception_to_unicode(e, traceback=True)
                             self.log.debug(
                                 self.msg(old_uid, new_uid, table, column,
-                                         constraint, result='failed: %s'
-                                         % exception_to_unicode(e, traceback=True)))
+                                         constraint, result=msg))
                             return dict(error={(self.table, column,
                                                 constraint): result})
                 self.log.debug(self.msg(old_uid, new_uid, table, column,
@@ -260,7 +264,7 @@ def email_associated(env, email):
     """Returns whether an authenticated user account with that email address
     exists.
     """
-    for row in env.db_query("""
+    for _ in env.db_query("""
             SELECT value FROM session_attribute
             WHERE authenticated=1 AND name='email' AND value=%s
             """, (email,)):
@@ -304,7 +308,7 @@ def email_verified(env, user, email):
 def user_known(env, user):
     """Returns whether the user has ever been authenticated before."""
 
-    for row in env.db_query("""
+    for _ in env.db_query("""
             SELECT 1
              FROM session
             WHERE authenticated=1 AND sid=%s
@@ -367,7 +371,7 @@ def copy_user_attributes(env, username, new_uid, overwrite):
         if attrs and username in attrs and attrs[username].get(1):
             attrs_new = get_user_attribute(env, new_uid)
             if not (attrs_new and new_uid in attrs_new and
-                    attrs_new[new_uid].get(1)):
+                        attrs_new[new_uid].get(1)):
                 # No attributes found.
                 attrs_new = None
             # Remove value id hashes.
@@ -441,7 +445,7 @@ def get_user_attribute(env, username=None, authenticated=1, attribute=None,
         # Create single unique attribute ID.
         m = hashlib.md5()
         m.update(''.join([account, str(authenticated),
-                           res_row.get('name')]).encode('utf-8'))
+                          res_row.get('name')]).encode('utf-8'))
         row_id = m.hexdigest()
         if account in res:
             if authenticated in res[account]:
@@ -507,7 +511,7 @@ def set_user_attribute(env, username, attribute, value):
     with env.db_transaction as db:
         db("UPDATE session_attribute SET value=%s" + sql,
            (value, username, attribute))
-        for value, in db("""
+        for _, in db("""
                 SELECT value FROM session_attribute
                 """ + sql, (username, attribute)):
             break
@@ -552,10 +556,8 @@ def delete_user(env, user):
             # Pre-seed, since variable table and column names aren't allowed
             # as SQL arguments (security measure against SQL injections).
             sql = """
-                DELETE
-                  FROM %s
-                 WHERE %s=%%s
-                """ % (table, _USER_KEYS.get(table, 'sid'))
+                    DELETE FROM %s WHERE %s=%%s
+                    """ % (table, _USER_KEYS.get(table, 'sid'))
             db(sql, (user,))
 
     env.log.debug("Purged session data and permissions for user '%s'", user)
