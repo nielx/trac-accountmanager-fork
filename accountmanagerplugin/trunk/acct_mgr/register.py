@@ -288,7 +288,7 @@ class RegExpCheck(GenericRegistrationInspector):
     A collection of checks based on regular expressions.
 
     ''It depends on !EmailCheck being enabled too for using it's input field.
-    Likewise email checking is bypassed, if account verification is 
+    Likewise email checking is bypassed, if account verification is
     disabled.''
     """)
 

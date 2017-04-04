@@ -37,12 +37,12 @@ if sys.version_info[:2] == (2, 6):
 
     class HTTPBasicAuthHandler(urllib2.HTTPBasicAuthHandler):
         """Patched version of Python 2.6's HTTPBasicAuthHandler.
-        
+
         The fix for [1]_ introduced an infinite recursion bug [2]_ into
         Python 2.6.x that is triggered by attempting to connect using
         Basic authentication with a bad username and/or password. This
         class fixes the problem using the simple solution outlined in [3]_.
-        
+
         .. [1] http://bugs.python.org/issue3819
         .. [2] http://bugs.python.org/issue8797
         .. [3] http://bugs.python.org/issue8797#msg126657

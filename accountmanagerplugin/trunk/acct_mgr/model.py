@@ -200,7 +200,7 @@ class TicketUserIdChanger(PrimitiveUserIdChanger):
                     try:
                         db("""
                             UPDATE %s SET %s=%%s
-                            WHERE %s=%%s AND 
+                            WHERE %s=%%s AND
                              (field='owner' OR field='reporter')
                             """ % (table, column, column), (new_uid, old_uid))
                     except _get_db_exc(self.env), e:
