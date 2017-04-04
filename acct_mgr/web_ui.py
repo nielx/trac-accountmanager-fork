@@ -322,7 +322,7 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
 
     auth_cookie_lifetime = IntOption('trac', 'auth_cookie_lifetime', 0,
          """Lifetime of the authentication cookie, in seconds.
-                             
+
         This value determines how long the browser will cache
         authentication information, and therefore, after how much
         inactivity a user will have to log in again. The default value

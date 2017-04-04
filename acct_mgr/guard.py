@@ -26,7 +26,7 @@ class AccountGuard(Component):
     account status tracking and administative user account locking.
     Configurable time-locks with exponential lock time prolongation
     allow to balance graceful handling of failed login attempts and
-    reasonable protection against attempted brute-force attacks. 
+    reasonable protection against attempted brute-force attacks.
     """
 
     login_attempt_max_count = IntOption(

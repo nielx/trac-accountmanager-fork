@@ -25,7 +25,7 @@ class SvnServePasswordStore(Component):
     implements(IPasswordStore)
 
     filename = EnvRelativePathOption('account-manager', 'password_file',
-        doc="""Path to the users file; leave blank to locate the users file 
+        doc="""Path to the users file; leave blank to locate the users file
         by reading svnserve.conf from the default repository.
         """)
 

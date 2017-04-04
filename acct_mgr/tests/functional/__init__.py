@@ -41,27 +41,26 @@ class FunctionalTestSuite(TestSetup):
         else:
             dirname = "testenv%s" % port
         dirname = os.path.join(acct_mgr_source_tree, dirname)
-        
+
         baseurl = "http://localhost:%s" % port
         self._testenv = AcctMgrFuntionalTestEnvironment(dirname, port, baseurl)
         self._testenv.start()
         self._tester = AcctMgrFunctionalTester(baseurl, self._testenv.repo_url())
         self.fixture = (self._testenv, self._tester)
-    
+
     def tearDown(self):
         self._testenv.stop()
-        
+
 
 class FunctionalTestCaseSetup(TracFunctionalTestCaseSetup):
     def setUp(self):
         self._testenv, self._tester = self.fixture
-        self._smtpd = self._testenv.smtpd 
-        
-def suite():    
+        self._smtpd = self._testenv.smtpd
+
+def suite():
     from acct_mgr.tests.functional.testcases import suite
     suite = suite()
     return suite
-    
+
 if __name__ == '__main__':
     unittest.main(defaultTest='suite')
-

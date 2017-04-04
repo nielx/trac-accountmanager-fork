@@ -481,7 +481,7 @@ class UserAdminPanel(CommonTemplateProvider):
         if email and verify_enabled:
             data['verification'] = 'enabled'
             data['email_verified'] = email_verified(env, username, email)
-            self.log.debug('AcctMgr:admin:_do_acct_details for user \"%s\" ' 
+            self.log.debug('AcctMgr:admin:_do_acct_details for user \"%s\" '
                            'email \"%s\": %s', user, email,
                            data['email_verified'])
 
