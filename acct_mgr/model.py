@@ -509,8 +509,9 @@ def set_user_attribute(env, username, attribute, value):
         env.invalidate_known_users_cache()
 
     with env.db_transaction as db:
-        db("UPDATE session_attribute SET value=%s" + sql,
-           (value, username, attribute))
+        db("""
+            UPDATE session_attribute SET value=%s
+            """ + sql, (value, username, attribute))
         for _, in db("""
                 SELECT value FROM session_attribute
                 """ + sql, (username, attribute)):
