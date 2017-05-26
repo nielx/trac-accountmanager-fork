@@ -23,7 +23,7 @@ from acct_mgr.util import contains_any
 from trac import perm
 from trac.config import BoolOption, Option
 from trac.core import Component, TracError, implements
-from trac.util.html import tag
+from trac.util.html import html as tag
 from trac.util.text import exception_to_unicode
 from trac.web import auth, chrome
 from trac.web.api import HTTPBadRequest

@@ -27,7 +27,7 @@ from trac.core import implements
 from trac.env import open_environment
 from trac.prefs import IPreferencePanelProvider
 from trac.util import hex_entropy
-from trac.util.html import tag
+from trac.util.html import html as tag
 from trac.util.presentation import separated
 from trac.util.text import exception_to_unicode
 from trac.web import auth

@@ -10,7 +10,7 @@
 
 from trac.core import implements
 from trac.perm import PermissionSystem
-from trac.util.html import tag
+from trac.util.html import html as tag
 from trac.web.chrome import Chrome
 from trac.wiki.api import IWikiMacroProvider, WikiSystem, parse_args
 from trac.wiki.formatter import format_to_oneliner
