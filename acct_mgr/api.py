@@ -16,7 +16,8 @@ from trac.config import Option, OrderedExtensionsOption
 from trac.core import Component, ExtensionPoint, Interface, TracError
 from trac.core import implements
 from trac.perm import IPermissionRequestor, PermissionCache
-from trac.util.text import exception_to_unicode, cleandoc
+from trac.util.compat import cleandoc
+from trac.util.text import exception_to_unicode
 from trac.util.translation import dgettext, domain_functions
 from trac.web.chrome import ITemplateProvider, add_warning
 from trac.web.main import IRequestFilter
