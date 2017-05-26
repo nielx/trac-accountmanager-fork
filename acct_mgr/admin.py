@@ -29,7 +29,7 @@ from trac.core import Component, ExtensionPoint, implements
 from trac.perm import PermissionCache, PermissionSystem
 from trac.util import as_int
 from trac.util.datefmt import format_datetime, to_datetime
-from trac.util.html import tag
+from trac.util.html import html as tag
 from trac.util.presentation import Paginator
 from trac.util.text import cleandoc, exception_to_unicode
 from trac.web.api import IAuthenticator
