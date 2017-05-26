@@ -28,10 +28,11 @@ from trac.config import BoolOption, Option
 from trac.core import Component, ExtensionPoint, implements
 from trac.perm import PermissionCache, PermissionSystem
 from trac.util import as_int
+from trac.util.compat import cleandoc
 from trac.util.datefmt import format_datetime, to_datetime
 from trac.util.html import html as tag
 from trac.util.presentation import Paginator
-from trac.util.text import cleandoc, exception_to_unicode
+from trac.util.text import exception_to_unicode
 from trac.web.api import IAuthenticator
 from trac.web.chrome import Chrome, add_ctxtnav, add_link, add_notice
 from trac.web.chrome import add_script, add_stylesheet, add_warning
