@@ -12,6 +12,7 @@
 
 import os
 import sys
+import urllib2
 
 from acct_mgr.api import _, ngettext
 from trac.config import Option
@@ -31,7 +32,6 @@ class EnvRelativePathOption(Option):
 # Fix for issue http://bugs.python.org/issue8797 in Python 2.6
 # following Bitten changeset 974.
 if sys.version_info[:2] == (2, 6):
-    import urllib2
     import base64
 
 
@@ -61,7 +61,7 @@ if sys.version_info[:2] == (2, 6):
                 return None
 
 else:
-    pass
+    HTTPBasicAuthHandler = urllib2.HTTPBasicAuthHandler
 
 
 # taken from a comment of Horst Hansen
