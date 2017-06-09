@@ -540,9 +540,8 @@ class EmailVerificationModule(CommonTemplateProvider):
                 self.config.getbool('notification', 'smtp_enabled'):
             self.email_enabled = False
             if self.env.is_enabled(self.__class__):
-                self.log.warning(' '.join(self.__class__.__name__,
-                                 "can't work because of missing email setup.")
-                                 )
+                self.log.warning("%s can't work because of missing email "
+                                 "setup.", self.__class__.__name__)
 
     # IRequestFilter methods
 
