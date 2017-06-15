@@ -13,19 +13,13 @@ import random
 import string
 import time
 
-from acct_mgr.api import AccountManager, CommonTemplateProvider
-from acct_mgr.api import _, dgettext, ngettext, tag_
-from acct_mgr.db import SessionStore
-from acct_mgr.guard import AccountGuard
-from acct_mgr.model import set_user_attribute
-from acct_mgr.notification import NotificationError
-from acct_mgr.register import RegistrationModule
-from acct_mgr.util import if_enabled
+from trac.attachment import IAttachmentManipulator
 from trac.config import BoolOption, ConfigurationError
 from trac.config import IntOption, Option
 from trac.core import implements
 from trac.env import open_environment
 from trac.prefs import IPreferencePanelProvider
+from trac.ticket.api import ITicketManipulator
 from trac.util import hex_entropy
 from trac.util.html import html as tag
 from trac.util.presentation import separated
@@ -34,6 +28,16 @@ from trac.web import auth
 from trac.web.chrome import INavigationContributor, add_notice
 from trac.web.chrome import add_warning
 from trac.web.main import IRequestHandler, IRequestFilter, get_environments
+from trac.wiki.api import IWikiPageManipulator
+
+from acct_mgr.api import AccountManager, CommonTemplateProvider
+from acct_mgr.api import _, dgettext, ngettext, tag_
+from acct_mgr.db import SessionStore
+from acct_mgr.guard import AccountGuard
+from acct_mgr.model import last_seen, set_user_attribute
+from acct_mgr.notification import NotificationError
+from acct_mgr.register import RegistrationModule
+from acct_mgr.util import if_enabled, remove_zwsp
 
 
 class ResetPwStore(SessionStore):
@@ -54,8 +58,9 @@ class AccountModule(CommonTemplateProvider):
     IPasswordHashMethod implementation being enabled as well.
     """
 
-    implements(IPreferencePanelProvider, IRequestHandler,
-               INavigationContributor, IRequestFilter)
+    implements(IAttachmentManipulator, INavigationContributor,
+               IPreferencePanelProvider, IRequestFilter, IRequestHandler,
+               ITicketManipulator, IWikiPageManipulator)
 
     _password_chars = string.ascii_letters + string.digits
     password_length = IntOption('account-manager',
@@ -131,12 +136,29 @@ class AccountModule(CommonTemplateProvider):
     # IRequestFilter methods
 
     def pre_process_request(self, req, handler):
-        if req.path_info == '/prefs/account' and \
-                not (req.authname and req.authname != 'anonymous'):
-            # An anonymous session has no account associated with it, and
-            # no account properies too, but general session preferences should
-            # always be available.
-            req.redirect(req.href.prefs())
+        if not req.authname or req.authname == 'anonymous':
+            if req.path_info == '/prefs/account':
+                # An anonymous session has no account associated with it, and
+                # no account properies too, but general session preferences
+                # should always be available.
+                req.redirect(req.href.prefs())
+            elif req.path_info == '/prefs/advanced' and req.method == 'POST':
+                # Prevent setting session ID to one of an authenticated user.
+                username = req.args.get('loadsid')
+                if username and last_seen(self.env, username):
+                    add_warning(req, tag_(
+                                "Sorry, but policy prohibits choosing "
+                                "'%(username)s' for an anonymous session. "
+                                "Login or choose another session ID, please.",
+                                username=tag.b(username)))
+                    req.redirect(req.href.prefs())
+            elif req.method == 'POST' and \
+                    req.path_info.split('/')[1] \
+                    not in ('attachment', 'newticket', 'ticket', 'wiki'):
+                warning = self._check_author(req)
+                if warning:
+                    add_warning(req, warning[0][1])
+                    req.redirect(req.href(req.path_info))
         return handler
 
     def post_process_request(self, req, template, data, content_type):
@@ -167,6 +189,45 @@ class AccountModule(CommonTemplateProvider):
         if req.method == 'POST':
             self._do_reset_password(req)
         return 'reset_password.html', data, None
+
+    # IAttachmentManipulator
+
+    def prepare_attachment(self, req, attachment, fields):
+        pass
+
+    def validate_attachment(self, req, attachment):
+        return self._check_author(req)
+
+    # ITicketManipulator methods
+
+    def prepare_ticket(self, req, ticket, fields, actions):
+        pass
+
+    def validate_ticket(self, req, ticket):
+        return self._check_author(req)
+
+    # IWikiPageManipulator methods
+
+    def prepare_wiki_page(self, req, page, fields):
+        pass
+
+    def validate_wiki_page(self, req, page):
+        return self._check_author(req)
+
+    def _check_author(self, req):
+        author = req.args.get('field_reporter') or req.args.get('author')
+        if (not req.authname or req.authname == 'anonymous') and author:
+            author = remove_zwsp(author)
+            if author and last_seen(self.env, author):
+                # Prevent impersonating an authenticated user in author field.
+                # Use degraded formatting due to T:#6634.
+                return [(_("author"), tag_(
+                         "Policy prohibits choosing %(username)s for an "
+                         "anonymous session because it's a registered "
+                         "username. Please login or choose another author "
+                         "name.", username=tag.em(author)))]
+            return []  # author is not authenticated, but still fine
+        return []  # author is authenticated
 
     def _do_account(self, req):
         assert (req.authname and req.authname != 'anonymous')

@@ -11,6 +11,7 @@
 # Author: Matthew Good <trac@matt-good.net>
 
 import os
+import re
 import sys
 import urllib2
 
@@ -124,3 +125,15 @@ def pretty_precise_timedelta(time1, time2=None, resolution=None, diff=0):
     # string substitution.
     return (ngettext("%(num)i day %%s", "%(num)i days %%s", age_d)
             % (str(t) != '0' and t or '')).rstrip()
+
+
+_zwsp_re = re.compile(u'[\\s\u200b-\u200f\u061c\u202a-\u202e'
+                      u'\u2066-\u2069\u00ad\u2060\ufeff\u2061-\u2064'
+                      u'\u115f\u1160\u180b-\u180d\ufe00-\ufe0f]+',
+                      re.UNICODE)
+
+
+def remove_zwsp(text):
+    """Strips unicode zero-width and whitespace characters.
+    """
+    return _zwsp_re.sub('', text)

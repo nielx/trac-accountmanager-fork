@@ -11,7 +11,7 @@
 import unittest
 from datetime import datetime
 
-from acct_mgr.util import pretty_precise_timedelta
+from acct_mgr.util import pretty_precise_timedelta, remove_zwsp
 
 
 class UtilTestCase(unittest.TestCase):
@@ -43,6 +43,10 @@ class UtilTestCase(unittest.TestCase):
                          '1 day')
         self.assertEqual(pretty_precise_timedelta(None, diff=86401),
                          '1 day 1 second')
+
+    def test_remove_zwsp(self):
+        self.assertEqual(u'user', remove_zwsp(u'\u200buser\u200b'))
+        self.assertEqual(u'user', remove_zwsp(u'\u200fu\ufe00ser\u061c'))
 
 
 def test_suite():
