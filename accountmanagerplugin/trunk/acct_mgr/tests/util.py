@@ -45,8 +45,10 @@ class UtilTestCase(unittest.TestCase):
                          '1 day 1 second')
 
     def test_remove_zwsp(self):
+        self.assertEqual(u'user', remove_zwsp(u'user'))
         self.assertEqual(u'user', remove_zwsp(u'\u200buser\u200b'))
         self.assertEqual(u'user', remove_zwsp(u'\u200fu\ufe00ser\u061c'))
+        self.assertEqual(u'user', remove_zwsp(u'u\udb40\udd00ser'))
 
 
 def test_suite():

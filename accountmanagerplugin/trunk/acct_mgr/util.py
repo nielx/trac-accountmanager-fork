@@ -127,9 +127,10 @@ def pretty_precise_timedelta(time1, time2=None, resolution=None, diff=0):
             % (str(t) != '0' and t or '')).rstrip()
 
 
-_zwsp_re = re.compile(u'[\\s\u200b-\u200f\u061c\u202a-\u202e'
+_zwsp_re = re.compile(u'([\\s\u200b-\u200f\u061c\u202a-\u202e'
                       u'\u2066-\u2069\u00ad\u2060\ufeff\u2061-\u2064'
-                      u'\u115f\u1160\u180b-\u180d\ufe00-\ufe0f]+',
+                      u'\u115f\u1160\u180b-\u180d\ufe00-\ufe0f]+|'
+                      u'[\udb40[\udd00-\uddef]+)',
                       re.UNICODE)
 
 
