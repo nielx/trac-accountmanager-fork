@@ -127,11 +127,21 @@ def pretty_precise_timedelta(time1, time2=None, resolution=None, diff=0):
             % (str(t) != '0' and t or '')).rstrip()
 
 
-_zwsp_re = re.compile(u'([\\s\u200b-\u200f\u061c\u202a-\u202e'
-                      u'\u2066-\u2069\u00ad\u2060\ufeff\u2061-\u2064'
-                      u'\u115f\u1160\u180b-\u180d\ufe00-\ufe0f]+|'
-                      u'[\udb40[\udd00-\uddef]+)',
-                      re.UNICODE)
+def _create_zwsp_re():
+    ucs2_range = u'\\s\u200b-\u200f\u061c\u202a-\u202e\u2066-\u2069\u00ad' \
+                 u'\u2060\ufeff\u2061-\u2064\u115f\u1160\u180b-\u180d' \
+                 u'\ufe00-\ufe0f'
+    try:
+        pattern = re.compile(u'[%s\U000e0100-\U000e01ef]+' % ucs2_range,
+                             re.UNICODE)
+    except re.error:
+        # Narrow build, `re` cannot use characters >= 0x10000
+        pattern = re.compile(u'[%s]+|(?:\udb40[\udd00-\uddef])+' % ucs2_range,
+                             re.UNICODE)
+    return pattern
+
+
+_zwsp_re = _create_zwsp_re()
 
 
 def remove_zwsp(text):
