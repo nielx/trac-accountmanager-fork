@@ -48,7 +48,10 @@ class UtilTestCase(unittest.TestCase):
         self.assertEqual(u'user', remove_zwsp(u'user'))
         self.assertEqual(u'user', remove_zwsp(u'\u200buser\u200b'))
         self.assertEqual(u'user', remove_zwsp(u'\u200fu\ufe00ser\u061c'))
-        self.assertEqual(u'user', remove_zwsp(u'u\udb40\udd00ser'))
+        self.assertEqual(u'u\U000e00ffser', remove_zwsp(u'u\U000e00ffser'))
+        self.assertEqual(u'user', remove_zwsp(u'u\U000e0100ser'))
+        self.assertEqual(u'user', remove_zwsp(u'u\U000e01efser'))
+        self.assertEqual(u'u\U000e01f0ser', remove_zwsp(u'u\U000e01f0ser'))
 
 
 def test_suite():
