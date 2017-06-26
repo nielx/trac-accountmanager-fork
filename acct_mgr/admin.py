@@ -14,7 +14,7 @@ import re
 
 from acct_mgr.api import AccountManager, CommonTemplateProvider
 from acct_mgr.api import IUserIdChanger
-from acct_mgr.api import _, N_, dgettext, gettext, ngettext, tag_
+from acct_mgr.api import _, dgettext, gettext, ngettext, tag_
 from acct_mgr.guard import AccountGuard
 from acct_mgr.model import change_uid, del_user_attribute, email_verified
 from acct_mgr.model import get_user_attribute, last_seen, set_user_attribute
@@ -594,7 +594,7 @@ class UserAdminPanel(CommonTemplateProvider):
                     else:
                         # Ban the account.
                         set_user_attribute(env, username, 'approval',
-                                           N_('revoked'))
+                                           _("revoked"))
                         ban.append(username)
                 msg = None
                 if unban:

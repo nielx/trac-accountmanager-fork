@@ -33,17 +33,18 @@ from trac.web.main import IRequestFilter, IRequestHandler
 class RegistrationError(TracError):
     """Exception raised when a registration check fails."""
 
+    title = N_("Registration Error")
+
     def __init__(self, message, *args, **kwargs):
         """TracError sub-class with extended i18n support.
 
         It eases error initialization with messages optionally including
         arguments meant for string substitution after deferred translation.
         """
-        title = N_("Registration Error")
         tb = 'show_traceback'
         # Care for the 2nd TracError standard keyword argument only.
         show_traceback = tb in kwargs and kwargs.pop(tb, False)
-        TracError.__init__(self, message, title, show_traceback)
+        TracError.__init__(self, message, self.title, show_traceback)
         self.msg_args = args
 
 
@@ -103,35 +104,27 @@ class BasicCheck(GenericRegistrationInspector):
             req.args.get('username', '').strip())
 
         if not username:
-            raise RegistrationError(N_("Username cannot be empty."))
+            raise RegistrationError(_("Username cannot be empty."))
 
         # Always exclude some special characters, i.e.
         #   ':' can't be used in HtPasswdStore
         #   '[' and ']' can't be used in SvnServePasswordStore
         blacklist = acctmgr.username_char_blacklist
         if contains_any(username, blacklist):
-            pretty_blacklist = ''
-            for c in blacklist:
-                if pretty_blacklist == '':
-                    pretty_blacklist = tag(' \'', tag.b(c), '\'')
-                else:
-                    pretty_blacklist = tag(pretty_blacklist,
-                                           ', \'', tag.b(c), '\'')
-            raise RegistrationError(N_(
-                "The username must not contain any of these characters: %s"),
-                tag.b(pretty_blacklist)
-            )
+            raise RegistrationError(tag_(
+                "The username must not contain any of these characters: "
+                "%(chars)s", chars=tag.tt(' '.join(blacklist))))
 
         # All upper-cased names are reserved for permission action names.
         if username.isupper():
-            raise RegistrationError(N_("A username with only upper-cased "
-                                       "characters is not allowed."))
+            raise RegistrationError(_("A username with only upper-cased "
+                                      "characters is not allowed."))
 
         # Prohibit some user names, that are important for Trac and therefor
         # reserved, even if not in the permission store for some reason.
         if username.lower() in ['anonymous', 'authenticated']:
-            raise RegistrationError(N_("Username %s is not allowed."),
-                                    tag.b(username))
+            raise RegistrationError(tag_("Username %(username)s is not "
+                                         "allowed.", username=tag.b(username)))
 
         # NOTE: A user may exist in a password store but not in the permission
         #   store.  I.e. this happens, when the user (from the password store)
@@ -150,9 +143,9 @@ class BasicCheck(GenericRegistrationInspector):
         # Password consistency checks follow.
         password = req.args.get('password')
         if not password:
-            raise RegistrationError(N_("Password cannot be empty."))
+            raise RegistrationError(_("Password cannot be empty."))
         elif password != req.args.get('password_confirm'):
-            raise RegistrationError(N_("The passwords must match."))
+            raise RegistrationError(_("The passwords must match."))
 
 
 class BotTrapCheck(GenericRegistrationInspector):
@@ -216,7 +209,7 @@ class BotTrapCheck(GenericRegistrationInspector):
         keep_empty = req.args.get('sentinel', '')
         if keep_empty or self.reg_basic_token and \
                         self.reg_basic_token != basic_token:
-            raise RegistrationError(N_("Are you human? If so, try harder!"))
+            raise RegistrationError(_("Are you human? If so, try harder!"))
 
 
 class EmailCheck(GenericRegistrationInspector):
@@ -268,18 +261,16 @@ class EmailCheck(GenericRegistrationInspector):
                 EmailVerificationModule(self.env).verify_email:
             # Initial configuration case.
             if not email and not req.args.get('active'):
-                raise RegistrationError(N_(
-                    "You must specify a valid email address.")
-                )
+                raise RegistrationError(_(
+                    "You must specify a valid email address."))
             # User preferences case.
             elif req.path_info == '/prefs' and \
                             email == req.session.get('email'):
                 return
             elif email_associated(self.env, email):
-                raise RegistrationError(N_(
+                raise RegistrationError(_(
                     "The email address specified is already in use. "
-                    "Please specify a different one.")
-                )
+                    "Please specify a different one."))
 
 
 class RegExpCheck(GenericRegistrationInspector):
@@ -313,10 +304,10 @@ class RegExpCheck(GenericRegistrationInspector):
             req.args.get('username', '').strip())
         if req.path_info != '/prefs' and self.username_regexp != '' and \
                 not re.match(self.username_regexp.strip(), username):
-            raise RegistrationError(N_(
-                "Username %s doesn't match local naming policy."),
-                tag.b(username)
-            )
+            raise RegistrationError(tag_(
+                "Username %(username)s doesn't match local naming policy.",
+                username=tag.b(username)
+            ))
 
         email = req.args.get('email', '').strip()
         if self.env.is_enabled(EmailCheck) and \
@@ -325,7 +316,7 @@ class RegExpCheck(GenericRegistrationInspector):
             if self.email_regexp.strip() != '' and \
                     not re.match(self.email_regexp.strip(), email) and \
                     not req.args.get('active'):
-                raise RegistrationError(N_(
+                raise RegistrationError(_(
                     "The email address specified appears to be invalid. "
                     "Please specify a valid email address."))
 
@@ -455,7 +446,7 @@ class RegistrationModule(CommonTemplateProvider):
             else:
                 if self.require_approval:
                     set_user_attribute(self.env, username, 'approval',
-                                       N_('pending'))
+                                       _('pending'))
                     # Notify admin user about registration pending for review.
                     try:
                         acctmgr._notify('registration_approval_required',
