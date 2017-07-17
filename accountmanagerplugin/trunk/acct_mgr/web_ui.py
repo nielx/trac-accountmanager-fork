@@ -74,7 +74,10 @@ class AccountModule(CommonTemplateProvider):
 
     def __init__(self):
         self.acctmgr = AccountManager(self.env)
-        self.store = ResetPwStore(self.env)
+        try:
+            self.store = ResetPwStore(self.env)
+        except ConfigurationError:
+            self.store = None
         self._write_check(log=True)
 
     def _write_check(self, log=False):
@@ -336,8 +339,8 @@ class AccountModule(CommonTemplateProvider):
         """
         acctmgr = self.acctmgr
         new_password = self._random_password
+        self.store.set_password(username, new_password)
         try:
-            self.store.set_password(username, new_password)
             acctmgr._notify('password_reset', username, email, new_password)
         except NotificationError, e:
             msg = _("Error raised while sending a change notification.")
