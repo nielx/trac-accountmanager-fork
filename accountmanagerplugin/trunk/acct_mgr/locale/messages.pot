@@ -1,326 +1,320 @@
 # Translations template for TracAccountManager.
-# Copyright (C) 2015 ORGANIZATION
+# Copyright (C) 2017 ORGANIZATION
 # This file is distributed under the same license as the
 # TracAccountManager project.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2015.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2017.
 #
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: TracAccountManager 0.5\n"
 "Report-Msgid-Bugs-To: hoff.st@shaas.net\n"
-"POT-Creation-Date: 2015-11-05 14:11-0800\n"
+"POT-Creation-Date: 2017-07-26 00:20-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.1.1\n"
+"Generated-By: Babel 2.4.0\n"
 
-#: acct_mgr/admin.py:59
+#: acct_mgr/admin.py:57
 #, python-format
 msgid "Locked until %(t_release)s"
 msgstr ""
 
-#: acct_mgr/admin.py:170
+#: acct_mgr/admin.py:169
 #, python-format
 msgid "Invalid key type (%s) for ExtensionOrder"
 msgstr ""
 
-#: acct_mgr/admin.py:214 acct_mgr/admin.py:947 acct_mgr/notification.py:193
+#: acct_mgr/admin.py:212 acct_mgr/admin.py:895 acct_mgr/notification.py:191
 #: acct_mgr/templates/admin_users.html:14
 #: acct_mgr/templates/admin_users.html:158
 msgid "Accounts"
 msgstr ""
 
-#: acct_mgr/admin.py:214
+#: acct_mgr/admin.py:212
 msgid "Users"
 msgstr ""
 
-#: acct_mgr/admin.py:245
-#, python-format
-msgid "Account %(username)s created."
-msgstr ""
-
-#: acct_mgr/admin.py:249 acct_mgr/admin.py:865 acct_mgr/admin.py:879
-#: acct_mgr/admin.py:892 acct_mgr/register.py:447 acct_mgr/register.py:471
-#: acct_mgr/register.py:617 acct_mgr/register.py:655 acct_mgr/web_ui.py:285
-#: acct_mgr/web_ui.py:787
-msgid "Error raised while sending a change notification."
-msgstr ""
-
-#: acct_mgr/admin.py:251 acct_mgr/admin.py:867 acct_mgr/admin.py:881
-#: acct_mgr/admin.py:894 acct_mgr/web_ui.py:287
-msgid "You'll get details with TracLogging enabled."
-msgstr ""
-
-#: acct_mgr/admin.py:265 acct_mgr/admin.py:776
-msgid "None of the configured password stores is writable."
-msgstr ""
-
-#: acct_mgr/admin.py:335
+#: acct_mgr/admin.py:289
 #, python-format
 msgid "%(count)s account"
 msgid_plural "%(count)s accounts"
 msgstr[0] ""
 msgstr[1] ""
 
-#: acct_mgr/admin.py:342
+#: acct_mgr/admin.py:296
 #, python-format
 msgid "%(count)s account attribute"
 msgid_plural "%(count)s account attributes"
 msgstr[0] ""
 msgstr[1] ""
 
-#: acct_mgr/admin.py:347
-msgid "Successfully deleted:"
+#: acct_mgr/admin.py:302
+#, python-format
+msgid "Successfully deleted: %(account)s"
 msgstr ""
 
-#: acct_mgr/admin.py:360 acct_mgr/admin.py:581
+#: acct_mgr/admin.py:314 acct_mgr/admin.py:537
 msgid "Back to Accounts"
 msgstr ""
 
-#: acct_mgr/admin.py:372
+#: acct_mgr/admin.py:326
 msgid "Please choose account by username from the list to proceed."
 msgstr ""
 
-#: acct_mgr/admin.py:402
+#: acct_mgr/admin.py:356
 msgid "Email Address"
 msgstr ""
 
-#: acct_mgr/admin.py:403
+#: acct_mgr/admin.py:357
 msgid "Pre-/Surname (Nickname)"
 msgstr ""
 
-#: acct_mgr/admin.py:404
+#: acct_mgr/admin.py:358
 msgid "Password"
 msgstr ""
 
-#: acct_mgr/admin.py:421 acct_mgr/admin.py:428
+#: acct_mgr/admin.py:375 acct_mgr/admin.py:382
 #, python-format
 msgid "Deleted %(attribute)s for %(username)s."
 msgstr ""
 
-#: acct_mgr/admin.py:433 acct_mgr/register.py:162 acct_mgr/web_ui.py:216
+#: acct_mgr/admin.py:387 acct_mgr/register.py:148 acct_mgr/web_ui.py:277
 msgid "The passwords must match."
 msgstr ""
 
-#: acct_mgr/admin.py:466
+#: acct_mgr/admin.py:421
 #, python-format
 msgid "Updated %(attributes)s for %(username)s."
 msgstr ""
 
-#: acct_mgr/admin.py:479
+#: acct_mgr/admin.py:434
 #, python-format
 msgid "Update error in table %(table)s: %(message)s"
 msgstr ""
 
-#: acct_mgr/admin.py:493
+#: acct_mgr/admin.py:448
 #, python-format
 msgid "Table %(table)s column %(column)s%(constraint)s: %(result)s change"
 msgid_plural "Table %(table)s column %(column)s%(constraint)s: %(result)s changes"
 msgstr[0] ""
 msgstr[1] ""
 
-#: acct_mgr/admin.py:540
+#: acct_mgr/admin.py:495
 #, python-format
 msgid "Account lock (%(condition)s) for user %(user)s cleared"
 msgstr ""
 
-#: acct_mgr/admin.py:546
+#: acct_mgr/admin.py:501
 #, python-format
 msgid "Failed login attempts for user %(user)s deleted"
 msgstr ""
 
 #. TRANSLATOR: Optionally tabbed account editor's label
-#: acct_mgr/admin.py:572
+#: acct_mgr/admin.py:528
 msgid "Modify Account Attributes"
 msgstr ""
 
-#: acct_mgr/admin.py:574
+#: acct_mgr/admin.py:530
 msgid "Change User ID"
 msgstr ""
 
-#: acct_mgr/admin.py:641 acct_mgr/admin.py:693
+#: acct_mgr/admin.py:597 acct_mgr/admin.py:648
 msgid "revoked"
 msgstr ""
 
-#: acct_mgr/admin.py:648
+#: acct_mgr/admin.py:604
 #, python-format
 msgid "Approved account: %(accounts)s"
 msgid_plural "Approved accounts: %(accounts)s"
 msgstr[0] ""
 msgstr[1] ""
 
-#: acct_mgr/admin.py:657
+#: acct_mgr/admin.py:613
 #, python-format
 msgid "Banned account: %(accounts)s"
 msgid_plural "Banned accounts: %(accounts)s"
 msgstr[0] ""
 msgstr[1] ""
 
-#: acct_mgr/admin.py:669
+#: acct_mgr/admin.py:625
 #, python-format
 msgid "Password reset for %(accounts)s."
 msgstr ""
 
-#: acct_mgr/admin.py:671
+#: acct_mgr/admin.py:627
 msgid "The password reset procedure is not enabled."
 msgstr ""
 
-#: acct_mgr/admin.py:682
+#: acct_mgr/admin.py:637
 #, python-format
 msgid "Deleted account: %(accounts)s"
-msgid_plural "Deleted accounts: %(accounts)s"
-msgstr[0] ""
-msgstr[1] ""
+msgstr ""
 
-#: acct_mgr/admin.py:684
+#: acct_mgr/admin.py:639
 msgid "The password store does not support deleting users."
 msgstr ""
 
-#: acct_mgr/admin.py:692
+#: acct_mgr/admin.py:647
 msgid "active"
 msgstr ""
 
-#: acct_mgr/admin.py:694
+#: acct_mgr/admin.py:649
 msgid "pending approval"
 msgstr ""
 
-#: acct_mgr/admin.py:697
+#: acct_mgr/admin.py:652
 msgid "email unverified"
 msgstr ""
 
-#: acct_mgr/admin.py:715
+#: acct_mgr/admin.py:673
 msgid "Are you sure you want to delete these accounts?"
 msgstr ""
 
-#: acct_mgr/admin.py:759
+#: acct_mgr/admin.py:713
 #, python-format
 msgid "Removing the old user is not supported by %(store)s."
 msgstr ""
 
-#: acct_mgr/admin.py:780
+#: acct_mgr/admin.py:730 acct_mgr/admin.py:1579
+msgid "None of the configured password stores is writable."
+msgstr ""
+
+#: acct_mgr/admin.py:734
 msgid "Password reset is a required action, but disabled yet."
 msgstr ""
 
-#: acct_mgr/admin.py:790
+#: acct_mgr/admin.py:744
 #, python-format
 msgid "At least %(required_check)s must be configured and enabled."
 msgstr ""
 
-#: acct_mgr/admin.py:827
+#: acct_mgr/admin.py:775
 msgid "Failed to save new login data to a password store."
 msgstr ""
 
-#: acct_mgr/admin.py:857
+#: acct_mgr/admin.py:805
 #, python-format
 msgid ""
 "Cannot send the new password to the user, because no email address is"
 " associated with %(username)s."
 msgstr ""
 
-#: acct_mgr/admin.py:910
+#: acct_mgr/admin.py:813 acct_mgr/admin.py:827 acct_mgr/admin.py:840
+#: acct_mgr/admin.py:1564 acct_mgr/register.py:438 acct_mgr/register.py:455
+#: acct_mgr/register.py:596 acct_mgr/register.py:632 acct_mgr/web_ui.py:346
+#: acct_mgr/web_ui.py:808
+msgid "Error raised while sending a change notification."
+msgstr ""
+
+#: acct_mgr/admin.py:815 acct_mgr/admin.py:829 acct_mgr/admin.py:842
+#: acct_mgr/admin.py:1566 acct_mgr/web_ui.py:348
+msgid "You'll get details with TracLogging enabled."
+msgstr ""
+
+#: acct_mgr/admin.py:858
 #, python-format
 msgid "page %(num)s"
 msgstr ""
 
-#: acct_mgr/admin.py:921
+#: acct_mgr/admin.py:869
 msgid "Next Page"
 msgstr ""
 
-#: acct_mgr/admin.py:924
+#: acct_mgr/admin.py:872
 msgid "Previous Page"
 msgstr ""
 
-#: acct_mgr/admin.py:947 acct_mgr/templates/admin_accountsconfig.html:438
+#: acct_mgr/admin.py:895 acct_mgr/templates/admin_accountsconfig.html:438
 msgid "Configuration"
 msgstr ""
 
-#: acct_mgr/admin.py:999
+#: acct_mgr/admin.py:949
 msgid "Password hash refresh procedure restarted."
 msgstr ""
 
-#: acct_mgr/admin.py:1198
+#: acct_mgr/admin.py:1151
 msgid "Your changes have been saved."
 msgstr ""
 
-#: acct_mgr/admin.py:1201
+#: acct_mgr/admin.py:1154
 msgid ""
 "Your changes are cached until you either drop or save them all (see "
 "last step)."
 msgstr ""
 
-#: acct_mgr/admin.py:1220
+#: acct_mgr/admin.py:1173
 msgid "Authentication Options"
 msgstr ""
 
-#: acct_mgr/admin.py:1221 acct_mgr/admin.py:1477
+#: acct_mgr/admin.py:1174 acct_mgr/admin.py:1432
 msgid "Password Store"
 msgstr ""
 
-#: acct_mgr/admin.py:1222
+#: acct_mgr/admin.py:1175
 msgid "Password Policy"
 msgstr ""
 
-#: acct_mgr/admin.py:1223
+#: acct_mgr/admin.py:1176
 msgid "Account Policy"
 msgstr ""
 
-#: acct_mgr/admin.py:1224 acct_mgr/admin.py:1496
+#: acct_mgr/admin.py:1177 acct_mgr/admin.py:1451
 msgid "Account Guard"
 msgstr ""
 
-#: acct_mgr/admin.py:1225
+#: acct_mgr/admin.py:1178
 msgid "Initialization"
 msgstr ""
 
-#: acct_mgr/admin.py:1269 acct_mgr/admin.py:1396
+#: acct_mgr/admin.py:1222 acct_mgr/admin.py:1350
 #, python-format
 msgid ""
 "Error while reading configuration - Hint: Enable/install required "
 "component '%s'."
 msgstr ""
 
-#: acct_mgr/admin.py:1482
+#: acct_mgr/admin.py:1437
 msgid "Password Reset"
 msgstr ""
 
-#: acct_mgr/admin.py:1490
+#: acct_mgr/admin.py:1445
 msgid "Account Registration"
 msgstr ""
 
-#: acct_mgr/admin.py:1504
+#: acct_mgr/admin.py:1458
 msgid "Admin user account"
 msgstr ""
 
-#: acct_mgr/admin.py:1508
+#: acct_mgr/admin.py:1462
 msgid "Configuration Review"
 msgstr ""
 
-#: acct_mgr/admin.py:1583
+#: acct_mgr/admin.py:1537
 msgid "Initial Trac authentication setup launched."
 msgstr ""
 
-#: acct_mgr/api.py:200
-msgid "Ordered list of password stores, queried in turn."
+#: acct_mgr/admin.py:1575
+#, python-format
+msgid "Account %(username)s created."
 msgstr ""
 
-#: acct_mgr/api.py:266
+#: acct_mgr/api.py:255
 #, python-format
 msgid ""
-"The authentication backend for user %s does not support\n"
-"                setting the password.\n"
-"                "
+"The authentication backend for user %(user)s does not support setting"
+" the password."
 msgstr ""
 
-#: acct_mgr/api.py:284
+#: acct_mgr/api.py:272
 #, python-format
 msgid "Password for user %s existed, couldn't create."
 msgstr ""
 
-#: acct_mgr/api.py:289
+#: acct_mgr/api.py:277
 msgid ""
 "None of the IPasswordStore components listed in the\n"
 "                trac.ini supports setting the password or creating "
@@ -328,72 +322,49 @@ msgid ""
 "                "
 msgstr ""
 
-#. TRANSLATOR: Sync with same msgid in Trac 1.0, please.
-#: acct_mgr/compat.py:275 acct_mgr/compat.py:280
+#: acct_mgr/api.py:467
+msgid ""
+"Account is pending approval. You may need to contact your "
+"administrator."
+msgstr ""
+
+#: acct_mgr/htfile.py:89
 #, python-format
-msgid "%(relativetime)s ago"
+msgid "[%(section)s] %(name)s option for the password file is not configured"
 msgstr ""
 
-#: acct_mgr/db.py:24
-msgid "IPasswordHashMethod used to create new/updated passwords"
-msgstr ""
-
-#: acct_mgr/htfile.py:147
+#: acct_mgr/htfile.py:140
 msgid ""
 "The password file could not be read. Trac requires\n"
 "                    read and write access to both the password file\n"
 "                    and its parent directory."
 msgstr ""
 
-#: acct_mgr/htfile.py:165
+#: acct_mgr/htfile.py:158
 msgid ""
 "The password file could not be updated. Trac requires\n"
 "                    read and write access to both the password file\n"
 "                    and its parent directory."
 msgstr ""
 
-#: acct_mgr/htfile.py:199 acct_mgr/htfile.py:240
-msgid ""
-"Path relative to Trac environment or full host machine\n"
-"                path to password file"
-msgstr ""
-
-#: acct_mgr/htfile.py:202 acct_mgr/pwhash.py:42
-msgid "Default hash type of new/updated passwords"
-msgstr ""
-
-#: acct_mgr/htfile.py:243
-msgid "Realm to select relevant htdigest file entries"
-msgstr ""
-
-#: acct_mgr/http.py:28
-msgid "URL of the HTTP authentication service"
-msgstr ""
-
-#: acct_mgr/macros.py:95
+#: acct_mgr/macros.py:92
 #, python-format
 msgid "(required %(perm)s missing)"
 msgstr ""
 
-#: acct_mgr/notification.py:58
+#: acct_mgr/notification.py:54
 msgid "The email and username do not match a known account."
 msgstr ""
 
-#: acct_mgr/notification.py:193
+#: acct_mgr/notification.py:192
 msgid "Notification"
 msgstr ""
 
-#: acct_mgr/pwhash.py:58
-msgid "Realm to select relevant htdigest db entries"
+#: acct_mgr/pwhash.py:130
+msgid "The \"crypt\" module is unavailable on this platform."
 msgstr ""
 
-#: acct_mgr/pwhash.py:116
-msgid ""
-"The \"crypt\" module is unavailable\n"
-"                                    on this platform."
-msgstr ""
-
-#: acct_mgr/pwhash.py:123
+#: acct_mgr/pwhash.py:137
 msgid ""
 "Neither are \"sha2\" hash algorithms supported by the\n"
 "                    \"crypt\" module on this platform nor is "
@@ -401,16 +372,16 @@ msgid ""
 "                    available."
 msgstr ""
 
-#: acct_mgr/register.py:46
+#: acct_mgr/register.py:36
 msgid "Registration Error"
 msgstr ""
 
-#: acct_mgr/register.py:81
+#: acct_mgr/register.py:79
 #, python-format
 msgid "No check method 'validate_registration' defined in %(module)s"
 msgstr ""
 
-#: acct_mgr/register.py:88
+#: acct_mgr/register.py:85
 msgid ""
 "A collection of basic checks.\n"
 "\n"
@@ -425,36 +396,36 @@ msgid ""
 "preferences.''"
 msgstr ""
 
-#: acct_mgr/register.py:110
+#: acct_mgr/register.py:107
 msgid "Username cannot be empty."
 msgstr ""
 
-#: acct_mgr/register.py:124
+#: acct_mgr/register.py:116
 #, python-format
-msgid "The username must not contain any of these characters: %s"
+msgid "The username must not contain any of these characters: %(chars)s"
 msgstr ""
 
-#: acct_mgr/register.py:131
+#: acct_mgr/register.py:120
 msgid "A username with only upper-cased characters is not allowed."
 msgstr ""
 
-#: acct_mgr/register.py:138
+#: acct_mgr/register.py:127
 #, python-format
-msgid "Username %s is not allowed."
+msgid "Username %(username)s is not allowed."
 msgstr ""
 
-#: acct_mgr/register.py:151 acct_mgr/register.py:367
+#: acct_mgr/register.py:141 acct_mgr/register.py:355
 #, python-format
 msgid ""
-"Another account or group already exists, who's name differs from %s "
-"only by case or is identical."
+"Another account or group already exists, who's name differs from "
+"%(username)s only by case or is identical."
 msgstr ""
 
-#: acct_mgr/register.py:160 acct_mgr/web_ui.py:214 acct_mgr/web_ui.py:233
+#: acct_mgr/register.py:146 acct_mgr/web_ui.py:275 acct_mgr/web_ui.py:294
 msgid "Password cannot be empty."
 msgstr ""
 
-#: acct_mgr/register.py:167
+#: acct_mgr/register.py:153
 msgid ""
 "A collection of simple bot checks.\n"
 "\n"
@@ -463,303 +434,319 @@ msgstr ""
 
 #. TRANSLATOR: Question-style hint for visible bot trap
 #. registration input field.
-#: acct_mgr/register.py:194
+#: acct_mgr/register.py:180
 #, python-format
 msgid "Please answer above: %(question)s"
 msgstr ""
 
-#: acct_mgr/register.py:203
+#: acct_mgr/register.py:189
 #, python-format
 msgid ""
-"Please type [%(token)s] as verification token,\n"
-"                    exactly replicating everything within the braces."
+"Please type [%(token)s] as verification token, exactly replicating "
+"everything within the braces."
 msgstr ""
 
-#: acct_mgr/register.py:205
+#: acct_mgr/register.py:191
 msgid "Parole:"
 msgstr ""
 
-#: acct_mgr/register.py:215
+#: acct_mgr/register.py:200
 msgid "Better do not fill this field."
 msgstr ""
 
-#: acct_mgr/register.py:228
+#: acct_mgr/register.py:212
 msgid "Are you human? If so, try harder!"
 msgstr ""
 
-#: acct_mgr/register.py:233
+#: acct_mgr/register.py:217
 msgid ""
 "A collection of checks for email addresses.\n"
 "\n"
 "''This check is bypassed, if account verification is disabled.''"
 msgstr ""
 
-#: acct_mgr/register.py:244
+#: acct_mgr/register.py:228
 msgid "Email:"
 msgstr ""
 
 #. TRANSLATOR: Registration form hints for a mandatory input field.
-#: acct_mgr/register.py:255
+#: acct_mgr/register.py:238
 msgid ""
-"The email address is required for Trac to send\n"
-"                           you a verification token."
+"\n"
+"                The email address is required for Trac to send you a\n"
+"                verification token.\n"
+"                "
 msgstr ""
 
-#: acct_mgr/register.py:258
+#: acct_mgr/register.py:243
 msgid ""
-"Entering your email address will also enable you\n"
-"                           to reset your password if you ever forget "
-"it."
+"\n"
+"                    Entering your email address will also enable you "
+"to reset\n"
+"                    your password if you ever forget it.\n"
+"                    "
 msgstr ""
 
 #. TRANSLATOR: Registration form hint, if email input is optional.
-#: acct_mgr/register.py:266
+#: acct_mgr/register.py:250
 msgid ""
 "Entering your email address will enable you to\n"
 "                           reset your password if you ever forget it."
 msgstr ""
 
-#: acct_mgr/register.py:281
+#: acct_mgr/register.py:264
 msgid "You must specify a valid email address."
 msgstr ""
 
-#: acct_mgr/register.py:288
+#: acct_mgr/register.py:271
 msgid ""
 "The email address specified is already in use. Please specify a "
 "different one."
 msgstr ""
 
-#: acct_mgr/register.py:296
+#: acct_mgr/register.py:278
 msgid ""
 "A collection of checks based on regular expressions.\n"
 "\n"
 "''It depends on !EmailCheck being enabled too for using it's input "
 "field.\n"
-"Likewise email checking is bypassed, if account verification is "
+"Likewise email checking is bypassed, if account verification is\n"
 "disabled.''"
 msgstr ""
 
-#: acct_mgr/register.py:321
+#: acct_mgr/register.py:309
 #, python-format
-msgid "Username %s doesn't match local naming policy."
+msgid "Username %(username)s doesn't match local naming policy."
 msgstr ""
 
-#: acct_mgr/register.py:333
+#: acct_mgr/register.py:319
 msgid ""
 "The email address specified appears to be invalid. Please specify a "
 "valid email address."
 msgstr ""
 
-#: acct_mgr/register.py:341
+#: acct_mgr/register.py:326
 msgid ""
 "Check for usernames referenced in the permission system.\n"
 "\n"
 "''This check is bypassed for requests by an authenticated user.''"
 msgstr ""
 
-#: acct_mgr/register.py:417 acct_mgr/templates/login.html:58
+#: acct_mgr/register.py:402 acct_mgr/templates/login.html:58
 #: acct_mgr/templates/login.html:61 acct_mgr/templates/register.html:14
 msgid "Register"
 msgstr ""
 
-#: acct_mgr/register.py:449 acct_mgr/register.py:473
-#: acct_mgr/register.py:619 acct_mgr/register.py:656 acct_mgr/web_ui.py:289
-#: acct_mgr/web_ui.py:788
+#: acct_mgr/register.py:417 acct_mgr/register.py:421
+msgid "Invalid request arguments."
+msgstr ""
+
+#: acct_mgr/register.py:440 acct_mgr/register.py:457
+#: acct_mgr/register.py:598 acct_mgr/register.py:633 acct_mgr/web_ui.py:350
+#: acct_mgr/web_ui.py:810
 msgid "You should report that issue to a Trac admin."
 msgstr ""
 
-#: acct_mgr/register.py:465
+#: acct_mgr/register.py:449
 msgid "pending"
 msgstr ""
 
-#: acct_mgr/register.py:478
+#: acct_mgr/register.py:463
 msgid ""
 "Your username has been registered successfully, but your account "
 "requires administrative approval. Please proceed according to local "
 "policy."
 msgstr ""
 
-#: acct_mgr/register.py:489
+#: acct_mgr/register.py:473
 #, python-format
 msgid ""
-"Your username has been successfully registered but\n"
-"                        your account still requires activation. "
-"Please login\n"
-"                        as user %(user)s, and follow the instructions."
+"Your username has been successfully registered but your account still"
+" requires activation. Please login as user %(user)s, and follow the "
+"instructions."
 msgstr ""
 
-#: acct_mgr/register.py:495
+#: acct_mgr/register.py:478
 #, python-format
 msgid ""
-"Registration has been finished successfully.\n"
-"                     You may log in as user %(user)s now."
+"Registration has been finished successfully. You may log in as user "
+"%(user)s now."
 msgstr ""
 
 #. TRANSLATOR: Your permissions have been limited until you ...
-#: acct_mgr/register.py:587
+#: acct_mgr/register.py:568
 msgid "verify your email address"
 msgstr ""
 
 #. TRANSLATOR: ... verify your email address
-#: acct_mgr/register.py:591
+#: acct_mgr/register.py:572
 #, python-format
 msgid "Your permissions have been limited until you %(link)s."
 msgstr ""
 
 #. TRANSLATOR: An email has been sent to <%(email)s>
 #. with a token to ... (the link label for following message)
-#: acct_mgr/register.py:625
+#: acct_mgr/register.py:604
 msgid "verify your new email address"
 msgstr ""
 
 #. TRANSLATOR: ... verify your new email address
-#: acct_mgr/register.py:630
+#: acct_mgr/register.py:609
 #, python-format
 msgid "An email has been sent to <%(email)s> with a token to %(link)s."
 msgstr ""
 
-#: acct_mgr/register.py:641
+#: acct_mgr/register.py:619
 msgid "Please log in to finish email verification procedure."
 msgstr ""
 
-#: acct_mgr/register.py:646
+#: acct_mgr/register.py:623
 msgid "Your email is already verified."
 msgstr ""
 
-#: acct_mgr/register.py:662
+#: acct_mgr/register.py:639
 #, python-format
 msgid "A notification email has been resent to <%s>."
 msgstr ""
 
-#: acct_mgr/register.py:670
+#: acct_mgr/register.py:647
 msgid "Thank you for verifying your email address."
 msgstr ""
 
-#: acct_mgr/register.py:674
+#: acct_mgr/register.py:650
 msgid "Invalid verification token"
 msgstr ""
 
-#: acct_mgr/svnserve.py:28
-msgid ""
-"Path to the users file; leave blank to locate\n"
-"                the users file by reading svnserve.conf"
-msgstr ""
-
-#: acct_mgr/util.py:108
+#: acct_mgr/util.py:110
 #, python-format
 msgid "less than %s"
 msgstr ""
 
-#: acct_mgr/util.py:115
+#: acct_mgr/util.py:117
 #, python-format
 msgid "%(num)i second"
 msgid_plural "%(num)i seconds"
 msgstr[0] ""
 msgstr[1] ""
 
-#. TRANSLATOR: Pretty datetime representation, time part provided by string
-#. substitution.
-#: acct_mgr/util.py:123
+#. TRANSLATOR: Pretty datetime representation, time part provided by
+#. string substitution.
+#: acct_mgr/util.py:126
 #, python-format
 msgid "%(num)i day %%s"
 msgid_plural "%(num)i days %%s"
 msgstr[0] ""
 msgstr[1] ""
 
-#: acct_mgr/web_ui.py:105 acct_mgr/templates/login.html:45
-#: acct_mgr/templates/login.html:66 acct_mgr/templates/login.html:69
+#: acct_mgr/templates/login.html:45 acct_mgr/templates/login.html:66
+#: acct_mgr/templates/login.html:69 acct_mgr/web_ui.py:107
 msgid "Forgot your password?"
 msgstr ""
 
-#: acct_mgr/web_ui.py:128 acct_mgr/templates/admin_account.html:14
+#: acct_mgr/templates/admin_account.html:14
 #: acct_mgr/templates/admin_db_cleanup.html:25
 #: acct_mgr/templates/prefs_account.html:43
-#: acct_mgr/templates/user_table.html:20
+#: acct_mgr/templates/user_table.html:20 acct_mgr/web_ui.py:132
 msgid "Account"
 msgstr ""
 
-#: acct_mgr/web_ui.py:169
+#: acct_mgr/web_ui.py:156
+#, python-format
+msgid ""
+"Sorry, but policy prohibits choosing '%(username)s' for an anonymous "
+"session. Login or choose another session ID, please."
+msgstr ""
+
+#: acct_mgr/web_ui.py:190
 #, python-format
 msgid ""
 "You're already logged in. If you need to change your password please "
 "use the %(prefs_href)s page."
 msgstr ""
 
-#: acct_mgr/web_ui.py:181
+#: acct_mgr/web_ui.py:227
+msgid "author"
+msgstr ""
+
+#: acct_mgr/web_ui.py:231
+#, python-format
+msgid ""
+"Policy prohibits choosing %(username)s for an anonymous session "
+"because it's a registered username. Please login or choose another "
+"author name."
+msgstr ""
+
+#: acct_mgr/web_ui.py:243
 msgid "Are you sure you want to delete your account?"
 msgstr ""
 
-#: acct_mgr/web_ui.py:190
+#: acct_mgr/web_ui.py:251
 msgid "Thank you for taking the time to update your password."
 msgstr ""
 
-#: acct_mgr/web_ui.py:199
+#: acct_mgr/web_ui.py:260
 #, python-format
 msgid ""
 "You are required to change password because of a recent password "
 "change request. %(invitation)s"
 msgstr ""
 
-#: acct_mgr/web_ui.py:208
+#: acct_mgr/web_ui.py:269
 msgid "Old password is incorrect."
 msgstr ""
 
-#: acct_mgr/web_ui.py:210
+#: acct_mgr/web_ui.py:271
 msgid "Old password cannot be empty."
 msgstr ""
 
-#: acct_mgr/web_ui.py:218
+#: acct_mgr/web_ui.py:279
 msgid "Password must not match old password."
 msgstr ""
 
-#: acct_mgr/web_ui.py:225
+#: acct_mgr/web_ui.py:286
 msgid "Password updated successfully."
 msgstr ""
 
-#: acct_mgr/web_ui.py:235
+#: acct_mgr/web_ui.py:296
 msgid "Password is incorrect."
 msgstr ""
 
-#: acct_mgr/web_ui.py:254
+#: acct_mgr/web_ui.py:315
 msgid "Username is required."
 msgstr ""
 
-#: acct_mgr/web_ui.py:256
+#: acct_mgr/web_ui.py:317
 msgid "Email is required."
 msgstr ""
 
-#: acct_mgr/web_ui.py:262
+#: acct_mgr/web_ui.py:323
 msgid "Email and username must match a known account."
 msgstr ""
 
-#: acct_mgr/web_ui.py:295
+#: acct_mgr/web_ui.py:356
 #, python-format
 msgid "Cannot reset password: %(error)s"
 msgstr ""
 
-#: acct_mgr/web_ui.py:302
+#: acct_mgr/web_ui.py:363
 #, python-format
 msgid "A new password has been sent to you at <%(email)s>."
 msgstr ""
 
 #. TRANSLATOR: Intentionally obfuscated login error
-#: acct_mgr/web_ui.py:459
+#: acct_mgr/web_ui.py:519
 msgid "Invalid username or password"
 msgstr ""
 
-#: acct_mgr/web_ui.py:465
-#, python-format
-msgid ""
-"Account locked, please try again after\n"
-"                            %(release_time)s\n"
-"                            "
+#: acct_mgr/web_ui.py:527
+msgid "Account locked, please try again after % (release_time)s"
 msgstr ""
 
-#: acct_mgr/web_ui.py:470 acct_mgr/templates/user_table.html:44
+#: acct_mgr/templates/user_table.html:44 acct_mgr/web_ui.py:530
 msgid "Account locked"
 msgstr ""
 
-#: acct_mgr/web_ui.py:475
+#: acct_mgr/web_ui.py:535
 #, python-format
 msgid "Login after %(attempts)s failed attempt"
 msgid_plural "Login after %(attempts)s failed attempts"
@@ -767,7 +754,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: acct_mgr/opt/announcer/uid_chg.py:39
-#: acct_mgr/opt/tracforms/uid_chg.py:36
+#: acct_mgr/opt/tracforms/uid_chg.py:37
 #, python-format
 msgid ""
 "Unsupported db schema version, please update %(plugin)s to a recent "
