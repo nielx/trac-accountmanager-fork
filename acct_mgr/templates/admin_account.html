@@ -3,7 +3,7 @@
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:xi="http://www.w3.org/2001/XInclude"
-      xmlns:py="http://genshi.edgewall.org/" 
+      xmlns:py="http://genshi.edgewall.org/"
       xmlns:i18n="http://genshi.edgewall.org/i18n"
       i18n:domain="acct_mgr">
   <xi:include href="admin.html" />
@@ -236,7 +236,7 @@
             Last login: ${last_visit}</p>
           <p py:if="not last_visit">The user has not logged in before.</p>
           <div id="failed_attempts" py:if="attempts_count">
-            <p i18n:msg="count">Total failed attempts: ${attempts_count}</p> 
+            <p i18n:msg="count">Total failed attempts: ${attempts_count}</p>
             <p class="tableheader">
               Table: Last failed login attempts log view</p>
             <table class="listing" id="login_attempts">

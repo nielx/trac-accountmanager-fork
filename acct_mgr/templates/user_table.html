@@ -9,7 +9,7 @@ Arguments:
 -->
 <div xmlns="http://www.w3.org/1999/xhtml"
      xmlns:xi="http://www.w3.org/2001/XInclude"
-     xmlns:py="http://genshi.edgewall.org/" 
+     xmlns:py="http://genshi.edgewall.org/"
      xmlns:i18n="http://genshi.edgewall.org/i18n"
      i18n:domain="acct_mgr"
      id="accountlist">
@@ -25,14 +25,15 @@ Arguments:
     </thead>
     <tbody>
       <py:for each="idx, acct in enumerate(accounts)">
-        <tr py:attrs="{'class': ('even', 'odd')[idx % 2] +
-                                (acct.approval and ' missing' or ''),
-                       'title': acct.approval and
-                                ('email' in acct.approval and
-                                 dgettext('acct_mgr', 'Email not verified') or
-                                 dgettext('acct_mgr', 'Approval %s')
-                                 % dgettext('acct_mgr', acct.approval[0])) or
-                                None}">
+        <tr class="${('even', 'odd')[idx % 2] + (acct.approval and ' missing' or '')}"
+            title="${acct.approval and
+                     ('email' in acct.approval and
+                      dgettext('acct_mgr', 'Email not verified') or
+                      acct.approval[0] == 'pending' and
+                      dgettext('acct_mgr', 'Approval pending') or
+                      acct.approval[0] == 'revoked' and
+                      dgettext('acct_mgr', 'Approval revoked')
+                      ) or None}">
           <td class="sel" py:if="delete_enabled">
             <input type="checkbox" name="sel"
                    value="${acct.username}" />

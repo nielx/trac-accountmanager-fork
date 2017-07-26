@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: TracAccountManager 0.5\n"
 "Report-Msgid-Bugs-To: hoff.st@shaas.net\n"
-"POT-Creation-Date: 2017-07-26 00:20-0700\n"
+"POT-Creation-Date: 2017-07-26 01:09-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -122,10 +122,6 @@ msgstr ""
 msgid "Change User ID"
 msgstr ""
 
-#: acct_mgr/admin.py:597 acct_mgr/admin.py:648
-msgid "revoked"
-msgstr ""
-
 #: acct_mgr/admin.py:604
 #, python-format
 msgid "Approved account: %(accounts)s"
@@ -160,6 +156,10 @@ msgstr ""
 
 #: acct_mgr/admin.py:647
 msgid "active"
+msgstr ""
+
+#: acct_mgr/admin.py:648
+msgid "revoked"
 msgstr ""
 
 #: acct_mgr/admin.py:649
@@ -547,10 +547,6 @@ msgstr ""
 msgid "You should report that issue to a Trac admin."
 msgstr ""
 
-#: acct_mgr/register.py:449
-msgid "pending"
-msgstr ""
-
 #: acct_mgr/register.py:463
 msgid ""
 "Your username has been registered successfully, but your account "
@@ -742,7 +738,7 @@ msgstr ""
 msgid "Account locked, please try again after % (release_time)s"
 msgstr ""
 
-#: acct_mgr/templates/user_table.html:44 acct_mgr/web_ui.py:530
+#: acct_mgr/templates/user_table.html:45 acct_mgr/web_ui.py:530
 msgid "Account locked"
 msgstr ""
 
@@ -2006,7 +2002,19 @@ msgstr ""
 msgid "Last Login"
 msgstr ""
 
-#: acct_mgr/templates/user_table.html:47
+#: acct_mgr/templates/user_table.html:28
+msgid "Email not verified"
+msgstr ""
+
+#: acct_mgr/templates/user_table.html:28
+msgid "Approval pending"
+msgstr ""
+
+#: acct_mgr/templates/user_table.html:28
+msgid "Approval revoked"
+msgstr ""
+
+#: acct_mgr/templates/user_table.html:48
 msgid "Permanently locked"
 msgstr ""
 

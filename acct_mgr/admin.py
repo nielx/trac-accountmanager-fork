@@ -594,7 +594,7 @@ class UserAdminPanel(CommonTemplateProvider):
                     else:
                         # Ban the account.
                         set_user_attribute(env, username, 'approval',
-                                           _("revoked"))
+                                           'revoked')
                         ban.append(username)
                 msg = None
                 if unban:
