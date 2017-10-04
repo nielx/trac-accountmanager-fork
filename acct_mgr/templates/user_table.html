@@ -51,7 +51,11 @@ Arguments:
             </py:choose>
           </td>
           <td py:if="'name' in cols">${acct.name}</td>
-          <td py:if="'email' in cols">${acct.email}</td>
+          <td py:if="'email' in cols">
+            <a href="mailto:$acct.email" title="Send email"
+               py:strip="not acct.email or acct.email.endswith('…')">
+              ${acct.email}</a>
+          </td>
           <td>${acct.last_visit and pretty_dateinfo(acct.last_visit) or ''}</td>
         </tr>
       </py:for>
