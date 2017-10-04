@@ -48,39 +48,10 @@ class RegistrationError(TracError):
         self.msg_args = args
 
 
-class GenericRegistrationInspector(Component):
-    """Generic check class, great for creating simple checks quickly."""
-    _domain = ''
-    _description = ''
+class BasicCheck(Component):
 
     implements(IAccountRegistrationInspector)
 
-    abstract = True
-
-    def render_registration_fields(self, req, data):
-        """Emit one or multiple additional fields for registration form built.
-
-        Returns a dict containing a 'required' and/or 'optional' tuple of
-         * Genshi Fragment or valid XHTML markup for registration form
-         * modified or unchanged data object (used to render `register.html`)
-        If the return value is just a single tuple, its fragment or markup
-        will be inserted into the 'required' section.
-        """
-        template = ''
-        return template, data
-
-    def validate_registration(self, req):
-        """Check registration form input.
-
-        Returns a RegistrationError with error message, or None on success.
-        """
-        # Nicer than a plain NotImplementedError.
-        raise NotImplementedError(
-            _("No check method 'validate_registration' defined in %(module)s",
-              module=self.__class__.__name__))
-
-
-class BasicCheck(GenericRegistrationInspector):
     _domain = 'acct_mgr'
     _description = cleandoc_("""
     A collection of basic checks.
@@ -94,6 +65,9 @@ class BasicCheck(GenericRegistrationInspector):
 
     ''This check is bypassed for requests regarding user's own preferences.''
     """)
+
+    def render_registration_fields(self, req, data):
+        return None, None
 
     def validate_registration(self, req):
         if req.path_info == '/prefs':
@@ -148,7 +122,10 @@ class BasicCheck(GenericRegistrationInspector):
             raise RegistrationError(_("The passwords must match."))
 
 
-class BotTrapCheck(GenericRegistrationInspector):
+class BotTrapCheck(Component):
+
+    implements(IAccountRegistrationInspector)
+
     _domain = 'acct_mgr'
     _description = cleandoc_("""
     A collection of simple bot checks.
@@ -212,7 +189,10 @@ class BotTrapCheck(GenericRegistrationInspector):
             raise RegistrationError(_("Are you human? If so, try harder!"))
 
 
-class EmailCheck(GenericRegistrationInspector):
+class EmailCheck(Component):
+
+    implements(IAccountRegistrationInspector)
+
     _domain = 'acct_mgr'
     _description = cleandoc_("""
     A collection of checks for email addresses.
@@ -273,7 +253,10 @@ class EmailCheck(GenericRegistrationInspector):
                     "Please specify a different one."))
 
 
-class RegExpCheck(GenericRegistrationInspector):
+class RegExpCheck(Component):
+
+    implements(IAccountRegistrationInspector)
+
     _domain = 'acct_mgr'
     _description = cleandoc_("""
     A collection of checks based on regular expressions.
@@ -296,6 +279,9 @@ class RegExpCheck(GenericRegistrationInspector):
         Define constraints for a valid email address. A custom pattern can
         narrow or widen scope i.e. to accept UTF-8 characters.
         """)
+
+    def render_registration_fields(self, req, data):
+        return None, None
 
     def validate_registration(self, req):
         acctmgr = AccountManager(self.env)
@@ -321,13 +307,19 @@ class RegExpCheck(GenericRegistrationInspector):
                     "Please specify a valid email address."))
 
 
-class UsernamePermCheck(GenericRegistrationInspector):
+class UsernamePermCheck(Component):
+
+    implements(IAccountRegistrationInspector)
+
     _domain = 'acct_mgr'
     _description = cleandoc_("""
     Check for usernames referenced in the permission system.
 
     ''This check is bypassed for requests by an authenticated user.''
     """)
+
+    def render_registration_fields(self, req, data):
+        return None, None
 
     def validate_registration(self, req):
         if req.authname and req.authname != 'anonymous':
