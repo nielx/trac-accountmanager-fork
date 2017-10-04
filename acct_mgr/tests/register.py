@@ -24,7 +24,7 @@ from acct_mgr.db import SessionStore
 from acct_mgr.model import set_user_attribute
 from acct_mgr.register import BasicCheck, BotTrapCheck, EmailCheck
 from acct_mgr.register import EmailVerificationModule
-from acct_mgr.register import GenericRegistrationInspector, RegExpCheck
+from acct_mgr.register import RegExpCheck
 from acct_mgr.register import RegistrationError, RegistrationModule
 from acct_mgr.register import UsernamePermCheck
 
@@ -48,53 +48,6 @@ class _BaseTestCase(unittest.TestCase):
         shutil.rmtree(self.env.path)
 
 
-class DummyRegInspectorTestCase(_BaseTestCase):
-    """Check GenericRegistrationInspector properties via child classes."""
-
-    def setUp(self):
-        _BaseTestCase.setUp(self)
-
-        class DummyRegistrationInspector(GenericRegistrationInspector):
-            def validate_registration(self, req):
-                if req.args.get('username') == 'dummy':
-                    raise RegistrationError('Dummy check error')
-                return
-
-        self.check = DummyRegistrationInspector(self.env)
-
-    def test_bad_check(self):
-        class BadRegistrationInspector(GenericRegistrationInspector):
-            """Child class, that is left as a pure copy of its base.
-
-            Bad check class example, because check method is not implemented.
-            """
-
-        check = BadRegistrationInspector(self.env)
-        # Default (empty) response for providing additional fields is safe.
-        field_res = check.render_registration_fields(self.req, {})
-        self.assertEqual(len(field_res), 2)
-        self.assertEqual((Markup(field_res[0]), field_res[1]),
-                         (Markup(''), {}))
-        # Check class without 'validate_registration' implementation fails.
-        self.assertRaises(NotImplementedError, check.validate_registration,
-                          self.req)
-
-    def test_dummy_check(self):
-        # Check class with 'validate_registration' passes this test.
-        self.assertEqual(self.check.validate_registration(self.req), None)
-
-    def test_check_error(self):
-        self.req.args['username'] = 'dummy'
-        try:
-            self.check.validate_registration(self.req)
-            # Shouldn't reach that point.
-            self.assertTrue(False)
-        except RegistrationError, e:
-            # Check error properties in detail.
-            self.assertEqual(e.message, 'Dummy check error')
-            self.assertEqual(e.title, 'Registration Error')
-
-
 class BasicCheckTestCase(_BaseTestCase):
     def setUp(self):
         _BaseTestCase.setUp(self)
@@ -114,8 +67,7 @@ class BasicCheckTestCase(_BaseTestCase):
         # Inspector doesn't provide additional fields.
         field_res = check.render_registration_fields(req, {})
         self.assertEqual(len(field_res), 2)
-        self.assertEqual((Markup(field_res[0]), field_res[1]),
-                         (Markup(''), {}))
+        self.assertEqual((None, None), field_res)
         # 1st attempt: No input.
         self.assertRaises(RegistrationError, check.validate_registration, req)
         # 2nd attempt: Illegal character.
@@ -251,8 +203,7 @@ class RegExpCheckTestCase(_BaseTestCase):
         # Inspector doesn't provide additional fields.
         field_res = check.render_registration_fields(req, {})
         self.assertEqual(len(field_res), 2)
-        self.assertEqual((Markup(field_res[0]), field_res[1]),
-                         (Markup(''), {}))
+        self.assertEqual((None, None), field_res)
         # Empty input is invalid with default regular expressions.
         self.assertRaises(RegistrationError, check.validate_registration, req)
         # 1st attempt: Malformed email address.
@@ -290,14 +241,13 @@ class UsernamePermCheckTestCase(_BaseTestCase):
         # Inspector doesn't provide additional fields.
         field_res = check.render_registration_fields(req, {})
         self.assertEqual(len(field_res), 2)
-        self.assertEqual((Markup(field_res[0]), field_res[1]),
-                         (Markup(''), {}))
+        self.assertEqual((None, None), field_res)
         # 1st attempt: No username, hence no conflic possible.
         self.assertEqual(check.validate_registration(req), None)
         # 2nd attempt: No permission assigned for that username.
         req.args['username'] = 'user'
         self.assertEqual(check.validate_registration(req), None)
-        # 3rd attempt: Explicite permission assigned for that username.
+        # 3rd attempt: Explicit permission assigned for that username.
         req.args['username'] = 'admin'
         self.assertRaises(RegistrationError, check.validate_registration, req)
         # 4th attempt: As before, but request done by authenticated user.
@@ -445,7 +395,6 @@ class EmailVerificationModuleTestCase(_BaseTestCase):
 
 def test_suite():
     suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(DummyRegInspectorTestCase))
     suite.addTest(unittest.makeSuite(BasicCheckTestCase))
     suite.addTest(unittest.makeSuite(BotTrapCheckTestCase))
     suite.addTest(unittest.makeSuite(EmailCheckTestCase))

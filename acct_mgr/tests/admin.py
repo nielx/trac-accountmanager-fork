@@ -20,8 +20,7 @@ from acct_mgr.admin import ExtensionOrder, ConfigurationAdminPanel, \
                            UserAdminPanel
 from acct_mgr.api import AccountManager, IAccountRegistrationInspector
 from acct_mgr.db import SessionStore
-from acct_mgr.register import BasicCheck, GenericRegistrationInspector, \
-                              RegistrationError
+from acct_mgr.register import BasicCheck, RegistrationError
 
 
 class BadCheck(Component):
@@ -33,9 +32,16 @@ class DisabledCheck(BadCheck):
     """Won't even enable this one."""
 
 
-class DummyCheck(GenericRegistrationInspector):
+class DummyCheck(Component):
+
+    implements(IAccountRegistrationInspector)
+
+    _domain = ''
     _description = \
         """A dummy check for unit-testing the interface."""
+
+    def render_registration_fields(self, req, data):
+        return None, None
 
     def validate_registration(self, req):
         if req.args.get('username') == 'dummy':

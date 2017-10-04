@@ -1348,7 +1348,6 @@ class ConfigurationAdminPanel(CommonTemplateProvider):
                     error = _("Error while reading configuration - "
                               "Hint: Enable/install required component '%s'."
                               % re.sub(regexp, r'\1', str(e)))
-                    pass
                 if opt_val:
                     value = isinstance(opt_val, Component) and \
                             opt_val.__class__.__name__ or opt_val
@@ -1376,8 +1375,7 @@ class ConfigurationAdminPanel(CommonTemplateProvider):
                     'doc': gettext(option.__doc__)
                 })
                 continue
-            # Fallback for check components not derived from
-            # acct_mgr.register.GenericRegistrationInspector.
+
             try:
                 doc = dgettext(check._domain, check._description)
             except AttributeError:
