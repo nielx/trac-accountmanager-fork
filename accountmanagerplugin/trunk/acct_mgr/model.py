@@ -13,6 +13,7 @@ import re
 from acct_mgr.api import GenericUserIdChanger
 from trac.util import as_int
 from trac.util.text import exception_to_unicode, to_unicode
+from trac.web.session import DetachedSession
 
 _USER_KEYS = {
     'auth_cookie': 'name',
@@ -334,8 +335,8 @@ def change_uid(env, old_uid, new_uid, changers, attr_overwrite):
             VALUES  (%s,1,(SELECT last_visit FROM session WHERE sid=%s))
             """, (new_uid, old_uid))
         # Process related attributes.
-        attr_count = copy_user_attributes(env, old_uid, new_uid,
-                                          attr_overwrite)
+        attr_count = _copy_user_attributes(env, old_uid, new_uid,
+                                           attr_overwrite)
         # May want to keep attributes, if not copied completely.
         if attr_overwrite:
             del_user_attribute(env, old_uid)
@@ -353,11 +354,13 @@ def change_uid(env, old_uid, new_uid, changers, attr_overwrite):
             WHERE authenticated=1 AND sid=%s
             """, (old_uid,))
         results.update({('session', 'sid', None): 1})
+    if hasattr(env, 'invalidate_known_users_cache'):
+        env.invalidate_known_users_cache()
 
     return results
 
 
-def copy_user_attributes(env, username, new_uid, overwrite):
+def _copy_user_attributes(env, username, new_uid, overwrite):
     """Duplicate attributes for another user, optionally preserving existing
     values.
 
@@ -392,6 +395,9 @@ def copy_user_attributes(env, username, new_uid, overwrite):
                           AND name=%s
                         """, (value, new_uid, attribute))
                     count += 1
+    if hasattr(env, 'invalidate_known_users_cache'):
+        env.invalidate_known_users_cache()
+
     return count
 
 
@@ -481,32 +487,20 @@ def get_user_attribute(env, username=None, authenticated=1, attribute=None,
 
 def prime_auth_session(env, username):
     """Prime session for registered users before initial login.
-
-    There's no distinct user object in Trac, but users consist in terms
-    of anonymous or authenticated sessions and related session attributes.
-    So INSERT new sid, needed as foreign key in some db schema later on,
-    at least for PostgreSQL.
     """
-    with env.db_transaction as db:
-        for count, in db("""
-                SELECT COUNT(*) FROM session
-                WHERE sid=%s AND authenticated=1
-                """, (username,)):
-            if not count:
-                db("""
-                    INSERT INTO session (sid,authenticated,last_visit)
-                    VALUES (%s,1,0)
-                    """, (username,))
-    if hasattr(env, 'invalidate_known_users_cache'):
-        env.invalidate_known_users_cache()
+    session = DetachedSession(env, username)
+    if session.last_visit == 0:
+        session['authenticated'] = True
+        session.save()
+        # Workaround for #12929
+        if hasattr(env, 'invalidate_known_users_cache'):
+            env.invalidate_known_users_cache()
 
 
 def set_user_attribute(env, username, attribute, value):
     """Set or update a Trac user attribute within an atomic db transaction."""
 
     sql = "WHERE sid=%s AND authenticated=1 AND name=%s"
-    if hasattr(env, 'invalidate_known_users_cache'):
-        env.invalidate_known_users_cache()
 
     with env.db_transaction as db:
         db("""
@@ -521,6 +515,8 @@ def set_user_attribute(env, username, attribute, value):
                 INSERT INTO session_attribute (sid,authenticated,name,value)
                 VALUES (%s,1,%s,%s)
                 """, (username, attribute, value))
+    if hasattr(env, 'invalidate_known_users_cache'):
+        env.invalidate_known_users_cache()
 
 
 def del_user_attribute(env, username=None, authenticated=1, attribute=None):

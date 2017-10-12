@@ -8,17 +8,21 @@
 #
 # Author: Steffen Hoffmann <hoff.st@web.de>
 
+import new
+import pkg_resources
 import shutil
 import tempfile
 import time
 import unittest
 from Cookie import SimpleCookie as Cookie
 
+from trac import __version__ as VERSION
 from trac.test import EnvironmentStub, Mock
 from trac.web.session import Session
 
-from acct_mgr.model import get_user_attribute, set_user_attribute, \
-                           last_seen, user_known
+from acct_mgr.model import (
+    change_uid, del_user_attribute, delete_user, get_user_attribute,
+    last_seen, prime_auth_session, set_user_attribute, user_known)
 
 
 class ModelTestCase(unittest.TestCase):
@@ -130,9 +134,83 @@ class ModelTestCase(unittest.TestCase):
                 self.assertEqual(('attribute1', '0'), (name, value))
 
 
+class KnownUsersCacheUpdateTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.env = EnvironmentStub(default_data=True)
+        if pkg_resources.parse_version(VERSION) < \
+                pkg_resources.parse_version('1.2'):
+            from trac.env import Environment
+            self.env.get_known_users = \
+                new.instancemethod(Environment.get_known_users, self.env, None)
+
+    def tearDown(self):
+        self.env.shutdown()
+        self.env.reset_db()
+
+    def _insert_user(self):
+        sid = 'user1'
+        name = 'User One'
+        email = 'user1@example.org'
+        prime_auth_session(self.env, sid)
+        set_user_attribute(self.env, sid, 'name', name)
+        set_user_attribute(self.env, sid, 'email', email)
+        return sid, name, email
+
+    def test_set_user_attribute(self):
+        sid, name, email = self._insert_user()
+        new_email = 'user1@domain.org'
+
+        known_users = list(self.env.get_known_users())
+        self.assertEqual([(sid, name, email)], known_users)
+        set_user_attribute(self.env, sid, 'email', new_email)
+        known_users = list(self.env.get_known_users())
+        self.assertEqual([(sid, name, new_email)], known_users)
+
+    def test_change_uid(self):
+        sid, name, email = self._insert_user()
+        new_sid = 'user2'
+
+        known_users = list(self.env.get_known_users())
+        self.assertEqual([(sid, name, email)], known_users)
+        change_uid(self.env, sid, new_sid, [], False)
+        known_users = list(self.env.get_known_users())
+        self.assertEqual([(new_sid, name, email)], known_users)
+
+    def test_prime_auth_session(self):
+        """The known_users cache is updated after inserting a session."""
+        self.assertEqual(0, len(list(self.env.get_known_users())))
+        sid = 'user1'
+
+        prime_auth_session(self.env, sid)
+
+        known_users = list(self.env.get_known_users())
+        self.assertEqual(1, len(known_users))
+        self.assertEqual(sid, known_users[0][0])
+        self.assertIsNone(known_users[0][1])
+        self.assertIsNone(known_users[0][2])
+
+    def test_del_user_attribute(self):
+        sid, name, email = self._insert_user()
+
+        known_users = list(self.env.get_known_users())
+        self.assertEqual([(sid, name, email)], known_users)
+        del_user_attribute(self.env, sid, attribute='name')
+        known_users = list(self.env.get_known_users())
+        self.assertEqual([(sid, None, email)], known_users)
+
+    def test_delete_user(self):
+        sid = self._insert_user()[0]
+
+        self.assertEqual(1, len(list(self.env.get_known_users())))
+        delete_user(self.env, sid)
+        self.assertEqual(0, len(list(self.env.get_known_users())))
+
+
 def test_suite():
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(ModelTestCase))
+    suite.addTest(unittest.makeSuite(KnownUsersCacheUpdateTestCase))
     return suite
 
 
