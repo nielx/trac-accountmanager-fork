@@ -306,7 +306,7 @@ class AccountModule(CommonTemplateProvider):
             # would get restored on logout otherwise.
             req.session.clear()
             req.session.save()
-            req.redirect(req.href.logout())
+            req.redirect(req.href.login())
 
     def _do_reset_password(self, req):
         email = req.args.get('email')
