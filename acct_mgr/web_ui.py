@@ -499,7 +499,8 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
                 referer = req.get_header('Referer')
             # Steer clear of requests going nowhere or loop to self.
             if referer is None or \
-                    referer.startswith(str(req.abs_href()) + '/login'):
+                    referer.startswith(req.abs_href('/login')) or \
+                    referer.startswith(req.abs_href('/captcha')):
                 referer = req.abs_href()
             data = {
                 '_dgettext': dgettext,
