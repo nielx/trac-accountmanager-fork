@@ -638,7 +638,7 @@ class UserAdminPanel(CommonTemplateProvider):
             elif any(action for action in req.args
                             if action in ('cleanup', 'purge', 'unselect')):
                 return self._do_db_cleanup(req)
-            req.redirect(req.href.admin('accounts/users'))
+            req.redirect(req.href.admin('accounts', 'users'))
 
         # (Re-)Build data for current user list.
         available_filters = [
