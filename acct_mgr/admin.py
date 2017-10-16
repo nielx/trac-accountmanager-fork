@@ -32,6 +32,7 @@ from trac.util.compat import cleandoc
 from trac.util.datefmt import format_datetime, to_datetime
 from trac.util.html import html as tag
 from trac.util.presentation import Paginator
+from trac.util.translation import tagn_
 from trac.util.text import exception_to_unicode
 from trac.web.api import IAuthenticator
 from trac.web.chrome import Chrome, add_ctxtnav, add_link, add_notice
@@ -570,13 +571,12 @@ class UserAdminPanel(CommonTemplateProvider):
             # Preserve selection during a series of requests.
             data['email_approved'] = email_approved
 
-            sel = req.args.get('sel')
-            sel = isinstance(sel, list) and sel or [sel]
-            if req.args.get('add'):
+            sel = req.args.getlist('sel')
+            if 'add' in req.args:
                 # Add new user account.
                 data['acctmgr'] = self._do_add(req)
 
-            elif req.args.get('approve') and req.args.get('sel'):
+            elif 'approve' in req.args and sel:
                 # Toggle approval status for selected accounts.
                 ban = []
                 unban = []
@@ -599,21 +599,18 @@ class UserAdminPanel(CommonTemplateProvider):
                 msg = None
                 if unban:
                     accounts = tag.b(', '.join(unban))
-                    msg = ngettext("Approved account: %(accounts)s",
-                                   "Approved accounts: %(accounts)s",
-                                   len(unban), accounts=accounts)
+                    msg = tagn_("Approved account: %(accounts)s",
+                                "Approved accounts: %(accounts)s",
+                                len(unban), accounts=accounts)
                 if ban:
-                    if msg:
-                        msg = tag(msg, tag.br())
-                    else:
-                        msg = tag()
+                    msg = tag(msg, tag.br()) if msg else tag()
                     accounts = tag.b(', '.join(ban))
-                    msg(ngettext("Banned account: %(accounts)s",
-                                 "Banned accounts: %(accounts)s",
-                                 len(ban), accounts=accounts))
+                    msg(tagn_("Banned account: %(accounts)s",
+                              "Banned accounts: %(accounts)s",
+                              len(ban), accounts=accounts))
                 if ban or unban:
                     add_notice(req, msg)
-            elif req.args.get('reset') and req.args.get('sel'):
+            elif 'reset' in req.args and sel:
                 # Password reset for one or more accounts.
                 if password_reset_enabled:
                     for username, name, email in env.get_known_users():
@@ -626,7 +623,7 @@ class UserAdminPanel(CommonTemplateProvider):
                 else:
                     add_warning(req, _(
                         "The password reset procedure is not enabled."))
-            elif req.args.get('remove') and req.args.get('sel'):
+            elif 'remove' in req.args and sel:
                 # Delete one or more accounts.
                 if delete_enabled:
                     for account in sel:
@@ -638,9 +635,10 @@ class UserAdminPanel(CommonTemplateProvider):
                 else:
                     add_warning(req, _("The password store does not support "
                                        "deleting users."))
-            elif len([action for action in req.args.iterkeys()
-                      if action in ('cleanup', 'purge', 'unselect')]) > 0:
+            elif any(action for action in req.args
+                            if action in ('cleanup', 'purge', 'unselect')):
                 return self._do_db_cleanup(req)
+            req.redirect(req.href.admin('accounts/users'))
 
         # (Re-)Build data for current user list.
         available_filters = [
@@ -652,7 +650,7 @@ class UserAdminPanel(CommonTemplateProvider):
             available_filters.append(('email', _("email unverified")))
         # Check request or session for enabled filters, or use default.
         filters = [f[0] for f in available_filters
-                   if 'filter_%s' % f[0] in req.args]
+                        if 'filter_%s' % f[0] in req.args]
         key = 'acctmgr_user.filter.%s'
         if not filters:
             filters = [f[0] for f in available_filters

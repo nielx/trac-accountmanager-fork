@@ -196,18 +196,19 @@ class AccountChangeNotificationAdminPanel(CommonTemplateProvider):
             return self._do_config(req)
 
     def _do_config(self, req):
-        cfg = self.config
+        cfg = self.config['account-manager']
         if req.method == 'POST':
-            cfg.set('account-manager', 'account_changes_notify_addresses',
+            cfg.set('account_changes_notify_addresses',
                     ' '.join(
                         req.args.get('notify_addresses').strip('\n').split()))
-            cfg.set('account-manager', 'notify_actions',
+            cfg.set('notify_actions',
                     ','.join(req.args.getlist('notify_actions')))
-            cfg.save()
+            self.config.save()
+            req.redirect(req.href.admin('accounts/notification'))
 
-        notify_addresses = cfg.get('account-manager',
-                                   'account_changes_notify_addresses').split()
-        notify_actions = cfg.getlist('account-manager', 'notify_actions')
+        notify_addresses = cfg.getlist('account_changes_notify_addresses',
+                                       sep=' ')
+        notify_actions = cfg.getlist('notify_actions')
         data = {
             '_dgettext': dgettext,
             'notify_actions': notify_actions,
