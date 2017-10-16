@@ -159,8 +159,16 @@ ul#progress li.past span, ul#progress li.active span {
 }
 
 /* styles for users admin page */
-#prefs fieldset label { display: block }
-#prefs .buttons { margin-top: -1.6em }
+.holdingbox {
+ position: relative;
+ top: -0.8em;
+}
+
+.panel {
+ position: relative;
+ overflow: hidden;
+ height: 6em;
+}
 
 div#accountlist {
  max-height: 640px;

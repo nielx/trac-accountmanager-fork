@@ -3,7 +3,7 @@
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:xi="http://www.w3.org/2001/XInclude"
-      xmlns:py="http://genshi.edgewall.org/"
+      xmlns:py="http://genshi.edgewall.org/" 
       xmlns:i18n="http://genshi.edgewall.org/i18n"
       i18n:domain="acct_mgr">
   <xi:include href="admin.html" />
@@ -87,8 +87,8 @@
             <input type="text" name="username" id="username"
                    class="textwidget" value="${acctmgr.username}" />
           </label>
-          <p class="hint" py:if="ignore_auth_case">
-            Only lowercase usernames allowed
+          <p class="hint" py:if="ignore_auth_case"> 
+            Only lowercase usernames allowed 
           </p>
         </div>
         <div>
@@ -141,27 +141,44 @@
       <p>This password store does not support listing users.</p>
     </div>
     <div id="accounts" py:if="listing_enabled">
-      <form id="prefs" method="get" action="">
-        <label i18n:msg="">
-          Max accounts per page <input type="text" size="3"
-                                       name="max_per_page"
-                                       value="${accounts.max_per_page}" />
-        </label>
-        <fieldset>
-          <label py:for="filter in filters">
-            <input type="checkbox" name="${'filter_%s' % filter.name}"
-                   checked="${filter.enabled or None}"/> ${filter.label}
+      <div class="holdingbox">
+        <form class="panel" id="prefs" method="get" action="">
+          <label i18n:msg="">
+            Max accounts per page <input type="text" size="3"
+                                         name="max_per_page"
+                                         value="${accounts.max_per_page}" />
           </label>
-        </fieldset>
-        <div class="buttons">
-          <input type="submit" name="update" value="${dgettext('acct_mgr', 'Update')}" />
-        </div>
-      </form>
+          <div class="buttons">
+            <input type="submit" value="${dgettext('acct_mgr', 'Update')}" />
+          </div>
+        </form>
+      </div>
 
       <!--! TRANSLATOR: Position (# to # of #) or total, if not paginating -->
       <h2 class="report-result">
         Accounts <span class="trac-count">($displayed_items)</span>
       </h2>
+
+      <form id="filter" method="get" action="">
+        <fieldset id="filters">
+          <legend class="foldable">Filters</legend>
+          <table summary="Account filters">
+            <th scope="row">Status</th>
+            <td class="filter">
+              <label class="control" py:for="filter in filters">
+                <input type="checkbox" name="${'filter_%s' % filter.name}"
+                       checked="${filter.enabled or None}"/> ${filter.label}
+              </label>
+            </td>
+            <td>
+              <div class="inlinebuttons">
+                <input type="submit" name="update"
+                       value="${dgettext('acct_mgr', 'Update')}" />
+              </div>
+            </td>
+          </table>
+        </fieldset>
+      </form>
 
       <form id="manage-accounts" method="post">
         <xi:include py:with="paginator = accounts" href="page_index.html" />
