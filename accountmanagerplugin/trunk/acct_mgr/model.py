@@ -13,7 +13,6 @@ import re
 from acct_mgr.api import GenericUserIdChanger
 from trac.util import as_int
 from trac.util.text import exception_to_unicode, to_unicode
-from trac.web.session import DetachedSession
 
 _USER_KEYS = {
     'auth_cookie': 'name',
@@ -488,13 +487,18 @@ def get_user_attribute(env, username=None, authenticated=1, attribute=None,
 def prime_auth_session(env, username):
     """Prime session for registered users before initial login.
     """
-    session = DetachedSession(env, username)
-    if session.last_visit == 0:
-        session['authenticated'] = True
-        session.save()
-        # Workaround for #12929
-        if hasattr(env, 'invalidate_known_users_cache'):
-            env.invalidate_known_users_cache()
+    with env.db_transaction as db:
+        for count, in db("""
+                SELECT COUNT(*) FROM session
+                WHERE sid=%s AND authenticated=1
+                """, (username,)):
+            if not count:
+                db("""
+                    INSERT INTO session (sid,authenticated,last_visit)
+                    VALUES (%s,1,0)
+                    """, (username,))
+    if hasattr(env, 'invalidate_known_users_cache'):
+        env.invalidate_known_users_cache()
 
 
 def set_user_attribute(env, username, attribute, value):
