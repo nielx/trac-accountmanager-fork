@@ -204,7 +204,7 @@ class AccountChangeNotificationAdminPanel(CommonTemplateProvider):
             cfg.set('notify_actions',
                     ','.join(req.args.getlist('notify_actions')))
             self.config.save()
-            req.redirect(req.href.admin('accounts/notification'))
+            req.redirect(req.href.admin('accounts', 'notification'))
 
         notify_addresses = cfg.getlist('account_changes_notify_addresses',
                                        sep=' ')
