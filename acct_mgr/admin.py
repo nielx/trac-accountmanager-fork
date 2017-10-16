@@ -671,14 +671,11 @@ class UserAdminPanel(CommonTemplateProvider):
                 'delete_msg_confirm': _(
                     "Are you sure you want to delete these accounts?")})
 
-            # Preserve pager setting.
-            if 'max_per_page' in req.args:
+            # Save results of submitted pager and filters to session.
+            if 'update' in req.args:
                 max_per_page = req.args.get('max_per_page')
                 req.session.set('acctmgr_user.max_items', max_per_page,
                                 self.ACCTS_PER_PAGE)
-                req.redirect(req.href.admin('accounts', 'users'))
-            # Save results of submitted user list filter form to the session.
-            elif 'update' in req.args:
                 for filter_ in available_filters:
                     key = 'acctmgr_user.filter.%s' % filter_[0]
                     if 'filter_%s' % filter_[0] in req.args:
@@ -691,7 +688,6 @@ class UserAdminPanel(CommonTemplateProvider):
             data.update(self._paginate(req, fetch_user_data(env, req,
                                                             filters)))
         add_stylesheet(req, 'acct_mgr/acctmgr.css')
-        add_stylesheet(req, 'common/css/report.css')
         return 'admin_users.html', data
 
     def _do_change_uid(self, req, old_uid, new_uid):
