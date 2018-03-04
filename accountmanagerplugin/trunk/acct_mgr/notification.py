@@ -16,6 +16,7 @@ from trac.notification import NotifyEmail
 
 from acct_mgr.api import IAccountChangeListener, CommonTemplateProvider, \
                          _, dgettext
+from acct_mgr.compat import genshi_template_args
 
 
 class NotificationError(TracError):
@@ -214,4 +215,5 @@ class AccountChangeNotificationAdminPanel(CommonTemplateProvider):
             'notify_actions': notify_actions,
             'notify_addresses': notify_addresses
         }
-        return 'admin_accountsnotification.html', data
+        return genshi_template_args(self.env,
+                                    'admin_accountsnotification.html', data)

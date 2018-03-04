@@ -32,6 +32,7 @@ from trac.wiki.api import IWikiPageManipulator
 
 from acct_mgr.api import AccountManager, CommonTemplateProvider
 from acct_mgr.api import _, dgettext, ngettext, tag_
+from acct_mgr.compat import genshi_template_args
 from acct_mgr.db import SessionStore
 from acct_mgr.guard import AccountGuard
 from acct_mgr.model import last_seen, set_user_attribute
@@ -134,7 +135,7 @@ class AccountModule(CommonTemplateProvider):
     def render_preference_panel(self, req, panel):
         data = dict(_dgettext=dgettext)
         data.update(self._do_account(req))
-        return 'prefs_account.html', data
+        return genshi_template_args(self.env, 'prefs_account.html', data)
 
     # IRequestFilter methods
 
