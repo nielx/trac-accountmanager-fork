@@ -232,8 +232,7 @@ class UserAdminPanel(CommonTemplateProvider):
             attrs = {}
             accounts = req.args.get('accounts')
             accounts = accounts and accounts.split(',') or []
-            sel = req.args.get('sel')
-            sel = isinstance(sel, list) and sel or [sel]
+            sel = req.args.getlist('sel')
             if req.args.get('purge') and sel:
                 sel_len = len(sel)
                 matched = []
@@ -313,8 +312,13 @@ class UserAdminPanel(CommonTemplateProvider):
                 if account in accounts:
                     attr_sel.update({account: states})
 
-            add_ctxtnav(req, _("Back to Accounts"),
-                        href=req.href.admin('accounts', 'users'))
+            if len(accounts) == 1:
+                back_label = _("Back to Account")
+                back_href = req.href.admin('accounts', 'users', accounts[0])
+            else:
+                back_label = _("Back to Accounts")
+                back_href = req.href.admin('accounts', 'users')
+            add_ctxtnav(req, back_label, href=back_href)
             add_stylesheet(req, 'acct_mgr/acctmgr.css')
             data = dict(_dgettext=dgettext, accounts=accounts, attr=attr_sel)
             return genshi_template_args(self.env, 'admin_db_cleanup.html',
@@ -528,15 +532,15 @@ class UserAdminPanel(CommonTemplateProvider):
                                                                  username)
 
         # TRANSLATOR: Optionally tabbed account editor's label
-        forms = [('edit', _('Modify Account Attributes'))]
+        forms = [('edit', _('Modify Account'))]
         if change_uid_enabled:
             forms.append(('uid', _('Change User ID')))
 
         data['forms'] = forms
         data['active_form'] = req.args.get('action') or forms[0][0]
-        # Layout hack required for supporting older Trac concurrently.
-        if trac_version < '1.0':
-            data['action_aside'] = True
+        add_ctxtnav(req, _("Account Attributes"),
+                    href=req.href.admin('accounts', 'users', cleanup='1',
+                                        accounts=username))
         add_ctxtnav(req, _("Back to Accounts"),
                     href=req.href.admin('accounts', 'users'))
         add_stylesheet(req, 'acct_mgr/acctmgr.css')
