@@ -80,7 +80,10 @@ def fetch_user_data(env, req, filters=None):
                 del accounts[acct]
                 continue
             if account['email'] and verify_email:
-                if email_verified(env, account['username'], account['email']):
+                # verified is the verification token if verification pending.
+                verified = email_verified(env, account['username'],
+                                          account['email'])
+                if verified is True:
                     if approval:
                         account['approval'] = list(approval)
                 elif approval:
