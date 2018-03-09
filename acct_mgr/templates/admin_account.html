@@ -220,7 +220,7 @@
                 This address has been verified successfully.</p>
               <p py:when="not email_verified and email_verification_token" i18n:msg="token">
                 Verification is pending
-                (<span class="hint">token: '${email_verification_token}' </span>).</p>
+                <span class="hint">(token: ${email_verification_token})</span></p>
               <p py:otherwise=""> <!--! not email_verified -->
                 This address has not been verified yet.</p>
             </py:choose>
