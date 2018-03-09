@@ -216,12 +216,12 @@
             <p i18n:msg="email">
               Current email address: &lt;${acctmgr.email}&gt;</p>
             <py:choose py:if="verification">
-              <p py:when="email_verified is True">
+              <p py:when="email_verified">
                 This address has been verified successfully.</p>
-              <p py:when="not email_verified is None" i18n:msg="token">
+              <p py:when="not email_verified and email_verification_token" i18n:msg="token">
                 Verification is pending
-                (<span class="hint">token: '${email_verified}' </span>).</p>
-              <p py:otherwise="">
+                (<span class="hint">token: '${email_verification_token}' </span>).</p>
+              <p py:otherwise=""> <!--! not email_verified -->
                 This address has not been verified yet.</p>
             </py:choose>
           </div>

@@ -17,7 +17,8 @@ from acct_mgr.api import IUserIdChanger
 from acct_mgr.api import _, dgettext, gettext, ngettext, tag_
 from acct_mgr.compat import genshi_template_args
 from acct_mgr.guard import AccountGuard
-from acct_mgr.model import change_uid, del_user_attribute, email_verified
+from acct_mgr.model import (
+    change_uid, del_user_attribute, email_verification_token, email_verified)
 from acct_mgr.model import get_user_attribute, last_seen, set_user_attribute
 from acct_mgr.notification import NotificationError
 from acct_mgr.register import EmailVerificationModule, RegistrationError
@@ -80,10 +81,7 @@ def fetch_user_data(env, req, filters=None):
                 del accounts[acct]
                 continue
             if account['email'] and verify_email:
-                # verified is the verification token if verification pending.
-                verified = email_verified(env, account['username'],
-                                          account['email'])
-                if verified is True:
+                if email_verified(env, account['username'], account['email']):
                     if approval:
                         account['approval'] = list(approval)
                 elif approval:
@@ -492,6 +490,8 @@ class UserAdminPanel(CommonTemplateProvider):
         if email and verify_enabled:
             data['verification'] = 'enabled'
             data['email_verified'] = email_verified(env, username, email)
+            data['email_verification_token'] = \
+                email_verification_token(env, username, email)
             self.log.debug('AcctMgr:admin:_do_acct_details for user "%s" '
                            'email "%s": %s', username, email,
                            data['email_verified'])
