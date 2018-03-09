@@ -274,14 +274,19 @@ def email_associated(env, email):
 
 def email_verified(env, user, email):
     """Returns whether the account and email has been verified.
-
-    Use with care, as it returns the private token string,
-    if verification is pending.
     """
     if not user_known(env, user) or not email:
-        # Nothing more to check here.
-        return None
+        return None  # Nothing more to check here.
 
+    return email_verification_token(env, user, email) is None
+
+
+def email_verification_token(env, user, email):
+    """Returns the email verification token, or `None` if the email has
+    been verified. Returns an empty string if the email verification
+    token has been sent to an address different from the one currently
+    set in the session preferences.
+    """
     with env.db_query as db:
         for row in db("""
                 SELECT value
@@ -292,7 +297,7 @@ def email_verified(env, user, email):
                           '"%s": %s', user, email, row[0])
             if row[0] != email:
                 # verification has been sent to different email address
-                return None
+                return ''
 
         for row in db("""
                 SELECT value
@@ -302,7 +307,6 @@ def email_verified(env, user, email):
             env.log.debug('AcctMgr:model:email_verified for user "%s", email '
                           '"%s": %s', user, email, row[0])
             return row[0]
-    return True
 
 
 def user_known(env, user):
