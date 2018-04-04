@@ -24,7 +24,6 @@ from acct_mgr.notification import NotificationError
 from acct_mgr.register import EmailVerificationModule, RegistrationError
 from acct_mgr.util import pretty_precise_timedelta
 from acct_mgr.web_ui import AccountModule
-from trac import __version__ as trac_version
 from trac.admin import IAdminPanelProvider
 from trac.config import BoolOption, Option
 from trac.core import Component, ExtensionPoint, implements
