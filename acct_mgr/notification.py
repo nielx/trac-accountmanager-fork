@@ -65,7 +65,7 @@ class AccountChangeListener(Component):
 
 
 class AccountChangeNotification(NotifyEmail):
-    template_name = 'user_changes_email.txt'
+    template_name = 'account_user_changes_email.txt'
 
     _recipients = Option(
         'account-manager', 'account_changes_notify_addresses', '',
@@ -141,7 +141,7 @@ class SingleUserNotification(NotifyEmail):
 
 
 class PasswordResetNotification(SingleUserNotification):
-    template_name = 'reset_password_email.txt'
+    template_name = 'account_reset_password_email.txt'
 
     def notify(self, username, password):
         self.data.update({
@@ -162,7 +162,7 @@ class PasswordResetNotification(SingleUserNotification):
 
 
 class EmailVerificationNotification(SingleUserNotification):
-    template_name = 'verify_email.txt'
+    template_name = 'account_verify_email.txt'
 
     def notify(self, username, token):
         self.data.update({
@@ -215,5 +215,5 @@ class AccountChangeNotificationAdminPanel(CommonTemplateProvider):
             'notify_actions': notify_actions,
             'notify_addresses': notify_addresses
         }
-        return genshi_template_args(self.env,
-                                    'admin_accountsnotification.html', data)
+        return genshi_template_args(self.env, 'account_notification.html',
+                                    data)

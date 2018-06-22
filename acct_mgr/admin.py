@@ -321,7 +321,7 @@ class UserAdminPanel(CommonTemplateProvider):
             add_ctxtnav(req, back_label, href=back_href)
             add_stylesheet(req, 'acct_mgr/acctmgr.css')
             data = dict(_dgettext=dgettext, accounts=accounts, attr=attr_sel)
-            return genshi_template_args(self.env, 'admin_db_cleanup.html',
+            return genshi_template_args(self.env, 'account_db_cleanup.html',
                                         data)
 
     def _do_acct_details(self, req, username):
@@ -546,7 +546,7 @@ class UserAdminPanel(CommonTemplateProvider):
         add_ctxtnav(req, _("Back to Accounts"),
                     href=req.href.admin('accounts', 'users'))
         add_stylesheet(req, 'acct_mgr/acctmgr.css')
-        return genshi_template_args(self.env, 'admin_account.html', data)
+        return genshi_template_args(self.env, 'account_admin.html', data)
 
     def _do_users(self, req):
         env = self.env
@@ -700,7 +700,7 @@ class UserAdminPanel(CommonTemplateProvider):
                                                             filters)))
         add_stylesheet(req, 'acct_mgr/acctmgr.css')
         add_stylesheet(req, 'common/css/report.css')
-        return genshi_template_args(self.env, 'admin_users.html', data)
+        return genshi_template_args(self.env, 'account_users.html', data)
 
     def _do_change_uid(self, req, old_uid, new_uid):
         acctmgr = self.acctmgr
@@ -1508,7 +1508,7 @@ class ConfigurationAdminPanel(CommonTemplateProvider):
         add_script(req, 'acct_mgr/js/acctmgr_admin.js')
         add_stylesheet(req, 'acct_mgr/acctmgr.css')
         add_stylesheet(req, 'common/css/report.css')
-        return genshi_template_args(self.env, 'admin_accountsconfig.html',
+        return genshi_template_args(self.env, 'account_config.html',
                                     data)
 
     # IAuthenticator methods

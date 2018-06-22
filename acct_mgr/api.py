@@ -80,9 +80,10 @@ class IAccountRegistrationInspector(Interface):
 
         Returns a dict containing a 'required' and/or 'optional' tuple of
          * Genshi Fragment or valid XHTML markup for registration form
-         * modified or unchanged data object (used to render `register.html`)
-        If the return value is just a single tuple, its fragment or markup
-        will be inserted into the 'required' section.
+         * modified or unchanged data object (used to render
+         `account_register.html`) If the return value is just a single
+         tuple, its fragment or markup will be inserted into the 'required'
+         section.
         """
 
     def validate_registration(req):

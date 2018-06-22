@@ -3,7 +3,7 @@
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:xi="http://www.w3.org/2001/XInclude"
-      xmlns:py="http://genshi.edgewall.org/" 
+      xmlns:py="http://genshi.edgewall.org/"
       xmlns:i18n="http://genshi.edgewall.org/i18n"
       i18n:domain="acct_mgr">
   <xi:include href="admin.html" />
@@ -87,8 +87,8 @@
             <input type="text" name="username" id="username"
                    class="textwidget" value="${acctmgr.username}" />
           </label>
-          <p class="hint" py:if="ignore_auth_case"> 
-            Only lowercase usernames allowed 
+          <p class="hint" py:if="ignore_auth_case">
+            Only lowercase usernames allowed
           </p>
         </div>
         <div>
@@ -183,7 +183,7 @@
       <form id="manage-accounts" method="post">
         <xi:include py:with="paginator = accounts" href="page_index.html" />
         <!--! Main account list -->
-        <xi:include href="user_table.html"/>
+        <xi:include href="account_user_table.html"/>
         <xi:include py:with="paginator = accounts" href="page_index.html" />
 
         <div class="buttons">

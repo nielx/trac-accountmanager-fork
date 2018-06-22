@@ -264,7 +264,7 @@ class RegistrationModuleTestCase(_BaseTestCase):
             'acct_mgr.pwhash.HtDigestHashMethod'
         ])
         self.env.path = tempfile.mkdtemp()
-        self.reg_template = 'register.html'
+        self.reg_template = 'account_register.html'
         self.req.method = 'POST'
 
         self.env.config.set('account-manager', 'password_store',
