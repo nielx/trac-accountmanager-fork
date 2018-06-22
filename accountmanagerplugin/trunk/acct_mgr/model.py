@@ -441,6 +441,19 @@ def get_user_attribute(env, username=None, authenticated=1, attribute=None,
         """ % (sel_stmt, where_stmt)
     sql_args = tuple(constraints)
 
+    def unique_id(*values):
+        # Generate sha1 digest from NUL value1 NUL value2 NUL value3 NUL
+        m = hashlib.sha1()
+        m.update('\0')
+        for value in values:
+            if isinstance(value, unicode):
+                value = value.encode('utf-8')
+            elif not isinstance(value, str):
+                value = str(value)
+            m.update(value)
+            m.update('\0')
+        return m.hexdigest()
+
     res = {}
     for row in env.db_query(sql, sql_args):
         if sel_stmt == 'COUNT(*)':
@@ -452,10 +465,7 @@ def get_user_attribute(env, username=None, authenticated=1, attribute=None,
         account = res_row.pop('sid')
         authenticated = res_row.pop('authenticated')
         # Create single unique attribute ID.
-        m = hashlib.md5()
-        m.update(''.join([account, str(authenticated),
-                          res_row.get('name')]).encode('utf-8'))
-        row_id = m.hexdigest()
+        row_id = unique_id(account, authenticated, res_row.get('name'))
         if account in res:
             if authenticated in res[account]:
                 res[account][authenticated].update({
@@ -470,20 +480,16 @@ def get_user_attribute(env, username=None, authenticated=1, attribute=None,
                     'id': {res_row['name']: row_id}
                 }
                 # Create account ID for additional authentication state.
-                m = hashlib.md5()
-                m.update(''.join([account,
-                                  str(authenticated)]).encode('utf-8'))
-                res[account]['id'][authenticated] = m.hexdigest()
+                res[account]['id'][authenticated] = unique_id(account,
+                                                              authenticated)
         else:
             # Create account ID for authentication state.
-            m = hashlib.md5()
-            m.update(''.join([account, str(authenticated)]).encode('utf-8'))
             res[account] = {
                 authenticated: {
                     res_row['name']: res_row['value'],
                     'id': {res_row['name']: row_id}
                 },
-                'id': {authenticated: m.hexdigest()}
+                'id': {authenticated: unique_id(account, authenticated)}
             }
     return res
 
