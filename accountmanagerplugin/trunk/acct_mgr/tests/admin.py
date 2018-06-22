@@ -124,7 +124,7 @@ class ExtensionOrderTestCase(_BaseTestCase):
 class AccountManagerAdminPanelTestCase(_BaseTestCase):
     def setUp(self):
         _BaseTestCase.setUp(self)
-        self.cfg_panel_template = 'admin_accountsconfig.html'
+        self.cfg_panel_template = 'account_config.html'
         self.env.config.set('account-manager', 'password_store',
                             'SessionStore')
         self.admin = ConfigurationAdminPanel(self.env)
@@ -179,7 +179,7 @@ class AccountManagerAdminPanelTestCase(_BaseTestCase):
 class UserAdminPanelTestCase(_BaseTestCase):
     def setUp(self):
         _BaseTestCase.setUp(self)
-        self.user_panel_template = 'admin_users.html'
+        self.user_panel_template = 'account_users.html'
         self.admin = UserAdminPanel(self.env)
 
     def test_render_user_admin_panel(self):

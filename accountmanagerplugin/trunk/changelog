@@ -235,7 +235,7 @@ acct_mgr-0.3 (07-Jul-2011) - branch 0.11
  * #8563: IndexError: list index out of range
  * #8774: KeyError: acct_mgr.web_ui after failed import of acct_mgr.web_ui
  * #8814: Generic word `for` is extracted, term is difficult to translate
- * #8843: XHTML invalid verify_email.html
+ * #8843: XHTML invalid account_verify_email.html
  * extend AccountManager class API by 'email_verified' and 'user_known'
  * re-design 'ugly' HTML login form
    adding new 'login_opt_list' option and contribute recommended CSS styles

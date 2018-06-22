@@ -117,7 +117,7 @@ A misc placeholder with this statement is presented to unprivileged users.
                         cols.append(col)
                 data['cols'] = cols
                 return Chrome(env).render_template(
-                    req, 'user_table.html', data, 'text/html', True)
+                    req, 'account_user_table.html', data, 'text/html', True)
             if kw.get('format') == 'count' or 'count' in args:
                 return tag(len(users))
             if 'USER_VIEW' not in req.perm:

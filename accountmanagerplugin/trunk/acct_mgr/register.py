@@ -497,7 +497,7 @@ class RegistrationModule(CommonTemplateProvider):
                     data.update(f_data)
         data['required_fields'] = fragments['required']
         data['optional_fields'] = fragments['optional']
-        return 'register.html', data, None
+        return 'account_register.html', data, None
 
 
 class EmailVerificationModule(CommonTemplateProvider):
@@ -645,7 +645,7 @@ class EmailVerificationModule(CommonTemplateProvider):
             data['token'] = req.args['token']
         if 'email_verification_token' not in req.session:
             data['button_state'] = {'disabled': 'disabled'}
-        return 'verify_email.html', data, None
+        return 'account_verify_email.html', data, None
 
     def _gen_token(self):
         return base64.urlsafe_b64encode(os.urandom(6))

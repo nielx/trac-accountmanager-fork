@@ -135,7 +135,7 @@ class AccountModule(CommonTemplateProvider):
     def render_preference_panel(self, req, panel):
         data = dict(_dgettext=dgettext)
         data.update(self._do_account(req))
-        return genshi_template_args(self.env, 'prefs_account.html', data)
+        return genshi_template_args(self.env, 'account_prefs.html', data)
 
     # IRequestFilter methods
 
@@ -192,7 +192,7 @@ class AccountModule(CommonTemplateProvider):
             data['authenticated'] = True
         if req.method == 'POST':
             self._do_reset_password(req)
-        return 'reset_password.html', data, None
+        return 'account_reset_password.html', data, None
 
     # IAttachmentManipulator
 
@@ -530,7 +530,7 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
                               "(release_time)s", release_time=release_time)
                     else:
                         data['login_error'] = _("Account locked")
-            return 'login.html', data, None
+            return 'account_login.html', data, None
         else:
             n_plural = req.args.get('failed_logins')
             if n_plural > 0:
