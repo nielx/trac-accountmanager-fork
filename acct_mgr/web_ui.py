@@ -90,7 +90,7 @@ class AccountModule(CommonTemplateProvider):
                 self.log.warning("AccountModule is disabled because no "
                                  "configured password store supports "
                                  "writing.")
-            elif self.store not in writable_stores:
+            elif self.store is None:
                 self.log.warning("ResetPwStore is disabled, therefore "
                                  "password reset won't work.")
         return writable_stores
