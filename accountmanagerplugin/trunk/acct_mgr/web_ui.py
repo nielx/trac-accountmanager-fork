@@ -362,13 +362,14 @@ class AccountModule(CommonTemplateProvider):
                            exception_to_unicode(e, traceback=True))
             return
 
+        if acctmgr.force_passwd_change:
+            set_user_attribute(self.env, username, 'force_change_passwd', 1)
+
         # No message, if method has been called from user admin panel.
         if not req.path_info.startswith('/admin'):
             add_notice(req, _("A new password has been sent to you at "
                               "<%(email)s>.", email=email))
             req.redirect(req.href.login())
-        if acctmgr.force_passwd_change:
-            set_user_attribute(self.env, username, 'force_change_passwd', 1)
 
 
 class LoginModule(auth.LoginModule, CommonTemplateProvider):
@@ -489,7 +490,7 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
                 self.log.debug("LoginModule.authenticate: Set 'REMOTE_USER' "
                                "= '%s'", username)
                 req.environ['REMOTE_USER'] = username
-        return auth.LoginModule.authenticate(self, req)
+        return super(LoginModule, self).authenticate(req)
 
     authenticate = if_enabled(authenticate)
 
@@ -543,9 +544,10 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
                     "Login after %(attempts)s failed attempts",
                     n_plural, attempts=n_plural
                 )))
-        return auth.LoginModule.process_request(self, req)
+        return super(LoginModule, self).process_request(req)
 
-    # overrides
+    # auth.LoginModule overrides
+
     def _get_name_for_cookie(self, req, cookie):
         """Returns the username for the current Trac session.
 
@@ -620,11 +622,10 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
                 req.outcookie['trac_auth_session']['secure'] = True
         return name
 
-    # overrides
     def _do_login(self, req):
         if not req.remote_user:
             self._redirect_back(req)
-        res = auth.LoginModule._do_login(self, req)
+        res = super(LoginModule, self)._do_login(req)
 
         cookie_path = self._get_cookie_path(req)
         # Fix for Trac 0.11, that always sets path to `req.href()`.
@@ -661,6 +662,30 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
             if 'trac_auth_session' in req.incookie:
                 self._expire_session_cookie(req)
         return res
+
+    def _expire_cookie(self, req):
+        """Instruct the user agent to drop the auth_session cookie by setting
+        the "expires" property to a date in the past.
+
+        Basically, whenever "trac_auth" cookie gets expired, expire
+        "trac_auth_session" too.
+        """
+        # First of all expire trac_auth_session cookie, if it exists.
+        if 'trac_auth_session' in req.incookie:
+            self._expire_session_cookie(req)
+        # Capture current cookie value.
+        cookie = req.incookie.get('trac_auth')
+        if cookie:
+            trac_auth = cookie.value
+        else:
+            trac_auth = None
+        # Then let auth.LoginModule expire all other cookies.
+        super(LoginModule, self)._expire_cookie(req)
+        # And finally revoke distributed authentication data too.
+        if self.auth_cookie_path and trac_auth:
+            self._distribute_auth(req, trac_auth)
+
+    # Internal methods
 
     def _distribute_auth(self, req, trac_auth, name=None):
         # Single Sign On authentication distribution between multiple
@@ -707,29 +732,6 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
     def _get_cookie_path(self, req):
         """Determine "path" cookie property from setting or request object."""
         return self.auth_cookie_path or req.base_path or '/'
-
-    # overrides
-    def _expire_cookie(self, req):
-        """Instruct the user agent to drop the auth_session cookie by setting
-        the "expires" property to a date in the past.
-
-        Basically, whenever "trac_auth" cookie gets expired, expire
-        "trac_auth_session" too.
-        """
-        # First of all expire trac_auth_session cookie, if it exists.
-        if 'trac_auth_session' in req.incookie:
-            self._expire_session_cookie(req)
-        # Capture current cookie value.
-        cookie = req.incookie.get('trac_auth')
-        if cookie:
-            trac_auth = cookie.value
-        else:
-            trac_auth = None
-        # Then let auth.LoginModule expire all other cookies.
-        auth.LoginModule._expire_cookie(self, req)
-        # And finally revoke distributed authentication data too.
-        if self.auth_cookie_path and trac_auth:
-            self._distribute_auth(req, trac_auth)
 
     # Keep this code in a separate methode to be able to expire the session
     # cookie trac_auth_session independently of the trac_auth cookie.
