@@ -341,7 +341,14 @@ class AccountModule(CommonTemplateProvider):
         """
         acctmgr = self.acctmgr
         new_password = self._random_password
-        self.store.set_password(username, new_password)
+        try:
+            self.store.set_password(username, new_password)
+        except Exception, e:
+            add_warning(req, _("Cannot reset password: %(error)s",
+                               error=exception_to_unicode(e)))
+            self.log.error("Unable to reset password: %s",
+                           exception_to_unicode(e, traceback=True))
+            return
         try:
             acctmgr._notify('password_reset', username, email, new_password)
         except NotificationError, e:
@@ -353,17 +360,12 @@ class AccountModule(CommonTemplateProvider):
             add_warning(req, msg)
             self.log.error("Unable to send password reset notification: %s",
                            exception_to_unicode(e, traceback=True))
-        except Exception, e:
-            add_warning(req, _("Cannot reset password: %(error)s",
-                               error=exception_to_unicode(e)))
-            self.log.error("Unable to reset password: %s",
-                           exception_to_unicode(e, traceback=True))
             return
-        else:
-            # No message, if method has been called from user admin panel.
-            if not req.path_info.startswith('/admin'):
-                add_notice(req, _("A new password has been sent to you at "
-                                  "<%(email)s>.", email=email))
+
+        # No message, if method has been called from user admin panel.
+        if not req.path_info.startswith('/admin'):
+            add_notice(req, _("A new password has been sent to you at "
+                              "<%(email)s>.", email=email))
         if acctmgr.force_passwd_change:
             set_user_attribute(self.env, username, 'force_change_passwd', 1)
 
