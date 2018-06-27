@@ -320,9 +320,10 @@ class AccountModule(CommonTemplateProvider):
             for username_, name, email_ in self.env.get_known_users():
                 if username_ == username and email_ == email:
                     self._reset_password(req, username, email)
-                    return
-            add_warning(req, _(
-                "Email and username must match a known account."))
+                    break
+            else:
+                add_warning(req, _(
+                    "Email and username must match a known account."))
 
     @property
     def _random_password(self):
