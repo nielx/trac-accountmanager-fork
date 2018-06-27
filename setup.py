@@ -49,7 +49,6 @@ setup(
     install_requires=['Trac'],
     extras_require={
         'Babel': 'Babel>= 0.9.5',
-        'Trac': 'Trac >= 0.12',
         'announcer': 'TracAnnouncer',
         'forms': 'TracForms',
         'pyrad': 'Pyrad',
