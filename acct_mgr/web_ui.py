@@ -366,6 +366,7 @@ class AccountModule(CommonTemplateProvider):
         if not req.path_info.startswith('/admin'):
             add_notice(req, _("A new password has been sent to you at "
                               "<%(email)s>.", email=email))
+            req.redirect(req.href.login())
         if acctmgr.force_passwd_change:
             set_user_attribute(self.env, username, 'force_change_passwd', 1)
 
