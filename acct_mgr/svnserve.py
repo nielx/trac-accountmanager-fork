@@ -62,10 +62,14 @@ class SvnServePasswordStore(Component):
     def has_user(self, user):
         return user in self._config['users']
 
-    def set_password(self, user, password, old_password=None):
+    def set_password(self, user, password, old_password=None, overwrite=True):
         cfg = self._config
+        new_acct = not self.has_user(user)
+        if not new_acct and not overwrite:
+            return new_acct
         cfg.set('users', user, password)
         cfg.save()
+        return new_acct
 
     def check_password(self, user, password):
         if self.has_user(user):
@@ -73,6 +77,9 @@ class SvnServePasswordStore(Component):
         return None
 
     def delete_user(self, user):
+        if not self.has_user(user):
+            return False
         cfg = self._config
         cfg.remove('users', user)
         cfg.save()
+        return not self.has_user(user)

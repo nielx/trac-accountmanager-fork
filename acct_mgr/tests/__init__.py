@@ -18,8 +18,8 @@ except ImportError:
 
 
 def test_suite():
-    from acct_mgr.tests import admin, api, db, guard, htfile, model, register
-    from acct_mgr.tests import util
+    from acct_mgr.tests import (
+        admin, api, db, guard, htfile, model, register, svnserve, util)
     from acct_mgr.opt.tests import test_suite as opt_test_suite
 
     suite = unittest.TestSuite()
@@ -30,6 +30,7 @@ def test_suite():
     suite.addTest(htfile.test_suite())
     suite.addTest(model.test_suite())
     suite.addTest(register.test_suite())
+    suite.addTest(svnserve.test_suite())
     suite.addTest(util.test_suite())
     suite.addTest(opt_test_suite())
 
