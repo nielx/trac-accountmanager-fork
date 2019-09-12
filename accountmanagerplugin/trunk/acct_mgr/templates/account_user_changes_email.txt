@@ -1,4 +1,4 @@
-${account.action} for user ${account.username}
+Account ${account.action} for ${account.username}
 
 --
 ${project.name} <${project.url}>
