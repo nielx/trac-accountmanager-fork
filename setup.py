@@ -28,7 +28,7 @@ else:
 
 setup(
     name='TracAccountManager',
-    version='0.5.1',
+    version='0.6',
     author='Matthew Good',
     author_email='trac@matt-good.net',
     maintainer='Steffen Hoffmann',
