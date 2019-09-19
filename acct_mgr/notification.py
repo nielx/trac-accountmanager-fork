@@ -129,13 +129,18 @@ class AccountNotificationFormatter(Component):
     def decorate_message(self, event, message, charset):
         if event.realm != self.realm:
             return
-        subject = "[%s] " % self.env.project_name
+
+        # Someday replace with method added in trac:#13208
+        prefix = self.config.get('notification', 'smtp_subject_prefix')
+        subject = '[%s]' % self.env.project_name \
+                  if prefix == '__default__' else prefix
+
         if event.category in ('created', 'password changed', 'deleted'):
-            subject += "Account %s: %s" % (event.category, event.author)
+            subject += " Account %s: %s" % (event.category, event.author)
         elif event.category == 'password reset':
-            subject += "Account password reset: %s" % event.author
+            subject += " Account password reset: %s" % event.author
         elif event.category == 'verify email':
-            subject += "Account email verification: %s" % event.author
+            subject += " Account email verification: %s" % event.author
         set_header(message, 'Subject', subject, charset)
 
     # INotificationFormatter methods
