@@ -31,8 +31,10 @@ class NotificationError(TracError):
 
 class AccountChangeEvent(NotificationEvent):
 
+    realm = 'account'
+
     def __init__(self, category, username, data):
-        super(AccountChangeEvent, self).__init__('account', category, None,
+        super(AccountChangeEvent, self).__init__(self.realm, category, None,
                                                  None, username)
         self.data = data
 
@@ -104,25 +106,28 @@ class AccountChangeListener(Component):
 
     def _subscriptions(self, event):
         matcher = RecipientMatcher(self.env)
+        transport_and_format = ('email', 'text/plain')
         if event.category in ('verify email', 'password reset'):
             recipient = matcher.match_recipient(event.author)
             if recipient:
-                yield recipient + ('email', 'text/plain')
+                yield recipient + transport_and_format
         elif event.category in self._notify_categories:
             for r in self._account_change_recipients:
                 recipient = matcher.match_recipient(r)
                 if recipient:
-                    yield recipient + ('email', 'text/plain')
+                    yield recipient + transport_and_format
 
 
 class AccountNotificationFormatter(Component):
 
     implements(IEmailDecorator, INotificationFormatter)
 
+    realm = 'account'
+
     # IEmailDecorator methods
 
     def decorate_message(self, event, message, charset):
-        if event.realm != 'account':
+        if event.realm != self.realm:
             return
         subject = "[%s] " % self.env.project_name
         if event.category in ('created', 'password changed', 'deleted'):
@@ -136,10 +141,10 @@ class AccountNotificationFormatter(Component):
     # INotificationFormatter methods
 
     def get_supported_styles(self, transport):
-        yield 'text/plain', 'account'
+        yield 'text/plain', self.realm
 
     def format(self, transport, style, event):
-        if event.realm != 'account':
+        if event.realm != self.realm:
             return
         data = {
             'account': {'username': event.author},
