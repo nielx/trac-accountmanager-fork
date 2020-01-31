@@ -12,11 +12,11 @@ import shutil
 import string
 import tempfile
 import unittest
-from Cookie import SimpleCookie as Cookie
 
 from trac.perm import PermissionCache, PermissionSystem
 from trac.util.html import Markup
-from trac.test import EnvironmentStub, Mock, MockPerm
+from trac.test import EnvironmentStub, MockRequest
+from trac.web.api import RequestDone
 from trac.web.session import Session
 
 from acct_mgr.api import AccountManager
@@ -30,7 +30,7 @@ from acct_mgr.register import UsernamePermCheck
 
 
 class _BaseTestCase(unittest.TestCase):
-    def setUp(self):
+    def setUp(self, method='GET'):
         self.env = EnvironmentStub(
             enable=['trac.*', 'acct_mgr.api.*'])
         self.env.path = tempfile.mkdtemp()
@@ -40,9 +40,8 @@ class _BaseTestCase(unittest.TestCase):
         self.perm.grant_permission('admin', 'ACCTMGR_USER_ADMIN')
         # Prepare a generic registration request.
         args = dict(username='', name='', email='')
-        self.req = Mock(authname='anonymous', args=args)
-        self.req.path_info = '/register'
-        self.req.perm = PermissionCache(self.env)
+        self.req = MockRequest(self.env,  method=method, path_info='/register',
+                               args=args)
 
     def tearDown(self):
         shutil.rmtree(self.env.path)
@@ -123,7 +122,7 @@ class BotTrapCheckTestCase(_BaseTestCase):
         req.args['basic_token'] = ''
         self.assertRaises(RegistrationError, check.validate_registration, req)
         # 3rd attempt: As before, but request done by authenticated user.
-        req = Mock(authname='admin', args=self.req.args)
+        req = MockRequest(self.env, authname='admin', args=self.req.args)
         self.assertEqual(check.validate_registration(req), None)
         # 4th attempt: Finally valid input.
         req = self.req
@@ -251,13 +250,13 @@ class UsernamePermCheckTestCase(_BaseTestCase):
         req.args['username'] = 'admin'
         self.assertRaises(RegistrationError, check.validate_registration, req)
         # 4th attempt: As before, but request done by authenticated user.
-        req = Mock(authname='admin', args=self.req.args)
+        req = MockRequest(self.env, authname='admin', args=self.req.args)
         self.assertEqual(check.validate_registration(req), None)
 
 
 class RegistrationModuleTestCase(_BaseTestCase):
     def setUp(self):
-        _BaseTestCase.setUp(self)
+        _BaseTestCase.setUp(self, method='POST')
         self.env = EnvironmentStub(enable=[
             'trac.*', 'acct_mgr.api.*', 'acct_mgr.db.*',
             'acct_mgr.register.*',
@@ -265,7 +264,6 @@ class RegistrationModuleTestCase(_BaseTestCase):
         ])
         self.env.path = tempfile.mkdtemp()
         self.reg_template = 'account_register.html'
-        self.req.method = 'POST'
 
         self.env.config.set('account-manager', 'password_store',
                             'SessionStore')
@@ -297,18 +295,13 @@ class RegistrationModuleTestCase(_BaseTestCase):
         user = 'user1'
         passwd = 'test'
         # A more complete mock of a request object is required for this test.
-        req = Mock(authname='anonymous', method='POST',
-                   args={
-                       'action': 'create',
-                       'username': user,
-                       'name': 'Tester',
-                       'password': passwd,
-                       'password_confirm': passwd
-                   },
-                   chrome=dict(notices=[], warnings=[]),
-                   href=self.env.abs_href, path_info='/register',
-                   perm=MockPerm(), redirect=lambda x: None
-                   )
+        req = MockRequest(self.env, method='POST', args={
+            'action': 'create',
+            'username': user,
+            'name': 'Tester',
+            'password': passwd,
+            'password_confirm': passwd
+        })
         # Fail to register the user.
         self.rmod.process_request(req)
         self.assertTrue('email address' in str(req.chrome['warnings']))
@@ -318,29 +311,19 @@ class RegistrationModuleTestCase(_BaseTestCase):
         user = 'user1'
         passwd = 'test'
 
-        def redirect_noop(href):
-            """Log relevant information for checking registration result."""
-            # print req.chrome['notices']
-            return
-
-        # A more complete mock of a request object is required for this test.
-        req = Mock(authname='anonymous', method='POST',
-                   args={
-                       'action': 'create',
-                       'username': user,
-                       'name': 'Tester',
-                       'password': passwd,
-                       'password_confirm': passwd
-                   },
-                   chrome=dict(notices=[], warnings=[]),
-                   href=self.env.abs_href, path_info='/register',
-                   perm=MockPerm(), redirect=redirect_noop
-                   )
+        req = MockRequest(self.env, path_info='/register', method='POST',
+                args={
+                    'action': 'create',
+                    'username': user,
+                    'name': 'Tester',
+                    'password': passwd,
+                    'password_confirm': passwd
+        })
         self.env.config.set('account-manager', 'verify_email', False)
         # Successfully register the user.
         # Note: This would have raised an AttributeError without graceful
         #   request checking for 'email'.
-        self.rmod.process_request(req)
+        self.assertRaises(RequestDone, self.rmod.process_request, req)
         # DEVEL: Check registration success more directly.
         self.assertEqual(req.chrome['warnings'], [])
         self.assertEqual([user], list(self.store.get_users()))
@@ -356,17 +339,9 @@ class EmailVerificationModuleTestCase(_BaseTestCase):
             enable=['trac.*', 'acct_mgr.api.*', 'acct_mgr.register.*'])
         self.env.path = tempfile.mkdtemp()
 
-        args = dict(username='username', name='', email='')
-        incookie = Cookie()
-        incookie['trac_session'] = '123456'
-        self.req = Mock(authname='username', args=args, base_path='/',
-                        chrome=dict(warnings=list()),
-                        href=Mock(prefs=lambda x: None),
-                        get_header=lambda k: None,
-                        incookie=incookie, outcookie=Cookie(),
-                        redirect=lambda x: None)
-        self.req.method = 'POST'
-        self.req.path_info = '/prefs'
+        args = dict(username='user', name='', email='')
+        self.req = MockRequest(self.env, authname='user', path_info='/prefs',
+                               method='POST', args=args)
         self.req.session = Session(self.env, self.req)
         self.req.session['email'] = 'email@foo.bar'
         self.req.session.save()
@@ -376,13 +351,15 @@ class EmailVerificationModuleTestCase(_BaseTestCase):
         set_user_attribute(self.env, 'admin', 'email', 'admin@foo.bar')
         # Try email, that is already associated to another user.
         self.req.args['email'] = 'admin@foo.bar'
-        self.vmod.pre_process_request(self.req, None)
+        self.assertRaises(RequestDone, self.vmod.pre_process_request,
+                          self.req, None)
         warnings = self.req.chrome.get('warnings')
         self.assertTrue(string.find(str(warnings and warnings[0] or ''),
                                     'already in use') > 0)
 
     def test_check_no_email(self):
-        self.vmod.pre_process_request(self.req, None)
+        self.assertRaises(RequestDone, self.vmod.pre_process_request,
+                          self.req, None)
         warnings = self.req.chrome.get('warnings')
         self.assertNotEqual(str(warnings and warnings[0] or ''), '')
 

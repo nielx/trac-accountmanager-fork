@@ -11,11 +11,10 @@
 import shutil
 import tempfile
 import unittest
-from Cookie import SimpleCookie as Cookie
 
 from trac.core import TracError
 from trac.perm import PermissionCache, PermissionSystem
-from trac.test import EnvironmentStub, Mock
+from trac.test import EnvironmentStub, MockRequest
 from trac.web.session import Session
 
 from acct_mgr.api import AccountManager
@@ -47,17 +46,7 @@ class AccountManagerTestCase(_BaseTestCase):
         self.store = SessionStore(self.env)
         self.store.set_password('user', 'passwd')
         args = dict(username='user', name='', email='')
-        incookie = Cookie()
-        incookie['trac_session'] = '123456'
-        self.req = Mock(authname='', args=args, authenticated=True,
-                        base_path='/', callbacks=dict(),
-                        chrome={'warnings': [], 'notices': []},
-                        href=Mock(prefs=lambda x: None),
-                        incookie=incookie, outcookie=Cookie(),
-                        redirect=lambda x: None)
-        self.req.path_info = '/'
-
-        # Tests
+        self.req = MockRequest(self.env, authname='user1', args=args)
 
     def test_set_password(self):
         # Can't work without at least one password store.
@@ -166,7 +155,7 @@ class AccountManagerTestCase(_BaseTestCase):
 class PermissionTestCase(_BaseTestCase):
     def setUp(self):
         _BaseTestCase.setUp(self)
-        self.req = Mock()
+        self.req = MockRequest(self.env)
         self.actions = ['ACCTMGR_ADMIN', 'ACCTMGR_CONFIG_ADMIN',
                         'ACCTMGR_USER_ADMIN', 'EMAIL_VIEW', 'USER_VIEW']
 
