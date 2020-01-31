@@ -14,10 +14,9 @@ import shutil
 import tempfile
 import time
 import unittest
-from Cookie import SimpleCookie as Cookie
 
 from trac import __version__ as VERSION
-from trac.test import EnvironmentStub, Mock
+from trac.test import EnvironmentStub, MockRequest
 from trac.web.session import Session
 
 from acct_mgr.model import (
@@ -39,14 +38,9 @@ class ModelTestCase(unittest.TestCase):
 
     def _create_session(self, user, authenticated=1, name='', email=''):
         args = dict(username=user, name=name, email=email)
-        incookie = Cookie()
-        incookie['trac_session'] = '123456'
-        self.req = Mock(authname=bool(authenticated) and user or 'anonymous',
-                        args=args, base_path='/',
-                        chrome=dict(warnings=list()),
-                        href=Mock(prefs=lambda x: None),
-                        incookie=incookie, outcookie=Cookie(),
-                        redirect=lambda x: None)
+        self.req = MockRequest(
+                self.env, authname=bool(authenticated) and user or 'anonymous',
+                args=args)
         self.req.session = Session(self.env, self.req)
         self.req.session.save()
 

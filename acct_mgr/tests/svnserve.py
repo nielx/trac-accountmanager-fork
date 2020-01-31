@@ -4,12 +4,13 @@ Test suite for SvnServePasswordStore.
 """
 
 import os.path
+import shutil
 import tempfile
 import unittest
 
 from acct_mgr.svnserve import SvnServePasswordStore
 
-from trac.test import EnvironmentStub, rmtree
+from trac.test import EnvironmentStub
 
 
 class SvnServePasswordTestCase(unittest.TestCase):
@@ -28,7 +29,7 @@ class SvnServePasswordTestCase(unittest.TestCase):
 
     def tearDown(self):
         self.env.shutdown()
-        rmtree(self.env.path)
+        shutil.rmtree(self.env.path)
 
     def _create_file(self, test_id, extra_content=None):
         file_name = os.path.join(self.env.path, 'test_' + test_id)
