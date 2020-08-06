@@ -173,22 +173,18 @@ class AccountNotificationFormatter(Component):
     # Internal methods
 
     def _format_body(self, data, template_name):
-        # 3 commented lines are replacements for when Trac < 1.4 is dropped
         chrome = Chrome(self.env)
         data = chrome.populate_data(None, data)
-        template = chrome.load_template(template_name, method='text')
-        #template = chrome.load_template(template_name, text=True)
         t = deactivate()  # don't translate the e-mail stream
-        try:
+        if hasattr(chrome, 'jenv'):
+            template = chrome.load_template(template_name, text=True)
+            body = chrome.render_template_string(template, data, text=True)
+            return body.encode('utf-8')
+        else:
+            template = chrome.load_template(template_name, method='text')
             stream = template.generate(**data)
             return stream.render('text', encoding='utf-8')
-            #body = chrome.render_template_string(template, data, text=True)
-            #return body.encode('utf-8')
-        except Exception as e:
-            self.log.error("Failed to format body of notification mail: %s",
-                           exception_to_unicode(e, traceback=True))
-        finally:
-            reactivate(t)
+        reactivate(t)
 
 
 class AccountChangeNotificationAdminPanel(CommonTemplateProvider):
