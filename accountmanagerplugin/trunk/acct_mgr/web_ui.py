@@ -531,8 +531,8 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
                                                                       f_user)
                     if release_time is not None:
                         data['login_error'] = \
-                            _("Account locked, please try again after % "
-                              "(release_time)s", release_time=release_time)
+                            _("Account locked, please try again after "
+                              "%(release_time)s", release_time=release_time)
                     else:
                         data['login_error'] = _("Account locked")
             return 'account_login.html', data, None
