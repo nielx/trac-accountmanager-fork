@@ -232,7 +232,7 @@ class TicketUserIdChanger(PrimitiveUserIdChanger):
                         try:
                             db("""
                                 UPDATE %s SET %s=%%s
-                                WHERE ticket=%%s AND time=%%s
+                                WHERE ticket=%%s AND time=%%s AND field='cc'
                                 """ % (table, column),
                                (', '.join(cc), int(row[0]), int(row[1])))
                             result += 1
