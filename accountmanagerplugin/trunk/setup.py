@@ -47,7 +47,7 @@ setup(
     },
     test_suite='acct_mgr.tests.test_suite',
     zip_safe=True,
-    install_requires=['Trac'],
+    install_requires=['Trac', 'Genshi'],
     extras_require={
         'Babel': 'Babel>= 0.9.5',
         'announcer': 'TracAnnouncer',
