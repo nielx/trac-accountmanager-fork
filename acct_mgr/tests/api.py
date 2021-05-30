@@ -163,7 +163,7 @@ class PermissionTestCase(_BaseTestCase):
 
     def test_available_actions(self):
         for action in self.actions:
-            self.failIf(action not in self.perm.get_actions())
+            self.assertFalse(action not in self.perm.get_actions())
 
     def test_available_actions_no_perms(self):
         for action in self.actions:

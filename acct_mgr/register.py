@@ -25,8 +25,7 @@ from trac.config import BoolOption, Option
 from trac.core import Component, TracError, implements
 from trac.util.html import html as tag
 from trac.util.text import exception_to_unicode
-from trac.web import auth, chrome
-from trac.web.api import HTTPBadRequest
+from trac.web import HTTPBadRequest, auth, chrome
 from trac.web.main import IRequestFilter, IRequestHandler
 
 
@@ -426,14 +425,14 @@ class RegistrationModule(CommonTemplateProvider):
                 try:
                     # Check request and prime account on success.
                     acctmgr.validate_account(req, True)
-                except NotificationError, e:
+                except NotificationError as e:
                     chrome.add_warning(req, _(
                         "Error raised while sending a change notification."
                     ) + _("You should report that issue to a Trac admin."))
                     self.log.error(
                         'Unable to send registration notification: %s',
                         exception_to_unicode(e, traceback=True))
-            except RegistrationError, e:
+            except RegistrationError as e:
                 chrome.add_warning(req, e)
             else:
                 if self.require_approval:
@@ -443,7 +442,7 @@ class RegistrationModule(CommonTemplateProvider):
                     try:
                         acctmgr._notify('registration_approval_required',
                                         username)
-                    except NotificationError, e:
+                    except NotificationError as e:
                         chrome.add_warning(req, _(
                             "Error raised while sending a change "
                             "notification.") + _(
@@ -475,7 +474,7 @@ class RegistrationModule(CommonTemplateProvider):
             try:
                 fragment, f_data = inspector.render_registration_fields(req,
                                                                         data)
-            except TypeError, e:
+            except TypeError as e:
                 # Add some robustness by logging the most likely errors.
                 self.log.warning("%s.render_registration_fields failed: %s",
                                  inspector.__class__.__name__, e)
@@ -540,7 +539,7 @@ class EmailVerificationModule(CommonTemplateProvider):
             try:
                 AccountManager(self.env).validate_account(req)
                 # Check passed without error: New email address seems good.
-            except RegistrationError, e:
+            except RegistrationError as e:
                 # Always warn about issues.
                 chrome.add_warning(req, e)
                 # Look, if the issue existed before.
@@ -584,7 +583,7 @@ class EmailVerificationModule(CommonTemplateProvider):
                     req.authname,
                     req.session['email_verification_token']
                 )
-            except NotificationError, e:
+            except NotificationError as e:
                 chrome.add_warning(req, _(
                     "Error raised while sending a change notification."
                 ) + _("You should report that issue to a Trac admin."))
@@ -620,7 +619,7 @@ class EmailVerificationModule(CommonTemplateProvider):
                     req.authname,
                     req.session['email_verification_token']
                 )
-            except NotificationError, e:
+            except NotificationError as e:
                 chrome.add_warning(req, _("Error raised while sending a "
                                           "change notification.") + _(
                     "You should "

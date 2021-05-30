@@ -9,15 +9,14 @@
 #
 # Author: Matthew Good <trac@matt-good.net>
 
-import urllib2
-import urlparse
+from urllib.parse import urlparse
+from urllib.request import HTTPPasswordMgrWithDefaultRealm, build_opener, HTTPBasicAuthHandler, HTTPDigestAuthHandler
 
 from trac.config import Option
 from trac.core import Component, implements
 from trac.web.href import Href
 
 from acct_mgr.api import IPasswordStore, N_
-from acct_mgr.util import HTTPBasicAuthHandler
 
 
 class HttpAuthStore(Component):
@@ -35,7 +34,7 @@ class HttpAuthStore(Component):
         # Handle server-relative URLs.
         elif self.auth_url.startswith('/'):
             # Prepend the Trac server component.
-            pr = urlparse.urlparse(self.env.abs_href())
+            pr = urlparse(self.env.abs_href())
             href = Href(pr[0] + '://' + pr[1])
             auth_url = href(self.auth_url)
         elif '/' in self.auth_url:
@@ -46,13 +45,13 @@ class HttpAuthStore(Component):
             auth_url = self.env.abs_href.chrome('common', self.auth_url)
         self.log.debug("Final auth_url = '%s'", auth_url)
 
-        acctmgr = urllib2.HTTPPasswordMgrWithDefaultRealm()
+        acctmgr = HTTPPasswordMgrWithDefaultRealm()
         acctmgr.add_password(None, auth_url, username, password)
         try:
-            urllib2.build_opener(HTTPBasicAuthHandler(acctmgr),
-                                 urllib2.HTTPDigestAuthHandler(acctmgr))\
+            build_opener(HTTPBasicAuthHandler(acctmgr),
+                                 HTTPDigestAuthHandler(acctmgr))\
                    .open(auth_url)
-        except IOError, e:
+        except IOError as e:
             if hasattr(e, 'code') and e.code == 404:
                 self.log.debug("HttpAuthStore page not found; we are "
                                "authenticated nonetheless")

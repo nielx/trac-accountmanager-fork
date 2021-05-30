@@ -32,7 +32,6 @@ from trac.wiki.api import IWikiPageManipulator
 
 from acct_mgr.api import AccountManager, CommonTemplateProvider
 from acct_mgr.api import _, dgettext, ngettext, tag_
-from acct_mgr.compat import genshi_template_args
 from acct_mgr.db import SessionStore
 from acct_mgr.guard import AccountGuard
 from acct_mgr.model import last_seen, set_user_attribute
@@ -135,7 +134,7 @@ class AccountModule(CommonTemplateProvider):
     def render_preference_panel(self, req, panel):
         data = dict(_dgettext=dgettext)
         data.update(self._do_account(req))
-        return genshi_template_args(self.env, 'account_prefs.html', data)
+        return 'account_prefs.html', data
 
     # IRequestFilter methods
 
@@ -298,7 +297,7 @@ class AccountModule(CommonTemplateProvider):
         else:
             try:
                 self.acctmgr.delete_user(username)
-            except NotificationError, e:
+            except NotificationError as e:
                 # User wont care for notification, only care for logging here.
                 self.log.error(
                     "Unable to send account deletion notification: "
@@ -332,7 +331,7 @@ class AccountModule(CommonTemplateProvider):
         This method is used by acct_mgr.admin.AccountManagerAdminPanel too.
         """
         return ''.join([random.choice(self._password_chars)
-                        for _ in xrange(self.password_length)])
+                        for _ in range(self.password_length)])
 
     def _reset_password(self, req, username, email):
         """Store a new, temporary password on admin or user request.
@@ -343,7 +342,7 @@ class AccountModule(CommonTemplateProvider):
         new_password = self._random_password
         try:
             self.store.set_password(username, new_password)
-        except Exception, e:
+        except Exception as e:
             add_warning(req, _("Cannot reset password: %(error)s",
                                error=exception_to_unicode(e)))
             self.log.error("Unable to reset password: %s",
@@ -351,7 +350,7 @@ class AccountModule(CommonTemplateProvider):
             return
         try:
             acctmgr._notify('password_reset', username, email, new_password)
-        except NotificationError, e:
+        except NotificationError as e:
             msg = _("Error raised while sending a change notification.")
             if req.path_info.startswith('/admin'):
                 msg += _("You'll get details with TracLogging enabled.")
@@ -692,7 +691,7 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
         #   Trac environments managed by AccountManager.
         local_env_name = req.base_path.lstrip('/')
 
-        for env_name, env_path in get_environments(req.environ).iteritems():
+        for env_name, env_path in get_environments(req.environ).items():
             if env_name != local_env_name:
                 try:
                     # Cache environment for subsequent invocations.
@@ -724,7 +723,7 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
                                       local_env_name)
                         self.log.debug("Auth distribution success: %s",
                                        env_name)
-                except Exception, e:
+                except Exception as e:
                     self.log.debug("Auth distribution skipped for env %s: %s",
                                    env_name,
                                    exception_to_unicode(e, traceback=True))
@@ -802,7 +801,7 @@ def _set_password(env, req, username, password, old_password=None):
     try:
         AccountManager(env).set_password(username, password,
                                          old_password=old_password)
-    except NotificationError, e:
+    except NotificationError as e:
         add_warning(req, _("Error raised while sending a change "
                            "notification.") +
                     _("You should report that issue to a Trac admin."))

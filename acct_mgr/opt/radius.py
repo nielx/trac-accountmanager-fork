@@ -9,7 +9,7 @@
 #
 # Author: Chris Shenton <chris@koansys.com>
 
-from StringIO import StringIO
+from io import StringIO
 
 from acct_mgr.api import IPasswordStore
 from trac.config import IntOption, Option
@@ -61,7 +61,7 @@ class RadiusAuthStore(Component):
             import pyrad.packet
             from pyrad.client import Client, Timeout
             from pyrad.dictionary import Dictionary
-        except ImportError, e:
+        except ImportError as e:
             self.log.error("RADIUS auth store could not import pyrad, "
                            "need to install the egg: %s", e)
             return
@@ -85,12 +85,12 @@ class RadiusAuthStore(Component):
         self.log.debug("RADIUS auth sending packet req=%s", req)
         try:
             reply = client.SendPacket(req)
-        except Timeout, e:
+        except Timeout as e:
             self.log.error("RADIUS timeout contacting server=%s:%s (%s)",
                            self.radius_server, self.radius_authport, e)
             return
         # DEVEL: Too broad, narrow down that exception handler scope.
-        except Exception, e:
+        except Exception as e:
             self.log.error("RADIUS error while using server=%s:%s: (%s)",
                            self.radius_server, self.radius_authport, e)
             return

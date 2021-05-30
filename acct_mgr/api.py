@@ -16,8 +16,7 @@ from trac.config import Option, OrderedExtensionsOption
 from trac.core import Component, ExtensionPoint, Interface, TracError
 from trac.core import implements
 from trac.perm import IPermissionRequestor, PermissionCache
-from trac.util.compat import cleandoc
-from trac.util.text import exception_to_unicode
+from trac.util.text import cleandoc, exception_to_unicode
 from trac.util.translation import dgettext, domain_functions
 from trac.web.chrome import ITemplateProvider, add_warning
 from trac.web.main import IRequestFilter
@@ -428,7 +427,7 @@ class AccountManager(Component):
             try:
                 self.log.debug("CHANGE_LISTENER: %s(%s)", repr(listener), mod)
                 getattr(listener, mod)(*args)
-            except AttributeError, e:
+            except AttributeError as e:
                 self.log.warning("IAccountChangeListener %s does not support "
                                  "method %s: %s", listener.__class__.__name__,
                                  mod, exception_to_unicode(e))

@@ -15,7 +15,6 @@ import re
 from acct_mgr.api import AccountManager, CommonTemplateProvider
 from acct_mgr.api import IUserIdChanger
 from acct_mgr.api import _, dgettext, gettext, ngettext, tag_
-from acct_mgr.compat import genshi_template_args
 from acct_mgr.guard import AccountGuard
 from acct_mgr.model import (
     change_uid, del_user_attribute, email_verification_token, email_verified)
@@ -29,12 +28,11 @@ from trac.config import BoolOption, Option
 from trac.core import Component, ExtensionPoint, implements
 from trac.perm import PermissionCache, PermissionSystem
 from trac.util import as_int
-from trac.util.compat import cleandoc
 from trac.util.datefmt import format_datetime, to_datetime
 from trac.util.html import html as tag
 from trac.util.presentation import Paginator
 from trac.util.translation import tagn_
-from trac.util.text import exception_to_unicode
+from trac.util.text import cleandoc, exception_to_unicode
 from trac.web.api import IAuthenticator
 from trac.web.chrome import Chrome, add_ctxtnav, add_link, add_notice
 from trac.web.chrome import add_script, add_stylesheet, add_warning
@@ -63,7 +61,7 @@ def fetch_user_data(env, req, filters=None):
                    EmailVerificationModule(env).email_enabled and \
                    EmailVerificationModule(env).verify_email
     for acct, status in get_user_attribute(env, username=None,
-                                           authenticated=None).iteritems():
+                                           authenticated=None).items():
         account = accounts.get(acct)
         if account is not None and 1 in status:
             # Only use attributes related to authenticated
@@ -101,7 +99,7 @@ def fetch_user_data(env, req, filters=None):
         account = accounts.get(username)
         if account and last_visit:
             account['last_visit'] = to_datetime(last_visit)
-    return sorted(accounts.itervalues(), key=lambda acct: acct['username'])
+    return sorted(iter(accounts.values()), key=lambda acct: acct['username'])
 
 
 def _getoptions(cls):
@@ -162,7 +160,7 @@ class ExtensionOrder(dict):
             self.d[key] = value
             self.d[order].remove(key)
             self[value] = key
-        elif isinstance(key, basestring):
+        elif isinstance(key, str):
             self.d[self.sxref[key]] = value
         elif isinstance(key, int):
             self.d.setdefault(key, [])
@@ -236,9 +234,9 @@ class UserAdminPanel(CommonTemplateProvider):
             if req.args.get('purge') and sel:
                 sel_len = len(sel)
                 matched = []
-                for acct, states in attr.iteritems():
+                for acct, states in attr.items():
                     for state in states['id'].keys():
-                        for elem, id in states[state]['id'].iteritems():
+                        for elem, id in states[state]['id'].items():
                             if id in sel:
                                 if acct in attrs.keys():
                                     if state in attrs[acct].keys():
@@ -256,8 +254,8 @@ class UserAdminPanel(CommonTemplateProvider):
                     if len(matched) == sel_len:
                         break
                 for id in (frozenset(sel) - frozenset(matched)):
-                    for acct, states in attr.iteritems():
-                        for state, id_ in states['id'].iteritems():
+                    for acct, states in attr.items():
+                        for state, id_ in states['id'].items():
                             if id == id_:
                                 # Full account is marked, forget attributes.
                                 if acct in attrs.keys():
@@ -271,8 +269,8 @@ class UserAdminPanel(CommonTemplateProvider):
                             break
                 # DEVEL: For Python>2.4 better use defaultdict for counters.
                 del_count = {'acct': 0, 'attr': 0}
-                for account, states in attrs.iteritems():
-                    for state, elem in states.iteritems():
+                for account, states in attrs.items():
+                    for state, elem in states.items():
                         if len(elem) == 0:
                             del_user_attribute(env, account, state)
                             del_count['acct'] += 1
@@ -308,7 +306,7 @@ class UserAdminPanel(CommonTemplateProvider):
                 # Get initial account selection from account/user list.
                 accounts = sel
             attr_sel = dict()
-            for account, states in attr.iteritems():
+            for account, states in attr.items():
                 if account in accounts:
                     attr_sel.update({account: states})
 
@@ -321,8 +319,7 @@ class UserAdminPanel(CommonTemplateProvider):
             add_ctxtnav(req, back_label, href=back_href)
             add_stylesheet(req, 'acct_mgr/acctmgr.css')
             data = dict(_dgettext=dgettext, accounts=accounts, attr=attr_sel)
-            return genshi_template_args(self.env, 'account_db_cleanup.html',
-                                        data)
+            return 'account_db_cleanup.html', data
 
     def _do_acct_details(self, req, username):
         env = self.env
@@ -441,7 +438,7 @@ class UserAdminPanel(CommonTemplateProvider):
                             message=results['error'].values()[0]))
                     else:
                         result_list = sorted([(k, v) for k, v in
-                                              results.iteritems()])
+                                              results.items()])
                         add_notice(req, tag.ul(
                             [tag.li(ngettext(
                                 "Table %(table)s column %(column)s"
@@ -546,7 +543,7 @@ class UserAdminPanel(CommonTemplateProvider):
         add_ctxtnav(req, _("Back to Accounts"),
                     href=req.href.admin('accounts', 'users'))
         add_stylesheet(req, 'acct_mgr/acctmgr.css')
-        return genshi_template_args(self.env, 'account_admin.html', data)
+        return 'account_admin.html', data
 
     def _do_users(self, req):
         env = self.env
@@ -700,7 +697,7 @@ class UserAdminPanel(CommonTemplateProvider):
                                                             filters)))
         add_stylesheet(req, 'acct_mgr/acctmgr.css')
         add_stylesheet(req, 'common/css/report.css')
-        return genshi_template_args(self.env, 'account_users.html', data)
+        return 'account_users.html', data
 
     def _do_change_uid(self, req, old_uid, new_uid):
         acctmgr = self.acctmgr
@@ -769,7 +766,7 @@ class UserAdminPanel(CommonTemplateProvider):
 
             try:
                 acctmgr.validate_account(req)
-            except RegistrationError, e:
+            except RegistrationError as e:
                 add_warning(req, e)
                 if email:
                     set_user_attribute(self.env, old_uid, 'email', email)
@@ -815,7 +812,7 @@ class UserAdminPanel(CommonTemplateProvider):
         # Notify listeners about successful ID change.
         try:
             acctmgr._notify('id_changed', old_uid, new_uid)
-        except NotificationError, e:
+        except NotificationError as e:
             add_warning(req, _("Error raised while sending a change "
                                "notification.") +
                         _("You'll get details with TracLogging "
@@ -829,7 +826,7 @@ class UserAdminPanel(CommonTemplateProvider):
         try:
             result = self.acctmgr.set_password(username, password,
                                                overwrite=overwrite)
-        except NotificationError, e:
+        except NotificationError as e:
             add_warning(req, _("Error raised while sending a change "
                                "notification.") +
                         _("You'll get details with TracLogging enabled."))
@@ -842,7 +839,7 @@ class UserAdminPanel(CommonTemplateProvider):
         """Delete method, that handles notification errors gracefully."""
         try:
             self.acctmgr.delete_user(username)
-        except NotificationError, e:
+        except NotificationError as e:
             add_warning(req, _("Error raised while sending a change "
                                "notification.") +
                         _("You'll get details with TracLogging "
@@ -911,7 +908,7 @@ class ConfigurationAdminPanel(CommonTemplateProvider):
             """Convenience function from trac.admin.web_ui."""
             try:
                 return format_to_html(env, context, text)
-            except Exception, e:
+            except Exception as e:
                 self.log.error('Unable to render component documentation: %s',
                                exception_to_unicode(e, traceback=True))
             return tag.pre(text)
@@ -1220,7 +1217,7 @@ class ConfigurationAdminPanel(CommonTemplateProvider):
                     value = None
                     try:
                         opt_val = option.__get__(store, store)
-                    except AttributeError, e:
+                    except AttributeError as e:
                         env.log.error(e)
                         regexp = r'^.* interface named \"(.*?)\".*$'
                         error = _("Error while reading configuration - Hint: "
@@ -1348,7 +1345,7 @@ class ConfigurationAdminPanel(CommonTemplateProvider):
                 value = None
                 try:
                     opt_val = option.__get__(check, check)
-                except AttributeError, e:
+                except AttributeError as e:
                     env.log.error(e)
                     regexp = r'^.* interface named \"(.*?)\".*$'
                     error = _("Error while reading configuration - "
@@ -1508,8 +1505,7 @@ class ConfigurationAdminPanel(CommonTemplateProvider):
         add_script(req, 'acct_mgr/js/acctmgr_admin.js')
         add_stylesheet(req, 'acct_mgr/acctmgr.css')
         add_stylesheet(req, 'common/css/report.css')
-        return genshi_template_args(self.env, 'account_config.html',
-                                    data)
+        return 'account_config.html', data
 
     # IAuthenticator methods
 
@@ -1565,14 +1561,14 @@ def _add_user_account(env, req):
                     set_user_attribute(env, account['username'],
                                        'email_verification_sent_to',
                                        account['email'])
-            except NotificationError, e:
+            except NotificationError as e:
                 add_warning(req, _("Error raised while sending a change "
                                    "notification.") +
                             _("You'll get details with TracLogging "
                               "enabled."))
                 env.log.error('Unable to send change notification: %s',
                               exception_to_unicode(e, traceback=True))
-            except RegistrationError, e:
+            except RegistrationError as e:
                 add_warning(req, e)
             else:
                 add_notice(req, tag_(

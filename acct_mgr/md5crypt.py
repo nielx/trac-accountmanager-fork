@@ -95,6 +95,6 @@ if __name__ == '__main__':
 
     for clearpw, hashpw in test_cases:
         if test(clearpw, hashpw):
-            print '%s: pass' % clearpw
+            print('%s: pass' % clearpw)
         else:
-            print '%s: FAIL' % clearpw
+            print('%s: FAIL' % clearpw)

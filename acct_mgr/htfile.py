@@ -132,7 +132,7 @@ class AbstractPasswordFileStore(Component):
                     # make sure the (last) line has a newline anyway
                     else:
                         new_lines.append(line.rstrip('\r\n') + eol)
-        except EnvironmentError, e:
+        except EnvironmentError as e:
             if e.errno == errno.ENOENT:
                 # Ignore, when file doesn't exist and create it below.
                 pass
@@ -153,7 +153,7 @@ class AbstractPasswordFileStore(Component):
         try:
             with open(filename, 'w') as f:
                 f.writelines(new_lines)
-        except EnvironmentError, e:
+        except EnvironmentError as e:
             if e.errno == errno.EACCES or e.errno == errno.EROFS:
                 raise TracError(_(
                     """The password file could not be updated. Trac requires

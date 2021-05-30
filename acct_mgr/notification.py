@@ -22,7 +22,6 @@ from trac.web.chrome import Chrome
 
 from acct_mgr.api import (
     IAccountChangeListener, CommonTemplateProvider, _, dgettext)
-from acct_mgr.compat import genshi_template_args
 
 
 class NotificationError(TracError):
@@ -63,7 +62,7 @@ class AccountChangeListener(Component):
 
     def __init__(self):
         self._notify_categories = []
-        for action, category in self.action_category_map.iteritems():
+        for action, category in self.action_category_map.items():
             if action in self._notify_actions:
                 self._notify_categories.append(category)
 
@@ -219,5 +218,4 @@ class AccountChangeNotificationAdminPanel(CommonTemplateProvider):
             'notify_actions': notify_actions,
             'notify_addresses': notify_addresses
         }
-        return genshi_template_args(self.env, 'account_notification.html',
-                                    data)
+        return 'account_notification.html', data
