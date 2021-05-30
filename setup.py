@@ -28,7 +28,7 @@ else:
 
 setup(
     name='TracAccountManager',
-    version='0.6',
+    version='0.7',
     author='Matthew Good',
     author_email='trac@matt-good.net',
     maintainer='Steffen Hoffmann',
@@ -47,7 +47,7 @@ setup(
     },
     test_suite='acct_mgr.tests.test_suite',
     zip_safe=True,
-    install_requires=['Trac', 'Genshi'],
+    install_requires=['Trac'],
     extras_require={
         'Babel': 'Babel>= 0.9.5',
         'announcer': 'TracAnnouncer',
