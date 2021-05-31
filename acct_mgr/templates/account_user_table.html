@@ -7,58 +7,70 @@ Arguments:
  - cls:
  - cols:
 -->
-<div xmlns="http://www.w3.org/1999/xhtml"
-     xmlns:xi="http://www.w3.org/2001/XInclude"
-     xmlns:py="http://genshi.edgewall.org/"
-     xmlns:i18n="http://genshi.edgewall.org/i18n"
-     i18n:domain="acct_mgr"
-     id="accountlist">
-  <table class="$cls" id="accountlist">
-    <thead>
-      <tr>
-        <th class="sel" py:if="delete_enabled">&nbsp;</th>
-        <th>Account</th>
-        <th py:if="'name' in cols">Name</th>
-        <th py:if="'email' in cols">Email</th>
-        <th>Last Login</th>
-      </tr>
-    </thead>
-    <tbody>
-      <py:for each="idx, acct in enumerate(accounts)">
-        <tr class="${('even', 'odd')[idx % 2] + (acct.approval and ' missing' or '')}"
-            title="${acct.approval and
-                     ('email' in acct.approval and
-                      dgettext('acct_mgr', 'Email not verified') or
-                      acct.approval[0] == 'pending' and
-                      dgettext('acct_mgr', 'Approval pending') or
-                      acct.approval[0] == 'revoked' and
-                      dgettext('acct_mgr', 'Approval revoked')
-                      ) or None}">
-          <td class="sel" py:if="delete_enabled">
-            <input type="checkbox" name="sel"
-                   value="${acct.username}" />
-          </td>
-          <td>
-            <a href="${acct.url}">${acct.username}</a>
-            <!--! Additional account status icons -->
-            <py:choose py:if="acct.locked">
-              <img src="${href.chrome('/acct_mgr/time-locked.png')}"
-                   py:when="acct.release_hint" alt="Account locked"
-                   title="${acct.release_hint}" />
-              <img src="${href.chrome('/acct_mgr/locked.png')}"
-                   py:otherwise="" alt="Permanently locked"
-                   title="${dgettext('acct_mgr', 'Permanently locked')}" />
-            </py:choose>
-          </td>
-          <td py:if="'name' in cols">${acct.name}</td>
-          <td py:if="'email' in cols">
-            <a href="mailto:$acct.email" title="Send email"
-               py:strip="not acct.email or acct.email.endswith('…')">
-              ${acct.email}</a>
-          </td>
-          <td>${acct.last_visit and pretty_dateinfo(acct.last_visit) or ''}</td>
+<div id="accountlist">
+    <table class="${cls}" id="accountlist">
+        <thead>
+        <tr>
+            # if delete_enabled
+                <th class="sel">&nbsp;</th>
+            # endif
+            <th>Account</th>
+            # if 'name' in cols
+                <th>Name</th>
+            # endif
+            # if 'email' in cols
+                <th>Email</th>
+            # endif
+            <th>Last Login</th>
         </tr>
-      </py:for>
-    </tbody>
-  </table>
+        </thead>
+        <tbody>
+            # for account in accounts
+                <tr${{'class': loop.cycle('odd', 'even') + (account.approval and ' missing' or ''),
+                      'title': account.approval and
+                               ('email' in account.approval and
+                                 dgettext('acct_mgr', 'Email not verified') or
+                                 acct.approval[0] == 'pending' and
+                                 dgettext('acct_mgr', 'Approval pending') or
+                                 acct.approval[0] == 'revoked' and
+                                 dgettext('acct_mgr', 'Approval revoked')
+                               ) or None}|htmlattr}>
+                    # if delete_enabled
+                        <td class="sel">
+                            <input type="checkbox" name="sel"
+                                   value="${account.username}" />
+                        </td>
+                    # endif
+                    <td>
+                        <a href="${account.url}">${account.username}</a>
+                        <!--! Additional account status icons -->
+                        # if account.locked
+                            # if account.release_hint
+                                <img src="${href.chrome('/acct_mgr/time-locked.png')}"
+                                     alt="Account locked" title="${account.release_hint}" />
+                            # else
+                                <img src="${href.chrome('/acct_mgr/locked.png')}"
+                                     alt="Permanently locked"
+                                     title="${dgettext('acct_mgr', 'Permanently locked')}" />
+                            # endif
+                        # endif
+                    </td>
+                    # if 'name' in cols
+                     <td>${account.name}</td>
+                    # endif
+                    # if 'email' in cols
+                        <td>
+                            # if not account.email or account.email.endswith('…')
+                                ${account.email}
+                            # else
+                                <a href="mailto:$account.email" title="Send email">
+                                    ${account.email}</a>
+                            # endif
+                        </td>
+                    # endif
+                    <td>${account.last_visit and pretty_dateinfo(account.last_visit) or ''}</td>
+                </tr>
+            # endfor
+        </tbody>
+    </table>
 </div>
