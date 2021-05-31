@@ -16,21 +16,21 @@ def test_suite():
 
     try:
         import acct_mgr.opt.tests.announcer
-    except ImportError, e:
+    except ImportError as e:
         print(msg_fail % ('UID changer for TracAnnouncer', e, 'announcer'))
     else:
         suite.addTest(acct_mgr.opt.tests.announcer.test_suite())
 
     try:
         import acct_mgr.opt.tests.tracforms
-    except ImportError, e:
+    except ImportError as e:
         print(msg_fail % ('UID changer for TracForms', e, 'tracforms'))
     else:
         suite.addTest(acct_mgr.opt.tests.tracforms.test_suite())
 
     try:
         import acct_mgr.opt.tests.tracscreenshots
-    except ImportError, e:
+    except ImportError as e:
         print(msg_fail % ('UID changer for TracScreenshots', e,
                           'tracscreenshots'))
     else:
@@ -38,14 +38,14 @@ def test_suite():
 
     try:
         import acct_mgr.opt.tests.tracvote
-    except ImportError, e:
+    except ImportError as e:
         print(msg_fail % ('UID changer for TracVote', e, 'tracvote'))
     else:
         suite.addTest(acct_mgr.opt.tests.tracvote.test_suite())
 
     try:
         import acct_mgr.opt.tests.radius
-    except ImportError, e:
+    except ImportError as e:
         print(msg_fail % ('RADIUS auth', e, 'radius'))
     else:
         suite.addTest(acct_mgr.opt.tests.radius.test_suite())

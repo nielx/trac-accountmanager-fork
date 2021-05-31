@@ -8,14 +8,11 @@
 #
 # Author: Steffen Hoffmann <hoff.st@web.de>
 
-import new
-import pkg_resources
 import shutil
 import tempfile
 import time
 import unittest
 
-from trac import __version__ as VERSION
 from trac.test import EnvironmentStub, MockRequest
 from trac.web.session import Session
 
@@ -132,11 +129,6 @@ class KnownUsersCacheUpdateTestCase(unittest.TestCase):
 
     def setUp(self):
         self.env = EnvironmentStub(default_data=True)
-        if pkg_resources.parse_version(VERSION) < \
-                pkg_resources.parse_version('1.2'):
-            from trac.env import Environment
-            self.env.get_known_users = \
-                new.instancemethod(Environment.get_known_users, self.env, None)
 
     def tearDown(self):
         self.env.shutdown()
