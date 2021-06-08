@@ -11,9 +11,10 @@
 
 import errno
 import os
+from typing import Optional
 
 from acct_mgr.api import IPasswordStore, _
-from acct_mgr.pwhash import htpasswd, mkhtpasswd, htdigest
+from acct_mgr.pwhash import htpasswd, mkhtpasswd, htdigest, _encode
 from acct_mgr.util import EnvRelativePathOption
 from trac.config import Option
 from trac.core import Component, TracError, implements
@@ -30,10 +31,10 @@ class AbstractPasswordFileStore(Component):
 
     # Note: 'filename' is a required, store-specific option.
 
-    def has_user(self, user):
+    def has_user(self, user: str) -> bool:
         return user in self.get_users()
 
-    def get_users(self):
+    def get_users(self) -> [str]:
         filename = str(self.filename)
         if not os.path.exists(filename):
             self.log.error('acct_mgr: get_users() -- '
@@ -41,28 +42,23 @@ class AbstractPasswordFileStore(Component):
             return []
         return self._get_users(filename)
 
-    def set_password(self, user, password, old_password=None, overwrite=True):
-        user = user.encode('utf-8')
-        password = password.encode('utf-8')
+    def set_password(self, user: str, password: str, old_password: str=None, overwrite: bool=True) -> bool:
         return not self._update_file(self.prefix(user),
                                      self.userline(user, password),
                                      overwrite)
 
-    def delete_user(self, user):
-        user = user.encode('utf-8')
+    def delete_user(self, user: str) -> bool:
         return self._update_file(self.prefix(user), None)
 
-    def check_password(self, user, password):
+    def check_password(self, user: str, password: str) -> Optional[bool]:
         filename = str(self.filename)
         if not os.path.exists(filename):
             self.log.error('acct_mgr: check_password() -- '
                            'Can\'t locate password file "%s"', filename)
             return False
-        user = user.encode('utf-8')
-        password = password.encode('utf-8')
         prefix = self.prefix(user)
         try:
-            with open(filename, 'rU') as f:
+            with open(filename, 'r') as f:
                 for line in f:
                     if line.startswith(prefix):
                         line = line[len(prefix):].rstrip('\n')
@@ -72,7 +68,7 @@ class AbstractPasswordFileStore(Component):
                            'Can\'t read password file "%s"', filename)
         return None
 
-    def _update_file(self, prefix, userline, overwrite=True):
+    def _update_file(self, prefix: str, userline: Optional[str], overwrite: bool=True) -> bool:
         """Add or remove user and change password.
 
         If `userline` is empty, the line starting with `prefix` is removed
@@ -194,24 +190,25 @@ class HtPasswdStore(AbstractPasswordFileStore):
     hash_type = Option('account-manager', 'htpasswd_hash_type', 'crypt',
         doc="Default hash type of new/updated passwords")
 
-    def config_key(self):
+    def config_key(self) -> str:
         return 'htpasswd'
 
-    def prefix(self, user):
+    def prefix(self, user: str) -> str:
         return user + ':'
 
-    def userline(self, user, password):
-        return self.prefix(user) + mkhtpasswd(password, self.hash_type)
+    def userline(self, user: str, password: str) -> str:
+        return self.prefix(user) + mkhtpasswd(password.encode('utf-8'), self.hash_type)
 
-    def _check_userline(self, user, password, suffix):
-        return suffix == htpasswd(password, suffix)
+    def _check_userline(self, user: str, password: str, suffix: str) -> bool:
+        password, suffix_ = _encode(password, suffix)
+        return suffix == htpasswd(password, suffix_)
 
-    def _get_users(self, filename):
-        with open(filename, 'rU') as f:
+    def _get_users(self, filename: str) -> [str]:
+        with open(filename, 'r') as f:
             for line in f:
                 user = line.split(':', 1)[0]
                 if user:
-                    yield user.decode('utf-8')
+                    yield user
 
 
 class HtDigestStore(AbstractPasswordFileStore):
@@ -235,25 +232,26 @@ class HtDigestStore(AbstractPasswordFileStore):
     realm = Option('account-manager', 'htdigest_realm', '',
         doc="Realm to select relevant htdigest file entries")
 
-    def config_key(self):
+    def config_key(self) -> str:
         return 'htdigest'
 
-    def prefix(self, user):
-        return '%s:%s:' % (user, self.realm.encode('utf-8'))
+    def prefix(self, user: str) -> str:
+        return '%s:%s:' % (user, self.realm)
 
-    def userline(self, user, password):
-        return self.prefix(user) + htdigest(user, self.realm.encode('utf-8'),
-                                            password)
+    def userline(self, user: str, password: str) -> str:
+        prefix = self.prefix(user)
+        user, realm, password = _encode(user, self.realm, password)
+        return prefix + htdigest(user, realm, password)
 
-    def _check_userline(self, user, password, suffix):
-        return suffix == htdigest(user, self.realm.encode('utf-8'), password)
+    def _check_userline(self, user: str, password: str, suffix: str) -> bool:
+        user, realm, password = _encode(user, self.realm, password)
+        return suffix == htdigest(user, realm, password)
 
-    def _get_users(self, filename):
-        _realm = self.realm.encode('utf-8')
+    def _get_users(self, filename: str) -> [str]:
         with open(filename) as f:
             for line in f:
                 args = line.split(':')[:2]
                 if len(args) == 2:
                     user, realm = args
-                    if realm == _realm and user:
-                        yield user.decode('utf-8')
+                    if realm == self.realm and user:
+                        yield user

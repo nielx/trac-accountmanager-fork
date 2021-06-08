@@ -11,6 +11,7 @@
 
 import hashlib
 import re
+from base64 import b64encode
 from binascii import hexlify
 from os import urandom
 
@@ -28,10 +29,10 @@ except ImportError:
 
 
 class IPasswordHashMethod(Interface):
-    def generate_hash(user, password):
+    def generate_hash(user: str, password: str) -> str:
         pass
 
-    def check_hash(user, password, hash):
+    def check_hash(user: str, password: str, hash: str) -> bool:
         pass
 
 
@@ -41,13 +42,13 @@ class HtPasswdHashMethod(Component):
     hash_type = Option('account-manager', 'db_htpasswd_hash_type', 'crypt',
         doc="Default hash type of new/updated passwords")
 
-    def generate_hash(self, user, password):
-        password = password.encode('utf-8')
+    def generate_hash(self, user: str, password: str) -> str:
+        password = password.encode("utf-8")
         return mkhtpasswd(password, self.hash_type)
 
-    def check_hash(self, user, password, hash):
-        password = password.encode('utf-8')
-        hash2 = htpasswd(password, hash)
+    def check_hash(self, user: str, password: str, hash: str) -> bool:
+        password = bytes(password, "utf-8")
+        hash2 = htpasswd(password, bytes(hash, "utf-8"))
         return hash == hash2
 
 
@@ -57,15 +58,15 @@ class HtDigestHashMethod(Component):
     realm = Option('account-manager', 'db_htdigest_realm', '',
         doc="Realm to select relevant htdigest db entries")
 
-    def generate_hash(self, user, password):
+    def generate_hash(self, user: str, password: str) -> str:
         user, password, realm = _encode(user, password, self.realm)
-        return ':'.join([realm, htdigest(user, realm, password)])
+        return ':'.join([self.realm, htdigest(user, realm, password)])
 
-    def check_hash(self, user, password, hash):
+    def check_hash(self, user: str, password: str, hash: str) -> bool:
         return hash == self.generate_hash(user, password)
 
 
-def _encode(*args):
+def _encode(*args) -> [bytes]:
     return [a.encode('utf-8') for a in args]
 
 
@@ -78,49 +79,49 @@ except ImportError:
     crypt = None
 
 
-def salt(salt_char_count=8):
-    s = ''
-    v = long(hexlify(urandom(int(salt_char_count / 8 * 6))), 16)
-    itoa64 = './0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
+def salt(salt_char_count=8) -> bytes:
+    s = bytearray()
+    v = int(hexlify(urandom(int(salt_char_count / 8 * 6))), 16)
+    itoa64 = b'./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
     for i in range(int(salt_char_count)):
-        s += itoa64[v & 0x3f]
+        s.append(itoa64[v & 0x3f])
         v >>= 6
     return s
 
 
-def hash_prefix(hash_type):
+def hash_prefix(hash_type: str) -> bytes:
     """Map hash type to salt prefix."""
     if hash_type == 'md5':
-        return '$apr1$'
+        return b'$apr1$'
     elif hash_type == 'sha':
-        return '{SHA}'
+        return b'{SHA}'
     elif hash_type == 'sha256':
-        return '$5$'
+        return b'$5$'
     elif hash_type == 'sha512':
-        return '$6$'
+        return b'$6$'
     else:
         # use 'crypt' hash by default anyway
-        return ''
+        return b''
 
 
-def htpasswd(password, hash):
-    def from_hash(hash):
-        match = re.match(r'\$[5,6]\$(?:rounds=(\d+)\$)?(\w+)', hash)
+def htpasswd(password: bytes, hash: bytes) -> str:
+    def from_hash(hash: bytes) -> (int, bytes):
+        match = re.match(rb'\$[5,6]\$(?:rounds=(\d+)\$)?(\w+)', hash)
         groups = match.groups()
         rounds = int(groups[0]) if groups[0] is not None else 5000
         salt = groups[1]
         return rounds, salt
 
-    if hash.startswith('$apr1$'):
-        return md5crypt(password, hash[6:].split('$')[0], '$apr1$')
-    elif hash.startswith('{SHA}'):
-        return '{SHA}' + hashlib.sha1(password).digest().encode('base64')[:-1]
-    elif passlib_ctxt is not None and hash.startswith('$5$') and \
+    if hash.startswith(b'$apr1$'):
+        return str(md5crypt(password, hash[6:].split(b'$')[0], b'$apr1$'), "utf-8")
+    elif hash.startswith(b'{SHA}'):
+        return '{SHA}' + b64encode(hashlib.sha1(password).digest()).decode()
+    elif passlib_ctxt is not None and hash.startswith(b'$5$') and \
                     'sha256_crypt' in passlib_ctxt.policy.schemes():
         rounds, salt = from_hash(hash)
         return passlib_ctxt.encrypt(password, scheme='sha256_crypt',
                                     rounds=rounds, salt=salt)
-    elif passlib_ctxt is not None and hash.startswith('$6$') and \
+    elif passlib_ctxt is not None and hash.startswith(b'$6$') and \
                     'sha512_crypt' in passlib_ctxt.policy.schemes():
         rounds, salt = from_hash(hash)
         return passlib_ctxt.encrypt(password, scheme='sha512_crypt',
@@ -130,18 +131,18 @@ def htpasswd(password, hash):
         raise NotImplementedError(_("The \"crypt\" module is unavailable "
                                     "on this platform."))
     else:
-        if hash.startswith('$5$') or hash.startswith('$6$'):
+        if hash.startswith(b'$5$') or hash.startswith(b'$6$'):
             # Import of passlib failed, now check, if crypt is capable.
-            if not crypt(password, hash).startswith(hash):
+            if not crypt(str(password, "utf8"), str(hash, "utf8")).startswith(str(hash, "utf8")):
                 # No, so bail out.
                 raise NotImplementedError(_(
                     """Neither are \"sha2\" hash algorithms supported by the
                     \"crypt\" module on this platform nor is \"passlib\"
                     available."""))
-        return crypt(password, hash)
+        return crypt(str(password, "utf-8"), str(hash, "utf-8"))
 
 
-def mkhtpasswd(password, hash_type=''):
+def mkhtpasswd(password: bytes, hash_type: str = '') -> str:
     hash_prefix_ = hash_prefix(hash_type)
     if hash_type.startswith('sha') and len(hash_type) > 3:
         salt_ = salt(16)
@@ -150,12 +151,12 @@ def mkhtpasswd(password, hash_type=''):
         salt_ = salt()
     if hash_prefix_ == '':
         if crypt is None:
-            salt_ = '$apr1$' + salt_
+            salt_ = b'$apr1$' + salt_
     else:
         salt_ = hash_prefix_ + salt_
     return htpasswd(password, salt_)
 
 
-def htdigest(user, realm, password):
-    p = ':'.join([user, realm, password])
+def htdigest(user: bytes, realm: bytes, password: bytes) -> str:
+    p = b':'.join([user, realm, password])
     return hashlib.md5(p).hexdigest()

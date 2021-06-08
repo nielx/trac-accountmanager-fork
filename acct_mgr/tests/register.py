@@ -354,8 +354,7 @@ class EmailVerificationModuleTestCase(_BaseTestCase):
         self.assertRaises(RequestDone, self.vmod.pre_process_request,
                           self.req, None)
         warnings = self.req.chrome.get('warnings')
-        self.assertTrue(string.find(str(warnings and warnings[0] or ''),
-                                    'already in use') > 0)
+        self.assertTrue('already in use' in str(warnings and warnings[0] or ''))
 
     def test_check_no_email(self):
         self.assertRaises(RequestDone, self.vmod.pre_process_request,

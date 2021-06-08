@@ -36,7 +36,7 @@ class _BaseTestCase(unittest.TestCase):
         dirname = os.path.dirname(filename)
         if not os.path.exists(dirname):
             os.makedirs(dirname)
-        fd = file(filename, 'w')
+        fd = open(filename, 'w')
         content = kw.get('content')
         if content is not None:
             fd.write(content)
