@@ -404,11 +404,6 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
         the cookie.  (''since 0.12'')""")
 
     # Options dedicated to acct_mgr.web_ui.LoginModule.
-    login_opt_list = BoolOption(
-        'account-manager', 'login_opt_list', False,
-        """Set to True, to switch login page style showing alternative actions
-        in a single listing together.""")
-
     cookie_refresh_pct = IntOption(
         'account-manager', 'cookie_refresh_pct', 10,
         """Persistent sessions randomly get a new session cookie ID with
@@ -509,7 +504,6 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
                 referer = req.abs_href()
             data = {
                 '_dgettext': dgettext,
-                'login_opt_list': self.login_opt_list,
                 'persistent_sessions':
                     AccountManager(self.env).persistent_sessions,
                 'referer': referer,
@@ -534,7 +528,7 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
                               "%(release_time)s", release_time=release_time)
                     else:
                         data['login_error'] = _("Account locked")
-            return 'account_login.html', data, None
+            return 'account_login.html', data
         else:
             n_plural = req.args.get('failed_logins')
             if n_plural > 0:
