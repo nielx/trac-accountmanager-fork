@@ -1,276 +1,342 @@
-<!DOCTYPE html
-    PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:xi="http://www.w3.org/2001/XInclude"
-      xmlns:py="http://genshi.edgewall.org/"
-      xmlns:i18n="http://genshi.edgewall.org/i18n"
-      i18n:domain="acct_mgr">
-  <xi:include href="admin.html" />
-  <?python
-    if _dgettext:
-        dgettext = _dgettext ?>
-  <head>
-    <title>Account</title>
+#extends 'admin.html'
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>
+        # block admintitle
+        ${_("Account")}
+        # endblock admintitle
+    </title>
+
+    # block head
+
+    ${ super() }
+
     <script type="text/javascript">
-      jQuery(document).ready(function($) {
-          $('#password').focus();
-      });
+        jQuery(document).ready(function($) {
+            $('#password').focus();
+        });
     </script>
-  </head>
+    # endblock head
 
-  <body>
-    <div id="account_details">
-      <div>
+</head>
+
+
+<body>
+# block adminpanel
+<div id="account_details">
+    <div>
         <h2>Manage User Account</h2>
-        <p py:choose="">
-          <py:when test="acctmgr.name" i18n:msg="name, user">
-            for <b>${acctmgr.name}</b> (<em>$user</em>)
-          </py:when>
-          <py:otherwise i18n:msg="user">
-            for <b>$user</b>
-          </py:otherwise>
-          <img src="${href.chrome('/acct_mgr/info.png')}" alt="info"
-               title="User ID change requires additional components enabled"
-               heigth="16" width="16" py:if="not change_uid_enabled" />
+        <p>
+            # if acctmgr.name
+            for <b>${acctmgr.name}</b> (<em>${user}</em>)
+            # else
+            for <b>${user}</b>
+            # endif
+
+            # if not change_uid_enabled
+            <img src="${href.chrome('/acct_mgr/info.png')}" alt="info"
+                 title="User ID change requires additional components enabled"
+                 heigth="16" width="16"/>
+            # endif
         </p>
-      </div>
+    </div>
 
-      <!--! Account property editor -->
-      <form id="account-editor" class="addnew" method="post" py:choose="">
-        <ul id="forms" py:if="len(forms) > 1">
-          <li py:for="name, label in sorted(forms)"
-              class="${'active' if name == active_form else None}"
-              id="${('form_%s' % name) if name else None}">
-            <a py:strip="name == active_form"
-               href="${href.admin('accounts', 'users', user,
+    <!--! Account property editor -->
+    <form id="account-editor" class="addnew" method="post">
+        ${jmacros.form_token_input()}
+
+        # if len(forms) > 1
+        <ul id="forms">
+            # for name, label in sorted(forms)
+            <li class="${'active' if name == active_form else None}"
+                id="${('form_%s' % name) if name else None}">
+                # if name == active_form
+                ${label}
+                # else
+                <a href="${href.admin('accounts', 'users', user,
                                   action=name)}">${label}</a>
-          </li>
+                # endif
+            </li>
+            # endfor
         </ul>
+        # endif
+
         <div id="formcontent">
-          <fieldset>
-            <div py:when="active_form == 'uid'">
-              <div class="field">
-                <input type="hidden" name="action" value="uid" />
-                <label>New Username:<br />
-                  <input type="text" name="new_uid" id="new_uid"
-                         class="textwidget"
-                         title="Change user ID ('username')"
-                         value="${acctmgr.new_uid}" /></label>
-              </div>
-              <div>
-                <div class="field">
-                  <label>
-                    <input type="checkbox" name="uid_exists" value="true"
-                           checked="${uid_exists and 'checked' or None}"
-                           title="Skip creating account and password reset" />
-                    Assume existing account
-                  </label>
+            <fieldset>
+                # if active_form == 'uid'
+                <div>
+                    <div class="field">
+                        <input type="hidden" name="action" value="uid" />
+                        <label>New Username:<br />
+                            <input type="text" name="new_uid" id="new_uid"
+                                   class="textwidget"
+                                   title="Change user ID ('username')"
+                                   value="${acctmgr.new_uid}" /></label>
+                    </div>
+                    <div>
+                        <div class="field">
+                            <label>
+                                <input${{'type': 'checkbox',
+                                         'name': 'uid_exists',
+                                         'value': 'true',
+                                         'checked': uid_exists and 'checked' or None,
+                                         'title': 'Skip creating account and password reset'}|htmlattr} />
+                                Assume existing account
+                            </label>
+                        </div>
+                        <div class="field">
+                            <label>
+                                <input${{'type': 'checkbox',
+                                         'name': 'attr_addonly',
+                                         'value': 'true',
+                                         'checked': attr_addonly and 'checked' or None,
+                                         'title': 'Do not overwrite existing attributes'}|htmlattr} />
+                                Copy only new account attributes
+                            </label>
+                        </div>
+                        <div class="field">
+                            <label>
+                                <input${{'type': 'checkbox',
+                                         'name': 'skip_delete',
+                                         'value': 'true',
+                                         'checked': skip_delete and 'checked' or None,
+                                         'title': 'Skip final account deletion'}|htmlattr} />
+                                Leave old login data
+                            </label>
+                        </div>
+                    </div>
                 </div>
-                <div class="field">
-                  <label>
-                    <input type="checkbox" name="attr_addonly" value="true"
-                           checked="${attr_addonly and 'checked' or None}"
-                           title="Do not overwrite existing attributes" />
-                    Copy only new account attributes
-                  </label>
+                # else
+                <div>
+                    <div>
+                        <div class="field">
+                            <input type="hidden" name="action" value="edit" />
+                            <label for="password">Password:<br />
+                                <input${{'type': 'password',
+                                         'id': 'password',
+                                         'name': 'password',
+                                         'class': 'textwidget',
+                                         'disabled': not password_change_enabled and
+                                                    'disabled' or None}|htmlattr} />
+                            </label>
+                        </div>
+                        <div class="field">
+                            <label for="confirm">Confirm Password:<br />
+                                <input${{'type': 'password',
+                                         'id': 'confirm',
+                                         'name': 'password_confirm',
+                                         'class': 'textwidget',
+                                         'disabled': not password_change_enabled and
+                                                     'disabled' or None}|htmlattr} />
+                            </label>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label>Pre-/Surname (Nickname):<br />
+                            <input type="text" name="name" class="textwidget"
+                                   value="${acctmgr.name}" />
+                        </label>
+                        # if acctmgr.name
+                        <input type="image" name="delete_name" class="delete"
+                               src="${href.chrome('/acct_mgr/delete.png')}"
+                               alt="${dgettext('acct_mgr', 'Delete value')}" />
+                        # endif
+                    </div>
+                    <div class="field">
+                        <label>Email Address:<br />
+                            <input type="text" name="email" class="textwidget"
+                                   value="${acctmgr.email}" />
+                        </label>
+                        # if acctmgr.email
+                        <input type="image" name="delete_email" class="delete"
+                               src="${href.chrome('/acct_mgr/delete.png')}"
+                               alt="${dgettext('acct_mgr', 'Delete value')}" />
+                        # endif
+                        <br />
+                        # if verify_enabled
+                        <label>
+                            <input${{'type': 'checkbox',
+                                     'name': 'email_approved',
+                                     'value': 'true',
+                                     'checked': email_approved and 'checked' or None}|htmlattr} />
+                            Skip new email verification
+                        </label>
+                        # endif
+                    </div>
                 </div>
-                <div class="field">
-                  <label>
-                    <input type="checkbox" name="skip_delete" value="true"
-                           checked="${skip_delete and 'checked' or None}"
-                           title="Skip final account deletion" />
-                    Leave old login data
-                  </label>
+                # endif
+                <div class="buttons">
+                    <input type="submit"
+                           value="${dgettext('acct_mgr', 'Apply changes')}" />
                 </div>
-              </div>
-            </div>
-            <div py:otherwise="">
-              <div>
-                <div class="field">
-                  <input type="hidden" name="action" value="edit" />
-                  <label for="password">Password:<br />
-                    <input type="password" id="password" name="password"
-                           class="textwidget"
-                           disabled="${not password_change_enabled and
-                                       'disabled' or None}" />
-                  </label>
-                </div>
-                <div class="field">
-                  <label for="confirm">Confirm Password:<br />
-                    <input type="password" id="confirm"
-                           name="password_confirm" class="textwidget"
-                           disabled="${not password_change_enabled and
-                                       'disabled' or None}" />
-                  </label>
-                </div>
-              </div>
-              <div class="field">
-                <label>Pre-/Surname (Nickname):<br />
-                  <input type="text" name="name" class="textwidget"
-                         value="${acctmgr.name}" />
-                </label>
-                <input type="image" name="delete_name" class="delete"
-                       src="${href.chrome('/acct_mgr/delete.png')}"
-                       alt="${dgettext('acct_mgr', 'Delete value')}"
-                       py:if="acctmgr.name" />
-              </div>
-              <div class="field">
-                <label>Email Address:<br />
-                  <input type="text" name="email" class="textwidget"
-                         value="${acctmgr.email}" />
-                </label>
-                <input type="image" name="delete_email" class="delete"
-                       src="${href.chrome('/acct_mgr/delete.png')}"
-                       alt="${dgettext('acct_mgr', 'Delete value')}"
-                       py:if="acctmgr.email" />
-                <br />
-                <label py:if="verify_enabled">
-                  <input type="checkbox" name="email_approved" value="true"
-                         checked="${email_approved and 'checked' or None}" />
-                  Skip new email verification
-                </label>
-              </div>
-            </div>
-            <div class="buttons">
-              <input type="submit"
-                     value="${dgettext('acct_mgr', 'Apply changes')}" />
-            </div>
-          </fieldset>
+            </fieldset>
         </div>
-      </form>
+    </form>
 
-      <hr style="clear: right" py:strip="action_aside" />
+    # if not action_aside
+    <hr style="clear: right"/>
+    # endif
 
-      <form method="get" action="${url}">
+    <form method="get" action="${url}">
         <fieldset>
-          <legend><label>Account Status</label></legend>
-          <div id="user_locked" py:if="approval or user_locked">
-            <p>
-              <span py:if="release_time and not approval" i18n:msg="time">
+            <legend><label>Account Status</label></legend>
+            # if approval or user_locked
+            <div id="user_locked">
+                <p>
+                    # if release_time and not approval
+                    <span>
                 <img src="${href.chrome('/acct_mgr/time-locked.png')}" />
                 This account has been locked until ${release_time}<br />
                 and even valid login attempts are rejected meanwhile.</span>
-              <span py:if="approval or not release_time">
+                    # elif approval or not release_time
+                    <span>
                 <img src="${href.chrome('/acct_mgr/locked.png')}" />
                 This account has been locked permanently.
               </span>
-              <span class="buttons">
+                    # endif
+                    <span class="buttons">
                 <input type="submit" name="release"
                        alt="Release account lock"
                        title="Release account lock"
                        value="${dgettext('acct_mgr', 'Unlock')}" />
               </span>
-            </p>
-          </div>
-
-          <div id="restricted" py:if="lock_count" py:choose="">
-            <div py:when="not lock_count == 0">
-              <i18n:choose numeral="lock_count" params="count"
-                           py:if="not _dgettext">
-                <p i18n:singular="">
-                  Time lock condition has been met ${lock_count} time by now.
                 </p>
-                <p i18n:plural="">
-                  Time lock condition has been met ${lock_count} times by now.
-                </p>
-              </i18n:choose>
-              <!--! i18n:choose doesn't play nicely with Trac releases
-                before Trac 0.12, so we provide an alternative message
-                that is excluded from extraction and translation. -->
-              <p py:if="_dgettext" xml:lang="en">
-                Time lock condition has been met ${lock_count} time(s) by now.
-              </p>
-              <p py:if="not (approval or (user_locked and not release_time))"
-                 i18n:msg="time">
-                Therefore after another failed login attempt authentication
-                for this account would be retarded by ${pretty_lock_time}.
-              </p>
             </div>
-            <div py:otherwise="">
-              <p>Lock condition has not been met yet.</p>
+            # endif
+
+            # if lock_count
+            <div id="restricted">
+                # if not lock_count == 0
+                <div>
+                    <p>
+                        Time lock condition has been met ${lock_count} time(s) by now.
+                    </p>
+                    # if not (approval or (user_locked and not release_time))
+                    <p>
+                        Therefore after another failed login attempt authentication
+                        for this account would be retarded by ${pretty_lock_time}.
+                    </p>
+                    # endif
+                </div>
+                # else
+                <div>
+                    <p>Lock condition has not been met yet.</p>
+                </div>
+                # endif
             </div>
-          </div>
-          <div id="unrestricted" py:if="not (approval or lock_count)">
-            <p>No constraints are set for this account.</p>
-          </div>
+            # elif not (approval or lock_count)
+            <div id="unrestricted">
+                <p>No constraints are set for this account.</p>
+            </div>
+            # endif
 
-          <hr py:if="user_locked or approval" />
+            # if user_locked or approval
+            <hr />
+            # endif
 
-          <div id="user_store" py:if="user_store">
-            <p i18n:msg="order_num,store">
-              Credentials for this user are stored in AuthStore number
-              <em>${store_order_num}</em> (${user_store}).</p>
-            <p class="hint" py:if="ignore_auth_case" i18n:msg="">
-              Username matching is set to <b>not case-sensitive</b>.</p>
-            <p class="hint" py:if="not ignore_auth_case" i18n:msg="">
-              Username matching is set to <em>case-sensitive</em>.</p>
-          </div>
-          <div id="no_user_store" py:if="not (approval or user_store)">
-            <p i18n:msg="">
-              No readable store provides credentials for this user,
-              so the user may not get authenticated and access to this
-              <em>account might be effectively blocked</em>.</p>
-          </div>
-          <div py:if="acctmgr.email">
-            <p i18n:msg="email">
-              Current email address: &lt;${acctmgr.email}&gt;</p>
-            <py:choose py:if="verification">
-              <p py:when="email_verified">
-                This address has been verified successfully.</p>
-              <p py:when="not email_verified and email_verification_token" i18n:msg="token">
-                Verification is pending
-                <span class="hint">(token: ${email_verification_token})</span></p>
-              <p py:otherwise=""> <!--! not email_verified -->
-                This address has not been verified yet.</p>
-            </py:choose>
-          </div>
-          <div py:if="not acctmgr.email">
-            <p>No email address is registered for this account.</p>
-          </div>
+            # if user_store
+            <div id="user_store">
+                <p>
+                    Credentials for this user are stored in AuthStore number
+                    <em>${store_order_num}</em> (${user_store}).</p>
+                # if ignore_auth_case
+                <p class="hint">
+                    Username matching is set to <b>not case-sensitive</b>.</p>
+                # else
+                <p class="hint">
+                    Username matching is set to <em>case-sensitive</em>.</p>
+                # endif
+            </div>
+            # endif
+
+            # if not (approval or user_store)
+            <div id="no_user_store">
+                <p>
+                    No readable store provides credentials for this user,
+                    so the user may not get authenticated and access to this
+                    <em>account might be effectively blocked</em>.</p>
+            </div>
+            # endif
+
+            # if acctmgr.email
+            <div>
+                <p>
+                    Current email address: &lt;${acctmgr.email}&gt;</p>
+                # if verification
+                #    if email_verified
+                <p>This address has been verified successfully.</p>
+                #    elif not email_verified and email_verification_token
+                <p>
+                    Verification is pending
+                    <span class="hint">(token: ${email_verification_token})</span></p>
+                #     else
+                <p> <!--! not email_verified -->
+                    This address has not been verified yet.</p>
+                #    endif
+                # endif
+            </div>
+            # else
+            <div>
+                <p>No email address is registered for this account.</p>
+            </div>
+            # endif
         </fieldset>
 
         <fieldset>
-          <legend><label>Access History</label></legend>
-          <p py:if="last_visit" i18n:msg="time">
-            Last login: ${last_visit}</p>
-          <p py:if="not last_visit">The user has not logged in before.</p>
-          <div id="failed_attempts" py:if="attempts_count">
-            <p i18n:msg="count">Total failed attempts: ${attempts_count}</p>
-            <p class="tableheader">
-              Table: Last failed login attempts log view</p>
-            <table class="listing" id="login_attempts">
-              <thead>
-                <tr>
-                  <th>IP address</th>
-                  <th>Log time</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr py:for="attempt in attempts">
-                  <td>${attempt.ipnr}</td>
-                  <td>${attempt.time}</td>
-                </tr>
-              </tbody>
-            </table>
-            <div class="buttons" py:if="not user_locked">
-              <input type="submit" name="delete"
-                     alt="Delete login failure log"
-                     title="Delete login failure log"
-                     value="${dgettext('acct_mgr', 'Delete Log')}" />
+            <legend><label>Access History</label></legend>
+            # if last_visit
+            <p>
+                Last login: ${last_visit}</p>
+            # else
+            <p>The user has not logged in before.</p>
+            # endif
+
+            # if attempts_count
+            <div id="failed_attempts">
+                <p>Total failed attempts: ${attempts_count}</p>
+                <p class="tableheader">
+                    Table: Last failed login attempts log view</p>
+                <table class="listing" id="login_attempts">
+                    <thead>
+                    <tr>
+                        <th>IP address</th>
+                        <th>Log time</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    # for attempt in attempts
+                    <tr>
+                        <td>${attempt.ipnr}</td>
+                        <td>${attempt.time}</td>
+                    </tr>
+                    # endfor
+                    </tbody>
+                </table>
+                # if not user_locked
+                <div class="buttons">
+                    <input type="submit" name="delete"
+                           alt="Delete login failure log"
+                           title="Delete login failure log"
+                           value="${dgettext('acct_mgr', 'Delete Log')}" />
+                </div>
+                # endif
             </div>
-          </div>
-          <div id="no_failed_attempts" py:if="not attempts_count">
-            <p>There is currently no failed login attempt logged.</p>
-          </div>
+            # else
+            <div id="no_failed_attempts">
+                <p>There is currently no failed login attempt logged.</p>
+            </div>
+            # endif
         </fieldset>
 
         <div class="buttons">
-          <input type="submit" name="update"
-                 value="${dgettext('acct_mgr', 'Refresh')}" />
+            <input type="submit" name="update"
+                   value="${dgettext('acct_mgr', 'Refresh')}" />
         </div>
-      </form>
-    </div>
+    </form>
+</div>
+# endblock adminpanel
 
-  </body>
+</body>
 </html>
