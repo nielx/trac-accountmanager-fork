@@ -1,83 +1,95 @@
-<!DOCTYPE html
-    PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:py="http://genshi.edgewall.org/"
-      xmlns:xi="http://www.w3.org/2001/XInclude" 
-      xmlns:i18n="http://genshi.edgewall.org/i18n"
-      i18n:domain="acct_mgr">
-  <xi:include href="layout.html" />
-  <?python
-    if _dgettext is not None:
-        dgettext = _dgettext ?>
-  <head>
-    <title>Register</title>
+# extends 'layout.html'
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>
+        # block title
+        ${_("Register")}
+        # endblock title
+    </title>
+
+    # block head
+
+    ${ super() }
+
     <script type="text/javascript">
-      jQuery(document).ready(function($) {
-          $('#username').focus();
-      });
+        jQuery(document).ready(function($) {
+            $('#username').focus();
+        });
     </script>
-  </head>
+    # endblock head
+</head>
 
-  <body>
-    <div id="content" class="register">
-      <h1>Register an account</h1>
+<body>
+# block content
+<div id="content" class="register">
+    <h1>Register an account</h1>
 
-      <div class="system-message" py:if="registration_error">
+    # if registration_error
+    <div class="system-message">
         <h2>Error</h2>
-        <p>$registration_error</p>
-      </div>
+        <p>${registration_error}</p>
+    </div>
+    # endif
 
-      <form method="post" id="acctmgr_registerform" action="">
+    <form method="post" id="acctmgr_registerform" action="">
         <fieldset>
-          <legend>Required</legend>
-          <div>
-            <input type="hidden" name="action" value="create" />
-            <label>Username:
-              <input type="text" id="username" name="username"
-                     class="textwidget" size="20"
-                     value="${acctmgr.username}" />
-            </label>
-            <p class="hint" py:if="ignore_auth_case">
-              Only lowercase usernames allowed
-            </p>
-          </div>
-          <div>
-            <label>Password:
-              <input type="password" name="password"
-                     class="textwidget" size="20" />
-            </label>
-          </div>
-          <div>
-            <label>Confirm Password:
-              <input type="password" name="password_confirm"
-                     class="textwidget" size="20" />
-            </label>
-          </div>
-          <div py:for="field in required_fields">
-            <!--! Additional required fields can be included below. -->
-            ${field}
-          </div>
+            <legend>Required</legend>
+            <div>
+                <input type="hidden" name="action" value="create" />
+                <label>Username:
+                    <input type="text" id="username" name="username"
+                           class="textwidget" size="20"
+                           value="${acctmgr.username}" />
+                </label>
+                #if ignore_auth_case
+                <p class="hint">
+                    Only lowercase usernames allowed
+                </p>
+                # endif
+            </div>
+            <div>
+                <label>Password:
+                    <input type="password" name="password"
+                           class="textwidget" size="20" />
+                </label>
+            </div>
+            <div>
+                <label>Confirm Password:
+                    <input type="password" name="password_confirm"
+                           class="textwidget" size="20" />
+                </label>
+            </div>
+            # for field in required_fields
+            <div>
+                <!--! Additional required fields can be included below. -->
+                ${field}
+            </div>
+            # endfor
         </fieldset>
 
         <fieldset>
-          <legend>Optional</legend>
-          <div>
-            <label>Name:
-              <input type="text" name="name" class="textwidget" size="20"
-                value="${acctmgr.name}"/>
-            </label>
-          </div>
-          <div py:for="field in optional_fields">
-            <!--! Additional optional fields can be included below. -->
-            ${field}
-          </div>
+            <legend>Optional</legend>
+            <div>
+                <label>Name:
+                    <input type="text" name="name" class="textwidget" size="20"
+                           value="${acctmgr.name}"/>
+                </label>
+            </div>
+            # for field in optional_fields
+            <div>
+                <!--! Additional optional fields can be included below. -->
+                ${field}
+            </div>
+            # endfor
         </fieldset>
         <div class="buttons">
-          <input type="submit"
-                 value="${dgettext('acct_mgr', 'Create account')}" />
+            <input type="submit"
+                   value="${dgettext('acct_mgr', 'Create account')}" />
         </div>
-      </form>
-    </div>
-  </body>
+    </form>
+</div>
+# endblock content
+</body>
 </html>

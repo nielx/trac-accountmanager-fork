@@ -496,7 +496,7 @@ class RegistrationModule(CommonTemplateProvider):
                     data.update(f_data)
         data['required_fields'] = fragments['required']
         data['optional_fields'] = fragments['optional']
-        return 'account_register.html', data, None
+        return 'account_register.html', data
 
 
 class EmailVerificationModule(CommonTemplateProvider):
