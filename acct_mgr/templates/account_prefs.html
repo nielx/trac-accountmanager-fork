@@ -1,73 +1,73 @@
-<!DOCTYPE html
-    PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:py="http://genshi.edgewall.org/"
-      xmlns:xi="http://www.w3.org/2001/XInclude" 
-      xmlns:i18n="http://genshi.edgewall.org/i18n"
-      i18n:domain="acct_mgr">
-  <xi:include href="prefs.html" />
-  <?python
-    if _dgettext is not None:
-        dgettext = _dgettext ?>
+# extends 'prefs.html'
+<!DOCTYPE html>
+<html>
+<head>
+    <title>
+        # block preftitle
+        ${_("Account")}
+        # endblock preftitle
+    </title>
 
-  <!--! Begin insert, to be appended below common content, see body -->
-  <!--! FIXME: [1] prevents this from matching its own output.
-        Should that really be necessary? -->
-  <div py:match="div[@id='tabcontent'][1]" py:attrs="select('@*')">
-    ${select('*')}
+    # block head
 
-    <py:if test="delete_enabled">
-      <hr />
+    ${ super() }
 
-      <h2>Delete Account</h2>
-      <form method="post" action="" id="acctmgr_delete_account"
-            onsubmit="return confirm('${delete_msg_confirm}');">
-        <div class="field">
-          <label>Password:
+    <script type="text/javascript">
+        jQuery(document).ready(function($) {
+            $('#old_password').focus();
+        });
+
+    </script>
+
+    # endblock head
+</head>
+
+<body>
+# block prefpanel
+<h2>Change Password</h2>
+<table>
+    <tr class="field">
+        <th><label for="old_password">Old Password:</label></th>
+        <td><input type="password" id="old_password" name="old_password"
+               class="textwidget" size="20" /></td>
+    </tr>
+    <tr class="field">
+        <th><label for="password">New Password:</label></th>
+        <td><input type="password" name="password" class="textwidget"
+               size="20" /></td>
+    </tr>
+    <tr class="field">
+        <th><label for="password_confirm">Confirm Password:</label></th>
+        <td><input type="password" name="password_confirm" class="textwidget"
+               size="20" /></td>
+    </tr>
+</table>
+# endblock prefpanel
+
+# block content
+{# The content above is wrapped in a form. The content below needs to be in its own form #}
+${ super() }
+
+# if delete_enabled
+<hr />
+
+<h2>Delete Account</h2>
+<form method="post" action="" id="acctmgr_delete_account"
+      onsubmit="return confirm('${delete_msg_confirm}');">
+    ${jmacros.form_token_input()}
+    <div class="field">
+        <label>Password:
             <input type="password" name="password" class="textwidget"
                    size="20" />
-          </label>
-        </div>
-        <div class="buttons">
-          <input type="hidden" name="action" value="delete" />
-          <input type="submit"
-                 value="${dgettext('acct_mgr', 'Delete account')}" />
-        </div>
-      </form>
-    </py:if>
-  </div>
-  <!--! End insert -->
-
-  <head>
-    <title>Account</title>
-     <script type="text/javascript">
-       jQuery(document).ready(function($) {
-          $('#old_password').focus();
-       });
-     </script>
-  </head>
-
-  <!--! Commont content, will get wrapped in a form with 'save' button -->
-  <body>
-    <h2>Change Password</h2>
-    <div class="field">
-      <label>Old Password:
-        <input type="password" id="old_password" name="old_password"
-               class="textwidget" size="20" />
-      </label>
+        </label>
     </div>
-    <div class="field">
-      <label>New Password:
-        <input type="password" name="password" class="textwidget"
-               size="20" />
-      </label>
+    <div class="buttons">
+        <input type="hidden" name="action" value="delete" />
+        <input type="submit"
+               value="${dgettext('acct_mgr', 'Delete account')}" />
     </div>
-    <div class="field">
-      <label>Confirm Password:
-        <input type="password" name="password_confirm" class="textwidget"
-               size="20" />
-      </label>
-    </div>
-  </body>
+</form>
+# endif
+# endblock content
+</body>
 </html>
