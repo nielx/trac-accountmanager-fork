@@ -644,7 +644,7 @@ class EmailVerificationModule(CommonTemplateProvider):
             data['token'] = req.args['token']
         if 'email_verification_token' not in req.session:
             data['button_state'] = {'disabled': 'disabled'}
-        return 'account_verify_email.html', data, None
+        return 'account_verify_email.html', data
 
     def _gen_token(self):
         return base64.urlsafe_b64encode(os.urandom(6))
