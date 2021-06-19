@@ -191,7 +191,7 @@ class AccountModule(CommonTemplateProvider):
             data['authenticated'] = True
         if req.method == 'POST':
             self._do_reset_password(req)
-        return 'account_reset_password.html', data, None
+        return 'account_reset_password.html', data
 
     # IAttachmentManipulator
 
@@ -531,7 +531,7 @@ class LoginModule(auth.LoginModule, CommonTemplateProvider):
             return 'account_login.html', data
         else:
             n_plural = req.args.get('failed_logins')
-            if n_plural > 0:
+            if n_plural is not None and n_plural > 0:
                 add_warning(req, tag(ngettext(
                     "Login after %(attempts)s failed attempt",
                     "Login after %(attempts)s failed attempts",
