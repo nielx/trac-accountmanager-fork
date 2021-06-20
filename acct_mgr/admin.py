@@ -147,7 +147,7 @@ class ExtensionOrder(dict):
             self.sxref[c.__class__.__name__] = c
             continue
         for i, c in enumerate(list or []):
-            self.d[c] = i + 1
+            self[c] = i + 1
             self[i + 1] = c
 
     def __getitem__(self, key):
@@ -1107,7 +1107,7 @@ class ConfigurationAdminPanel(CommonTemplateProvider):
                     verify_email and 'enabled' or 'disabled')
                 # Refresh object after changes.
                 register_checks = self.config.getlist('account-manager',
-                                                      'register_checks')
+                                                      'register_check')
                 checks = ExtensionOrder(components=self.acctmgr.checks,
                                         list=register_checks)
 
