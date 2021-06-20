@@ -1,20 +1,18 @@
-<!DOCTYPE html
-    PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:xi="http://www.w3.org/2001/XInclude"
-      xmlns:py="http://genshi.edgewall.org/" 
-      xmlns:i18n="http://genshi.edgewall.org/i18n"
-      i18n:domain="acct_mgr">
-  <xi:include href="admin.html" />
-  <?python
-    if _dgettext is not None:
-        dgettext = _dgettext ?>
-  <head>
-    <title>Accounts: Cleanup</title>
-  </head>
+# extends 'admin.html'
+<!DOCTYPE html>
+<html>
+<head>
+    <title>
+        # block admintitle
+        ${_("Accounts: Cleanup")}
+        # endblock admintitle
+    </title>
+</head>
+
 
   <body>
+      # block adminpanel
+
     <h2>Accounts: Cleanup</h2>
     <form id="cleanup" class="mod" method="post">
       <div id="attributelist">
@@ -32,7 +30,7 @@
             </tr>
           </thead>
           <tbody>
-            <!--! 
+            {#
             <tr class="important">
               <td colspan="4">Not Authenticated Accounts</td>
             </tr>
@@ -60,12 +58,11 @@
                 </py:if>
               </py:for>
             </py:for>
-            //-->
+            #}
             <tr class="suggestions">
               <td colspan="4">Authenticated Accounts</td>
             </tr>
-            <py:for each="account, states in attr.iteritems()">
-              <py:if test="True">
+            # for account, states in attr.items()
                 <tr>
                   <th><input type="checkbox" name="sel"
                              value="${states['id'][1]}" />
@@ -74,8 +71,9 @@
                     '${account}'
                   </th>
                 </tr>
-                <tr py:for="name,value in states[1].iteritems()"
-                    py:if="name != 'id' and not isinstance(value, dict)">
+            # for name, value in states[1].items()
+            # if name != 'id' and value is not mapping
+                <tr>
                   <td>&nbsp;</td>
                   <td>
                     <input type="checkbox" name="sel"
@@ -84,8 +82,9 @@
                   <td>'${name}'</td> 
                   <td>'${value}'</td>
                 </tr>
-              </py:if>
-            </py:for>
+            # endif
+            # endfor
+          # endfor
           </tbody>
         </table>
       </div>
@@ -100,5 +99,6 @@
                value="${dgettext('acct_mgr', 'Undo selection')}" />
       </div>
     </form>
+  # endblock adminpanel
   </body>
 </html>
