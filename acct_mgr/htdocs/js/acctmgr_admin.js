@@ -52,17 +52,17 @@
 
   function toggleRestart() {
     var button = $("#restart");
-    if (!$("input[name=refresh_passwd]").is(':checked')) {
-      button.attr('disabled', 'disabled');
+    if (!$("input[name=refresh_passwd]").is(":checked")) {
+      button.attr("disabled", "disabled");
     }
     else {
-      button.removeAttr('disabled');
+      button.removeAttr("disabled");
     }
   }
 
   function toggleRegisterOpts() {
     var section = $("#acctmgr_register_opts");
-    if (!$("input[name=acctmgr_register]").is(':checked')) {
+    if (!$("input[name=acctmgr_register]").is(":checked")) {
       section.slideUp();
     }
     else {
@@ -72,7 +72,7 @@
 
   function toggleGuardOpts() {
     var section = $("#acctmgr_guard_opts");
-    if (!$("input[name=acctmgr_guard]").is(':checked')) {
+    if (!$("input[name=acctmgr_guard]").is(":checked")) {
       section.slideUp();
     }
     else {
