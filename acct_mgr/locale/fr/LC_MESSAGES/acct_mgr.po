@@ -22,12 +22,12 @@ msgstr ""
 #: acct_mgr/admin.py:69
 #, python-format
 msgid "Locked until %(t_release)s"
-msgstr ""
+msgstr "Verrouillé jusqu'au %(t_release)s"
 
 #: acct_mgr/admin.py:153
 #, python-format
 msgid "Invalid key type (%s) for StoreOrder"
-msgstr ""
+msgstr "Type de clé non valide (%s) pour StoreOrder"
 
 #: acct_mgr/admin.py:196 acct_mgr/admin.py:198 acct_mgr/notification.py:171
 #: acct_mgr/templates/admin_users.html:14
@@ -47,10 +47,12 @@ msgid ""
 "Error while reading configuration -\n"
 "                              Hint: Enable/install the required component."
 msgstr ""
+"Erreur lors de la lecture de la configuration -\n"
+"                              Conseil : activez/installez le composant requis."
 
 #: acct_mgr/admin.py:298
 msgid "Password hash refresh procedure restarted."
-msgstr ""
+msgstr "La procédure d'actualisation du hachage du mot de passe a redémarré."
 
 #: acct_mgr/admin.py:368
 msgid "The password store does not support creating users."
@@ -58,7 +60,7 @@ msgstr ""
 
 #: acct_mgr/admin.py:379
 msgid "The password reset procedure is not enabled."
-msgstr ""
+msgstr "La procédure de réinitialisation du mot de passe n'est pas activée."
 
 #: acct_mgr/admin.py:389
 msgid "The password store does not support deleting users."
@@ -70,7 +72,7 @@ msgstr "Adresse email"
 
 #: acct_mgr/admin.py:395
 msgid "Pre-/Surname (Nickname)"
-msgstr ""
+msgstr "Pré-/Nom de famille (Surnom)"
 
 #: acct_mgr/admin.py:396
 msgid "Password"
@@ -83,7 +85,7 @@ msgstr "Le nom d'utilisateur doit être renseigné."
 #: acct_mgr/admin.py:410
 #, python-format
 msgid "Unknown user %(user)s."
-msgstr ""
+msgstr "Utilisateur inconnu %(user)s."
 
 #: acct_mgr/admin.py:418 acct_mgr/register.py:150 acct_mgr/web_ui.py:226
 msgid "The passwords must match."
@@ -98,12 +100,12 @@ msgstr ""
 
 #: acct_mgr/admin.py:464
 msgid "Please choose account by username from list to proceed."
-msgstr ""
+msgstr "Veuillez choisir le compte par nom d'utilisateur dans la liste pour continuer."
 
 #: acct_mgr/admin.py:480
 #, python-format
 msgid "Failed login attempts for user %(user)s deleted"
-msgstr ""
+msgstr "Échec des tentatives de connexion pour l'utilisateur %(user)s supprimé"
 
 #: acct_mgr/admin.py:607
 #, python-format
@@ -121,24 +123,24 @@ msgstr[1] ""
 
 #: acct_mgr/admin.py:619
 msgid "Successfully deleted:"
-msgstr ""
+msgstr "Suppression réussie:"
 
 #: acct_mgr/admin.py:639
 #, python-format
 msgid "page %(num)s"
-msgstr ""
+msgstr "page %(num)s"
 
 #: acct_mgr/admin.py:650
 msgid "Next Page"
-msgstr ""
+msgstr "Page suivante"
 
 #: acct_mgr/admin.py:655
 msgid "Previous Page"
-msgstr ""
+msgstr "Page précédente"
 
 #: acct_mgr/api.py:167
 msgid "Ordered list of password stores, queried in turn."
-msgstr ""
+msgstr "Liste ordonnée des mots de passe, interrogés à tour de rôle."
 
 #: acct_mgr/api.py:238
 #, python-format
@@ -158,7 +160,7 @@ msgstr ""
 
 #: acct_mgr/db.py:23
 msgid "IPasswordHashMethod used to create new/updated passwords"
-msgstr ""
+msgstr "IPasswordHashMethod utilisé pour créer des mots de passe nouveaux/mis à jour"
 
 #: acct_mgr/htfile.py:144
 msgid ""
@@ -183,23 +185,25 @@ msgid ""
 "Path relative to Trac environment or full host machine\n"
 "                path to password file"
 msgstr ""
+"Chemin relatif à l'environnement Trac ou à la machine hôte complète\n"
+" chemin vers le fichier de mot de passe"
 
 #: acct_mgr/htfile.py:201 acct_mgr/pwhash.py:42
 msgid "Default hash type of new/updated passwords"
-msgstr ""
+msgstr "Type de hachage par défaut des mots de passe nouveaux/mis à jour"
 
 #: acct_mgr/htfile.py:242
 msgid "Realm to select relevant htdigest file entries"
-msgstr ""
+msgstr "Domaine pour sélectionner les entrées de fichier htdigest pertinentes"
 
 #: acct_mgr/http.py:27
 msgid "URL of the HTTP authentication service"
-msgstr ""
+msgstr "URL du service d'authentification HTTP"
 
 #: acct_mgr/macros.py:95
 #, python-format
 msgid "(required %(perm)s missing)"
-msgstr ""
+msgstr "(%(perm)s obligatoires manquants)"
 
 #: acct_mgr/notification.py:53
 msgid "The email and username do not match a known account."
@@ -211,7 +215,7 @@ msgstr "Notification"
 
 #: acct_mgr/pwhash.py:58
 msgid "Realm to select relevant htdigest db entries"
-msgstr ""
+msgstr "Domaine pour sélectionner les entrées htdigest pertinentes de la base de données"
 
 #: acct_mgr/pwhash.py:116
 msgid ""
@@ -228,12 +232,12 @@ msgstr ""
 
 #: acct_mgr/register.py:43
 msgid "Registration Error"
-msgstr ""
+msgstr "Erreur d'enregistrement"
 
 #: acct_mgr/register.py:76
 #, python-format
 msgid "No check method 'validate_registration' defined in %(module)s"
-msgstr ""
+msgstr "Aucune méthode de vérification 'validate_registration' définie dans %(module)s"
 
 #: acct_mgr/register.py:112
 #, python-format
@@ -242,7 +246,7 @@ msgstr "Le nom d'utilisateur ne peut contenir les caractères suivants : %s"
 
 #: acct_mgr/register.py:119
 msgid "A username with only upper-cased characters is not allowed."
-msgstr ""
+msgstr "Un nom d'utilisateur avec uniquement des caractères majuscules n'est pas autorisé."
 
 #: acct_mgr/register.py:126
 #, python-format
@@ -255,6 +259,8 @@ msgid ""
 "Another account or group already exists, who's name differs from %s only "
 "by case or is identical."
 msgstr ""
+"Un autre compte ou groupe existe déjà, dont le nom diffère uniquement de %s"
+"par cas ou est identique."
 
 #: acct_mgr/register.py:148 acct_mgr/web_ui.py:223 acct_mgr/web_ui.py:240
 msgid "Password cannot be empty."
@@ -266,18 +272,20 @@ msgid ""
 "Please type [%(token)s] as verification token,\n"
 "                exactly replicating everything within the braces."
 msgstr ""
+"Veuillez saisir [%(token)s] comme jeton de vérification,\n"
+" reproduisant exactement tout dans les accolades."
 
 #: acct_mgr/register.py:174
 msgid "Parole:"
-msgstr ""
+msgstr "Parole:"
 
 #: acct_mgr/register.py:184
 msgid "Better do not fill this field."
-msgstr ""
+msgstr "Mieux vaut ne pas remplir ce champ."
 
 #: acct_mgr/register.py:195
 msgid "Are you human? If so, try harder!"
-msgstr ""
+msgstr "Es-tu humain? Si oui, essayez plus fort!"
 
 #: acct_mgr/register.py:209
 msgid "Email:"
@@ -289,12 +297,16 @@ msgid ""
 "The email address is required for Trac to send\n"
 "                           you a verification token."
 msgstr ""
+"L'adresse e-mail est requise pour que Trac puisse envoyer\n"
+" vous un jeton de vérification."
 
 #: acct_mgr/register.py:223
 msgid ""
 "Entering your email address will also enable you\n"
 "                           to reset your password if you ever forget it."
 msgstr ""
+"La saisie de votre adresse e-mail vous permettra également\n"
+" pour réinitialiser votre mot de passe si jamais vous l'oubliez."
 
 #. TRANSLATOR: Registration form hint, if email input is optional.
 #: acct_mgr/register.py:231
@@ -302,6 +314,8 @@ msgid ""
 "Entering your email address will enable you to\n"
 "                           reset your password if you ever forget it."
 msgstr ""
+"La saisie de votre adresse e-mail vous permettra également\n"
+" pour réinitialiser votre mot de passe si jamais vous l'oubliez."
 
 #: acct_mgr/register.py:246
 msgid "You must specify a valid email address."
@@ -312,17 +326,20 @@ msgid ""
 "The email address specified is already in use. Please specify a different"
 " one."
 msgstr ""
+"L'adresse e-mail spécifiée est déjà utilisée. Veuillez spécifier une autre."
 
 #: acct_mgr/register.py:277
 #, python-format
 msgid "Username %s doesn't match local naming policy."
-msgstr ""
+msgstr "Le nom d'utilisateur %s ne correspond pas à la dénomination locale."
 
 #: acct_mgr/register.py:287
 msgid ""
 "The email address specified appears to be invalid. Please specify a valid"
 " email address."
 msgstr ""
+"L'adresse e-mail indiquée semble invalide. Veuillez spécifier une adresse valide"
+" adresse e-mail."
 
 #: acct_mgr/register.py:364 acct_mgr/templates/login.html:58
 #: acct_mgr/templates/login.html:61 acct_mgr/templates/register.html:14
@@ -344,23 +361,25 @@ msgid ""
 "Registration has been finished successfully.\n"
 "                     You may log in as user %(user)s now."
 msgstr ""
+"L'enregistrement s'est terminé avec succès.\n"
+" Vous pouvez maintenant vous connecter en tant qu'utilisateur %(user)s."
 
 #. TRANSLATOR: Your permissions have been limited until you ...
 #: acct_mgr/register.py:492
 msgid "verify your email address"
-msgstr ""
+msgstr "vérifier votre adresse e-mail"
 
 #. TRANSLATOR: ... verify your email address
 #: acct_mgr/register.py:496
 #, python-format
 msgid "Your permissions have been limited until you %(link)s."
-msgstr ""
+msgstr "Vos autorisations ont été limitées jusqu'à ce que vous %(link)s."
 
 #. TRANSLATOR: An email has been sent to <%(email)s>
 #. with a token to ... (the link label for following message)
 #: acct_mgr/register.py:523
 msgid "verify your new email address"
-msgstr ""
+msgstr "vérifier votre nouvelle adresse e-mail"
 
 #. TRANSLATOR: ... verify your new email address
 #: acct_mgr/register.py:527
@@ -369,39 +388,43 @@ msgid ""
 "An email has been sent to <%(email)s> with a token to\n"
 "                %(link)s."
 msgstr ""
+"Un e-mail a été envoyé à <%(email)s> avec un jeton à\n"
+"                %(link)s."
 
 #: acct_mgr/register.py:540
 msgid "Please log in to finish email verification procedure."
-msgstr ""
+msgstr "Veuillez vous connecter pour terminer la procédure de vérification des e-mails."
 
 #: acct_mgr/register.py:545
 msgid "Your email is already verified."
-msgstr ""
+msgstr "Votre e-mail est déjà vérifié."
 
 #: acct_mgr/register.py:553
 #, python-format
 msgid "A notification email has been resent to <%s>."
-msgstr ""
+msgstr "Un e-mail de notification a été renvoyé à <%s>."
 
 #: acct_mgr/register.py:561
 msgid "Thank you for verifying your email address."
-msgstr ""
+msgstr "Merci d'avoir vérifié votre adresse e-mail."
 
 #: acct_mgr/register.py:565
 msgid "Invalid verification token"
-msgstr ""
+msgstr "Jeton de vérification non valide"
 
 #: acct_mgr/svnserve.py:28
 msgid ""
 "Path to the users file; leave blank to locate\n"
 "                the users file by reading svnserve.conf"
 msgstr ""
+"Chemin d'accès au fichier des utilisateurs; laissez vide pour localiser\n"
+" le fichier des utilisateurs en lisant svnserve.conf"
 
 #. TRANSLATOR: Sync with same msgid in Trac 0.13, please.
 #: acct_mgr/util.py:78 acct_mgr/util.py:83
 #, python-format
 msgid "%(relativetime)s ago"
-msgstr ""
+msgstr "Il y a %(relativetime)s"
 
 #: acct_mgr/web_ui.py:89 acct_mgr/templates/db_cleanup.html:52
 #: acct_mgr/templates/prefs_account.html:45
@@ -442,7 +465,7 @@ msgstr "L'adresse email doit être renseignée."
 
 #: acct_mgr/web_ui.py:193
 msgid "The email and username must match a known account."
-msgstr ""
+msgstr "L'e-mail et le nom d'utilisateur doivent correspondre à un compte connu."
 
 #: acct_mgr/web_ui.py:217
 msgid "Old Password cannot be empty."
@@ -489,25 +512,25 @@ msgstr[1] ""
 
 #: acct_mgr/templates/account_details.html:14
 msgid "Account Details"
-msgstr ""
+msgstr "Détails du compte"
 
 #: acct_mgr/templates/account_details.html:20
 msgid "Review User Account Details"
-msgstr ""
+msgstr "Vérifier les détails du compte utilisateur"
 
 #: acct_mgr/templates/account_details.html:22
 #, python-format
 msgid "for [1:%(name)s] ([2:%(user)s])"
-msgstr ""
+msgstr "pour [1:%(name)s] ([2:%(user)s])"
 
 #: acct_mgr/templates/account_details.html:25
 #, python-format
 msgid "for [1:%(user)s]"
-msgstr ""
+msgstr "pour [1:%(user)s]"
 
 #: acct_mgr/templates/account_details.html:34
 msgid "Account Status"
-msgstr ""
+msgstr "Statut du compte"
 
 #: acct_mgr/templates/account_details.html:38
 #, python-format
@@ -515,14 +538,16 @@ msgid ""
 "Credentials for this user are stored in AuthStore number\n"
 "              [1:%(order_num)s] (%(store)s)."
 msgstr ""
+"Les informations d'identification de cet utilisateur sont stockées dans le numéro AuthStore\n"
+" [1 : %(num_commande)s] (%(magasin)s)."
 
 #: acct_mgr/templates/account_details.html:42
 msgid "Username matching is set to [1:not case-sensitive]."
-msgstr ""
+msgstr "La correspondance du nom d'utilisateur est définie sur [1:not case-sensitive]."
 
 #: acct_mgr/templates/account_details.html:44
 msgid "Username matching is set to [1:case-sensitive]."
-msgstr ""
+msgstr "La correspondance du nom d'utilisateur est définie sur [1:case-sensitive]."
 
 #: acct_mgr/templates/account_details.html:49
 msgid ""
@@ -542,11 +567,11 @@ msgstr ""
 
 #: acct_mgr/templates/account_details.html:66
 msgid "This account has been locked permanently."
-msgstr ""
+msgstr "Ce compte a été définitivement verrouillé."
 
 #: acct_mgr/templates/account_details.html:70
 msgid "Release account lock"
-msgstr ""
+msgstr "Libérer le verrouillage du compte"
 
 #: acct_mgr/templates/account_details.html:70
 msgid "Unlock"
@@ -569,27 +594,29 @@ msgid ""
 "Therefore after another failed login attempt authentication\n"
 "                  for this account would be retarded by %(time)s."
 msgstr ""
+"Par conséquent, après une autre tentative de connexion échouée, l'authentification\n"
+" pour ce compte serait retardé de %(time)s."
 
 #: acct_mgr/templates/account_details.html:101
 msgid "Lock condition has not been met yet."
-msgstr ""
+msgstr "La condition de verrouillage n'a pas encore été remplie."
 
 #: acct_mgr/templates/account_details.html:107
 msgid "No constraints are set for this account."
-msgstr ""
+msgstr "Aucune contrainte n'est définie pour ce compte."
 
 #: acct_mgr/templates/account_details.html:116
 msgid "Verification"
-msgstr ""
+msgstr "Verification"
 
 #: acct_mgr/templates/account_details.html:120
 #, python-format
 msgid "Current email address: <%(email)s>"
-msgstr ""
+msgstr "Adresse e-mail actuelle : <%(email)s>"
 
 #: acct_mgr/templates/account_details.html:123
 msgid "This address has been verified successfully."
-msgstr ""
+msgstr "Cette adresse a été vérifiée avec succès."
 
 #: acct_mgr/templates/account_details.html:125
 #, python-format
@@ -597,27 +624,29 @@ msgid ""
 "Verification is pending\n"
 "                  ([1:token: '%(token)s' ])."
 msgstr ""
+"La vérification est en attente\n"
+"  ([1:token: '%(token)s' ])."
 
 #: acct_mgr/templates/account_details.html:128
 msgid "This address has not been verified yet."
-msgstr ""
+msgstr "Cette adresse n'a pas encore été vérifiée."
 
 #: acct_mgr/templates/account_details.html:133
 msgid "No email address is registered for this account."
-msgstr ""
+msgstr "Aucune adresse e-mail n'est enregistrée pour ce compte."
 
 #: acct_mgr/templates/account_details.html:141
 msgid "Access History"
-msgstr ""
+msgstr "Historique d'accès"
 
 #: acct_mgr/templates/account_details.html:144
 #, python-format
 msgid "Last login: %(time)s"
-msgstr ""
+msgstr "Dernière connexion: %(time)s"
 
 #: acct_mgr/templates/account_details.html:146
 msgid "The user has not logged in before."
-msgstr ""
+msgstr "L'utilisateur ne s'est pas connecté auparavant."
 
 #: acct_mgr/templates/account_details.html:150
 #, python-format
@@ -626,7 +655,7 @@ msgstr "Nombre de tentatives ayant échoué : %(count)s"
 
 #: acct_mgr/templates/account_details.html:151
 msgid "Table: Last failed login attempts log view"
-msgstr ""
+msgstr "Tableau : Affichage du journal des dernières tentatives de connexion infructueuses"
 
 #: acct_mgr/templates/account_details.html:156
 msgid "IP address"
@@ -634,56 +663,58 @@ msgstr "Adresse IP"
 
 #: acct_mgr/templates/account_details.html:157
 msgid "Log time"
-msgstr ""
+msgstr "Heure du journal"
 
 #: acct_mgr/templates/account_details.html:168
 msgid "Delete login failure log"
-msgstr ""
+msgstr "Supprimer le journal des échecs de connexion"
 
 #: acct_mgr/templates/account_details.html:168
 msgid "Delete Log"
-msgstr ""
+msgstr "Supprimer le journal"
 
 #: acct_mgr/templates/account_details.html:175
 msgid "There is currently no failed login attempt logged."
-msgstr ""
+msgstr "Il n'y a actuellement aucune tentative de connexion échouée enregistrée."
 
 #: acct_mgr/templates/account_details.html:182
 #: acct_mgr/templates/db_cleanup.html:125
 msgid "Back to accounts"
-msgstr ""
+msgstr "Retour aux comptes"
 
 #: acct_mgr/templates/account_details.html:184
 #: acct_mgr/templates/db_cleanup.html:37
 msgid "Update"
-msgstr ""
+msgstr "Mise à jour"
 
 #: acct_mgr/templates/admin_accountsconfig.html:14
 #: acct_mgr/templates/admin_accountsconfig.html:18
 msgid "Accounts: Configuration"
-msgstr ""
+msgstr "Comptes: configuration"
 
 #: acct_mgr/templates/admin_accountsconfig.html:62
 msgid "Password Refresh"
-msgstr ""
+msgstr "Actualisation du mot de passe"
 
 #: acct_mgr/templates/admin_accountsconfig.html:65
 msgid "Silently update password hashes on next successful login."
-msgstr ""
+msgstr "Mettre à jour silencieusement les hachages de mot de passe lors de la prochaine connexion réussie."
 
 #: acct_mgr/templates/admin_accountsconfig.html:68
 msgid "Restart"
-msgstr ""
+msgstr "Redémarrage"
 
 #: acct_mgr/templates/admin_accountsconfig.html:74
 msgid "Persistent Sessions"
-msgstr ""
+msgstr "Sessions persistantes"
 
 #: acct_mgr/templates/admin_accountsconfig.html:77
 msgid ""
 "Allow the user to be remembered across sessions without needing to\n"
 "          re-authenticate."
 msgstr ""
+"Autoriser la mémorisation de l'utilisateur d'une session à l'autre sans avoir besoin de\n"
+" ré-authentifier."
 
 #: acct_mgr/templates/admin_accountsconfig.html:81
 msgid ""
@@ -698,45 +729,49 @@ msgstr "Réinitialisation du mot de passe"
 
 #: acct_mgr/templates/admin_accountsconfig.html:91
 msgid "Force users to change passwords after a password reset."
-msgstr ""
+msgstr "Forcer les utilisateurs à changer de mot de passe après une réinitialisation du mot de passe."
 
 #: acct_mgr/templates/admin_accountsconfig.html:97
 msgid "Verify email"
-msgstr ""
+msgstr "Vérifier les courriels"
 
 #: acct_mgr/templates/admin_accountsconfig.html:100
 msgid "Force users to verify their email addresses."
-msgstr ""
+msgstr "Forcer les utilisateurs à vérifier leurs adresses e-mail."
 
 #: acct_mgr/templates/admin_accountsconfig.html:105
 #: acct_mgr/templates/admin_accountsnotification.html:51
 msgid "Save"
-msgstr ""
+msgstr "Sauvegarder"
 
 #: acct_mgr/templates/admin_accountsnotification.html:14
 #: acct_mgr/templates/admin_accountsnotification.html:18
 msgid "Accounts: Notification Configuration"
-msgstr ""
+msgstr "Comptes : configuration des notifications"
 
 #: acct_mgr/templates/admin_accountsnotification.html:22
 msgid "Account Notification"
-msgstr ""
+msgstr "Avis de compte"
 
 #: acct_mgr/templates/admin_accountsnotification.html:23
 msgid ""
 "Set the following options in order to be notified of\n"
 "          account creation, password reset and account deletion."
 msgstr ""
+"Définissez les options suivantes afin d'être notifié\n"
+" création de compte, réinitialisation de mot de passe et suppression de compte."
 
 #: acct_mgr/templates/admin_accountsnotification.html:26
 msgid "Notification Actions"
-msgstr ""
+msgstr "Actions de notification"
 
 #: acct_mgr/templates/admin_accountsnotification.html:27
 msgid ""
 "This is a list of actions which you can\n"
 "          enable or disable by [1:checking] the [2:checkboxes]."
 msgstr ""
+"Ceci est une liste d'actions que vous pouvez\n"
+" activez ou désactivez en [1:checking] les [2:checkboxes]."
 
 #: acct_mgr/templates/admin_accountsnotification.html:31
 msgid "Get notified of new account creation"
@@ -769,11 +804,11 @@ msgstr "Gestion des comptes utilisateurs"
 #: acct_mgr/templates/admin_users.html:26
 #, python-format
 msgid "Successfully updated: %(success)s"
-msgstr ""
+msgstr "Mise à jour réussie : %(success)s"
 
 #: acct_mgr/templates/admin_users.html:31
 msgid "Add/Edit Account:"
-msgstr ""
+msgstr "Ajouter/Modifier un compte:"
 
 #: acct_mgr/templates/admin_users.html:33 acct_mgr/templates/login.html:33
 #: acct_mgr/templates/register.html:36
@@ -783,7 +818,7 @@ msgstr "Utilisateur :"
 
 #: acct_mgr/templates/admin_users.html:36 acct_mgr/templates/register.html:40
 msgid "Only lowercase usernames allowed"
-msgstr ""
+msgstr "Seuls les noms d'utilisateur en minuscules sont autorisés"
 
 #: acct_mgr/templates/admin_users.html:41 acct_mgr/templates/login.html:38
 #: acct_mgr/templates/prefs_account.html:30 acct_mgr/templates/register.html:45
@@ -797,7 +832,7 @@ msgstr "Confirmation du mot de passe :"
 
 #: acct_mgr/templates/admin_users.html:57
 msgid "Pre-/Surname (Nickname):"
-msgstr ""
+msgstr "Pré-/Nom de famille (Pseudonyme):"
 
 #: acct_mgr/templates/admin_users.html:62
 #: acct_mgr/templates/reset_password.html:58
@@ -814,11 +849,11 @@ msgstr ""
 
 #: acct_mgr/templates/admin_users.html:72
 msgid " Add "
-msgstr "Ajouter"
+msgstr " Ajouter"
 
 #: acct_mgr/templates/admin_users.html:75
 msgid " Change "
-msgstr ""
+msgstr " Changement"
 
 #: acct_mgr/templates/admin_users.html:84
 msgid "This password store does not support listing users."
@@ -826,11 +861,11 @@ msgstr ""
 
 #: acct_mgr/templates/admin_users.html:91
 msgid "Send another random password"
-msgstr ""
+msgstr "Envoyer un autre mot de passe aléatoire"
 
 #: acct_mgr/templates/admin_users.html:91
 msgid "Reset passwords"
-msgstr ""
+msgstr "Réinitialiser les mots de passe"
 
 #: acct_mgr/templates/admin_users.html:95
 msgid "Remove selected accounts"
@@ -838,46 +873,48 @@ msgstr "Supprimer les comptes sélectionnés"
 
 #: acct_mgr/templates/admin_users.html:98
 msgid "Review account attributes"
-msgstr ""
+msgstr "Examiner les attributs du compte"
 
 #: acct_mgr/templates/db_cleanup.html:14 acct_mgr/templates/db_cleanup.html:23
 msgid "Accounts: Cleanup"
-msgstr ""
+msgstr "Comptes: nettoyage"
 
 #: acct_mgr/templates/db_cleanup.html:30
 msgid ""
 "Max accounts per page\n"
 "          [1:]"
 msgstr ""
+"Nombre maximum de comptes par page\n"
+"          [1:]"
 
 #: acct_mgr/templates/db_cleanup.html:44
 #, python-format
 msgid "Accounts (%(slice)s)"
-msgstr ""
+msgstr "Comptes (%(slice)s)"
 
 #: acct_mgr/templates/db_cleanup.html:57
 msgid "Attribute"
-msgstr ""
+msgstr "Attribut"
 
 #: acct_mgr/templates/db_cleanup.html:58
 msgid "Value"
-msgstr ""
+msgstr "Valeur"
 
 #: acct_mgr/templates/db_cleanup.html:63
 msgid "Not Authenticated Accounts"
-msgstr ""
+msgstr "Comptes non authentifiés"
 
 #: acct_mgr/templates/db_cleanup.html:90
 msgid "Authenticated Accounts"
-msgstr ""
+msgstr "Comptes authentifiés"
 
 #: acct_mgr/templates/db_cleanup.html:121
 msgid "Remove selected entries"
-msgstr ""
+msgstr "Supprimer les entrées sélectionnées"
 
 #: acct_mgr/templates/db_cleanup.html:123
 msgid "Undo selection"
-msgstr ""
+msgstr "Annuler la sélection"
 
 #: acct_mgr/templates/login.html:14 acct_mgr/templates/login.html:26
 #: acct_mgr/templates/login.html:54
@@ -921,15 +958,15 @@ msgstr "S'inscrire"
 
 #: acct_mgr/templates/register.html:33
 msgid "Required"
-msgstr ""
+msgstr "Requis"
 
 #: acct_mgr/templates/register.html:63
 msgid "Optional"
-msgstr ""
+msgstr "Facultatif"
 
 #: acct_mgr/templates/register.html:65
 msgid "Name:"
-msgstr "Nom :"
+msgstr "Nom:"
 
 #: acct_mgr/templates/register.html:76
 msgid "Create account"
@@ -965,6 +1002,8 @@ msgid ""
 "If you've forgotten your password, enter your username and\n"
 "        email address below and you'll be emailed a new password."
 msgstr ""
+"Si vous avez oublié votre mot de passe, saisissez votre nom d'utilisateur et\n"
+" ci-dessous et vous recevrez un nouveau mot de passe par e-mail."
 
 #: acct_mgr/templates/reset_password.html:63
 msgid "Reset password"
@@ -1007,7 +1046,7 @@ msgstr ""
 
 #: acct_mgr/templates/verify_email.html:35
 msgid "Verification Token:"
-msgstr ""
+msgstr "Jeton de vérification:"
 
 #: acct_mgr/templates/verify_email.html:40
 msgid "Verify"
