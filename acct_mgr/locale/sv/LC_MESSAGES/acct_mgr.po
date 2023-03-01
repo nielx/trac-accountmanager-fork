@@ -46,10 +46,12 @@ msgid ""
 "Error while reading configuration -\n"
 "                              Hint: Enable/install the required component."
 msgstr ""
+"Fel vid läsning av konfiguration -\n
+"                              Tips: Aktivera/installera den nödvändiga komponenten."
 
 #: acct_mgr/admin.py:298
 msgid "Password hash refresh procedure restarted."
-msgstr ""
+msgstr "Lösenords-hash-uppdateringsproceduren har startat om."
 
 #: acct_mgr/admin.py:368
 msgid "The password store does not support creating users."
@@ -122,24 +124,24 @@ msgstr[1] ""
 
 #: acct_mgr/admin.py:619
 msgid "Successfully deleted:"
-msgstr ""
+msgstr "Raderat:"
 
 #: acct_mgr/admin.py:639
 #, python-format
 msgid "page %(num)s"
-msgstr ""
+msgstr "sida %(num)s"
 
 #: acct_mgr/admin.py:650
 msgid "Next Page"
-msgstr ""
+msgstr "Nästa sida"
 
 #: acct_mgr/admin.py:655
 msgid "Previous Page"
-msgstr ""
+msgstr "Föregående sida"
 
 #: acct_mgr/api.py:167
 msgid "Ordered list of password stores, queried in turn."
-msgstr ""
+msgstr "Sorterad lista över lösenord-store, frågade i tur."
 
 #: acct_mgr/api.py:238
 #, python-format
@@ -161,7 +163,7 @@ msgstr ""
 
 #: acct_mgr/db.py:23
 msgid "IPasswordHashMethod used to create new/updated passwords"
-msgstr ""
+msgstr "IPasswordHashMethod används för att skapa nya/uppdaterade lösenord"
 
 #: acct_mgr/htfile.py:144
 msgid ""
@@ -204,7 +206,7 @@ msgstr "URL för den HTTP-baserade autentiseringstjänsten"
 #: acct_mgr/macros.py:95
 #, python-format
 msgid "(required %(perm)s missing)"
-msgstr ""
+msgstr "(obligatoriskt %(perm)s saknas)"
 
 #: acct_mgr/notification.py:53
 msgid "The email and username do not match a known account."
@@ -216,7 +218,7 @@ msgstr "Avisering"
 
 #: acct_mgr/pwhash.py:58
 msgid "Realm to select relevant htdigest db entries"
-msgstr ""
+msgstr "Realm för att välja relevanta htdigest db-poster"
 
 #: acct_mgr/pwhash.py:116
 msgid ""
@@ -233,12 +235,12 @@ msgstr ""
 
 #: acct_mgr/register.py:43
 msgid "Registration Error"
-msgstr ""
+msgstr "Registreringsfel"
 
 #: acct_mgr/register.py:76
 #, python-format
 msgid "No check method 'validate_registration' defined in %(module)s"
-msgstr ""
+msgstr "Ingen kontrollmetod 'validate_registration' definierad i %(module)s"
 
 #: acct_mgr/register.py:112
 #, python-format
@@ -247,7 +249,7 @@ msgstr "Användarnamnet får ej innehålla något av följande tecken: %s"
 
 #: acct_mgr/register.py:119
 msgid "A username with only upper-cased characters is not allowed."
-msgstr ""
+msgstr "Ett användarnamn med endast versaler är inte tillåtet."
 
 #: acct_mgr/register.py:126
 #, python-format
@@ -260,6 +262,8 @@ msgid ""
 "Another account or group already exists, who's name differs from %s only "
 "by case or is identical."
 msgstr ""
+"Ett annat konto eller grupp finns redan, vems namn skiljer sig från endast %s "
+"i fall eller är identisk."
 
 #: acct_mgr/register.py:148 acct_mgr/web_ui.py:223 acct_mgr/web_ui.py:240
 msgid "Password cannot be empty."
@@ -271,18 +275,20 @@ msgid ""
 "Please type [%(token)s] as verification token,\n"
 "                exactly replicating everything within the braces."
 msgstr ""
+"Vänligen skriv [%(token)s] som verifieringstoken,\n"
+" exakt replikerar allt inom hängslen."
 
 #: acct_mgr/register.py:174
 msgid "Parole:"
-msgstr ""
+msgstr "Parole:"
 
 #: acct_mgr/register.py:184
 msgid "Better do not fill this field."
-msgstr ""
+msgstr "Det är bättre att inte fylla i detta fält."
 
 #: acct_mgr/register.py:195
 msgid "Are you human? If so, try harder!"
-msgstr ""
+msgstr "Är du en människa? Om så är fallet, försök hårdare!"
 
 #: acct_mgr/register.py:209
 #, fuzzy
@@ -295,12 +301,16 @@ msgid ""
 "The email address is required for Trac to send\n"
 "                           you a verification token."
 msgstr ""
+"E-postadressen krävs för att Trac ska kunna skicka\n"
+"                           du en verifieringstoken."
 
 #: acct_mgr/register.py:223
 msgid ""
 "Entering your email address will also enable you\n"
 "                           to reset your password if you ever forget it."
 msgstr ""
+"Om du anger din e-postadress kommer du också att kunna\n"
+"                           för att återställa ditt lösenord om du någonsin glömmer det."
 
 #. TRANSLATOR: Registration form hint, if email input is optional.
 #: acct_mgr/register.py:231
@@ -308,6 +318,8 @@ msgid ""
 "Entering your email address will enable you to\n"
 "                           reset your password if you ever forget it."
 msgstr ""
+"Om du anger din e-postadress kommer du att kunna\n"
+"                           för att återställa ditt lösenord om du någonsin glömmer det."
 
 #: acct_mgr/register.py:246
 msgid "You must specify a valid email address."
@@ -318,17 +330,20 @@ msgid ""
 "The email address specified is already in use. Please specify a different"
 " one."
 msgstr ""
+"Den angivna e-postadressen används redan. Vänligen ange en annan."
 
 #: acct_mgr/register.py:277
 #, python-format
 msgid "Username %s doesn't match local naming policy."
-msgstr ""
+msgstr "Användarnamnet %s matchar inte lokal namnpolicy."
 
 #: acct_mgr/register.py:287
 msgid ""
 "The email address specified appears to be invalid. Please specify a valid"
 " email address."
 msgstr ""
+"Den angivna e-postadressen verkar vara ogiltig. Ange en giltig"
+" e-postadress."
 
 #: acct_mgr/register.py:364 acct_mgr/templates/login.html:58
 #: acct_mgr/templates/login.html:61 acct_mgr/templates/register.html:14
@@ -409,7 +424,7 @@ msgstr ""
 #: acct_mgr/util.py:78 acct_mgr/util.py:83
 #, python-format
 msgid "%(relativetime)s ago"
-msgstr ""
+msgstr "%(relativetime)s sedan"
 
 #: acct_mgr/web_ui.py:89 acct_mgr/templates/db_cleanup.html:52
 #: acct_mgr/templates/prefs_account.html:45
@@ -669,7 +684,7 @@ msgstr "För närvarande finns inga registrerade misslyckade inloggningar."
 #: acct_mgr/templates/account_details.html:182
 #: acct_mgr/templates/db_cleanup.html:125
 msgid "Back to accounts"
-msgstr ""
+msgstr "Tillbaka till konton"
 
 #: acct_mgr/templates/account_details.html:184
 #: acct_mgr/templates/db_cleanup.html:37
@@ -691,7 +706,7 @@ msgstr "Uppdatera lösenordshasharna vid nästa lyckade inloggning."
 
 #: acct_mgr/templates/admin_accountsconfig.html:68
 msgid "Restart"
-msgstr ""
+msgstr "Omstart"
 
 #: acct_mgr/templates/admin_accountsconfig.html:74
 msgid "Persistent Sessions"
@@ -805,7 +820,7 @@ msgstr "Användarnamn:"
 
 #: acct_mgr/templates/admin_users.html:36 acct_mgr/templates/register.html:40
 msgid "Only lowercase usernames allowed"
-msgstr ""
+msgstr "Endast gemener användarnamn tillåtna"
 
 #: acct_mgr/templates/admin_users.html:41 acct_mgr/templates/login.html:38
 #: acct_mgr/templates/prefs_account.html:30 acct_mgr/templates/register.html:45
@@ -828,7 +843,7 @@ msgstr "E-postadress:"
 
 #: acct_mgr/templates/admin_users.html:67
 msgid "Skip new email verification"
-msgstr ""
+msgstr "Hoppa över ny e-postverifiering"
 
 #: acct_mgr/templates/admin_users.html:70
 msgid "Add a new user account or edit an existing one."
@@ -848,7 +863,7 @@ msgstr "Lösenordsförrådet medger ej listning av användare."
 
 #: acct_mgr/templates/admin_users.html:91
 msgid "Send another random password"
-msgstr ""
+msgstr "Skicka ett annat slumpmässigt lösenord"
 
 #: acct_mgr/templates/admin_users.html:91
 msgid "Reset passwords"
@@ -860,46 +875,48 @@ msgstr "Radera valda konton"
 
 #: acct_mgr/templates/admin_users.html:98
 msgid "Review account attributes"
-msgstr ""
+msgstr "Granska kontoattribut"
 
 #: acct_mgr/templates/db_cleanup.html:14 acct_mgr/templates/db_cleanup.html:23
 msgid "Accounts: Cleanup"
-msgstr ""
+msgstr "Konton: Städning"
 
 #: acct_mgr/templates/db_cleanup.html:30
 msgid ""
 "Max accounts per page\n"
 "          [1:]"
 msgstr ""
+"Max konton per sida\n"
+"          [1:]"
 
 #: acct_mgr/templates/db_cleanup.html:44
 #, python-format
 msgid "Accounts (%(slice)s)"
-msgstr ""
+msgstr "Konton (%(slice)s)"
 
 #: acct_mgr/templates/db_cleanup.html:57
 msgid "Attribute"
-msgstr ""
+msgstr "Attribut"
 
 #: acct_mgr/templates/db_cleanup.html:58
 msgid "Value"
-msgstr ""
+msgstr "Värde"
 
 #: acct_mgr/templates/db_cleanup.html:63
 msgid "Not Authenticated Accounts"
-msgstr ""
+msgstr "Ej autentiserade konton"
 
 #: acct_mgr/templates/db_cleanup.html:90
 msgid "Authenticated Accounts"
-msgstr ""
+msgstr "Autentiserade konton"
 
 #: acct_mgr/templates/db_cleanup.html:121
 msgid "Remove selected entries"
-msgstr ""
+msgstr "Ta bort markerade poster"
 
 #: acct_mgr/templates/db_cleanup.html:123
 msgid "Undo selection"
-msgstr ""
+msgstr "Ångra val"
 
 #: acct_mgr/templates/login.html:14 acct_mgr/templates/login.html:26
 #: acct_mgr/templates/login.html:54
