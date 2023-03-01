@@ -51,7 +51,7 @@ msgstr ""
 
 #: acct_mgr/admin.py:298
 msgid "Password hash refresh procedure restarted."
-msgstr ""
+msgstr "Procedura di aggiornamento dell'hash della password riavviata."
 
 #: acct_mgr/admin.py:368
 msgid "The password store does not support creating users."
@@ -122,24 +122,24 @@ msgstr[1] ""
 
 #: acct_mgr/admin.py:619
 msgid "Successfully deleted:"
-msgstr ""
+msgstr "Eliminato con successo:"
 
 #: acct_mgr/admin.py:639
 #, python-format
 msgid "page %(num)s"
-msgstr ""
+msgstr "pagina %(num)s"
 
 #: acct_mgr/admin.py:650
 msgid "Next Page"
-msgstr ""
+msgstr "Pagina successiva"
 
 #: acct_mgr/admin.py:655
 msgid "Previous Page"
-msgstr ""
+msgstr "Pagina precedente"
 
 #: acct_mgr/api.py:167
 msgid "Ordered list of password stores, queried in turn."
-msgstr ""
+msgstr "Elenco ordinato di archivi di password, interrogati a turno."
 
 #: acct_mgr/api.py:238
 #, python-format
@@ -163,7 +163,7 @@ msgstr ""
 
 #: acct_mgr/db.py:23
 msgid "IPasswordHashMethod used to create new/updated passwords"
-msgstr ""
+msgstr "IPasswordHashMethod utilizzato per creare password nuove/aggiornate"
 
 #: acct_mgr/htfile.py:144
 msgid ""
@@ -208,7 +208,7 @@ msgstr "URL del servizio di autenticazione HTTP"
 #: acct_mgr/macros.py:95
 #, python-format
 msgid "(required %(perm)s missing)"
-msgstr ""
+msgstr "(obbligatorio %(perm)s mancante)"
 
 #: acct_mgr/notification.py:53
 msgid "The email and username do not match a known account."
@@ -220,7 +220,7 @@ msgstr "Notifica"
 
 #: acct_mgr/pwhash.py:58
 msgid "Realm to select relevant htdigest db entries"
-msgstr ""
+msgstr "Realm per selezionare le voci db htdigest pertinenti"
 
 #: acct_mgr/pwhash.py:116
 msgid ""
@@ -228,23 +228,25 @@ msgid ""
 "                                    on this platform."
 msgstr ""
 "Il modulo \"crypt\" non è disponibile \n"
-"su questa piattaforma."
+"                                    su questa piattaforma."
 
 #: acct_mgr/pwhash.py:123
 msgid ""
 "Neither are \"sha2\" hash algorithms supported by the\n"
 "                    \"crypt\" module on this platform nor is \"passlib\"\n"
 "                    available."
-msgstr ""
+msgstr ""Nemmeno gli algoritmi hash \"sha2\" sono supportati da\n"
+"                    il modulo \"crypt\" su questa piattaforma né \"passlib\"\n"
+"                    disponibile."
 
 #: acct_mgr/register.py:43
 msgid "Registration Error"
-msgstr ""
+msgstr "Errore di registrazione"
 
 #: acct_mgr/register.py:76
 #, python-format
 msgid "No check method 'validate_registration' defined in %(module)s"
-msgstr ""
+msgstr "Nessun metodo di controllo 'validate_registration' definito in %(module)s"
 
 #: acct_mgr/register.py:112
 #, python-format
@@ -253,7 +255,7 @@ msgstr "Il nome utente non deve contenere i seguenti caratteri: %s"
 
 #: acct_mgr/register.py:119
 msgid "A username with only upper-cased characters is not allowed."
-msgstr ""
+msgstr "Un nome utente con solo caratteri maiuscoli non è consentito."
 
 #: acct_mgr/register.py:126
 #, python-format
@@ -266,6 +268,8 @@ msgid ""
 "Another account or group already exists, who's name differs from %s only "
 "by case or is identical."
 msgstr ""
+"Esiste già un altro account o gruppo, il cui nome differisce da %s "
+"solo per caso o è identico."
 
 #: acct_mgr/register.py:148 acct_mgr/web_ui.py:223 acct_mgr/web_ui.py:240
 msgid "Password cannot be empty."
@@ -277,18 +281,20 @@ msgid ""
 "Please type [%(token)s] as verification token,\n"
 "                exactly replicating everything within the braces."
 msgstr ""
+"Digitare [%(token)s] come token di verifica,\n
+"                replicando esattamente tutto all'interno dell'apparecchio."
 
 #: acct_mgr/register.py:174
 msgid "Parole:"
-msgstr ""
+msgstr "Parole:"
 
 #: acct_mgr/register.py:184
 msgid "Better do not fill this field."
-msgstr ""
+msgstr "Meglio non compilare questo campo."
 
 #: acct_mgr/register.py:195
 msgid "Are you human? If so, try harder!"
-msgstr ""
+msgstr "Sei umano? Se è così, prova di più!"
 
 #: acct_mgr/register.py:209
 msgid "Email:"
@@ -323,17 +329,20 @@ msgid ""
 "The email address specified is already in use. Please specify a different"
 " one."
 msgstr ""
+"L'indirizzo email specificato è già in uso. Specificane un altro."
 
 #: acct_mgr/register.py:277
 #, python-format
 msgid "Username %s doesn't match local naming policy."
-msgstr ""
+msgstr "Il nome utente %s non corrisponde alla politica di denominazione locale."
 
 #: acct_mgr/register.py:287
 msgid ""
 "The email address specified appears to be invalid. Please specify a valid"
 " email address."
 msgstr ""
+"L'indirizzo email specificato sembra non essere valido. Specificare un indirizzo valido"
+" indirizzo e-mail."
 
 #: acct_mgr/register.py:364 acct_mgr/templates/login.html:58
 #: acct_mgr/templates/login.html:61 acct_mgr/templates/register.html:14
@@ -348,6 +357,10 @@ msgid ""
 "login\n"
 "                        as user %(user)s, and follow the instructions."
 msgstr ""
+"Il tuo nome utente è stato registrato con successo ma\n"
+"                        il tuo account richiede ancora l'attivazione. Per favore"
+"accedi\n"
+"                        come utente %(user)s e segui le istruzioni."
 
 #: acct_mgr/register.py:413
 #, python-format
@@ -355,6 +368,8 @@ msgid ""
 "Registration has been finished successfully.\n"
 "                     You may log in as user %(user)s now."
 msgstr ""
+"La registrazione è stata completata con successo.\n
+"                     Ora puoi accedere come utente %(user)s."
 
 #. TRANSLATOR: Your permissions have been limited until you ...
 #: acct_mgr/register.py:492
@@ -416,7 +431,7 @@ msgstr ""
 #: acct_mgr/util.py:78 acct_mgr/util.py:83
 #, python-format
 msgid "%(relativetime)s ago"
-msgstr ""
+msgstr "%(relativetime)s fa"
 
 #: acct_mgr/web_ui.py:89 acct_mgr/templates/db_cleanup.html:52
 #: acct_mgr/templates/prefs_account.html:45
