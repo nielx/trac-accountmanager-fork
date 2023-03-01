@@ -23,7 +23,7 @@ msgstr ""
 #: acct_mgr/admin.py:69
 #, python-format
 msgid "Locked until %(t_release)s"
-msgstr ""
+msgstr "Bloqueado hasta %(t_release)s"
 
 #: acct_mgr/admin.py:153
 #, python-format
@@ -48,26 +48,27 @@ msgid ""
 "Error while reading configuration -\n"
 "                              Hint: Enable/install the required component."
 msgstr ""
-
+"Error al leer la configuración -\n"
+"                              Sugerencia: habilite/instale el componente requerido".
 #: acct_mgr/admin.py:298
 msgid "Password hash refresh procedure restarted."
-msgstr ""
+msgstr "Se reinició el procedimiento de actualización de hash de contraseña."
 
 #: acct_mgr/admin.py:368
 msgid "The password store does not support creating users."
-msgstr ""
+msgstr "El almacén de contraseñas no admite la creación de usuarios."
 
 #: acct_mgr/admin.py:379
 msgid "The password reset procedure is not enabled."
-msgstr ""
+msgstr "El procedimiento de restablecimiento de contraseña no está habilitado."
 
 #: acct_mgr/admin.py:389
 msgid "The password store does not support deleting users."
-msgstr ""
+msgstr "El almacén de contraseñas no admite la eliminación de usuarios."
 
 #: acct_mgr/admin.py:394
 msgid "Email Address"
-msgstr ""
+msgstr "Correo electrónico"
 
 #: acct_mgr/admin.py:395
 msgid "Pre-/Surname (Nickname)"
@@ -75,7 +76,7 @@ msgstr ""
 
 #: acct_mgr/admin.py:396
 msgid "Password"
-msgstr ""
+msgstr "Contraseña"
 
 #: acct_mgr/admin.py:405 acct_mgr/register.py:98
 msgid "Username cannot be empty."
@@ -84,7 +85,7 @@ msgstr "El nombre de usuario no puede estar vacío."
 #: acct_mgr/admin.py:410
 #, python-format
 msgid "Unknown user %(user)s."
-msgstr ""
+msgstr "Usuario desconocido %(usuario)s."
 
 #: acct_mgr/admin.py:418 acct_mgr/register.py:150 acct_mgr/web_ui.py:226
 msgid "The passwords must match."
@@ -96,15 +97,17 @@ msgid ""
 "                                changing passwords.\n"
 "                                "
 msgstr ""
-
+"El almacén de contraseñas no es compatible\n"
+"                                cambio de contraseñas.\n"
+"                                "
 #: acct_mgr/admin.py:464
 msgid "Please choose account by username from list to proceed."
-msgstr ""
+msgstr "Elija una cuenta por nombre de usuario de la lista para continuar."
 
 #: acct_mgr/admin.py:480
 #, python-format
 msgid "Failed login attempts for user %(user)s deleted"
-msgstr ""
+msgstr "Intentos de inicio de sesión fallidos para el usuario %(usuario)s eliminados"
 
 #: acct_mgr/admin.py:607
 #, python-format
@@ -122,24 +125,24 @@ msgstr[1] ""
 
 #: acct_mgr/admin.py:619
 msgid "Successfully deleted:"
-msgstr ""
+msgstr "Eliminado con éxito:"
 
 #: acct_mgr/admin.py:639
 #, python-format
 msgid "page %(num)s"
-msgstr ""
+msgstr "página %(num)s"
 
 #: acct_mgr/admin.py:650
 msgid "Next Page"
-msgstr ""
+msgstr "Siguiente página"
 
 #: acct_mgr/admin.py:655
 msgid "Previous Page"
-msgstr ""
+msgstr "Pagina anterior"
 
 #: acct_mgr/api.py:167
 msgid "Ordered list of password stores, queried in turn."
-msgstr ""
+msgstr "Lista ordenada de almacenes de contraseñas, consultados a su vez."
 
 #: acct_mgr/api.py:238
 #, python-format
@@ -148,7 +151,9 @@ msgid ""
 "                setting the password.\n"
 "                "
 msgstr ""
-
+"El servidor de autenticación para el usuario %s no es compatible\n"
+"                establecimiento de la contraseña.\n"
+"                "
 #: acct_mgr/api.py:250
 msgid ""
 "None of the IPasswordStore components listed in the\n"
@@ -156,10 +161,14 @@ msgid ""
 "\n"
 "                "
 msgstr ""
+"Ninguno de los componentes de IPasswordStore enumerados en el\n"
+"                trac.ini admite la configuración de la contraseña o la creación de usuarios".
+"\n"
+"                "
 
 #: acct_mgr/db.py:23
 msgid "IPasswordHashMethod used to create new/updated passwords"
-msgstr ""
+msgstr "IPasswordHashMethod utilizado para crear contraseñas nuevas/actualizadas"
 
 #: acct_mgr/htfile.py:144
 msgid ""
@@ -189,20 +198,20 @@ msgstr ""
 
 #: acct_mgr/htfile.py:201 acct_mgr/pwhash.py:42
 msgid "Default hash type of new/updated passwords"
-msgstr ""
+msgstr "Tipo de hash predeterminado de contraseñas nuevas/actualizadas"
 
 #: acct_mgr/htfile.py:242
 msgid "Realm to select relevant htdigest file entries"
-msgstr ""
+msgstr "Realm para seleccionar entradas de archivo htdigest relevantes"
 
 #: acct_mgr/http.py:27
 msgid "URL of the HTTP authentication service"
-msgstr ""
+msgstr "URL del servicio de autenticación HTTP"
 
 #: acct_mgr/macros.py:95
 #, python-format
 msgid "(required %(perm)s missing)"
-msgstr ""
+msgstr "(falta %(perm)s requerido)"
 
 #: acct_mgr/notification.py:53
 msgid "The email and username do not match a known account."
@@ -216,7 +225,7 @@ msgstr "Notificación"
 
 #: acct_mgr/pwhash.py:58
 msgid "Realm to select relevant htdigest db entries"
-msgstr ""
+msgstr "Realm para seleccionar entradas relevantes de la base de datos htdigest"
 
 #: acct_mgr/pwhash.py:116
 msgid ""
@@ -230,15 +239,18 @@ msgid ""
 "                    \"crypt\" module on this platform nor is \"passlib\"\n"
 "                    available."
 msgstr ""
+"Tampoco los algoritmos hash \"sha2\" son compatibles con\n"
+"                    el módulo \"crypt\" en esta plataforma tampoco es \"passlib\"\n"
+"                    disponible."
 
 #: acct_mgr/register.py:43
 msgid "Registration Error"
-msgstr ""
+msgstr "Error de registro"
 
 #: acct_mgr/register.py:76
 #, python-format
 msgid "No check method 'validate_registration' defined in %(module)s"
-msgstr ""
+msgstr "No se ha definido el método de verificación 'validate_registration' en %(module)s"
 
 #: acct_mgr/register.py:112
 #, python-format
@@ -247,7 +259,7 @@ msgstr "El nombre de usuario no debe contener ninguno de estos caracteres: %s"
 
 #: acct_mgr/register.py:119
 msgid "A username with only upper-cased characters is not allowed."
-msgstr ""
+msgstr "No se permite un nombre de usuario con solo caracteres en mayúsculas."
 
 #: acct_mgr/register.py:126
 #, python-format
@@ -260,6 +272,8 @@ msgid ""
 "Another account or group already exists, who's name differs from %s only "
 "by case or is identical."
 msgstr ""
+"Ya existe otra cuenta o grupo, cuyo nombre difiere de %s solo "
+"por mayúsculas o minúsculas o es idéntico."
 
 #: acct_mgr/register.py:148 acct_mgr/web_ui.py:223 acct_mgr/web_ui.py:240
 msgid "Password cannot be empty."
@@ -274,15 +288,15 @@ msgstr ""
 
 #: acct_mgr/register.py:174
 msgid "Parole:"
-msgstr ""
+msgstr "Parole:"
 
 #: acct_mgr/register.py:184
 msgid "Better do not fill this field."
-msgstr ""
+msgstr "Mejor no llene este campo."
 
 #: acct_mgr/register.py:195
 msgid "Are you human? If so, try harder!"
-msgstr ""
+msgstr "Eres humano? Si es así, ¡esfuérzate más!"
 
 #: acct_mgr/register.py:209
 msgid "Email:"
@@ -453,7 +467,7 @@ msgstr "El correo electrónico es necesario"
 
 #: acct_mgr/web_ui.py:193
 msgid "The email and username must match a known account."
-msgstr ""
+msgstr "El correo electrónico y el nombre de usuario deben coincidir con una cuenta conocida."
 
 #: acct_mgr/web_ui.py:217
 msgid "Old Password cannot be empty."
@@ -483,10 +497,13 @@ msgid ""
 "                            %(release_time)s\n"
 "                            "
 msgstr ""
+"                            %(release_time)s\n"
+"                            "
 
+"Cuenta bloqueada, inténtalo de nuevo después de\n"
 #: acct_mgr/web_ui.py:378 acct_mgr/templates/user_table.html:38
 msgid "Account locked"
-msgstr ""
+msgstr "Cuenta bloqueada"
 
 #: acct_mgr/web_ui.py:383
 #, python-format
@@ -497,25 +514,25 @@ msgstr[1] ""
 
 #: acct_mgr/templates/account_details.html:14
 msgid "Account Details"
-msgstr ""
+msgstr "Detalles de la cuenta"
 
 #: acct_mgr/templates/account_details.html:20
 msgid "Review User Account Details"
-msgstr ""
+msgstr "Revisar los detalles de la cuenta de usuario"
 
 #: acct_mgr/templates/account_details.html:22
 #, python-format
 msgid "for [1:%(name)s] ([2:%(user)s])"
-msgstr ""
+msgstr "por [1:%(name)s] ([2:%(user)s])"
 
 #: acct_mgr/templates/account_details.html:25
 #, python-format
 msgid "for [1:%(user)s]"
-msgstr ""
+msgstr "por [1:%(user)s]"
 
 #: acct_mgr/templates/account_details.html:34
 msgid "Account Status"
-msgstr ""
+msgstr "Estado de la cuenta"
 
 #: acct_mgr/templates/account_details.html:38
 #, python-format
@@ -550,7 +567,7 @@ msgstr ""
 
 #: acct_mgr/templates/account_details.html:66
 msgid "This account has been locked permanently."
-msgstr ""
+msgstr "Esta cuenta ha sido bloqueada permanentemente."
 
 #: acct_mgr/templates/account_details.html:70
 msgid "Release account lock"
@@ -558,7 +575,7 @@ msgstr "Eliminar"
 
 #: acct_mgr/templates/account_details.html:70
 msgid "Unlock"
-msgstr ""
+msgstr "Desbloquear"
 
 #: acct_mgr/templates/account_details.html:82
 #, python-format
@@ -580,24 +597,24 @@ msgstr ""
 
 #: acct_mgr/templates/account_details.html:101
 msgid "Lock condition has not been met yet."
-msgstr ""
+msgstr "La condición de bloqueo aún no se ha cumplido."
 
 #: acct_mgr/templates/account_details.html:107
 msgid "No constraints are set for this account."
-msgstr ""
+msgstr "No se establecen restricciones para esta cuenta."
 
 #: acct_mgr/templates/account_details.html:116
 msgid "Verification"
-msgstr ""
+msgstr "Verificación"
 
 #: acct_mgr/templates/account_details.html:120
 #, python-format
 msgid "Current email address: <%(email)s>"
-msgstr ""
+msgstr "Dirección de correo electrónico actual: <%(email)s>"
 
 #: acct_mgr/templates/account_details.html:123
 msgid "This address has been verified successfully."
-msgstr ""
+msgstr "Esta dirección ha sido verificada con éxito."
 
 #: acct_mgr/templates/account_details.html:125
 #, python-format
@@ -608,63 +625,63 @@ msgstr ""
 
 #: acct_mgr/templates/account_details.html:128
 msgid "This address has not been verified yet."
-msgstr ""
+msgstr "Esta dirección aún no ha sido verificada."
 
 #: acct_mgr/templates/account_details.html:133
 msgid "No email address is registered for this account."
-msgstr ""
+msgstr "No hay ninguna dirección de correo electrónico registrada para esta cuenta."
 
 #: acct_mgr/templates/account_details.html:141
 msgid "Access History"
-msgstr ""
+msgstr "Historial de acceso"
 
 #: acct_mgr/templates/account_details.html:144
 #, python-format
 msgid "Last login: %(time)s"
-msgstr ""
+msgstr "Último acceso: %(time)s"
 
 #: acct_mgr/templates/account_details.html:146
 msgid "The user has not logged in before."
-msgstr ""
+msgstr "El usuario no se ha conectado antes."
 
 #: acct_mgr/templates/account_details.html:150
 #, python-format
 msgid "Total failed attempts: %(count)s"
-msgstr ""
+msgstr "Total de intentos fallidos: %(count)s"
 
 #: acct_mgr/templates/account_details.html:151
 msgid "Table: Last failed login attempts log view"
-msgstr ""
+msgstr "Tabla: Vista de registro de los últimos intentos fallidos de inicio de sesión"
 
 #: acct_mgr/templates/account_details.html:156
 msgid "IP address"
-msgstr ""
+msgstr "Dirección IP"
 
 #: acct_mgr/templates/account_details.html:157
 msgid "Log time"
-msgstr ""
+msgstr "Tiempo de registro"
 
 #: acct_mgr/templates/account_details.html:168
 msgid "Delete login failure log"
-msgstr ""
+msgstr "Eliminar registro de errores de inicio de sesión"
 
 #: acct_mgr/templates/account_details.html:168
 msgid "Delete Log"
-msgstr ""
+msgstr "Eliminar Log"
 
 #: acct_mgr/templates/account_details.html:175
 msgid "There is currently no failed login attempt logged."
-msgstr ""
+msgstr "Actualmente no hay ningún intento de inicio de sesión fallido registrado."
 
 #: acct_mgr/templates/account_details.html:182
 #: acct_mgr/templates/db_cleanup.html:125
 msgid "Back to accounts"
-msgstr ""
+msgstr "Volver a cuentas"
 
 #: acct_mgr/templates/account_details.html:184
 #: acct_mgr/templates/db_cleanup.html:37
 msgid "Update"
-msgstr ""
+msgstr "Actualizar"
 
 #: acct_mgr/templates/admin_accountsconfig.html:14
 #: acct_mgr/templates/admin_accountsconfig.html:18
@@ -673,15 +690,15 @@ msgstr "Cuentas: configuración"
 
 #: acct_mgr/templates/admin_accountsconfig.html:62
 msgid "Password Refresh"
-msgstr ""
+msgstr "Actualización de contraseña"
 
 #: acct_mgr/templates/admin_accountsconfig.html:65
 msgid "Silently update password hashes on next successful login."
-msgstr ""
+msgstr "Actualice los hashes de contraseña en el próximo inicio de sesión exitoso."
 
 #: acct_mgr/templates/admin_accountsconfig.html:68
 msgid "Restart"
-msgstr ""
+msgstr "Reanudar"
 
 #: acct_mgr/templates/admin_accountsconfig.html:74
 msgid "Persistent Sessions"
@@ -785,11 +802,11 @@ msgstr "Administrar cuentas de usuario"
 #: acct_mgr/templates/admin_users.html:26
 #, python-format
 msgid "Successfully updated: %(success)s"
-msgstr ""
+msgstr "Actualizado exitosamente: %(success)s"
 
 #: acct_mgr/templates/admin_users.html:31
 msgid "Add/Edit Account:"
-msgstr ""
+msgstr "Añadir/Editar cuenta:"
 
 #: acct_mgr/templates/admin_users.html:33 acct_mgr/templates/login.html:33
 #: acct_mgr/templates/register.html:36
@@ -799,7 +816,7 @@ msgstr "Nombre de usuario:"
 
 #: acct_mgr/templates/admin_users.html:36 acct_mgr/templates/register.html:40
 msgid "Only lowercase usernames allowed"
-msgstr ""
+msgstr "Solo se permiten nombres de usuario en minúsculas"
 
 #: acct_mgr/templates/admin_users.html:41 acct_mgr/templates/login.html:38
 #: acct_mgr/templates/prefs_account.html:30 acct_mgr/templates/register.html:45
@@ -822,11 +839,11 @@ msgstr "Dirección de correo electrónico:"
 
 #: acct_mgr/templates/admin_users.html:67
 msgid "Skip new email verification"
-msgstr ""
+msgstr "Omitir verificación de correo electrónico nuevo"
 
 #: acct_mgr/templates/admin_users.html:70
 msgid "Add a new user account or edit an existing one."
-msgstr ""
+msgstr "Agregue una nueva cuenta de usuario o edite una existente."
 
 #: acct_mgr/templates/admin_users.html:72
 msgid " Add "
@@ -842,11 +859,11 @@ msgstr "Este almacén de contraseñas no puede listar usuarios."
 
 #: acct_mgr/templates/admin_users.html:91
 msgid "Send another random password"
-msgstr ""
+msgstr "Enviar otra contraseña aleatoria"
 
 #: acct_mgr/templates/admin_users.html:91
 msgid "Reset passwords"
-msgstr ""
+msgstr "Restablecer contraseñas"
 
 #: acct_mgr/templates/admin_users.html:95
 msgid "Remove selected accounts"
@@ -854,11 +871,11 @@ msgstr "Eliminar cuentas de usuario seleccionadas"
 
 #: acct_mgr/templates/admin_users.html:98
 msgid "Review account attributes"
-msgstr ""
+msgstr "Revisar los atributos de la cuenta"
 
 #: acct_mgr/templates/db_cleanup.html:14 acct_mgr/templates/db_cleanup.html:23
 msgid "Accounts: Cleanup"
-msgstr ""
+msgstr "Cuentas: Limpieza"
 
 #: acct_mgr/templates/db_cleanup.html:30
 msgid ""
@@ -869,31 +886,31 @@ msgstr ""
 #: acct_mgr/templates/db_cleanup.html:44
 #, python-format
 msgid "Accounts (%(slice)s)"
-msgstr ""
+msgstr "Cuentas (%(slice)s)"
 
 #: acct_mgr/templates/db_cleanup.html:57
 msgid "Attribute"
-msgstr ""
+msgstr "Atributo"
 
 #: acct_mgr/templates/db_cleanup.html:58
 msgid "Value"
-msgstr ""
+msgstr "Valor"
 
 #: acct_mgr/templates/db_cleanup.html:63
 msgid "Not Authenticated Accounts"
-msgstr ""
+msgstr "Cuentas no autenticadas"
 
 #: acct_mgr/templates/db_cleanup.html:90
 msgid "Authenticated Accounts"
-msgstr ""
+msgstr "Cuentas autenticadas"
 
 #: acct_mgr/templates/db_cleanup.html:121
 msgid "Remove selected entries"
-msgstr ""
+msgstr "Eliminar entradas seleccionadas"
 
 #: acct_mgr/templates/db_cleanup.html:123
 msgid "Undo selection"
-msgstr ""
+msgstr "Deshacer selección"
 
 #: acct_mgr/templates/login.html:14 acct_mgr/templates/login.html:26
 #: acct_mgr/templates/login.html:54
@@ -1002,7 +1019,7 @@ msgstr "Última conexión"
 
 #: acct_mgr/templates/user_table.html:41
 msgid "Permanently locked"
-msgstr ""
+msgstr "Permanentemente bloqueado"
 
 #: acct_mgr/templates/verify_email.html:14
 #: acct_mgr/templates/verify_email.html:25
